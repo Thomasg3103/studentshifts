@@ -1,0 +1,253 @@
+html, body, #root {
+
+  margin: 0;
+
+  padding: 0;
+
+  height: 100%;
+
+  width: 100%;
+
+  font-family: Arial, sans-serif;
+
+  color: #111827; /* dark text for everything */
+
+  background-color: #f9fafb;
+
+}
+
+
+
+
+
+.app-wrapper {
+
+  display: flex;
+
+  flex-direction: column;
+
+  height: 100%;
+
+  width: 100%;
+
+}
+
+
+
+
+
+header {
+
+  width: 100%;
+
+  background-color: #1f2937;
+
+  color: white; /* keep header text white */
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding: 1rem 2rem;
+
+  box-sizing: border-box;
+
+}
+
+
+
+
+
+.page-content {
+
+  flex: 1;
+
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+}
+
+
+
+
+
+.full-page {
+
+  flex: 1;
+
+  width: 100%;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: flex-start;
+
+  padding: 2rem;
+
+  background-color: #f9fafb;
+
+  box-sizing: border-box;
+
+  color: #111827; /* dark text */
+
+}
+
+
+
+
+
+/* Login box */
+
+.login-box {
+
+  width: 100%;
+
+  padding: 2rem;
+
+  background-color: white;
+
+  border-radius: 0.75rem;
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+
+  text-align: center;
+
+  color: #111827; /* dark text */
+
+}
+
+
+
+
+
+/* Job details container */
+
+.job-details-container {
+
+  width: 100%;
+
+  padding: 2rem;
+
+  background-color: #f0f4f8;
+
+  border-radius: 0.75rem;
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.1);
+
+  margin: 2rem 0;
+
+  color: #111827; /* dark text */
+
+}
+
+
+
+
+
+/* Dashboard job cards */
+
+.job-card {
+
+  width: 100%;
+
+  padding: 1.5rem;
+
+  margin-bottom: 1.5rem;
+
+  background-color: white;
+
+  border-radius: 0.75rem;
+
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  color: #111827; /* dark text */
+
+}
+
+
+
+
+
+.job-card p {
+
+  color: #111827;
+
+}
+
+
+
+
+
+/* Buttons */
+
+.view-btn { background-color: #3b82f6; color: white; }
+
+.apply-btn { background-color: #10b981; color: white; }
+
+.back-btn { background-color: #6b7280; color: white; }
+
+
+
+
+
+/* Responsive */
+
+@media (max-width: 768px) {
+
+  .job-card {
+
+    flex-direction: column;
+
+    align-items: flex-start;
+
+  }
+
+
+
+
+
+  .job-card button {
+
+    width: 100%;
+
+    margin-top: 0.5rem;
+
+  }
+
+
+
+
+
+  .job-details-buttons {
+
+    flex-direction: column-reverse;
+
+    align-items: stretch;
+
+  }
+
+
+
+
+
+  .job-details-buttons button {
+
+    width: 100%;
+
+  }
+
+}
