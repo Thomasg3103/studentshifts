@@ -139,6 +139,7 @@ export default function StudentDashboard({
   const [distanceKm,      setDistanceKm]      = useState(0);
   const [searchQuery,     setSearchQuery]     = useState("");
   const [sortBy,          setSortBy]          = useState("");
+  const [gridCols,        setGridCols]        = useState(1);
   const filterBarRef = useRef(null);
 
   const getJobCoords = (job) => {
@@ -375,7 +376,13 @@ export default function StudentDashboard({
             </button>
           )}
 
-          <span style={{ marginLeft: "auto", fontSize: "0.75rem", fontWeight: "700", color: "#4f46e5", backgroundColor: "#eef2ff", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
+          {/* Grid toggle */}
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.3rem", backgroundColor: "#f1f5f9", borderRadius: "0.6rem", padding: "0.2rem" }}>
+            <button onClick={() => setGridCols(1)} title="Single column" style={{ padding: "0.3rem 0.5rem", border: "none", borderRadius: "0.45rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "#6366f1" : "#94a3b8", fontWeight: "700", fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
+            <button onClick={() => setGridCols(2)} title="Two columns" style={{ padding: "0.3rem 0.5rem", border: "none", borderRadius: "0.45rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "#6366f1" : "#94a3b8", fontWeight: "700", fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
+          </div>
+
+          <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "#4f46e5", backgroundColor: "#eef2ff", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
             {displayJobs.length} job{displayJobs.length !== 1 ? "s" : ""}
           </span>
         </div>
@@ -395,7 +402,7 @@ export default function StudentDashboard({
       )}
 
       {/* Job List */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+      <div style={{ display: "grid", gridTemplateColumns: gridCols === 2 ? "1fr 1fr" : "1fr", gap: "1rem" }}>
         {displayJobs.map((job) => {
           const isLiked   = likedJobs.some(j => j.id === job.id);
           const isApplied = appliedJobs.some(j => j.id === job.id);
@@ -405,7 +412,7 @@ export default function StudentDashboard({
           const dlSoon    = dlDays !== null && dlDays <= 7 && dlDays >= 0;
 
           return (
-            <div key={job.id} className="job-card" style={{ flexDirection: "column", alignItems: "stretch", padding: 0, overflow: "hidden" }}>
+            <div key={job.id} className="job-card" style={{ flexDirection: "column", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0 }}>
               {/* Company banner photo */}
               <img
                 src={COMPANY_PHOTOS[job.company] || "https://picsum.photos/seed/default/800/140"}

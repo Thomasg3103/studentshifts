@@ -44,10 +44,10 @@ export default function AboutPage({ setPage }) {
       <Section title="StudentShifts by the Numbers">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", marginTop: "0.5rem" }}>
           {[
-            { n: "1,200+", label: "Students Registered" },
-            { n: "340+", label: "Shifts Posted" },
-            { n: "85+", label: "Local Employers" },
-            { n: "4.8★", label: "Average Rating" },
+            { n: "*", label: "Students Registered" },
+            { n: "*", label: "Shifts Posted" },
+            { n: "*", label: "Local Employers" },
+            { n: "*", label: "Average Rating" },
           ].map(({ n, label }) => (
             <div key={label} style={{ backgroundColor: "#eef2ff", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
               <p style={{ fontWeight: "800", fontSize: "1.6rem", color: "#6366f1", margin: 0 }}>{n}</p>
@@ -61,10 +61,11 @@ export default function AboutPage({ setPage }) {
       <Section title="Meet the Team">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginTop: "0.5rem" }}>
           {[
-            { name: "Aoife Murphy", role: "Co-Founder & CEO", emoji: "👩‍💼" },
-            { name: "Ciarán Walsh", role: "Co-Founder & CTO", emoji: "👨‍💻" },
-            { name: "Sinéad Kelly", role: "Head of Operations", emoji: "👩‍🏫" },
-            { name: "Darragh O'Brien", role: "Student Partnerships", emoji: "🤝" },
+            { name: "Tom Stephens", role: "Co-Founder & CEO", emoji: "👨‍💼" },
+            { name: "Thomas Smith", role: "Co-Founder & CFO", emoji: "💼" },
+            { name: "Thomas Gallagher", role: "Co-Founder & CTO", emoji: "👨‍💻" },
+            { name: "John McCarthy", role: "Co-Founder & CMO", emoji: "📣" },
+            { name: "Liam Hyland", role: "Co-Founder & CMO", emoji: "🤝" },
           ].map(({ name, role, emoji }) => (
             <div key={name} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>{emoji}</div>
