@@ -195,6 +195,7 @@ export default function StudentDashboard({
   };
 
   const hasActiveFilters = selectedDays.length > 0 || selectedLocations.length > 0 || selectedJobTypes.length > 0 || weekendOnly || allWeekOnly || noWeekends || distanceKm > 0 || searchQuery.trim() !== "";
+  const activeFilterCount = (selectedDays.length > 0 ? 1 : 0) + (selectedLocations.length > 0 ? 1 : 0) + (selectedJobTypes.length > 0 ? 1 : 0) + (weekendOnly ? 1 : 0) + (allWeekOnly ? 1 : 0) + (noWeekends ? 1 : 0) + (distanceKm > 0 ? 1 : 0);
 
   const filteredJobs = jobs.filter(job => {
     if (selectedDays.length > 0) {
@@ -228,10 +229,15 @@ export default function StudentDashboard({
   const displayJobs = sortBy === "" ? filteredJobs : [...filteredJobs].sort((a, b) => {
     if (sortBy === "payHigh") return payNum(b.pay) - payNum(a.pay);
     if (sortBy === "payLow")  return payNum(a.pay) - payNum(b.pay);
-    if (sortBy === "distance") {
+    if (sortBy === "distanceNear") {
       const da = jobDistance(a) ?? Infinity;
       const db = jobDistance(b) ?? Infinity;
       return da - db;
+    }
+    if (sortBy === "distanceFar") {
+      const da = jobDistance(a) ?? -Infinity;
+      const db = jobDistance(b) ?? -Infinity;
+      return db - da;
     }
     return 0;
   });
@@ -243,9 +249,6 @@ export default function StudentDashboard({
     setLikedJobs(isLiked ? likedJobs.filter(j => j.id !== job.id) : [...likedJobs, job]);
   };
 
-  const dayTimeLabel  = () => selectedDays.length === 0 ? "Days & Times" : `Days & Times (${selectedDays.map(d => dayTimes[d] ? `${d.slice(0,3)} ${dayTimes[d]}` : d.slice(0,3)).join(", ")})`;
-  const locationLabel = () => selectedLocations.length === 0 ? "Location" : `Location (${selectedLocations.length})`;
-  const jobTypeLabel  = () => selectedJobTypes.length === 0  ? "Job Type"  : `Job Type (${selectedJobTypes.join(", ")})`;
 
   const dropdownBtnStyle = (isActive) => ({
     padding: "0.45rem 1rem", borderRadius: "2rem",
@@ -277,100 +280,96 @@ export default function StudentDashboard({
       <div ref={filterBarRef} style={{ marginBottom: "1.5rem", position: "relative" }}>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
 
-          {/* Days & Times */}
+          {/* Relevance dropdown */}
           <div style={{ position: "relative" }}>
-            <button onClick={() => setOpenDropdown(openDropdown === "dayTime" ? null : "dayTime")} style={dropdownBtnStyle(selectedDays.length > 0)}>
-              {dayTimeLabel()} ▾
+            <button onClick={() => setOpenDropdown(openDropdown === "relevance" ? null : "relevance")} style={dropdownBtnStyle(sortBy !== "")}>
+              {sortBy === "" ? "Relevance" : sortBy === "payHigh" ? "Pay: High → Low" : sortBy === "payLow" ? "Pay: Low → High" : sortBy === "distanceNear" ? "Closest First" : "Furthest First"} ▾
             </button>
-            {openDropdown === "dayTime" && (
+            {openDropdown === "relevance" && (
               <div style={dropdownPanel}>
-                {warning && <p style={{ color: "#ef4444", fontSize: "0.8rem", marginBottom: "0.5rem" }}>{warning}</p>}
+                {[
+                  { value: "",             label: "Default" },
+                  { value: "payHigh",      label: "Pay: High → Low" },
+                  { value: "payLow",       label: "Pay: Low → High" },
+                  ...(studentLocation ? [
+                    { value: "distanceNear", label: "Distance: Closest → Furthest" },
+                    { value: "distanceFar",  label: "Distance: Furthest → Closest" },
+                  ] : []),
+                ].map(({ value, label }) => (
+                  <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: sortBy === value ? "700" : "500", color: sortBy === value ? "#4f46e5" : "#374151", fontSize: "0.85rem" }}>
+                    <input type="radio" name="sortBy" checked={sortBy === value} onChange={() => { setSortBy(value); setOpenDropdown(null); }} style={{ cursor: "pointer" }} />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Filters dropdown */}
+          <div style={{ position: "relative" }}>
+            <button onClick={() => setOpenDropdown(openDropdown === "filters" ? null : "filters")} style={dropdownBtnStyle(activeFilterCount > 0)}>
+              Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""} ▾
+            </button>
+            {openDropdown === "filters" && (
+              <div style={{ ...dropdownPanel, minWidth: "300px", maxHeight: "480px", overflowY: "auto" }}>
+
+                {/* Days & Times */}
+                <p style={filterSectionLabel}>Days &amp; Times</p>
+                {warning && <p style={{ color: "#ef4444", fontSize: "0.78rem", marginBottom: "0.4rem" }}>{warning}</p>}
                 {weekdays.map(day => (
-                  <div key={day} style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.5rem" }}>
+                  <div key={day} style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.45rem" }}>
                     <input type="checkbox" id={`day-${day}`} checked={selectedDays.includes(day)} onChange={() => toggleDay(day)} style={{ cursor: "pointer", width: "15px", height: "15px" }} />
-                    <label htmlFor={`day-${day}`} style={{ fontWeight: "500", minWidth: "90px", cursor: "pointer" }}>{day}</label>
+                    <label htmlFor={`day-${day}`} style={{ fontWeight: "500", minWidth: "90px", cursor: "pointer", fontSize: "0.85rem" }}>{day}</label>
                     <select value={dayTimes[day] || ""} onChange={e => updateTime(day, e.target.value)} disabled={!selectedDays.includes(day)}
-                      style={{ padding: "0.2rem 0.4rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.8rem", color: selectedDays.includes(day) ? "#111827" : "#9ca3af", cursor: selectedDays.includes(day) ? "pointer" : "not-allowed", backgroundColor: selectedDays.includes(day) ? "white" : "#f9fafb" }}>
+                      style={{ padding: "0.2rem 0.4rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.78rem", color: selectedDays.includes(day) ? "#111827" : "#9ca3af", cursor: selectedDays.includes(day) ? "pointer" : "not-allowed", backgroundColor: selectedDays.includes(day) ? "white" : "#f9fafb" }}>
                       <option value="">Any time</option>
                       {timeSlots.map(time => <option key={time} value={time}>{time}</option>)}
                     </select>
                   </div>
                 ))}
-              </div>
-            )}
-          </div>
 
-          {/* Location */}
-          <div style={{ position: "relative" }}>
-            <button onClick={() => setOpenDropdown(openDropdown === "location" ? null : "location")} style={dropdownBtnStyle(selectedLocations.length > 0)}>
-              {locationLabel()} ▾
-            </button>
-            {openDropdown === "location" && (
-              <div style={dropdownPanel}>
+                <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "0.65rem 0" }} />
+
+                {/* Location */}
+                <p style={filterSectionLabel}>Location</p>
                 {allLocations.map(loc => (
-                  <label key={loc} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: "500" }}>
+                  <label key={loc} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: "500", fontSize: "0.85rem" }}>
                     <input type="checkbox" checked={selectedLocations.includes(loc)} onChange={() => toggleLocation(loc)} style={{ width: "15px", height: "15px", cursor: "pointer" }} />
                     {loc}
                   </label>
                 ))}
-              </div>
-            )}
-          </div>
 
-          {/* Job Type */}
-          <div style={{ position: "relative" }}>
-            <button onClick={() => setOpenDropdown(openDropdown === "jobType" ? null : "jobType")} style={dropdownBtnStyle(selectedJobTypes.length > 0)}>
-              {jobTypeLabel()} ▾
-            </button>
-            {openDropdown === "jobType" && (
-              <div style={{ ...dropdownPanel, maxHeight: "280px", overflowY: "auto" }}>
+                <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "0.65rem 0" }} />
+
+                {/* Job Type */}
+                <p style={filterSectionLabel}>Job Type</p>
                 {Object.keys(jobCategories).map(type => (
-                  <label key={type} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: "500" }}>
+                  <label key={type} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: "500", fontSize: "0.85rem" }}>
                     <input type="checkbox" checked={selectedJobTypes.includes(type)} onChange={() => toggleJobType(type)} style={{ width: "15px", height: "15px", cursor: "pointer" }} />
                     {type}
                   </label>
                 ))}
+
+                <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "0.65rem 0" }} />
+
+                {/* Schedule toggles */}
+                <p style={filterSectionLabel}>Schedule</p>
+                {[
+                  { label: "Weekend Work", active: weekendOnly, toggle: () => setWeekendOnly(p => !p) },
+                  { label: "All Week",     active: allWeekOnly, toggle: () => setAllWeekOnly(p => !p) },
+                  { label: "No Weekends",  active: noWeekends,  toggle: () => setNoWeekends(p => !p) },
+                ].map(({ label, active, toggle }) => (
+                  <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: active ? "700" : "500", color: active ? "#4f46e5" : "#374151", fontSize: "0.85rem" }}>
+                    <input type="checkbox" checked={active} onChange={toggle} style={{ width: "15px", height: "15px", cursor: "pointer" }} />
+                    {label}
+                  </label>
+                ))}
+
               </div>
             )}
           </div>
 
-          <button onClick={() => setWeekendOnly(p => !p)} style={dropdownBtnStyle(weekendOnly)}>Weekend Work</button>
-          <button onClick={() => setAllWeekOnly(p => !p)} style={dropdownBtnStyle(allWeekOnly)}>All Week</button>
-          <button onClick={() => setNoWeekends(p => !p)} style={dropdownBtnStyle(noWeekends)}>No Weekends</button>
-
-          {/* Distance */}
-          {studentLocation && (
-            <div style={{ position: "relative" }}>
-              <button onClick={() => setOpenDropdown(openDropdown === "distance" ? null : "distance")} style={dropdownBtnStyle(distanceKm > 0)}>
-                {distanceKm > 0 ? `Within ${distanceKm}km` : "Distance"} ▾
-              </button>
-              {openDropdown === "distance" && (
-                <div style={dropdownPanel}>
-                  <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.5rem", fontWeight: "600" }}>Max distance from your location</p>
-                  {[0, 1, 2, 5, 10, 20].map(km => (
-                    <label key={km} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: distanceKm === km ? "700" : "500", color: distanceKm === km ? "#1d4ed8" : "#374151" }}>
-                      <input type="radio" name="distanceKm" checked={distanceKm === km} onChange={() => { setDistanceKm(km); setOpenDropdown(null); }} style={{ cursor: "pointer" }} />
-                      {km === 0 ? "Any distance" : `Within ${km}km`}
-                    </label>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Sort */}
-          <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
-            style={{ padding: "0.45rem 0.85rem", borderRadius: "2rem", border: `1.5px solid ${sortBy !== "" ? "#6366f1" : "#e2e8f0"}`, backgroundColor: sortBy !== "" ? "#eef2ff" : "white", color: sortBy !== "" ? "#4f46e5" : "#64748b", fontWeight: sortBy !== "" ? "700" : "500", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
-          >
-            <option value="">Sort</option>
-            <option value="payHigh">Pay: High → Low</option>
-            <option value="payLow">Pay: Low → High</option>
-            {studentLocation && <option value="distance">Nearest First</option>}
-          </select>
-
-          {hasActiveFilters && (
+          {(hasActiveFilters || sortBy !== "") && (
             <button onClick={clearAll} style={{ padding: "0.45rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fda4af", backgroundColor: "#fff1f2", color: "#e11d48", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}>
               Clear
             </button>
@@ -495,3 +494,4 @@ const dropdownPanel = {
 
 const btnBase = { padding: "0.38rem 0.9rem", borderRadius: "2rem", color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "0.8rem", fontFamily: "inherit" };
 const btnBlue = { ...btnBase, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 2px 8px rgba(99,102,241,0.3)" };
+const filterSectionLabel = { fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 0.4rem" };
