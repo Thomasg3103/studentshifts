@@ -106,12 +106,19 @@ header {
 @media (max-width: 640px) {
   header {
     padding: 0.55rem 0.85rem !important;
-    /* Switch to auto 1fr auto so sides shrink to content width */
-    grid-template-columns: auto 1fr auto !important;
+    /* 1fr auto 1fr keeps logo centred; equal side columns mirror each other */
+    grid-template-columns: 1fr auto 1fr !important;
+    align-items: center !important;
   }
-  /* Compact nav buttons so the right side fits on narrow screens */
+  /* Right nav: allow liked/applied buttons to wrap onto a second row */
+  header > div:last-child {
+    flex-wrap: wrap !important;
+    justify-content: flex-end !important;
+    gap: 0.3rem !important;
+  }
+  /* Compact nav buttons so they fit within 1fr */
   header button {
-    padding: 0.32rem 0.6rem !important;
+    padding: 0.3rem 0.55rem !important;
     font-size: 0.78rem !important;
   }
   .job-card {
