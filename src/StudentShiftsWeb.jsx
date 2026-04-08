@@ -56,7 +56,9 @@ export default function StudentShiftsWeb() {
         if (session?.user) {
           try {
             const profile = await getProfile(session.user.id);
-            setCurrentUser(normaliseProfile(profile));
+            const user = normaliseProfile(profile);
+            setCurrentUser(user);
+            if (user.role === "company") setPage("companyDashboard");
           } catch (e) {
             console.error("Failed to load profile", e);
           }
