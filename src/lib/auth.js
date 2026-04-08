@@ -38,3 +38,22 @@ export async function getCurrentSession() {
   const { data: { session } } = await supabase.auth.getSession();
   return session;
 }
+
+export async function updateStudentProfile(userId, updates) {
+  const { error } = await supabase
+    .from("students")
+    .update(updates)
+    .eq("id", userId);
+  if (error) throw error;
+}
+
+export async function uploadAvatar(userId, file) {
+  const ext  = file.name.split(".").pop();
+  const path = `${userId}/avatar.${ext}`;
+  const { error } = await supabase.storage
+    .from("avatars")
+    .upload(path, file, { upsert: true });
+  if (error) throw error;
+  const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+  return publicUrl + "?t=" + Date.now();
+}

@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
+import { updateStudentProfile, uploadAvatar, signOut } from "../lib/auth";
 
 export default function AccountPage({
   currentUser,
@@ -18,12 +19,16 @@ export default function AccountPage({
   const [skills, setSkills] = useState(currentUser.skills || []);
   const [skillInput, setSkillInput] = useState("");
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(currentUser.profilePhoto || "");
+  const [profilePhotoFile, setProfilePhotoFile] = useState(null);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    setProfilePhotoFile(file);
     const reader = new FileReader();
     reader.onload = (ev) => setProfilePhoto(ev.target.result);
     reader.readAsDataURL(file);
@@ -99,36 +104,61 @@ export default function AccountPage({
     }
   };
 
-  const handleSave = () => {
-    const savedLocation = (currentUser.role === "student" && locationCoords)
-      ? { type: locationType, address: locationAddress, lat: locationCoords.lat, lng: locationCoords.lng, displayName: locationCoords.displayName }
-      : currentUser.savedLocation || null;
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError("");
+    try {
+      let photoUrl = currentUser.profilePhoto;
 
-    const updatedUser = {
-      ...currentUser,
-      linkedIn,
-      cvName: cv ? cv.name : currentUser.cvName,
-      coverLetterName: coverLetter ? coverLetter.name : currentUser.coverLetterName,
-      bio,
-      skills,
-      savedLocation,
-      profilePhoto,
-    };
+      // Upload new profile photo if one was picked
+      if (profilePhotoFile) {
+        photoUrl = await uploadAvatar(currentUser.id, profilePhotoFile);
+      }
 
-    if (setStudentLocation) setStudentLocation(savedLocation);
+      const savedLocation = (currentUser.role === "student" && locationCoords)
+        ? { type: locationType, address: locationAddress, lat: locationCoords.lat, lng: locationCoords.lng, displayName: locationCoords.displayName }
+        : currentUser.savedLocation || null;
 
-    setCurrentUser(updatedUser);
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    localStorage.setItem("users", JSON.stringify(users.map(u => u.id === updatedUser.id ? updatedUser : u)));
-    localStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      const updates = {
+        bio,
+        skills,
+        linkedin:          linkedIn,
+        cv_url:            cv ? cv.name : currentUser.cvName,
+        cover_letter_url:  coverLetter ? coverLetter.name : currentUser.coverLetterName,
+        profile_photo_url: photoUrl,
+        location_lat:      savedLocation?.lat    || null,
+        location_lng:      savedLocation?.lng    || null,
+        location_display:  savedLocation?.displayName || null,
+      };
 
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2500);
+      await updateStudentProfile(currentUser.id, updates);
+
+      const updatedUser = {
+        ...currentUser,
+        linkedIn,
+        cvName:           updates.cv_url,
+        coverLetterName:  updates.cover_letter_url,
+        bio,
+        skills,
+        savedLocation,
+        profilePhoto:     photoUrl,
+      };
+
+      setCurrentUser(updatedUser);
+      if (setStudentLocation) setStudentLocation(savedLocation);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    } catch (e) {
+      setSaveError(e.message || "Failed to save. Please try again.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleLogout = () => setShowLogoutModal(true);
 
-  const confirmLogout = () => {
+  const confirmLogout = async () => {
+    try { await signOut(); } catch (_) {}
     setCurrentUser(null);
     setLikedJobs([]);
     setAppliedJobs([]);
@@ -371,8 +401,13 @@ export default function AccountPage({
               </div>
             )}
 
-            <button onClick={handleSave} style={btnPrimary}>
-              {saved ? "✓ Saved!" : "Save Profile"}
+            {saveError && (
+              <div style={{ backgroundColor: "#fff1f2", border: "1px solid #fecdd3", borderRadius: "0.6rem", padding: "0.6rem 0.9rem", marginBottom: "0.75rem", color: "#e11d48", fontSize: "0.85rem", fontWeight: "500" }}>
+                {saveError}
+              </div>
+            )}
+            <button onClick={handleSave} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.7 : 1 }}>
+              {saved ? "✓ Saved!" : saving ? "Saving…" : "Save Profile"}
             </button>
           </Section>
         )}
