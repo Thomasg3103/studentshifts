@@ -402,7 +402,7 @@ export default function StudentDashboard({
       )}
 
       {/* Job List */}
-      <div style={{ display: "grid", gridTemplateColumns: gridCols === 2 ? "1fr 1fr" : "1fr", gap: "1rem" }}>
+      <div className="job-list-grid" style={{ display: "grid", gridTemplateColumns: gridCols === 2 ? "1fr 1fr" : "1fr", gap: "1rem" }}>
         {displayJobs.map((job) => {
           const isLiked   = likedJobs.some(j => j.id === job.id);
           const isApplied = appliedJobs.some(j => j.id === job.id);

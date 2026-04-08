@@ -30,13 +30,14 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
 
       {/* Centre — Logo */}
       <div
+        className="header-logo"
         style={{ display: "flex", alignItems: "center", gap: "0.85rem", cursor: "pointer" }}
         onClick={() => setPage(currentUser?.role === "company" ? "companyDashboard" : "studentDashboard")}
       >
-        <LogoIcon />
-        <div style={{ lineHeight: "1.15" }}>
-          <div style={{ margin: 0, fontSize: "2.1rem", fontWeight: "800", background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.02em" }}>Student</div>
-          <div style={{ margin: 0, fontSize: "2.1rem", fontWeight: "800", letterSpacing: "-0.02em" }}>
+        <div className="header-logo-icon"><LogoIcon /></div>
+        <div className="header-logo-text" style={{ lineHeight: "1.15" }}>
+          <div className="logo-student" style={{ margin: 0, fontSize: "2.1rem", fontWeight: "800", background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.02em" }}>Student</div>
+          <div className="logo-shifts" style={{ margin: 0, fontSize: "2.1rem", fontWeight: "800", letterSpacing: "-0.02em" }}>
             <span style={{ color: "white" }}>Shifts</span><span style={{ color: "#6366f1" }}>.ie</span>
           </div>
         </div>
@@ -49,11 +50,11 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
             {currentUser.role === "student" && (
               <>
                 <button onClick={() => setPage("likedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                  ❤️ Liked <CountBadge n={likedJobs.length} />
+                  ❤️ <span className="nav-label">Liked</span> <CountBadge n={likedJobs.length} />
                 </button>
                 <div style={{ position: "relative", display: "inline-block" }}>
                   <button onClick={() => setPage("appliedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                    ✅ Applied <CountBadge n={appliedJobs.length} />
+                    ✅ <span className="nav-label">Applied</span> <CountBadge n={appliedJobs.length} />
                   </button>
                   {notifCount > 0 && <span style={notifDot}>{notifCount}</span>}
                 </div>

@@ -24,7 +24,7 @@ export default function PageWrapper({ children }) {
       fontFamily: "'Poppins', sans-serif",
     }}>
 
-      <div style={{
+      <div className="page-inner" style={{
         width: "100%",
         maxWidth: "880px",
         margin: "0 auto",

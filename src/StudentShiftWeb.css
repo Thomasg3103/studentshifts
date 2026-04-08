@@ -104,7 +104,7 @@ header {
 
 @media (max-width: 640px) {
   header {
-    padding: 0.9rem 1.25rem;
+    padding: 0.6rem 1rem !important;
   }
   .job-card {
     flex-direction: column;
@@ -123,6 +123,26 @@ header {
     left: 1rem;
     right: 1rem;
     width: auto;
+  }
+  /* Header logo — hide SVG icon, shrink text */
+  .header-logo-icon {
+    display: none;
+  }
+  .header-logo-text .logo-student,
+  .header-logo-text .logo-shifts {
+    font-size: 1.3rem !important;
+  }
+  /* Hide nav button text labels, keep emoji */
+  .nav-label {
+    display: none;
+  }
+  /* PageWrapper inner card padding */
+  .page-inner {
+    padding: 1rem !important;
+  }
+  /* Force single column job grid on mobile */
+  .job-list-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 
