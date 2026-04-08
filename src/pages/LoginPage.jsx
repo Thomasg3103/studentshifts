@@ -79,7 +79,7 @@ export default function LoginPage({ setPage, setCurrentUser, mockUsers }) {
           style={fieldStyle}
         />
 
-        <button onClick={handleLogin} style={btnPrimary}>Sign In →</button>
+        <button onClick={handleLogin} style={btnPrimary}>Login →</button>
         <button onClick={() => setPage("studentDashboard")} style={btnGhost}>Browse without account</button>
         <button onClick={() => setPage("studentDashboard")} style={btnHome}>← Back to Home</button>
 

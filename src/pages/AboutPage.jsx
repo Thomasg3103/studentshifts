@@ -61,11 +61,11 @@ export default function AboutPage({ setPage }) {
       <Section title="Meet the Team">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginTop: "0.5rem" }}>
           {[
-            { name: "Liam Hyland",       role: "Co-Founder & CMO", photo: "/Team/liam.jpg",            pos: "top" },
+            { name: "Tom Stephens",      role: "Co-Founder & CEO", photo: "/Team/tom.jpg",              pos: "50% 25%" },
             { name: "Thomas Smith",      role: "Co-Founder & CFO", photo: "/Team/thomas-smith.jpg",    pos: "top" },
+            { name: "Thomas Gallagher",  role: "Co-Founder & CTO", photo: "/Team/thomas-gallagher.jpg", pos: "50% 60%" },
+            { name: "Liam Hyland",       role: "Co-Founder & CMO", photo: "/Team/liam.jpg",            pos: "top" },
             { name: "John McCarthy",     role: "Co-Founder & CMO", photo: "/Team/john.jpg",             pos: "top" },
-            { name: "Tom Stephens",      role: "Co-Founder & CEO", photo: "/Team/tom.jpg",              pos: "50% 2%" },
-            { name: "Thomas Gallagher",  role: "Co-Founder & CTO", photo: "/Team/thomas-gallagher.jpg", pos: "50% 2%" },
           ].map(({ name, role, photo, pos }) => (
             <div key={name} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
               <img src={photo} alt={name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", objectPosition: pos, marginBottom: "0.65rem", border: "3px solid #e2e8f0" }} />
