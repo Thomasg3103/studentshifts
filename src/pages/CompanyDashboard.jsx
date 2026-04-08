@@ -188,9 +188,9 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: "bold", margin: 0 }}>Company Dashboard</h1>
+          <h1 style={{ fontSize: "1.75rem", fontWeight: "800", margin: 0, color: "#1e293b" }}>Company Dashboard</h1>
           {currentUser && (
-            <p style={{ color: "#6b7280", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{currentUser.name}</p>
+            <p style={{ color: "#64748b", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{currentUser.name}</p>
           )}
         </div>
         <button onClick={openCreate} style={btnGreen}>+ New Job</button>
@@ -826,14 +826,14 @@ function Modal({ title, children, onClose }) {
 /* ─── Styles ─────────────────────────────────────────────────────────────── */
 
 const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "#374151", marginBottom: "0.25rem" };
-const inputStyle  = { width: "100%", padding: "0.6rem 0.75rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", fontSize: "0.9rem", boxSizing: "border-box" };
+const inputStyle  = { width: "100%", padding: "0.6rem 0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b" };
 
-const btnBase      = { padding: "0.5rem 1rem", borderRadius: "0.5rem", border: "none", color: "white", fontWeight: "600", cursor: "pointer", fontSize: "0.875rem" };
-const btnGreen     = { ...btnBase, backgroundColor: "#16a34a" };
-const btnGray      = { ...btnBase, backgroundColor: "#6b7280" };
+const btnBase      = { padding: "0.6rem 1.1rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.875rem", fontFamily: "inherit" };
+const btnGreen     = { ...btnBase, background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.35)" };
+const btnGray      = { ...btnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 14px rgba(244,63,94,0.3)" };
 
-const btnSmallBase  = { padding: "0.3rem 0.65rem", borderRadius: "0.4rem", border: "none", color: "white", fontWeight: "600", cursor: "pointer", fontSize: "0.75rem" };
-const btnSmallGreen = { ...btnSmallBase, backgroundColor: "#16a34a" };
-const btnSmallBlue  = { ...btnSmallBase, backgroundColor: "#3b82f6" };
-const btnSmallGray  = { ...btnSmallBase, backgroundColor: "#6b7280" };
-const btnSmallRed   = { ...btnSmallBase, backgroundColor: "#ef4444" };
+const btnSmallBase  = { padding: "0.32rem 0.75rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" };
+const btnSmallGreen = { ...btnSmallBase, background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 2px 6px rgba(16,185,129,0.3)" };
+const btnSmallBlue  = { ...btnSmallBase, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 2px 6px rgba(99,102,241,0.3)" };
+const btnSmallGray  = { ...btnSmallBase, backgroundColor: "#64748b" };
+const btnSmallRed   = { ...btnSmallBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 2px 6px rgba(244,63,94,0.3)" };

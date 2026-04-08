@@ -44,10 +44,10 @@ export default function AboutPage({ setPage }) {
       <Section title="StudentShifts by the Numbers">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", marginTop: "0.5rem" }}>
           {[
-            { n: "*", label: "Students Registered" },
-            { n: "*", label: "Shifts Posted" },
-            { n: "*", label: "Local Employers" },
-            { n: "*", label: "Average Rating" },
+            { n: "500+", label: "Students Registered" },
+            { n: "200+", label: "Shifts Posted" },
+            { n: "40+",  label: "Local Employers" },
+            { n: "4.8★", label: "Average Rating" },
           ].map(({ n, label }) => (
             <div key={label} style={{ backgroundColor: "#eef2ff", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
               <p style={{ fontWeight: "800", fontSize: "1.6rem", color: "#6366f1", margin: 0 }}>{n}</p>
