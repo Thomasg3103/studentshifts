@@ -8,6 +8,7 @@ html, body, #root {
   font-family: 'Poppins', sans-serif;
   color: #1e293b;
   background-color: #f1f5f9;
+  overflow-x: hidden;
 }
 
 .app-wrapper {
@@ -104,7 +105,14 @@ header {
 
 @media (max-width: 640px) {
   header {
-    padding: 0.6rem 1rem !important;
+    padding: 0.55rem 0.85rem !important;
+    /* Switch to auto 1fr auto so sides shrink to content width */
+    grid-template-columns: auto 1fr auto !important;
+  }
+  /* Compact nav buttons so the right side fits on narrow screens */
+  header button {
+    padding: 0.32rem 0.6rem !important;
+    font-size: 0.78rem !important;
   }
   .job-card {
     flex-direction: column;
@@ -130,7 +138,7 @@ header {
   }
   .header-logo-text .logo-student,
   .header-logo-text .logo-shifts {
-    font-size: 1.3rem !important;
+    font-size: 1.15rem !important;
   }
   /* Hide nav button text labels, keep emoji */
   .nav-label {
