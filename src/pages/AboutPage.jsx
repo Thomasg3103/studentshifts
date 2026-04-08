@@ -61,14 +61,14 @@ export default function AboutPage({ setPage }) {
       <Section title="Meet the Team">
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem", marginTop: "0.5rem" }}>
           {[
-            { name: "Tom Stephens", role: "Co-Founder & CEO", emoji: "👨‍💼" },
-            { name: "Thomas Smith", role: "Co-Founder & CFO", emoji: "💼" },
-            { name: "Thomas Gallagher", role: "Co-Founder & CTO", emoji: "👨‍💻" },
-            { name: "John McCarthy", role: "Co-Founder & CMO", emoji: "📣" },
-            { name: "Liam Hyland", role: "Co-Founder & CMO", emoji: "🤝" },
-          ].map(({ name, role, emoji }) => (
+            { name: "Liam Hyland",       role: "Co-Founder & CMO", photo: "/team/Liam.jpg.jpg" },
+            { name: "Thomas Smith",      role: "Co-Founder & CFO", photo: "/team/ThomasSmith.jpg.jpg" },
+            { name: "John McCarthy",     role: "Co-Founder & CMO", photo: "/team/John.jpg.jpg" },
+            { name: "Tom Stephens",      role: "Co-Founder & CEO", photo: "/team/Tom.jpg.jpeg" },
+            { name: "Thomas Gallagher",  role: "Co-Founder & CTO", photo: "/team/ThomasGallagher.jpg.jpeg" },
+          ].map(({ name, role, photo }) => (
             <div key={name} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
-              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>{emoji}</div>
+              <img src={photo} alt={name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", objectPosition: "top", marginBottom: "0.65rem", border: "3px solid #e2e8f0" }} />
               <p style={{ fontWeight: "700", fontSize: "0.9rem", color: "#1e293b", margin: 0 }}>{name}</p>
               <p style={{ fontSize: "0.78rem", color: "#6366f1", fontWeight: "600", margin: "0.2rem 0 0" }}>{role}</p>
             </div>
