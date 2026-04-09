@@ -411,11 +411,11 @@ export default function StudentDashboard({
           return (
             <div key={job.id} className="job-card" style={{ flexDirection: "column", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0 }}>
               {/* Company banner photo */}
-              <div style={{ width: "100%", aspectRatio: "16/7", overflow: "hidden" }}>
+              <div style={{ width: "100%", aspectRatio: "16/7", backgroundColor: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
                 <img
                   src={job.photos?.[0] || COMPANY_PHOTOS[job.company] || "https://picsum.photos/seed/default/800/140"}
                   alt={job.company}
-                  style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }}
+                  style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
                 />
               </div>
 

@@ -52,11 +52,11 @@ export default function JobDetails({
   return (
     <PageWrapper>
       {/* Banner photo */}
-      <div style={{ margin: "-2rem -2.5rem 1.5rem", overflow: "hidden", borderRadius: "1.25rem 1.25rem 0 0", aspectRatio: "16/7" }}>
+      <div style={{ margin: "-2rem -2.5rem 1.5rem", borderRadius: "1.25rem 1.25rem 0 0", aspectRatio: "16/7", backgroundColor: "#0f172a", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
         <img
           src={job.photos?.[0] || COMPANY_PHOTOS[job.company] || "https://picsum.photos/seed/default/800/140"}
           alt={job.company}
-          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center", display: "block" }}
+          style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
         />
       </div>
       <h1 style={{ fontWeight: "800", fontSize: "1.75rem", marginBottom: "0.2rem", color: "#1e293b" }}>{job.title}</h1>
