@@ -54,7 +54,7 @@ export default function JobDetails({
       {/* Banner photo */}
       <div style={{ margin: "-2rem -2.5rem 1.5rem", overflow: "hidden", borderRadius: "1.25rem 1.25rem 0 0" }}>
         <img
-          src={COMPANY_PHOTOS[job.company] || "https://picsum.photos/seed/default/800/140"}
+          src={job.photos?.[0] || COMPANY_PHOTOS[job.company] || "https://picsum.photos/seed/default/800/140"}
           alt={job.company}
           style={{ width: "100%", height: "160px", objectFit: "cover", display: "block" }}
         />
