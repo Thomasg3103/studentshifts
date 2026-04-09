@@ -61,15 +61,15 @@ export default function JobDetails({
             {(() => {
               const crop = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
               return (
-                <img src={photos[idx]} alt={job.company} style={{
-                  position: "absolute",
-                  top: `calc(50% + ${crop.offsetY}%)`,
-                  left: `calc(50% + ${crop.offsetX}%)`,
-                  transform: `translate(-50%, -50%) scale(${crop.zoom})`,
+                <div style={{
+                  position: "absolute", inset: 0,
+                  transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`,
                   transformOrigin: "center",
-                  minWidth: "100%", minHeight: "100%", width: "auto", height: "auto", maxWidth: "none",
-                  display: "block",
-                }} />
+                }}>
+                  <img src={photos[idx]} alt={job.company}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                </div>
               );
             })()}
             {photos.length > 1 && (
