@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
@@ -447,6 +447,41 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
   const set = (key) => (e) => setFormData(prev => ({ ...prev, [key]: e.target.value }));
 
   const categoryNames = Object.keys(jobCategories);
+
+  // Photo preview state
+  const [previewIndex, setPreviewIndex] = useState(0);
+  const [cropSettings, setCropSettings] = useState({}); // per-photo zoom + offset
+  const [isDragging, setIsDragging]     = useState(false);
+  const [dragStart, setDragStart]       = useState({ x: 0, y: 0 });
+  const previewRef = useRef(null);
+
+  const getCrop = (idx) => cropSettings[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
+  const setCrop = (idx, patch) => setCropSettings(prev => ({ ...prev, [idx]: { ...getCrop(idx), ...patch } }));
+
+  const clampOffset = (zoom, ox, oy) => {
+    const max = (zoom - 1) * 50;
+    return { offsetX: Math.max(-max, Math.min(max, ox)), offsetY: Math.max(-max, Math.min(max, oy)) };
+  };
+
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const crop = getCrop(previewIndex);
+    const newZoom = Math.max(1, Math.min(4, crop.zoom - e.deltaY * 0.002));
+    const clamped = clampOffset(newZoom, crop.offsetX, crop.offsetY);
+    setCrop(previewIndex, { zoom: newZoom, ...clamped });
+  };
+
+  const startDrag = (clientX, clientY) => {
+    setIsDragging(true);
+    setDragStart({ x: clientX - getCrop(previewIndex).offsetX, y: clientY - getCrop(previewIndex).offsetY });
+  };
+  const onDrag = (clientX, clientY) => {
+    if (!isDragging) return;
+    const crop = getCrop(previewIndex);
+    const clamped = clampOffset(crop.zoom, clientX - dragStart.x, clientY - dragStart.y);
+    setCrop(previewIndex, clamped);
+  };
+  const stopDrag = () => setIsDragging(false);
   const titlesForCategory = formData.category ? jobCategories[formData.category] ?? [] : [];
 
   const handleCategoryChange = (e) => {
@@ -736,14 +771,50 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
           </span>
         </label>
 
-        {/* Banner preview — shows how the first photo looks on the job card */}
+        {/* Banner preview — interactive zoom & pan */}
         {(existingPhotos.length > 0 || photoFiles.length > 0) && (() => {
-          const previewSrc = existingPhotos[0] || (photoFiles[0] ? URL.createObjectURL(photoFiles[0]) : null);
-          return previewSrc ? (
+          const allSrcs = [
+            ...existingPhotos,
+            ...photoFiles.map(f => URL.createObjectURL(f)),
+          ];
+          const safeIdx = Math.min(previewIndex, allSrcs.length - 1);
+          const src = allSrcs[safeIdx];
+          const crop = getCrop(safeIdx);
+          return src ? (
             <div style={{ marginBottom: "0.75rem" }}>
-              <p style={{ fontSize: "0.75rem", color: "#6b7280", fontWeight: "600", marginBottom: "0.35rem", textTransform: "uppercase", letterSpacing: "0.04em" }}>Preview</p>
-              <div style={{ width: "100%", aspectRatio: "16/7", backgroundColor: "#0f172a", borderRadius: "0.6rem", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", border: "1.5px solid #e2e8f0" }}>
-                <img src={previewSrc} alt="preview" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+                <p style={{ fontSize: "0.75rem", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.04em", margin: 0 }}>Preview · drag to reposition · scroll to zoom</p>
+                <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
+                  <button type="button" onClick={() => { const c = getCrop(safeIdx); const nz = Math.max(1, Math.min(4, c.zoom - 0.25)); const cl = clampOffset(nz, c.offsetX, c.offsetY); setCrop(safeIdx, { zoom: nz, ...cl }); }} style={zoomBtn}>−</button>
+                  <span style={{ fontSize: "0.72rem", color: "#6b7280", minWidth: "32px", textAlign: "center" }}>{Math.round(crop.zoom * 100)}%</span>
+                  <button type="button" onClick={() => { const c = getCrop(safeIdx); const nz = Math.max(1, Math.min(4, c.zoom + 0.25)); setCrop(safeIdx, { zoom: nz }); }} style={zoomBtn}>+</button>
+                  {crop.zoom > 1 && <button type="button" onClick={() => setCrop(safeIdx, { zoom: 1, offsetX: 0, offsetY: 0 })} style={{ ...zoomBtn, color: "#6366f1" }}>Reset</button>}
+                </div>
+              </div>
+              <div
+                ref={previewRef}
+                style={{ width: "100%", aspectRatio: "16/7", backgroundColor: "#0f172a", borderRadius: "0.6rem", overflow: "hidden", border: "1.5px solid #e2e8f0", cursor: isDragging ? "grabbing" : crop.zoom > 1 ? "grab" : "default", userSelect: "none" }}
+                onWheel={handleWheel}
+                onMouseDown={e => { e.preventDefault(); startDrag(e.clientX, e.clientY); }}
+                onMouseMove={e => onDrag(e.clientX, e.clientY)}
+                onMouseUp={stopDrag}
+                onMouseLeave={stopDrag}
+                onTouchStart={e => startDrag(e.touches[0].clientX, e.touches[0].clientY)}
+                onTouchMove={e => { e.preventDefault(); onDrag(e.touches[0].clientX, e.touches[0].clientY); }}
+                onTouchEnd={stopDrag}
+              >
+                <img
+                  src={src}
+                  alt="preview"
+                  draggable={false}
+                  style={{
+                    width: "100%", height: "100%", display: "block",
+                    objectFit: crop.zoom === 1 ? "contain" : "cover",
+                    transform: `scale(${crop.zoom}) translate(${crop.offsetX / crop.zoom}px, ${crop.offsetY / crop.zoom}px)`,
+                    transformOrigin: "center",
+                    transition: isDragging ? "none" : "transform 0.15s ease",
+                  }}
+                />
               </div>
             </div>
           ) : null;
@@ -752,18 +823,25 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
         {/* Thumbnails grid */}
         {(existingPhotos.length > 0 || photoFiles.length > 0) && (
           <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.6rem" }}>
-            {existingPhotos.map(url => (
-              <div key={url} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: "1.5px solid #d1d5db" }}>
-                <img src={url} alt="job photo" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                <button type="button" onClick={() => removeExistingPhoto(url)} style={{ position: "absolute", top: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", color: "white", width: "18px", height: "18px", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
-              </div>
-            ))}
-            {photoFiles.map((file, i) => (
-              <div key={i} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: "1.5px solid #d1d5db" }}>
-                <img src={URL.createObjectURL(file)} alt={file.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                <button type="button" onClick={() => removeNewPhoto(i)} style={{ position: "absolute", top: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", color: "white", width: "18px", height: "18px", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
-              </div>
-            ))}
+            {existingPhotos.map((url, i) => {
+              const isActive = Math.min(previewIndex, existingPhotos.length + photoFiles.length - 1) === i;
+              return (
+                <div key={url} onClick={() => setPreviewIndex(i)} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: `2px solid ${isActive ? "#6366f1" : "#d1d5db"}`, cursor: "pointer", boxShadow: isActive ? "0 0 0 2px #a5b4fc" : "none" }}>
+                  <img src={url} alt="job photo" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <button type="button" onClick={e => { e.stopPropagation(); removeExistingPhoto(url); }} style={{ position: "absolute", top: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", color: "white", width: "18px", height: "18px", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
+                </div>
+              );
+            })}
+            {photoFiles.map((file, i) => {
+              const globalIdx = existingPhotos.length + i;
+              const isActive = Math.min(previewIndex, existingPhotos.length + photoFiles.length - 1) === globalIdx;
+              return (
+                <div key={i} onClick={() => setPreviewIndex(globalIdx)} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: `2px solid ${isActive ? "#6366f1" : "#d1d5db"}`, cursor: "pointer", boxShadow: isActive ? "0 0 0 2px #a5b4fc" : "none" }}>
+                  <img src={URL.createObjectURL(file)} alt={file.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  <button type="button" onClick={e => { e.stopPropagation(); removeNewPhoto(i); }} style={{ position: "absolute", top: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", color: "white", width: "18px", height: "18px", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
+                </div>
+              );
+            })}
           </div>
         )}
 
@@ -876,6 +954,8 @@ const inputStyle  = { width: "100%", padding: "0.6rem 0.75rem", borderRadius: "0
 const btnBase      = { padding: "0.6rem 1.1rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.875rem", fontFamily: "inherit" };
 const btnGreen     = { ...btnBase, background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.35)" };
 const btnGray      = { ...btnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 14px rgba(244,63,94,0.3)" };
+
+const zoomBtn      = { padding: "0.2rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" };
 
 const btnSmallBase  = { padding: "0.32rem 0.75rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" };
 const btnSmallGreen = { ...btnSmallBase, background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 2px 6px rgba(16,185,129,0.3)" };
