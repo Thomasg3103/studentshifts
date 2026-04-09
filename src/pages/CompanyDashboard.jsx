@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
-import { supabase } from "../lib/supabase";
+import { supabase, withTimeout } from "../lib/supabase";
 
 const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const timeSlots = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
@@ -39,20 +39,18 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   // Load this company's jobs on mount
   useEffect(() => {
     if (!currentUser) return;
-    supabase
-      .from("jobs")
-      .select("*, applications(id, status)")
-      .eq("company_id", currentUser.id)
-      .order("created_at", { ascending: false })
-      .then(({ data, error }) => {
-        if (!error && data) {
-          setPostings(data.map(j => ({
-            ...normaliseJob(j),
-            applicantCount: j.applications?.length || 0,
-          })));
-        }
-        setLoading(false);
-      });
+    withTimeout(
+      supabase.from("jobs").select("*, applications(id, status)").eq("company_id", currentUser.id).order("created_at", { ascending: false }),
+      10000, "Loading jobs timed out."
+    ).then(({ data, error }) => {
+      if (!error && data) {
+        setPostings(data.map(j => ({
+          ...normaliseJob(j),
+          applicantCount: j.applications?.length || 0,
+        })));
+      }
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, [currentUser?.id]);
 
   const totalApplicants = postings.reduce((sum, p) => sum + p.applicantCount, 0);
@@ -61,11 +59,10 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   const openApplicants = async (posting) => {
     setActivePosting({ ...posting, applicants: [] });
     setModal("applicants");
-    const { data, error } = await supabase
-      .from("applications")
-      .select("id, status, created_at, profiles:student_id(id, name, email), students:student_id(cv_url)")
-      .eq("job_id", posting.id)
-      .order("created_at", { ascending: true });
+    const { data, error } = await withTimeout(
+      supabase.from("applications").select("id, status, created_at, profiles:student_id(id, name, email), students:student_id(cv_url)").eq("job_id", posting.id).order("created_at", { ascending: true }),
+      10000, "Loading applicants timed out."
+    );
     if (!error && data) {
       const applicants = data.map(a => ({
         id:     a.id,
@@ -97,13 +94,19 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   const toggleStatus = async (id) => {
     const posting = postings.find(p => p.id === id);
     const newStatus = posting.status === "Active" ? "Closed" : "Active";
-    const { error } = await supabase.from("jobs").update({ status: newStatus }).eq("id", id);
+    const { error } = await withTimeout(
+      supabase.from("jobs").update({ status: newStatus }).eq("id", id),
+      10000, "Update timed out."
+    );
     if (!error) setPostings(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
   };
 
   const deletePosting = async (id) => {
     if (!window.confirm("Delete this job posting? This cannot be undone.")) return;
-    const { error } = await supabase.from("jobs").delete().eq("id", id);
+    const { error } = await withTimeout(
+      supabase.from("jobs").delete().eq("id", id),
+      10000, "Delete timed out."
+    );
     if (!error) setPostings(prev => prev.filter(p => p.id !== id));
   };
 
@@ -122,14 +125,17 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       const photoUrls = [...existingPhotoUrls];
       for (const file of (formData.photoFiles || [])) {
         const path = `${currentUser.id}/${Date.now()}_${file.name}`;
-        const timeout = new Promise(res => setTimeout(() => res({ error: "timeout" }), 8000));
-        const upload  = supabase.storage.from("job-photos").upload(path, file, { upsert: true });
-        const { error: upErr } = await Promise.race([upload, timeout]);
-        if (!upErr) {
-          const { data: { publicUrl } } = supabase.storage.from("job-photos").getPublicUrl(path);
-          photoUrls.push(publicUrl);
-        } else {
-          console.warn("Photo upload skipped:", upErr);
+        try {
+          const { error: upErr } = await withTimeout(
+            supabase.storage.from("job-photos").upload(path, file, { upsert: true }),
+            8000, "timeout"
+          );
+          if (!upErr) {
+            const { data: { publicUrl } } = supabase.storage.from("job-photos").getPublicUrl(path);
+            photoUrls.push(publicUrl);
+          }
+        } catch (e) {
+          console.warn("Photo upload skipped:", e.message);
         }
       }
       console.log("[saveForm] photos done, inserting job…");
@@ -151,23 +157,21 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         photos:          photoUrls,
       };
 
-      const dbTimeout = new Promise((_, rej) => setTimeout(() => rej(new Error("Database timeout — please try again.")), 10000));
-
       if (formData.id) {
-        const { error } = await Promise.race([
+        const { error } = await withTimeout(
           supabase.from("jobs").update(jobData).eq("id", formData.id),
-          dbTimeout,
-        ]);
+          10000, "Database timeout — please try again."
+        );
         if (error) throw error;
         setPostings(prev => prev.map(p => p.id === formData.id
           ? { ...normaliseJob({ ...jobData, id: formData.id }), applicants: p.applicants, applicantCount: p.applicantCount }
           : p
         ));
       } else {
-        const { data, error } = await Promise.race([
+        const { data, error } = await withTimeout(
           supabase.from("jobs").insert(jobData).select().single(),
-          dbTimeout,
-        ]);
+          10000, "Database timeout — please try again."
+        );
         if (error) throw error;
         setPostings(prev => [{ ...normaliseJob(data), applicants: [], applicantCount: 0 }, ...prev]);
       }
@@ -190,10 +194,10 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   };
 
   const updateApplicantStatus = async (applicationId, newStatus) => {
-    const { error } = await supabase
-      .from("applications")
-      .update({ status: newStatus })
-      .eq("id", applicationId);
+    const { error } = await withTimeout(
+      supabase.from("applications").update({ status: newStatus }).eq("id", applicationId),
+      10000, "Update timed out."
+    );
     if (error) { alert("Failed to update status."); return; }
     const updater = (p) => ({ ...p, applicants: p.applicants.map(a => a.id === applicationId ? { ...a, status: newStatus } : a) });
     setPostings(prev => prev.map(p => p.id === activePosting.id ? updater(p) : p));

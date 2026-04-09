@@ -110,9 +110,13 @@ export default function AccountPage({
     try {
       let photoUrl = currentUser.profilePhoto;
 
-      // Upload new profile photo if one was picked
+      // Upload new profile photo if one was picked (skip silently on timeout)
       if (profilePhotoFile) {
-        photoUrl = await uploadAvatar(currentUser.id, profilePhotoFile);
+        try {
+          photoUrl = await uploadAvatar(currentUser.id, profilePhotoFile);
+        } catch (e) {
+          console.warn("Photo upload skipped:", e.message);
+        }
       }
 
       const savedLocation = (currentUser.role === "student" && locationCoords)
