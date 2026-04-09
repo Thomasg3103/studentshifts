@@ -482,12 +482,15 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
       if (!d.active) return;
       const cx = e.touches ? e.touches[0].clientX : e.clientX;
       const cy = e.touches ? e.touches[0].clientY : e.clientY;
+      if (!previewRef.current) return;
+      const { width, height } = previewRef.current.getBoundingClientRect();
+      // Store as percentage of container so it scales correctly on any screen size
       setCropSettings(prev => ({
         ...prev,
         [d.idx]: {
           ...(prev[d.idx] || { zoom: 1 }),
-          offsetX: d.originX + (cx - d.startX),
-          offsetY: d.originY + (cy - d.startY),
+          offsetX: d.originX + ((cx - d.startX) / width  * 100),
+          offsetY: d.originY + ((cy - d.startY) / height * 100),
         },
       }));
     };
@@ -825,7 +828,7 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
                   style={{
                     position: "absolute",
                     top: "50%", left: "50%",
-                    transform: `translate(calc(-50% + ${crop.offsetX}px), calc(-50% + ${crop.offsetY}px)) scale(${crop.zoom})`,
+                    transform: `translate(calc(-50% + ${crop.offsetX}%), calc(-50% + ${crop.offsetY}%)) scale(${crop.zoom})`,
                     transformOrigin: "center",
                     minWidth: "100%", minHeight: "100%",
                     maxWidth: "none",

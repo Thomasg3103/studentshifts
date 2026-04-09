@@ -426,7 +426,7 @@ export default function StudentDashboard({
                     ) : (
                       <img src={photos[idx]} alt={job.company} style={{
                         position: "absolute", top: "50%", left: "50%",
-                        transform: `translate(calc(-50% + ${crop.offsetX}px), calc(-50% + ${crop.offsetY}px)) scale(${crop.zoom})`,
+                        transform: `translate(calc(-50% + ${crop.offsetX}%), calc(-50% + ${crop.offsetY}%)) scale(${crop.zoom})`,
                         transformOrigin: "center",
                         minWidth: "100%", minHeight: "100%", width: "auto", height: "auto", maxWidth: "none",
                         display: "block",
