@@ -57,8 +57,19 @@ export default function JobDetails({
         const photos = job.photos?.length > 0 ? job.photos : [COMPANY_PHOTOS[job.company] || "https://picsum.photos/seed/default/800/140"];
         const idx = Math.min(photoIdx, photos.length - 1);
         return (
-          <div style={{ position: "relative", margin: "-2rem -2.5rem 1.5rem", borderRadius: "1.25rem 1.25rem 0 0", aspectRatio: "16/7", backgroundColor: "#0f172a", overflow: "hidden" }}>
-            <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+          <div style={{ position: "relative", margin: "-2rem -2.5rem 1.5rem", borderRadius: "1.25rem 1.25rem 0 0", aspectRatio: "16/7", backgroundColor: "#0f172a", overflow: "hidden", display: "block" }}>
+            {(() => {
+              const crop = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
+              return (
+                <img src={photos[idx]} alt={job.company} style={{
+                  position: "absolute", top: "50%", left: "50%",
+                  transform: `translate(calc(-50% + ${crop.offsetX}px), calc(-50% + ${crop.offsetY}px)) scale(${crop.zoom})`,
+                  transformOrigin: "center",
+                  minWidth: "100%", minHeight: "100%", width: "auto", height: "auto", maxWidth: "none",
+                  display: "block",
+                }} />
+              );
+            })()}
             {photos.length > 1 && (
               <>
                 <button onClick={() => setPhotoIdx((idx - 1 + photos.length) % photos.length)} style={arrowBtn("left")}>‹</button>

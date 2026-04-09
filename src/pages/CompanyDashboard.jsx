@@ -23,6 +23,7 @@ function normaliseJob(j) {
     weekendRequired: j.weekend_required || false,
     status:          j.status || "Active",
     photos:          j.photos || [],
+    photoCrops:      j.photo_crops || [],
     applicants:      [],
     applicantCount:  j.applicant_count || 0,
   };
@@ -110,20 +111,18 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     if (!error) setPostings(prev => prev.filter(p => p.id !== id));
   };
 
-  const saveForm = async ({ bakedExisting = [], bakedNew = [] } = {}) => {
+  const saveForm = async ({ existingPhotos: keptUrls = [], newFiles = [], allCrops = [] } = {}) => {
     if (!formData.title.trim() || !formData.location.trim() || !formData.pay.trim()) {
       alert("Please fill in Title, Location, and Pay."); return;
     }
     if (formData.days.length === 0) { alert("Please select at least one day."); return; }
-    const totalCount = bakedExisting.length + bakedNew.length;
-    if (totalCount === 0) { alert("Please upload at least 1 photo."); return; }
+    if (keptUrls.length === 0 && newFiles.length === 0) { alert("Please upload at least 1 photo."); return; }
     setFormSaving(true);
     try {
-      // Start with existing photos that weren't re-cropped (kept as URLs)
-      const photoUrls = bakedExisting.filter(e => e.keep).map(e => e.keep);
-      // Upload all baked files (re-cropped existing + new)
-      const filesToUpload = [...bakedExisting.filter(e => e.upload).map(e => e.upload), ...bakedNew];
-      for (const file of filesToUpload) {
+      // Build ordered photo URL array — existing first (already URLs), then upload new files in order
+      const photoUrls = [...keptUrls];
+      const photoCrops = [...allCrops]; // parallel array, same order
+      for (const file of newFiles) {
         const path = `${currentUser.id}/${Date.now()}_${file.name}`;
         try {
           const { error: upErr } = await withTimeout(
@@ -155,6 +154,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         weekend_required: formData.weekendRequired || false,
         status:          formData.status || "Active",
         photos:          photoUrls,
+        photo_crops:     photoCrops,
       };
 
       if (formData.id) {
@@ -881,47 +881,13 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
       )}
       <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.25rem" }}>
         <button
-          onClick={async () => {
-            const cW = previewRef.current?.getBoundingClientRect().width  || 800;
-            const cH = previewRef.current?.getBoundingClientRect().height || 350;
-
-            const bakeToFile = (src, name, idx) => new Promise((resolve) => {
-              const crop = cropSettings[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
-              const img = new Image();
-              img.crossOrigin = "anonymous";
-              img.onload = () => {
-                const canvas = document.createElement("canvas");
-                canvas.width = 800; canvas.height = 350;
-                const ctx = canvas.getContext("2d");
-                ctx.fillStyle = "#0f172a";
-                ctx.fillRect(0, 0, 800, 350);
-                const scale = Math.max(800 / img.naturalWidth, 350 / img.naturalHeight) * crop.zoom;
-                const dw = img.naturalWidth  * scale;
-                const dh = img.naturalHeight * scale;
-                const ox = (crop.offsetX / cW) * 800;
-                const oy = (crop.offsetY / cH) * 350;
-                ctx.drawImage(img, (800 - dw) / 2 + ox, (350 - dh) / 2 + oy, dw, dh);
-                canvas.toBlob(blob => resolve(new File([blob], name, { type: "image/jpeg" })), "image/jpeg", 0.92);
-              };
-              img.onerror = () => resolve(null); // skip on CORS error
-              img.src = src;
-            });
-
-            // Bake existing URL photos that were cropped
-            const bakedExisting = await Promise.all(existingPhotos.map(async (url, i) => {
-              const crop = cropSettings[i] || { zoom: 1, offsetX: 0, offsetY: 0 };
-              if (crop.zoom === 1 && crop.offsetX === 0 && crop.offsetY === 0) return { keep: url };
-              const file = await bakeToFile(url, `existing_${i}.jpg`, i);
-              return file ? { upload: file } : { keep: url };
-            }));
-
-            // Bake new file photos
-            const bakedNew = await Promise.all(photoFiles.map((file, i) => {
-              const globalIdx = existingPhotos.length + i;
-              return bakeToFile(URL.createObjectURL(file), file.name, globalIdx);
-            }));
-
-            onSave({ bakedExisting, bakedNew: bakedNew.filter(Boolean) });
+          onClick={() => {
+            // Pass photos in order with their crop settings — no baking, full quality preserved
+            const allCrops = [
+              ...existingPhotos.map((_, i) => cropSettings[i] || { zoom: 1, offsetX: 0, offsetY: 0 }),
+              ...photoFiles.map((_, i) => cropSettings[existingPhotos.length + i] || { zoom: 1, offsetX: 0, offsetY: 0 }),
+            ];
+            onSave({ existingPhotos, newFiles: photoFiles, allCrops });
           }}
           disabled={formSaving}
           style={{ ...btnGreen, flex: 1, opacity: formSaving ? 0.7 : 1 }}

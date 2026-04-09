@@ -94,6 +94,7 @@ export default function StudentDashboard({
         times:           Object.fromEntries(Object.entries(j.times || {}).map(([k, v]) => [k, Array.isArray(v) ? v : [v]])),
         weekendRequired: j.weekend_required || false,
         photos:          j.photos || [],
+        photoCrops:      j.photo_crops || [],
         status:          j.status,
       })));
       setJobsLoading(false);
@@ -415,6 +416,7 @@ export default function StudentDashboard({
               {(() => {
                 const photos = job.photos?.length > 0 ? job.photos : [COMPANY_PHOTOS[job.company] || "https://picsum.photos/seed/default/800/140"];
                 const idx = photoIndexes[job.id] || 0;
+                const crop = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
                 const prev = (e) => { e.stopPropagation(); setPhotoIndexes(p => ({ ...p, [job.id]: (idx - 1 + photos.length) % photos.length })); };
                 const next = (e) => { e.stopPropagation(); setPhotoIndexes(p => ({ ...p, [job.id]: (idx + 1) % photos.length })); };
                 return (
@@ -422,7 +424,13 @@ export default function StudentDashboard({
                     <img
                       src={photos[idx]}
                       alt={job.company}
-                      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+                      style={{
+                        position: "absolute", top: "50%", left: "50%",
+                        transform: `translate(calc(-50% + ${crop.offsetX}px), calc(-50% + ${crop.offsetY}px)) scale(${crop.zoom})`,
+                        transformOrigin: "center",
+                        minWidth: "100%", minHeight: "100%", width: "auto", height: "auto", maxWidth: "none",
+                        display: "block",
+                      }}
                     />
                     {photos.length > 1 && (
                       <>
