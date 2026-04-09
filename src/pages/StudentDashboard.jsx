@@ -421,17 +421,17 @@ export default function StudentDashboard({
                 const next = (e) => { e.stopPropagation(); setPhotoIndexes(p => ({ ...p, [job.id]: (idx + 1) % photos.length })); };
                 return (
                   <div style={{ position: "relative", width: "100%", aspectRatio: "16/7", backgroundColor: "#0f172a", overflow: "hidden" }}>
-                    <img
-                      src={photos[idx]}
-                      alt={job.company}
-                      style={{
+                    {crop.zoom === 1 && crop.offsetX === 0 && crop.offsetY === 0 ? (
+                      <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+                    ) : (
+                      <img src={photos[idx]} alt={job.company} style={{
                         position: "absolute", top: "50%", left: "50%",
                         transform: `translate(calc(-50% + ${crop.offsetX}px), calc(-50% + ${crop.offsetY}px)) scale(${crop.zoom})`,
                         transformOrigin: "center",
                         minWidth: "100%", minHeight: "100%", width: "auto", height: "auto", maxWidth: "none",
                         display: "block",
-                      }}
-                    />
+                      }} />
+                    )}
                     {photos.length > 1 && (
                       <>
                         <button onClick={prev} style={arrowBtn("left")}>‹</button>

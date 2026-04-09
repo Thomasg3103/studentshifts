@@ -448,9 +448,14 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
 
   const categoryNames = Object.keys(jobCategories);
 
-  // Photo preview state
+  // Photo preview state — initialise from saved crops when editing
   const [previewIndex, setPreviewIndex] = useState(0);
-  const [cropSettings, setCropSettings] = useState({});
+  const [cropSettings, setCropSettings] = useState(() => {
+    const saved = formData.photoCrops || [];
+    const init = {};
+    saved.forEach((c, i) => { if (c) init[i] = c; });
+    return init;
+  });
   const [isDragging, setIsDragging]     = useState(false);
   const previewRef  = useRef(null);
   const dragRef     = useRef({ active: false, startX: 0, startY: 0, originX: 0, originY: 0, idx: 0 });
