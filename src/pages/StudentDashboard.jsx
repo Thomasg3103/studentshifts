@@ -430,7 +430,7 @@ export default function StudentDashboard({
                         style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
                       />
                     </div>
-                    <div style={{ position: "absolute", top: "7px", left: "9px", backgroundColor: "rgba(0,0,0,0.5)", color: "white", fontSize: "0.7rem", fontWeight: "700", padding: "2px 7px", borderRadius: "999px", lineHeight: 1.5 }}>
+                    <div style={{ position: "absolute", top: "7px", right: "9px", backgroundColor: "rgba(0,0,0,0.5)", color: "white", fontSize: "0.7rem", fontWeight: "700", padding: "2px 7px", borderRadius: "999px", lineHeight: 1.5 }}>
                       {idx + 1}/{photos.length}
                     </div>
                     {photos.length > 1 && (
