@@ -3,6 +3,7 @@ import PageWrapper from "../components/PageWrapper";
 import "../StudentShiftWeb.css";
 import { jobCategories, getCategoryForTitle } from "../data/jobCategories";
 import { haversineDistance, formatDistance, mockLocationCoords } from "../utils/geo";
+import { supabase, withTimeout } from "../lib/supabase";
 
 const DESC = {
   "Bar Staff":           "Join our bar team serving drinks and looking after customers. Some experience preferred — full training provided.",
@@ -27,13 +28,6 @@ const DESC = {
   "Event Staff":         "Set up and assist at hotel events — great for students who thrive in a lively social environment.",
 };
 
-const DEADLINES = {
-  1: "2026-05-15",  2: "2026-04-20",  5: "2026-05-30",
-  7: "2026-04-11",  10: "2026-06-01", 12: "2026-04-14",
-  15: "2026-05-10", 20: "2026-04-25", 25: "2026-06-15",
-  30: "2026-05-01", 35: "2026-04-10", 40: "2026-05-20",
-  43: "2026-04-30", 47: "2026-06-01", 50: "2026-05-15",
-};
 
 const COMPANY_PHOTOS = {
   "Galway Pub":     "https://picsum.photos/seed/galwaypub/800/140",
@@ -61,66 +55,39 @@ export default function StudentDashboard({
   setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, currentUser, studentLocation,
 }) {
 
-  const rawJobs = [
-    { id: 1,  title: "Bar Staff",           company: "Galway Pub",     location: "City Centre", pay: "€12/hr", days: ["Tuesday","Thursday"],            times: { Tuesday: ["11:00","13:00"], Thursday: ["13:00"] },                              weekendRequired: true  },
-    { id: 2,  title: "Retail Assistant",    company: "SuperMart",      location: "5 min walk",  pay: "€10/hr", days: ["Monday","Wednesday","Friday"],    times: { Monday: ["10:00"], Wednesday: ["14:00"], Friday: ["12:00"] },                   weekendRequired: false },
-    { id: 3,  title: "Library Assistant",   company: "Campus Library", location: "On-Campus",   pay: "€12/hr", days: ["Monday","Tuesday","Thursday"],    times: { Monday: ["09:00"], Tuesday: ["11:00"], Thursday: ["13:00"] },                  weekendRequired: false },
-    { id: 4,  title: "Waiter",              company: "Galway Bistro",  location: "Near Campus", pay: "€11/hr", days: ["Tuesday","Wednesday","Friday"],   times: { Tuesday: ["11:00"], Wednesday: ["12:00"], Friday: ["14:00"] },                 weekendRequired: true  },
-    { id: 5,  title: "Cleaner",             company: "City Mall",      location: "10 min walk", pay: "€10/hr", days: ["Monday","Thursday"],             times: { Monday: ["10:00"], Thursday: ["13:00"] },                                       weekendRequired: false },
-    { id: 6,  title: "Barista",             company: "Coffee Hub",     location: "Near Campus", pay: "€11/hr", days: ["Monday","Tuesday","Wednesday"],   times: { Monday: ["09:00"], Tuesday: ["11:00"], Wednesday: ["10:00"] },                 weekendRequired: true  },
-    { id: 7,  title: "Receptionist",        company: "City Hotel",     location: "Downtown",    pay: "€13/hr", days: ["Monday","Wednesday","Friday"],    times: { Monday: ["08:00"], Wednesday: ["08:00"], Friday: ["08:00"] },                   weekendRequired: false },
-    { id: 8,  title: "Stockroom Assistant", company: "SuperMart",      location: "5 min walk",  pay: "€10/hr", days: ["Tuesday","Thursday"],            times: { Tuesday: ["12:00"], Thursday: ["14:00"] },                                      weekendRequired: false },
-    { id: 9,  title: "Food Prep",           company: "Galway Bistro",  location: "Near Campus", pay: "€11/hr", days: ["Monday","Wednesday"],            times: { Monday: ["09:00"], Wednesday: ["10:00"] },                                      weekendRequired: true  },
-    { id: 10, title: "Security Guard",      company: "City Mall",      location: "10 min walk", pay: "€14/hr", days: ["Friday"],                        times: { Friday: ["18:00"] },                                                            weekendRequired: true  },
-    { id: 11, title: "Dishwasher",          company: "Galway Pub",     location: "City Centre", pay: "€11/hr", days: ["Monday","Tuesday"],              times: { Monday: ["12:00"], Tuesday: ["13:00"] },                                        weekendRequired: true  },
-    { id: 12, title: "Promoter",            company: "Tech Store",     location: "Downtown",    pay: "€12/hr", days: ["Wednesday","Thursday"],          times: { Wednesday: ["14:00"], Thursday: ["16:00"] },                                    weekendRequired: false },
-    { id: 13, title: "Host",                company: "City Hotel",     location: "Downtown",    pay: "€13/hr", days: ["Monday","Friday"],               times: { Monday: ["09:00"], Friday: ["11:00"] },                                         weekendRequired: true  },
-    { id: 14, title: "Catering Assistant",  company: "Galway Bistro",  location: "Near Campus", pay: "€11/hr", days: ["Tuesday","Thursday"],            times: { Tuesday: ["11:00"], Thursday: ["13:00"] },                                      weekendRequired: true  },
-    { id: 15, title: "Cashier",             company: "SuperMart",      location: "5 min walk",  pay: "€10/hr", days: ["Monday","Wednesday","Friday"],   times: { Monday: ["10:00"], Wednesday: ["12:00"], Friday: ["14:00"] },                   weekendRequired: false },
-    { id: 16, title: "Kitchen Staff",       company: "City Mall",      location: "10 min walk", pay: "€11/hr", days: ["Wednesday","Thursday"],          times: { Wednesday: ["11:00"], Thursday: ["13:00"] },                                    weekendRequired: true  },
-    { id: 17, title: "Bar Staff",           company: "Galway Pub",     location: "City Centre", pay: "€12/hr", days: ["Monday","Friday"],               times: { Monday: ["13:00"], Friday: ["12:00"] },                                         weekendRequired: true  },
-    { id: 18, title: "Delivery Assistant",  company: "Tech Store",     location: "Downtown",    pay: "€12/hr", days: ["Tuesday","Thursday"],            times: { Tuesday: ["09:00"], Thursday: ["10:00"] },                                      weekendRequired: false },
-    { id: 19, title: "Stock Clerk",         company: "SuperMart",      location: "5 min walk",  pay: "€10/hr", days: ["Monday","Wednesday"],            times: { Monday: ["08:00"], Wednesday: ["09:00"] },                                      weekendRequired: false },
-    { id: 20, title: "Waiter",              company: "City Bistro",    location: "Near Campus", pay: "€11/hr", days: ["Tuesday","Friday"],              times: { Tuesday: ["12:00"], Friday: ["14:00"] },                                        weekendRequired: true  },
-    { id: 21, title: "Food Runner",         company: "Galway Bistro",  location: "Near Campus", pay: "€11/hr", days: ["Monday","Thursday"],             times: { Monday: ["11:00"], Thursday: ["13:00"] },                                       weekendRequired: true  },
-    { id: 22, title: "Barista",             company: "Coffee Hub",     location: "Near Campus", pay: "€11/hr", days: ["Wednesday","Friday"],            times: { Wednesday: ["10:00"], Friday: ["12:00"] },                                      weekendRequired: false },
-    { id: 23, title: "Receptionist",        company: "City Hotel",     location: "Downtown",    pay: "€13/hr", days: ["Monday","Tuesday","Thursday"],   times: { Monday: ["09:00"], Tuesday: ["11:00"], Thursday: ["13:00"] },                  weekendRequired: false },
-    { id: 24, title: "Cleaner",             company: "City Mall",      location: "10 min walk", pay: "€10/hr", days: ["Wednesday","Friday"],            times: { Wednesday: ["08:00"], Friday: ["10:00"] },                                      weekendRequired: true  },
-    { id: 25, title: "Catering Assistant",  company: "Galway Bistro",  location: "Near Campus", pay: "€11/hr", days: ["Tuesday","Thursday"],            times: { Tuesday: ["12:00"], Thursday: ["14:00"] },                                      weekendRequired: true  },
-    { id: 26, title: "Bar Staff",           company: "Galway Pub",     location: "City Centre", pay: "€12/hr", days: ["Monday","Wednesday"],            times: { Monday: ["13:00"], Wednesday: ["12:00"] },                                      weekendRequired: true  },
-    { id: 27, title: "Dishwasher",          company: "City Bistro",    location: "Near Campus", pay: "€11/hr", days: ["Tuesday","Friday"],              times: { Tuesday: ["11:00"], Friday: ["13:00"] },                                        weekendRequired: true  },
-    { id: 28, title: "Promoter",            company: "Tech Store",     location: "Downtown",    pay: "€12/hr", days: ["Monday","Thursday"],             times: { Monday: ["09:00"], Thursday: ["11:00"] },                                       weekendRequired: false },
-    { id: 29, title: "Stockroom Assistant", company: "SuperMart",      location: "5 min walk",  pay: "€10/hr", days: ["Wednesday","Thursday"],          times: { Wednesday: ["10:00"], Thursday: ["12:00"] },                                    weekendRequired: false },
-    { id: 30, title: "Kitchen Staff",       company: "City Mall",      location: "10 min walk", pay: "€11/hr", days: ["Monday","Tuesday"],              times: { Monday: ["11:00"], Tuesday: ["13:00"] },                                        weekendRequired: true  },
-    { id: 31, title: "Cashier",             company: "SuperMart",      location: "5 min walk",  pay: "€10/hr", days: ["Wednesday","Friday"],            times: { Wednesday: ["12:00"], Friday: ["14:00"] },                                      weekendRequired: false },
-    { id: 32, title: "Waiter",              company: "Galway Bistro",  location: "Near Campus", pay: "€11/hr", days: ["Tuesday","Thursday"],            times: { Tuesday: ["11:00"], Thursday: ["13:00"] },                                      weekendRequired: true  },
-    { id: 33, title: "Barista",             company: "Coffee Hub",     location: "Near Campus", pay: "€11/hr", days: ["Monday","Wednesday","Friday"],   times: { Monday: ["10:00"], Wednesday: ["12:00"], Friday: ["14:00"] },                   weekendRequired: false },
-    { id: 34, title: "Receptionist",        company: "City Hotel",     location: "Downtown",    pay: "€13/hr", days: ["Tuesday","Thursday"],            times: { Tuesday: ["09:00"], Thursday: ["11:00"] },                                      weekendRequired: false },
-    { id: 35, title: "Cleaner",             company: "City Mall",      location: "10 min walk", pay: "€10/hr", days: ["Monday","Friday"],               times: { Monday: ["08:00"], Friday: ["10:00"] },                                         weekendRequired: true  },
-    { id: 36, title: "Food Prep",           company: "Galway Bistro",  location: "Near Campus", pay: "€11/hr", days: ["Wednesday","Thursday"],          times: { Wednesday: ["11:00"], Thursday: ["13:00"] },                                    weekendRequired: true  },
-    { id: 37, title: "Dishwasher",          company: "City Bistro",    location: "Near Campus", pay: "€11/hr", days: ["Monday","Tuesday"],              times: { Monday: ["12:00"], Tuesday: ["13:00"] },                                        weekendRequired: true  },
-    { id: 38, title: "Promoter",            company: "Tech Store",     location: "Downtown",    pay: "€12/hr", days: ["Wednesday","Friday"],            times: { Wednesday: ["14:00"], Friday: ["16:00"] },                                      weekendRequired: false },
-    { id: 39, title: "Stock Clerk",         company: "SuperMart",      location: "5 min walk",  pay: "€10/hr", days: ["Tuesday","Thursday"],            times: { Tuesday: ["08:00"], Thursday: ["10:00"] },                                      weekendRequired: false },
-    { id: 40, title: "Kitchen Staff",       company: "City Mall",      location: "10 min walk", pay: "€11/hr", days: ["Monday","Friday"],               times: { Monday: ["11:00"], Friday: ["13:00"] },                                         weekendRequired: true  },
-    { id: 41, title: "Bar Staff",           company: "Galway Pub",     location: "City Centre", pay: "€13/hr", days: ["Saturday","Sunday"],             times: { Saturday: ["18:00"], Sunday: ["17:00"] },                                       weekendRequired: false },
-    { id: 42, title: "Waiter",              company: "Galway Bistro",  location: "Near Campus", pay: "€12/hr", days: ["Saturday","Sunday"],             times: { Saturday: ["12:00"], Sunday: ["12:00"] },                                       weekendRequired: false },
-    { id: 43, title: "Barista",             company: "Coffee Hub",     location: "Near Campus", pay: "€11/hr", days: ["Saturday"],                      times: { Saturday: ["08:00"] },                                                          weekendRequired: false },
-    { id: 44, title: "Retail Assistant",    company: "SuperMart",      location: "5 min walk",  pay: "€10/hr", days: ["Saturday","Sunday"],             times: { Saturday: ["09:00"], Sunday: ["10:00"] },                                       weekendRequired: false },
-    { id: 45, title: "Security Guard",      company: "City Mall",      location: "10 min walk", pay: "€15/hr", days: ["Saturday","Sunday"],             times: { Saturday: ["20:00"], Sunday: ["20:00"] },                                       weekendRequired: false },
-    { id: 46, title: "Cashier",             company: "SuperMart",      location: "5 min walk",  pay: "€10/hr", days: ["Saturday"],                      times: { Saturday: ["10:00"] },                                                          weekendRequired: false },
-    { id: 47, title: "Dishwasher",          company: "City Bistro",    location: "Near Campus", pay: "€11/hr", days: ["Saturday","Sunday"],             times: { Saturday: ["13:00"], Sunday: ["13:00"] },                                       weekendRequired: false },
-    { id: 48, title: "Kitchen Staff",       company: "Galway Bistro",  location: "Near Campus", pay: "€12/hr", days: ["Saturday","Sunday"],             times: { Saturday: ["11:00"], Sunday: ["11:00"] },                                       weekendRequired: false },
-    { id: 49, title: "Event Staff",         company: "City Hotel",     location: "Downtown",    pay: "€13/hr", days: ["Saturday"],                      times: { Saturday: ["14:00"] },                                                          weekendRequired: false },
-    { id: 50, title: "Promoter",            company: "Tech Store",     location: "Downtown",    pay: "€12/hr", days: ["Saturday"],                      times: { Saturday: ["11:00"] },                                                          weekendRequired: false },
-    { id: 51, title: "Cleaner",             company: "City Mall",      location: "10 min walk", pay: "€10/hr", days: ["Sunday"],                        times: { Sunday: ["09:00"] },                                                            weekendRequired: false },
-    { id: 52, title: "Host",                company: "City Hotel",     location: "Downtown",    pay: "€13/hr", days: ["Saturday","Sunday"],             times: { Saturday: ["16:00"], Sunday: ["16:00"] },                                       weekendRequired: false },
-  ];
+  const [jobs, setJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(true);
 
-  const jobs = rawJobs.map(j => ({
-    ...j,
-    description: DESC[j.title] || "",
-    deadline: DEADLINES[j.id] || null,
-  }));
+  useEffect(() => {
+    withTimeout(
+      supabase
+        .from("jobs")
+        .select("*, profiles:company_id(name)")
+        .eq("status", "Active")
+        .order("created_at", { ascending: false }),
+      10000, "Loading jobs timed out."
+    ).then(({ data, error }) => {
+      if (!error && data && data.length > 0) {
+        setJobs(data.map(j => ({
+          id:              j.id,
+          title:           j.title,
+          company:         j.profiles?.name || "Unknown Company",
+          location:        j.location,
+          lat:             j.lat,
+          lng:             j.lng,
+          pay:             j.pay,
+          description:     j.description || DESC[j.title] || "",
+          deadline:        j.deadline || null,
+          days:            j.days || [],
+          times:           j.times || {},
+          weekendRequired: j.weekend_required || false,
+          photos:          j.photos || [],
+          status:          j.status,
+        })));
+      }
+      setJobsLoading(false);
+    }).catch(() => setJobsLoading(false));
+  }, []);
 
   const weekdays    = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
   const workweek    = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
@@ -403,7 +370,12 @@ export default function StudentDashboard({
       </div>
 
       {/* Empty State */}
-      {displayJobs.length === 0 && (
+      {jobsLoading && (
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+          <p style={{ fontSize: "1rem", fontWeight: "600" }}>Loading jobs…</p>
+        </div>
+      )}
+      {!jobsLoading && displayJobs.length === 0 && (
         <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
           <p style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "0.4rem" }}>No jobs match your search</p>
           <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>

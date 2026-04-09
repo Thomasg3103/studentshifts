@@ -616,7 +616,19 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
       </div>
       <div>
         <label style={labelStyle}>Pay *</label>
-        <input value={formData.pay} onChange={set("pay")} placeholder="€12/hr" style={inputStyle} />
+        <div style={{ position: "relative" }}>
+          <span style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "#374151", fontWeight: "600", pointerEvents: "none" }}>€</span>
+          <input
+            type="number"
+            min="0"
+            step="0.50"
+            value={formData.pay ? formData.pay.replace(/[^0-9.]/g, "") : ""}
+            onChange={e => setFormData(prev => ({ ...prev, pay: e.target.value ? `€${e.target.value}/hr` : "" }))}
+            placeholder="12.50"
+            style={{ ...inputStyle, paddingLeft: "1.8rem", paddingRight: "2.8rem" }}
+          />
+          <span style={{ position: "absolute", right: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", fontSize: "0.82rem", pointerEvents: "none" }}>/hr</span>
+        </div>
       </div>
 
       <div>
