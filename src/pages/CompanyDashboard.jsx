@@ -939,16 +939,20 @@ function ChatThread({ applicantId, jobId, role }) {
 
 function Modal({ title, children, onClose }) {
   return (
-    <div style={{
-      position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-      zIndex: 1000, padding: "1rem",
-    }}>
-      <div style={{
-        backgroundColor: "white", borderRadius: "1rem", padding: "1.5rem",
-        width: "100%", maxWidth: "520px", maxHeight: "85vh",
-        overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        zIndex: 1000, padding: "1rem",
       }}>
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          backgroundColor: "white", borderRadius: "1rem", padding: "1.5rem",
+          width: "100%", maxWidth: "520px", maxHeight: "85vh",
+          overflowY: "auto", boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
+        }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
           <h2 style={{ fontWeight: "700", fontSize: "1.1rem", margin: 0 }}>{title}</h2>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer", color: "#6b7280", lineHeight: 1 }}>✕</button>
