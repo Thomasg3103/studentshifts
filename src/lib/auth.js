@@ -43,6 +43,21 @@ export async function updateStudentProfile(userId, updates) {
   if (error) throw error;
 }
 
+// Requires a Supabase SQL function:
+//   create or replace function delete_account()
+//   returns void language plpgsql security definer as $$
+//   begin
+//     delete from auth.users where id = auth.uid();
+//   end;
+//   $$;
+export async function deleteAccount() {
+  const { error } = await withTimeout(
+    supabase.rpc("delete_account"),
+    15000, "Account deletion timed out — please try again."
+  );
+  if (error) throw error;
+}
+
 export async function uploadAvatar(userId, file) {
   const ext  = file.name.split(".").pop();
   const path = `${userId}/avatar.${ext}`;

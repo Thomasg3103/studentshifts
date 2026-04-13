@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
-import { updateStudentProfile, uploadAvatar, signOut } from "../lib/auth";
+import { updateStudentProfile, uploadAvatar, signOut, deleteAccount } from "../lib/auth";
 
 export default function AccountPage({
   currentUser,
@@ -22,6 +22,10 @@ export default function AccountPage({
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
   const [profilePhoto, setProfilePhoto] = useState(currentUser.profilePhoto || "");
   const [profilePhotoFile, setProfilePhotoFile] = useState(null);
 
@@ -156,6 +160,21 @@ export default function AccountPage({
       setSaveError(e.message || "Failed to save. Please try again.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      await deleteAccount();
+      setCurrentUser(null);
+      setLikedJobs([]);
+      setAppliedJobs([]);
+      setPage("studentDashboard");
+    } catch (e) {
+      setDeleteError(e.message || "Failed to delete account. Please try again.");
+      setDeleting(false);
     }
   };
 
@@ -419,8 +438,51 @@ export default function AccountPage({
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
           <button onClick={goBack} style={btnGray}>Back to Dashboard</button>
           <button onClick={handleLogout} style={btnRed}>Logout</button>
+          <button onClick={() => { setDeleteConfirm(""); setDeleteError(""); setShowDeleteModal(true); }} style={btnDelete}>Delete Account</button>
         </div>
       </div>
+      {/* Delete Account modal */}
+      {showDeleteModal && (
+        <div onClick={() => setShowDeleteModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", backdropFilter: "blur(2px)" }}>
+          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+            <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fff1f2", border: "2px solid #fecdd3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>
+              ⚠️
+            </div>
+            <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Delete your account?</h3>
+            <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1.25rem" }}>
+              This is permanent. Your profile, CV, and all data will be deleted and cannot be recovered.
+            </p>
+            <p style={{ fontSize: "0.8rem", fontWeight: "600", color: "#374151", margin: "0 0 0.4rem", textAlign: "left" }}>
+              Type <strong>DELETE</strong> to confirm
+            </p>
+            <input
+              value={deleteConfirm}
+              onChange={e => setDeleteConfirm(e.target.value)}
+              placeholder="DELETE"
+              style={{ ...inputStyle, marginBottom: "0.75rem", borderColor: deleteConfirm === "DELETE" ? "#ef4444" : "#e2e8f0" }}
+            />
+            {deleteError && (
+              <p style={{ fontSize: "0.8rem", color: "#ef4444", margin: "0 0 0.75rem" }}>{deleteError}</p>
+            )}
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirm !== "DELETE" || deleting}
+                style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: deleteConfirm === "DELETE" ? "#dc2626" : "#fca5a5", color: "white", fontWeight: "700", cursor: deleteConfirm === "DELETE" && !deleting ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.9rem" }}
+              >
+                {deleting ? "Deleting…" : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Logout modal */}
       {showLogoutModal && (
         <div onClick={() => setShowLogoutModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", backdropFilter: "blur(2px)" }}>
@@ -525,3 +587,4 @@ const btnBase     = { width: "100%", padding: "0.8rem", borderRadius: "2rem", bo
 const btnPrimary  = { ...btnBase, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 14px rgba(99,102,241,0.35)" };
 const btnGray     = { ...btnBase, backgroundColor: "#64748b" };
 const btnRed      = { ...btnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 14px rgba(244,63,94,0.3)" };
+const btnDelete   = { ...btnBase, backgroundColor: "transparent", border: "1.5px solid #fca5a5", color: "#dc2626", fontWeight: "600" };
