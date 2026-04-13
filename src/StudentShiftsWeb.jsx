@@ -190,8 +190,10 @@ export default function StudentShiftsWeb() {
           <LikedJobs
             likedJobs={likedJobs}
             setLikedJobs={setLikedJobs}
+            setSavedLikedJobIds={setSavedLikedJobIds}
             setSelectedJob={setSelectedJob}
             setPage={setPage}
+            currentUser={currentUser}
           />
         );
       case "appliedJobs":

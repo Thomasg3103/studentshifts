@@ -1,22 +1,15 @@
 import React from "react";
 import PageWrapper from "../components/PageWrapper";
 import "../StudentShiftWeb.css";
+import { unlikeJob } from "../lib/auth";
 
-const COMPANY_PHOTOS = {
-  "Galway Pub":     "https://picsum.photos/seed/galwaypub/800/140",
-  "SuperMart":      "https://picsum.photos/seed/supermart/800/140",
-  "Campus Library": "https://picsum.photos/seed/campuslibrary/800/140",
-  "Galway Bistro":  "https://picsum.photos/seed/galwaybistro/800/140",
-  "City Mall":      "https://picsum.photos/seed/citymall/800/140",
-  "Coffee Hub":     "https://picsum.photos/seed/coffeehub/800/140",
-  "City Hotel":     "https://picsum.photos/seed/cityhotel/800/140",
-  "Tech Store":     "https://picsum.photos/seed/techstore/800/140",
-  "City Bistro":    "https://picsum.photos/seed/citybistro/800/140",
-};
+export default function LikedJobs({ likedJobs, setLikedJobs, setSavedLikedJobIds, setSelectedJob, setPage, currentUser }) {
 
-export default function LikedJobs({ likedJobs, setLikedJobs, setSelectedJob, setPage }) {
-
-  const removeLike = (jobId) => setLikedJobs(likedJobs.filter((job) => job.id !== jobId));
+  const removeLike = (job) => {
+    setLikedJobs(prev => prev.filter(j => j.id !== job.id));
+    setSavedLikedJobIds(prev => prev.filter(id => id !== job.id));
+    unlikeJob(currentUser.id, job.id).catch(console.error);
+  };
 
   return (
     <PageWrapper>
@@ -35,33 +28,47 @@ export default function LikedJobs({ likedJobs, setLikedJobs, setSelectedJob, set
       ) : (
         <>
           <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem" }}>
-            {likedJobs.map((job) => (
-              <div key={job.id} className="job-card" style={{ flexDirection: "column", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0 }}>
-                <img
-                  src={COMPANY_PHOTOS[job.company] || "https://picsum.photos/seed/default/800/140"}
-                  alt={job.company}
-                  style={{ width: "100%", height: "110px", objectFit: "cover", display: "block" }}
-                />
-                <div style={{ padding: "0.85rem 1rem" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.2rem" }}>
-                    <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "#1e293b" }}>{job.title}</h2>
-                    <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
-                      <button onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View</button>
-                      <button onClick={() => removeLike(job.id)} style={btnRed}>Remove</button>
+            {likedJobs.map((job) => {
+              const photo = job.photos?.[0] || null;
+              const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
+              return (
+                <div key={job.id} className="job-card" style={{ flexDirection: "column", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0 }}>
+                  <div style={{ width: "100%", height: "110px", backgroundColor: "#0f172a", overflow: "hidden", position: "relative", flexShrink: 0 }}>
+                    {photo ? (
+                      <div style={{
+                        position: "absolute", inset: 0,
+                        transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`,
+                        transformOrigin: "center",
+                      }}>
+                        <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+                      </div>
+                    ) : (
+                      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: "2rem", opacity: 0.3 }}>🏢</span>
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ padding: "0.85rem 1rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.2rem" }}>
+                      <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "#1e293b" }}>{job.title}</h2>
+                      <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
+                        <button onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View</button>
+                        <button onClick={() => removeLike(job)} style={btnRed}>Remove</button>
+                      </div>
+                    </div>
+                    <p style={{ color: "#6b7280", marginBottom: "0.15rem", fontSize: "0.85rem" }}>{job.company} · {job.location}</p>
+                    <p style={{ fontWeight: "700", color: "#111827", marginBottom: "0.4rem", fontSize: "0.9rem" }}>{job.pay}</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                      {job.days.map(day => (
+                        <span key={day} style={{ fontSize: "0.7rem", backgroundColor: "#eef2ff", color: "#4f46e5", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600" }}>
+                          {day.slice(0, 3)} · {job.times[day]?.join(", ")}
+                        </span>
+                      ))}
                     </div>
                   </div>
-                  <p style={{ color: "#6b7280", marginBottom: "0.15rem", fontSize: "0.85rem" }}>{job.company} · {job.location}</p>
-                  <p style={{ fontWeight: "700", color: "#111827", marginBottom: "0.4rem", fontSize: "0.9rem" }}>{job.pay}</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                    {job.days.map(day => (
-                      <span key={day} style={{ fontSize: "0.7rem", backgroundColor: "#eef2ff", color: "#4f46e5", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600" }}>
-                        {day.slice(0, 3)} · {job.times[day]?.join(", ")}
-                      </span>
-                    ))}
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div style={{ textAlign: "center", marginTop: "2rem" }}>
