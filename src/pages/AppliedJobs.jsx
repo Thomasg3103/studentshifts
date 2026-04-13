@@ -11,9 +11,26 @@ const STATUS_STYLE = {
 
 function AppliedJobCard({ job, status, onRemove, setSelectedJob, setPage }) {
   const s = STATUS_STYLE[status] || STATUS_STYLE.Pending;
+  const photo = job.photos?.[0] || null;
+  const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
   return (
     <div className="job-card" style={{ flexDirection: "column", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0 }}>
+      <div style={{ width: "100%", aspectRatio: "16/7", backgroundColor: "#0f172a", overflow: "hidden", position: "relative", flexShrink: 0 }}>
+        {photo ? (
+          <div style={{
+            position: "absolute", inset: 0,
+            transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`,
+            transformOrigin: "center",
+          }}>
+            <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+          </div>
+        ) : (
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ fontSize: "2rem", opacity: 0.3 }}>🏢</span>
+          </div>
+        )}
+      </div>
       <div style={{ padding: "0.85rem 1rem" }}>
         {/* Title + status + view */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.2rem" }}>
@@ -53,6 +70,7 @@ function AppliedJobCard({ job, status, onRemove, setSelectedJob, setPage }) {
 export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppliedJobIds, setSelectedJob, setPage, currentUser }) {
   const [statuses, setStatuses] = useState({});
   const [loading, setLoading] = useState(true);
+  const [removeError, setRemoveError] = useState("");
 
   useEffect(() => {
     if (!currentUser) { setLoading(false); return; }
@@ -62,6 +80,7 @@ export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppli
   }, [currentUser?.id]);
 
   const handleRemove = async (jobId) => {
+    setRemoveError("");
     try {
       await removeApplication(currentUser.id, jobId);
       setAppliedJobs(prev => prev.filter(j => j.id !== jobId));
@@ -69,6 +88,7 @@ export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppli
       setStatuses(prev => { const s = { ...prev }; delete s[jobId]; return s; });
     } catch (e) {
       console.error("Failed to remove application:", e);
+      setRemoveError(e.message || "Failed to remove application.");
     }
   };
 
@@ -78,6 +98,10 @@ export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppli
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>✅ Applied Jobs</h1>
         <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Track your applications and hear back from employers</p>
       </div>
+
+      {removeError && (
+        <p style={{ color: "#ef4444", fontSize: "0.85rem", textAlign: "center", marginBottom: "1rem" }}>{removeError}</p>
+      )}
 
       {loading ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>

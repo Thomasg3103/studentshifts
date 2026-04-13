@@ -33,7 +33,7 @@ export default function LikedJobs({ likedJobs, setLikedJobs, setSavedLikedJobIds
               const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
               return (
                 <div key={job.id} className="job-card" style={{ flexDirection: "column", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0 }}>
-                  <div style={{ width: "100%", height: "110px", backgroundColor: "#0f172a", overflow: "hidden", position: "relative", flexShrink: 0 }}>
+                  <div style={{ width: "100%", aspectRatio: "16/7", backgroundColor: "#0f172a", overflow: "hidden", position: "relative", flexShrink: 0 }}>
                     {photo ? (
                       <div style={{
                         position: "absolute", inset: 0,
