@@ -58,22 +58,23 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   const activeCount     = postings.filter(p => p.status === "Active").length;
 
   const openApplicants = async (posting) => {
-    setActivePosting({ ...posting, applicants: [] });
+    setActivePosting({ ...posting, applicants: [], applicantsLoading: true, applicantsError: null });
     setModal("applicants");
     const { data, error } = await withTimeout(
-      supabase.from("applications").select("id, status, created_at, profiles:student_id(id, name, email), students:student_id(cv_url)").eq("job_id", posting.id).order("created_at", { ascending: true }),
+      supabase.from("applications").select("id, status, created_at, profiles:student_id(id, name), students:student_id(cv_url)").eq("job_id", posting.id).order("created_at", { ascending: true }),
       10000, "Loading applicants timed out."
     );
-    if (!error && data) {
-      const applicants = data.map(a => ({
-        id:     a.id,
-        name:   a.profiles?.name   || "Unknown",
-        email:  a.profiles?.email  || "",
-        cvName: a.students?.cv_url || null,
-        status: a.status,
-      }));
-      setActivePosting(prev => ({ ...prev, applicants }));
+    if (error) {
+      setActivePosting(prev => ({ ...prev, applicantsLoading: false, applicantsError: error.message }));
+      return;
     }
+    const applicants = (data || []).map(a => ({
+      id:     a.id,
+      name:   a.profiles?.name   || "Unknown",
+      cvName: a.students?.cv_url || null,
+      status: a.status,
+    }));
+    setActivePosting(prev => ({ ...prev, applicants, applicantsLoading: false }));
   };
 
   const openCreate = () => {
@@ -352,6 +353,12 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
 }
 
 function ApplicantsView({ posting, onUpdateStatus }) {
+  if (posting.applicantsLoading) {
+    return <p style={{ color: "#6b7280", textAlign: "center", padding: "2rem 1rem" }}>Loading applicants…</p>;
+  }
+  if (posting.applicantsError) {
+    return <p style={{ color: "#ef4444", textAlign: "center", padding: "2rem 1rem" }}>Error: {posting.applicantsError}</p>;
+  }
   if (posting.applicants.length === 0) {
     return (
       <p style={{ color: "#6b7280", textAlign: "center", padding: "2rem 1rem" }}>
@@ -397,7 +404,6 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontWeight: "600", fontSize: "0.9rem", margin: 0 }}>{applicant.name}</p>
-          <p style={{ fontSize: "0.75rem", color: "#6b7280", margin: "0.1rem 0" }}>{applicant.email}</p>
           <p style={{ fontSize: "0.75rem", margin: 0, color: applicant.cvName ? "#16a34a" : "#ef4444" }}>
             {applicant.cvName ? `✓ ${applicant.cvName}` : "No CV uploaded"}
           </p>
