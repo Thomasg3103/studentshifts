@@ -186,3 +186,5 @@ header {
 .cv-tooltip-wrap:hover .cv-tooltip {
   opacity: 1 !important;
 }
+
+@keyframes spin { to { transform: rotate(360deg); } }

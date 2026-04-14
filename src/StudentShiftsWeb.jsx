@@ -84,6 +84,9 @@ export default function StudentShiftsWeb() {
           const profile = await getProfile(session.user.id);
           const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
           setCurrentUser(user);
+          // Show verified screen if this is a fresh email confirmation
+          const justVerified = window.location.hash.includes("type=signup") || window.location.hash.includes("type=email");
+          if (justVerified) { setPage("emailVerified"); return; }
           setPage(user.role === "company" ? "companyDashboard" : "studentDashboard");
           if (user.role === "student") {
             const [likedIds, appliedIds] = await Promise.all([
@@ -216,6 +219,8 @@ export default function StudentShiftsWeb() {
             currentUser={currentUser}
           />
         );
+      case "emailVerified":
+        return <EmailVerifiedPage setPage={setPage} currentUser={currentUser} />;
       case "resetPassword":
         return <ResetPasswordPage setPage={setPage} />;
       case "messages":
@@ -253,5 +258,27 @@ export default function StudentShiftsWeb() {
       />
       {renderPage()}
     </>
+  );
+}
+
+function EmailVerifiedPage({ setPage, currentUser }) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPage(currentUser?.role === "company" ? "companyDashboard" : "studentDashboard");
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <div style={{ textAlign: "center", maxWidth: "420px" }}>
+        <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>✅</div>
+        <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Email verified!</h2>
+        <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
+          Your account is now active. Taking you to StudentShifts…
+        </p>
+        <div style={{ width: "48px", height: "48px", border: "4px solid #e5e7eb", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
+      </div>
+    </div>
   );
 }
