@@ -452,9 +452,22 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
     }
   };
 
+  const [isFullScreen, setIsFullScreen] = useState(false);
+
+  useEffect(() => {
+    const handler = () => setIsFullScreen(!!document.fullscreenElement);
+    document.addEventListener("fullscreenchange", handler);
+    document.addEventListener("webkitfullscreenchange", handler);
+    return () => {
+      document.removeEventListener("fullscreenchange", handler);
+      document.removeEventListener("webkitfullscreenchange", handler);
+    };
+  }, []);
+
   const toggleFullScreen = () => {
-    if (document.fullscreenElement) {
-      document.exitFullscreen();
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
     } else {
       const el = modalRef.current;
       if (!el) return;
@@ -462,13 +475,6 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
       else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
     }
   };
-
-  const [isFullScreen, setIsFullScreen] = useState(false);
-  useEffect(() => {
-    const handler = () => setIsFullScreen(!!document.fullscreenElement);
-    document.addEventListener("fullscreenchange", handler);
-    return () => document.removeEventListener("fullscreenchange", handler);
-  }, []);
 
   const saveCv = async () => {
     try {
