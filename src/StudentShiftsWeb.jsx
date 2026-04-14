@@ -10,6 +10,7 @@ import LikedJobs from "./pages/LikedJobs";
 import AppliedJobs from "./pages/AppliedJobs";
 import AboutPage from "./pages/AboutPage";
 import Messages from "./pages/Messages";
+import CompanyMessages from "./pages/CompanyMessages";
 import { supabase } from "./lib/supabase";
 import { getProfile, fetchLikedJobIds, fetchAppliedJobIds } from "./lib/auth";
 
@@ -210,6 +211,8 @@ export default function StudentShiftsWeb() {
         );
       case "messages":
         return currentUser && <Messages currentUser={currentUser} setPage={setPage} />;
+      case "companyMessages":
+        return currentUser && <CompanyMessages currentUser={currentUser} setPage={setPage} />;
       case "about":
         return <AboutPage setPage={setPage} />;
       default:

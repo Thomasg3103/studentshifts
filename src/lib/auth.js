@@ -161,6 +161,38 @@ export async function sendMessage(jobId, studentId, companyId, senderId, text) {
   if (error) throw error;
 }
 
+export async function fetchCompanyConversations(companyId) {
+  const { data: jobs, error: jobsErr } = await withTimeout(
+    supabase.from("jobs").select("id, title").eq("company_id", companyId),
+    10000
+  );
+  if (jobsErr) throw jobsErr;
+  if (!jobs || jobs.length === 0) return [];
+
+  const jobIds = jobs.map(j => j.id);
+  const { data: apps, error: appsErr } = await withTimeout(
+    supabase.from("applications").select("job_id, student_id").in("job_id", jobIds).eq("status", "Accepted"),
+    10000
+  );
+  if (appsErr) throw appsErr;
+  if (!apps || apps.length === 0) return [];
+
+  const studentIds = [...new Set(apps.map(a => a.student_id))];
+  const { data: profiles } = await withTimeout(
+    supabase.from("profiles").select("id, name").in("id", studentIds),
+    10000
+  );
+  const nameMap = Object.fromEntries((profiles || []).map(p => [p.id, p.name]));
+  const jobMap  = Object.fromEntries(jobs.map(j => [j.id, j]));
+
+  return apps.map(a => ({
+    jobId:       a.job_id,
+    studentId:   a.student_id,
+    title:       jobMap[a.job_id]?.title || "Job",
+    studentName: nameMap[a.student_id]  || "Student",
+  }));
+}
+
 export async function fetchAcceptedConversations(userId) {
   const { data: apps, error: appsErr } = await withTimeout(
     supabase.from("applications").select("job_id").eq("student_id", userId).eq("status", "Accepted"),
