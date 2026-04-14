@@ -482,30 +482,26 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
           {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1e293b", padding: "0.65rem 1rem", flexShrink: 0 }}>
             <span style={{ color: "white", fontWeight: "700", fontSize: "0.9rem" }}>📄 {applicant.name}'s CV</span>
-            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-              {numPages > 1 && (
-                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                  <button onClick={() => setPageNum(p => Math.max(1, p - 1))} disabled={pageNum <= 1} style={navBtn}>‹</button>
-                  <span style={{ color: "white", fontSize: "0.75rem" }}>{pageNum}/{numPages}</span>
-                  <button onClick={() => setPageNum(p => Math.min(numPages, p + 1))} disabled={pageNum >= numPages} style={navBtn}>›</button>
-                </div>
-              )}
-              <button onClick={() => window.print()} style={cvHeaderBtn}>🖨 Print</button>
-              <button onClick={saveCv} style={cvHeaderBtn}>⬇ Save</button>
-              <button onClick={openWithCv} style={cvHeaderBtn}>↗ Open With</button>
-              <button onClick={goFullScreen} style={cvHeaderBtn}>⛶ Full Screen</button>
-              <button onClick={() => setCvUrl(null)} style={{ background: "none", border: "none", color: "white", fontSize: "1.25rem", cursor: "pointer", lineHeight: 1 }}>✕</button>
+            <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+              {numPages && <span style={{ color: "rgba(255,255,255,0.5)", fontSize: "0.75rem", marginRight: "0.25rem" }}>{numPages} {numPages === 1 ? "page" : "pages"}</span>}
+              <button onClick={() => window.print()} style={cvHeaderBtn} title="Print">🖨</button>
+              <button onClick={saveCv} style={cvHeaderBtn} title="Save">⬇</button>
+              <button onClick={openWithCv} style={cvHeaderBtn} title="Open With">↗</button>
+              <button onClick={goFullScreen} style={cvHeaderBtn} title="Full Screen">⛶</button>
+              <button onClick={() => setCvUrl(null)} style={{ ...cvHeaderBtn, fontSize: "1rem" }} title="Close">✕</button>
             </div>
           </div>
-          {/* PDF canvas */}
-          <div style={{ flex: 1, overflowY: "auto", backgroundColor: "#525659", display: "flex", justifyContent: "center", alignItems: "flex-start", padding: "1rem" }}>
+          {/* PDF canvas — all pages */}
+          <div style={{ flex: 1, overflowY: "auto", backgroundColor: "#525659", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", padding: "1rem" }}>
             <Document
               file={cvUrl}
               onLoadSuccess={({ numPages }) => setNumPages(numPages)}
               loading={<p style={{ color: "white", marginTop: "2rem" }}>Loading PDF…</p>}
               error={<p style={{ color: "#fca5a5", marginTop: "2rem" }}>Failed to load PDF.</p>}
             >
-              <Page pageNumber={pageNum} width={Math.min(window.innerWidth - 64, 680)} renderTextLayer={false} />
+              {Array.from({ length: numPages || 0 }, (_, i) => (
+                <Page key={i + 1} pageNumber={i + 1} width={Math.min(window.innerWidth - 64, 680)} renderTextLayer={false} />
+              ))}
             </Document>
           </div>
         </div>
