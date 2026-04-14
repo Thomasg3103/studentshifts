@@ -5,7 +5,8 @@
       "Bash(grep -o 'Option 4.*Wordmark.*StudentShifts[^\\\\\\\\]*' C:UsersOwner.claudeprojectsc--Users-Owner-Student-Shifts-studentshiftsfe30c558-d6b4-43f7-9882-2dceeb88ff2b.jsonl)",
       "Bash(npm run:*)",
       "Bash(npx netlify-cli:*)",
-      "Bash(timeout /t 15 /nobreak)"
+      "Bash(timeout /t 15 /nobreak)",
+      "Bash(npx vite:*)"
     ]
   }
 }
