@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
-import { updateStudentProfile, uploadAvatar, signOut, deleteAccount } from "../lib/auth";
+import { updateStudentProfile, uploadAvatar, uploadDocument, signOut, deleteAccount } from "../lib/auth";
 
 export default function AccountPage({
   currentUser,
@@ -127,12 +127,30 @@ export default function AccountPage({
         ? { type: locationType, address: locationAddress, lat: locationCoords.lat, lng: locationCoords.lng, displayName: locationCoords.displayName }
         : currentUser.savedLocation || null;
 
+      let cvUrl = currentUser.cvName;
+      if (cv) {
+        try {
+          cvUrl = await uploadDocument(currentUser.id, cv, "documents", "cv");
+        } catch (e) {
+          throw new Error("CV upload failed: " + e.message);
+        }
+      }
+
+      let coverLetterUrl = currentUser.coverLetterName;
+      if (coverLetter) {
+        try {
+          coverLetterUrl = await uploadDocument(currentUser.id, coverLetter, "documents", "cover-letter");
+        } catch (e) {
+          throw new Error("Cover letter upload failed: " + e.message);
+        }
+      }
+
       const updates = {
         bio,
         skills,
         linkedin:          linkedIn,
-        cv_url:            cv ? cv.name : currentUser.cvName,
-        cover_letter_url:  coverLetter ? coverLetter.name : currentUser.coverLetterName,
+        cv_url:            cvUrl,
+        cover_letter_url:  coverLetterUrl,
         profile_photo_url: photoUrl,
         location_lat:      savedLocation?.lat    || null,
         location_lng:      savedLocation?.lng    || null,
@@ -144,8 +162,8 @@ export default function AccountPage({
       const updatedUser = {
         ...currentUser,
         linkedIn,
-        cvName:           updates.cv_url,
-        coverLetterName:  updates.cover_letter_url,
+        cvName:           cvUrl,
+        coverLetterName:  coverLetterUrl,
         bio,
         skills,
         savedLocation,

@@ -121,6 +121,20 @@ export async function deleteAccount() {
   if (error) throw error;
 }
 
+// Uploads a document (CV, cover letter, ID) to the given storage bucket.
+// Returns the public URL.
+export async function uploadDocument(userId, file, bucket, fileName) {
+  const ext  = file.name.split(".").pop();
+  const path = `${userId}/${fileName}.${ext}`;
+  const { error } = await withTimeout(
+    supabase.storage.from(bucket).upload(path, file, { upsert: true }),
+    15000, `${fileName} upload timed out — please try again.`
+  );
+  if (error) throw error;
+  const { data: { publicUrl } } = supabase.storage.from(bucket).getPublicUrl(path);
+  return publicUrl + "?t=" + Date.now();
+}
+
 export async function uploadAvatar(userId, file) {
   const ext  = file.name.split(".").pop();
   const path = `${userId}/avatar.${ext}`;
