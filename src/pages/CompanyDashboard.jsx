@@ -73,6 +73,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       return;
     }
     const studentIds = (appData || []).map(a => a.student_id);
+    console.log("[Applicants] appData:", appData, "studentIds:", studentIds);
     let profileMap = {};
     let cvMap = {};
     if (studentIds.length) {
@@ -82,8 +83,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       ]);
       (profiles || []).forEach(p => { profileMap[p.id] = p; });
       (students || []).forEach(s => { cvMap[s.id] = s; });
-      console.log("[Applicants] students data:", students);
     }
+    console.log("[Applicants] profileMap:", profileMap, "cvMap:", cvMap);
     const applicants = (appData || []).map(a => ({
       id:               a.id,
       studentId:        a.student_id,
