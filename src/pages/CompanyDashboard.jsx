@@ -510,7 +510,6 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1e293b", padding: "0.65rem 1rem", flexShrink: 0 }}>
             <span style={{ color: "white", fontWeight: "700", fontSize: "0.9rem" }}>📄 {applicant.name}'s CV</span>
             <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
-              {numPages && <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.75rem", marginRight: "0.25rem" }}>Page {pageNum} of {numPages}</span>}
               <button onClick={() => window.print()} style={cvHeaderBtn} title="Print">🖨</button>
               <button onClick={saveCv} style={cvHeaderBtn} title="Save">⬇</button>
               <button onClick={openWithCv} style={cvHeaderBtn} title="Open With">↗</button>
