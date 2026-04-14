@@ -415,9 +415,10 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontWeight: "600", fontSize: "0.9rem", margin: 0 }}>{applicant.name}</p>
-          <p style={{ fontSize: "0.75rem", margin: 0, color: applicant.cvName ? "#16a34a" : "#ef4444" }}>
-            {applicant.cvName ? `✓ ${applicant.cvName}` : "No CV uploaded"}
-          </p>
+          {applicant.cvName
+            ? <a href={applicant.cvName} target="_blank" rel="noreferrer" style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: "600", textDecoration: "underline" }}>✓ Open CV</a>
+            : <p style={{ fontSize: "0.75rem", margin: 0, color: "#ef4444" }}>No CV uploaded</p>
+          }
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem", flexShrink: 0 }}>
           <StatusBadge status={applicant.status} />
