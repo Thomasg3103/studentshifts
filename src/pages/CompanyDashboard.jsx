@@ -504,6 +504,7 @@ function PdfModal({ url, label, fileName, onClose }) {
 }
 
 function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
+  const [showChat, setShowChat] = useState(false);
   const [cvOpen, setCvOpen]   = useState(false);
   const [clOpen, setClOpen]   = useState(false);
   const [cvUrl, setCvUrl]     = useState(null);
