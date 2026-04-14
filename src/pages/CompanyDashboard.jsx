@@ -410,34 +410,42 @@ function ApplicantsView({ posting, onUpdateStatus }) {
 
 function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
   const [showChat, setShowChat] = useState(false);
+  const [cvUrl, setCvUrl]       = useState(null);
   const [cvLoading, setCvLoading] = useState(false);
 
   const openCv = async () => {
+    if (cvUrl) { setCvUrl(cvUrl); return; } // already loaded, just reopen
     setCvLoading(true);
     try {
       const { getSignedDocumentUrl } = await import("../lib/auth");
       const url = await getSignedDocumentUrl("documents", applicant.cvName);
-      const a = document.createElement("a");
-      a.href = url;
-      a.target = "_blank";
-      a.rel = "noreferrer";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      setCvUrl(url);
     } catch (e) {
-      alert("Could not open CV: " + e.message);
+      alert("Could not load CV: " + e.message);
     } finally {
       setCvLoading(false);
     }
   };
 
   return (
+    <>
+    {cvUrl && (
+      <div onClick={() => setCvUrl(null)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.7)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", backdropFilter: "blur(2px)" }}>
+        <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "720px", height: "85vh", display: "flex", flexDirection: "column", borderRadius: "1rem", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.4)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1e293b", padding: "0.75rem 1rem", flexShrink: 0 }}>
+            <span style={{ color: "white", fontWeight: "700", fontSize: "0.9rem" }}>📄 {applicant.name}'s CV</span>
+            <button onClick={() => setCvUrl(null)} style={{ background: "none", border: "none", color: "white", fontSize: "1.25rem", cursor: "pointer", lineHeight: 1 }}>✕</button>
+          </div>
+          <iframe src={cvUrl} style={{ flex: 1, border: "none", backgroundColor: "white" }} title="CV" />
+        </div>
+      </div>
+    )}
     <div style={{ backgroundColor: "#f9fafb", borderRadius: "0.5rem", border: "1px solid #e5e7eb", padding: "0.75rem 1rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem" }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <p style={{ fontWeight: "600", fontSize: "0.9rem", margin: 0 }}>{applicant.name}</p>
           {applicant.cvName
-            ? <button onClick={openCv} disabled={cvLoading} style={{ background: "none", border: "none", padding: 0, fontSize: "0.75rem", color: "#16a34a", fontWeight: "600", textDecoration: "underline", cursor: cvLoading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>{cvLoading ? "Opening…" : "✓ Open CV"}</button>
+            ? <button onClick={openCv} disabled={cvLoading} style={{ background: "none", border: "none", padding: 0, fontSize: "0.75rem", color: "#16a34a", fontWeight: "600", textDecoration: "underline", cursor: cvLoading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>{cvLoading ? "Loading…" : "✓ View CV"}</button>
             : <p style={{ fontSize: "0.75rem", margin: 0, color: "#ef4444" }}>No CV uploaded</p>
           }
         </div>
@@ -460,6 +468,7 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
         <ChatThread applicantId={applicant.id} jobId={postingId} role="company" />
       )}
     </div>
+    </>
   );
 }
 
