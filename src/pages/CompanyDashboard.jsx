@@ -84,7 +84,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       (profiles || []).forEach(p => { profileMap[p.id] = p; });
       (students || []).forEach(s => { cvMap[s.id] = s; });
     }
-    console.log("[Applicants] profileMap:", profileMap, "cvMap:", cvMap);
+    const firstId = Object.keys(cvMap)[0];
+    console.log("[Applicants] cvMap first entry:", JSON.stringify(cvMap[firstId]));
     const applicants = (appData || []).map(a => ({
       id:               a.id,
       studentId:        a.student_id,
