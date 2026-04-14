@@ -14,7 +14,11 @@ export async function signIn({ email, password }) {
     supabase.auth.signInWithPassword({ email, password }),
     15000, "Login timed out — please try again."
   );
-  if (error) throw error;
+  if (error) {
+    if (error.message?.toLowerCase().includes("email not confirmed"))
+      throw new Error("Please verify your email before logging in. Check your inbox for the confirmation link.");
+    throw error;
+  }
   return data.user;
 }
 
