@@ -78,15 +78,21 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     if (studentIds.length) {
       const [{ data: profiles }, { data: students }] = await Promise.all([
         supabase.from("profiles").select("id, name").in("id", studentIds),
-        supabase.from("students").select("id, cv_url").in("id", studentIds),
+        supabase.from("students").select("id, cv_url, cover_letter_url, bio, skills, linkedin, profile_photo_url").in("id", studentIds),
       ]);
-      (profiles || []).forEach(p => { profileMap[p.id] = p.name; });
-      (students || []).forEach(s => { cvMap[s.id] = s.cv_url; });
+      (profiles || []).forEach(p => { profileMap[p.id] = p; });
+      (students || []).forEach(s => { cvMap[s.id] = s; });
     }
     const applicants = (appData || []).map(a => ({
-      id:     a.id,
-      name:   profileMap[a.student_id] || "Unknown",
-      cvName: cvMap[a.student_id]      || null,
+      id:               a.id,
+      studentId:        a.student_id,
+      name:             profileMap[a.student_id]?.name        || "Unknown",
+      cvName:           cvMap[a.student_id]?.cv_url           || null,
+      coverLetterName:  cvMap[a.student_id]?.cover_letter_url || null,
+      bio:              cvMap[a.student_id]?.bio              || "",
+      skills:           cvMap[a.student_id]?.skills           || [],
+      linkedin:         cvMap[a.student_id]?.linkedin         || "",
+      profilePhoto:     cvMap[a.student_id]?.profile_photo_url || null,
       status: a.status,
     }));
     setActivePosting(prev => ({ ...prev, applicants, applicantsLoading: false }));
@@ -420,6 +426,8 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
   const scrollRef   = useRef(null);
   const [numPages, setNumPages]   = useState(null);
   const [pageNum, setPageNum]     = useState(1);
+  const [clLoading, setClLoading] = useState(false);
+  const [clUrl, setClUrl]         = useState(null);
 
   useEffect(() => {
     if (!numPages || !scrollRef.current) return;
@@ -476,52 +484,74 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
     }
   };
 
+  const openCoverLetter = async () => {
+    if (clUrl) return;
+    setClLoading(true);
+    try {
+      const { getSignedDocumentUrl } = await import("../lib/auth");
+      const url = await getSignedDocumentUrl("documents", applicant.coverLetterName);
+      setClUrl(url);
+      setPageNum(1);
+      setNumPages(null);
+    } catch (e) {
+      alert("Could not load cover letter: " + e.message);
+    } finally {
+      setClLoading(false);
+    }
+  };
+
+  const activePdfUrl = cvUrl || clUrl;
+  const activePdfLabel = cvUrl ? `${applicant.name}'s CV` : `${applicant.name}'s Cover Letter`;
+  const closeDoc = () => { setCvUrl(null); setClUrl(null); };
+
   const saveCv = async () => {
     try {
-      const res = await fetch(cvUrl);
+      const res = await fetch(activePdfUrl);
       const blob = await res.blob();
+      const label = cvUrl ? "CV" : "Cover_Letter";
       const a = document.createElement("a");
       a.href = URL.createObjectURL(blob);
-      a.download = `${applicant.name.replace(/\s+/g, "_")}_CV.pdf`;
+      a.download = `${applicant.name.replace(/\s+/g, "_")}_${label}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
     } catch (e) {
-      alert("Could not save CV: " + e.message);
+      alert("Could not save: " + e.message);
     }
   };
 
   const openWithCv = async () => {
+    const label = cvUrl ? "CV" : "Cover_Letter";
     if (navigator.share) {
       try {
-        const res = await fetch(cvUrl);
+        const res = await fetch(activePdfUrl);
         const blob = await res.blob();
-        const file = new File([blob], `${applicant.name.replace(/\s+/g, "_")}_CV.pdf`, { type: "application/pdf" });
-        await navigator.share({ files: [file], title: `${applicant.name}'s CV` });
+        const file = new File([blob], `${applicant.name.replace(/\s+/g, "_")}_${label}.pdf`, { type: "application/pdf" });
+        await navigator.share({ files: [file], title: `${applicant.name}'s ${label}` });
       } catch (e) {
-        if (e.name !== "AbortError") alert("Could not share CV: " + e.message);
+        if (e.name !== "AbortError") alert("Could not share: " + e.message);
       }
     } else {
-      window.open(cvUrl, "_blank", "noreferrer");
+      window.open(activePdfUrl, "_blank", "noreferrer");
     }
   };
 
   return (
     <>
-    {cvUrl && (
-      <div onClick={() => setCvUrl(null)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.7)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", backdropFilter: "blur(2px)" }}>
+    {activePdfUrl && (
+      <div onClick={closeDoc} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.7)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", backdropFilter: "blur(2px)" }}>
         <div ref={modalRef} onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "720px", height: "85vh", display: "flex", flexDirection: "column", borderRadius: "1rem", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.4)" }}>
           {/* Header */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1e293b", padding: "0.65rem 1rem", flexShrink: 0 }}>
-            <span style={{ color: "white", fontWeight: "700", fontSize: "0.9rem" }}>📄 {applicant.name}'s CV</span>
+            <span style={{ color: "white", fontWeight: "700", fontSize: "0.9rem" }}>📄 {activePdfLabel}</span>
             <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
               {[
                 { icon: "🖨", label: "Print",       onClick: () => window.print() },
                 { icon: "⬇", label: "Save",         onClick: saveCv },
                 { icon: "↗", label: "Open With",    onClick: openWithCv },
                 { icon: isFullScreen ? "⊠" : "⛶", label: isFullScreen ? "Exit Full Screen" : "Full Screen", onClick: toggleFullScreen },
-                { icon: "✕", label: "Close",        onClick: () => setCvUrl(null) },
+                { icon: "✕", label: "Close",        onClick: closeDoc },
               ].map(({ icon, label, onClick }) => (
                 <div key={label} style={{ position: "relative", display: "inline-block" }} className="cv-tooltip-wrap">
                   <button onClick={onClick} style={cvHeaderBtn}>{icon}</button>
@@ -535,7 +565,7 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
           {/* PDF canvas — all pages */}
           <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", backgroundColor: "#525659", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", padding: "1rem" }}>
             <Document
-              file={cvUrl}
+              file={activePdfUrl}
               onLoadSuccess={({ numPages }) => setNumPages(numPages)}
               loading={<p style={{ color: "white", marginTop: "2rem" }}>Loading PDF…</p>}
               error={<p style={{ color: "#fca5a5", marginTop: "2rem" }}>Failed to load PDF.</p>}
@@ -551,13 +581,42 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
       </div>
     )}
     <div style={{ backgroundColor: "#f9fafb", borderRadius: "0.5rem", border: "1px solid #e5e7eb", padding: "0.75rem 1rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.75rem" }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontWeight: "600", fontSize: "0.9rem", margin: 0 }}>{applicant.name}</p>
-          {applicant.cvName
-            ? <button onClick={openCv} disabled={cvLoading} style={{ background: "none", border: "none", padding: 0, fontSize: "0.75rem", color: "#16a34a", fontWeight: "600", textDecoration: "underline", cursor: cvLoading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>{cvLoading ? "Loading…" : "✓ View CV"}</button>
-            : <p style={{ fontSize: "0.75rem", margin: 0, color: "#ef4444" }}>No CV uploaded</p>
-          }
+      {/* Top row: photo + name/details + status/actions */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.75rem" }}>
+        <div style={{ display: "flex", gap: "0.75rem", flex: 1, minWidth: 0 }}>
+          {/* Profile photo */}
+          <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", backgroundColor: "#e2e8f0", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {applicant.profilePhoto
+              ? <img src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            }
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontWeight: "700", fontSize: "0.95rem", margin: "0 0 0.1rem" }}>{applicant.name}</p>
+            {/* Bio */}
+            {applicant.bio && <p style={{ fontSize: "0.78rem", color: "#374151", margin: "0 0 0.35rem", lineHeight: 1.4 }}>{applicant.bio}</p>}
+            {/* Skills */}
+            {applicant.skills?.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", marginBottom: "0.35rem" }}>
+                {applicant.skills.map(s => (
+                  <span key={s} style={{ fontSize: "0.65rem", backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: "999px", padding: "0.1rem 0.45rem", fontWeight: "600" }}>{s}</span>
+                ))}
+              </div>
+            )}
+            {/* Documents */}
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              {applicant.cvName
+                ? <button onClick={openCv} disabled={cvLoading} style={{ background: "none", border: "none", padding: 0, fontSize: "0.75rem", color: "#16a34a", fontWeight: "600", textDecoration: "underline", cursor: cvLoading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>{cvLoading ? "Loading…" : "📄 View CV"}</button>
+                : <span style={{ fontSize: "0.75rem", color: "#ef4444" }}>No CV</span>
+              }
+              {applicant.coverLetterName && (
+                <button onClick={openCoverLetter} disabled={clLoading} style={{ background: "none", border: "none", padding: 0, fontSize: "0.75rem", color: "#6366f1", fontWeight: "600", textDecoration: "underline", cursor: clLoading ? "not-allowed" : "pointer", fontFamily: "inherit" }}>{clLoading ? "Loading…" : "📝 Cover Letter"}</button>
+              )}
+              {applicant.linkedin && (
+                <a href={applicant.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: "0.75rem", color: "#0a66c2", fontWeight: "600", textDecoration: "underline" }}>🔗 LinkedIn</a>
+              )}
+            </div>
+          </div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem", flexShrink: 0 }}>
           <StatusBadge status={applicant.status} />
