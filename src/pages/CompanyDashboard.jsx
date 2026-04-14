@@ -434,7 +434,10 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
         <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "720px", height: "85vh", display: "flex", flexDirection: "column", borderRadius: "1rem", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.4)" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1e293b", padding: "0.75rem 1rem", flexShrink: 0 }}>
             <span style={{ color: "white", fontWeight: "700", fontSize: "0.9rem" }}>📄 {applicant.name}'s CV</span>
-            <button onClick={() => setCvUrl(null)} style={{ background: "none", border: "none", color: "white", fontSize: "1.25rem", cursor: "pointer", lineHeight: 1 }}>✕</button>
+            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              <a href={cvUrl} target="_blank" rel="noreferrer" style={{ background: "none", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.4rem", color: "white", fontSize: "0.75rem", fontWeight: "600", padding: "0.25rem 0.6rem", cursor: "pointer", textDecoration: "none" }}>⛶ Full Screen</a>
+              <button onClick={() => setCvUrl(null)} style={{ background: "none", border: "none", color: "white", fontSize: "1.25rem", cursor: "pointer", lineHeight: 1 }}>✕</button>
+            </div>
           </div>
           <iframe src={cvUrl} style={{ flex: 1, border: "none", backgroundColor: "white" }} title="CV" />
         </div>
