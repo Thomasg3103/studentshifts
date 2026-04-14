@@ -69,6 +69,9 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
                   </button>
                   {notifCount > 0 && <span style={notifDot}>{notifCount}</span>}
                 </div>
+                <button onClick={() => setPage("messages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                  💬 <span className="nav-label">Messages</span>
+                </button>
               </>
             ) : (
               <>

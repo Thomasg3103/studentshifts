@@ -141,6 +141,57 @@ export async function getSignedDocumentUrl(bucket, path) {
   return data.signedUrl;
 }
 
+export async function fetchMessages(jobId, studentId) {
+  const { data, error } = await withTimeout(
+    supabase.from("messages")
+      .select("id, sender_id, text, created_at")
+      .eq("job_id", jobId)
+      .eq("student_id", studentId)
+      .order("created_at", { ascending: true }),
+    10000
+  );
+  if (error) throw error;
+  return data || [];
+}
+
+export async function sendMessage(jobId, studentId, companyId, senderId, text) {
+  const { error } = await supabase.from("messages").insert({
+    job_id: jobId, student_id: studentId, company_id: companyId, sender_id: senderId, text,
+  });
+  if (error) throw error;
+}
+
+export async function fetchAcceptedConversations(userId) {
+  const { data: apps, error: appsErr } = await withTimeout(
+    supabase.from("applications").select("job_id").eq("student_id", userId).eq("status", "Accepted"),
+    10000
+  );
+  if (appsErr) throw appsErr;
+  if (!apps || apps.length === 0) return [];
+
+  const jobIds = apps.map(a => a.job_id);
+  const { data: jobs, error: jobsErr } = await withTimeout(
+    supabase.from("jobs").select("id, title, company_id").in("id", jobIds),
+    10000
+  );
+  if (jobsErr) throw jobsErr;
+
+  const companyIds = [...new Set((jobs || []).map(j => j.company_id))];
+  const { data: profiles } = await withTimeout(
+    supabase.from("profiles").select("id, name").in("id", companyIds),
+    10000
+  );
+  const nameMap = Object.fromEntries((profiles || []).map(p => [p.id, p.name]));
+  const jobMap  = Object.fromEntries((jobs || []).map(j => [j.id, j]));
+
+  return jobIds.map(jid => ({
+    jobId:       jid,
+    title:       jobMap[jid]?.title       || "Job",
+    companyId:   jobMap[jid]?.company_id  || null,
+    companyName: nameMap[jobMap[jid]?.company_id] || "Company",
+  }));
+}
+
 export async function uploadAvatar(userId, file) {
   const ext  = file.name.split(".").pop();
   const path = `${userId}/avatar.${ext}`;

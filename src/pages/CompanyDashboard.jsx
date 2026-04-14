@@ -287,7 +287,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       {/* Applicants Modal */}
       {modal === "applicants" && activePosting && (
         <Modal onClose={closeModal} title={`Applicants — ${activePosting.title}`}>
-          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} />
+          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} companyId={currentUser?.id} />
         </Modal>
       )}
 
@@ -381,7 +381,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
   );
 }
 
-function ApplicantsView({ posting, onUpdateStatus }) {
+function ApplicantsView({ posting, onUpdateStatus, companyId }) {
   if (posting.applicantsLoading) {
     return <p style={{ color: "#6b7280", textAlign: "center", padding: "2rem 1rem" }}>Loading applicants…</p>;
   }
@@ -419,6 +419,7 @@ function ApplicantsView({ posting, onUpdateStatus }) {
             applicant={applicant}
             postingId={posting.id}
             onUpdateStatus={onUpdateStatus}
+            companyId={companyId}
           />
         ))}
       </div>
@@ -511,7 +512,7 @@ function PdfModal({ url, label, fileName, onClose }) {
   );
 }
 
-function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
+function ApplicantCard({ applicant, postingId, onUpdateStatus, companyId }) {
   const [showChat, setShowChat] = useState(false);
   const [cvOpen, setCvOpen]   = useState(false);
   const [clOpen, setClOpen]   = useState(false);
@@ -631,7 +632,7 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
         </div>
       </div>
       {showChat && applicant.status === "Accepted" && (
-        <ChatThread applicantId={applicant.id} jobId={postingId} role="company" />
+        <ChatThread jobId={postingId} studentId={applicant.studentId} companyId={companyId} senderId={companyId} />
       )}
     </div>
     </>
@@ -1117,37 +1118,69 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
   );
 }
 
-function ChatThread({ applicantId, jobId, role }) {
-  const key = "ss_msgs_" + applicantId + "_" + jobId;
-  const [messages, setMessages] = useState(() => JSON.parse(localStorage.getItem(key) || "[]"));
-  const [input, setInput] = useState("");
+function ChatThread({ jobId, studentId, companyId, senderId }) {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput]       = useState("");
+  const [loading, setLoading]   = useState(true);
+  const bottomRef = useRef(null);
 
-  const send = () => {
-    if (!input.trim()) return;
-    const msg = { from: role, text: input.trim(), time: new Date().toISOString() };
-    const updated = [...messages, msg];
-    setMessages(updated);
-    localStorage.setItem(key, JSON.stringify(updated));
+  useEffect(() => {
+    let channel;
+    import("../lib/auth").then(({ fetchMessages }) => {
+      fetchMessages(jobId, studentId)
+        .then(msgs => { setMessages(msgs); setLoading(false); })
+        .catch(() => setLoading(false));
+    });
+
+    channel = supabase
+      .channel(`msgs_${jobId}_${studentId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages", filter: `job_id=eq.${jobId}` },
+        payload => {
+          if (payload.new.student_id === studentId) {
+            setMessages(prev => [...prev, payload.new]);
+          }
+        })
+      .subscribe();
+
+    return () => { channel && supabase.removeChannel(channel); };
+  }, [jobId, studentId]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
+  const send = async () => {
+    const text = input.trim();
+    if (!text) return;
     setInput("");
+    try {
+      const { sendMessage } = await import("../lib/auth");
+      await sendMessage(jobId, studentId, companyId, senderId, text);
+    } catch (e) {
+      console.error("Send failed:", e);
+    }
   };
 
   return (
     <div style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.5rem" }}>
       <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", marginBottom: "0.5rem" }}>💬 Messages</p>
-      <div style={{ maxHeight: "160px", overflowY: "auto", marginBottom: "0.5rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-        {messages.length === 0
-          ? <p style={{ fontSize: "0.8rem", color: "#9ca3af", textAlign: "center", padding: "0.5rem 0" }}>No messages yet.</p>
-          : messages.map((m, i) => (
-            <div key={i} style={{ alignSelf: m.from === role ? "flex-end" : "flex-start", maxWidth: "85%" }}>
-              <div style={{ backgroundColor: m.from === role ? "#3b82f6" : "#e5e7eb", color: m.from === role ? "white" : "#111827", padding: "0.4rem 0.65rem", borderRadius: "0.55rem", fontSize: "0.8rem", lineHeight: 1.4 }}>
-                {m.text}
+      <div style={{ maxHeight: "200px", overflowY: "auto", marginBottom: "0.5rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+        {loading
+          ? <p style={{ fontSize: "0.8rem", color: "#9ca3af", textAlign: "center", padding: "0.5rem 0" }}>Loading…</p>
+          : messages.length === 0
+            ? <p style={{ fontSize: "0.8rem", color: "#9ca3af", textAlign: "center", padding: "0.5rem 0" }}>No messages yet.</p>
+            : messages.map((m) => (
+              <div key={m.id} style={{ alignSelf: m.sender_id === senderId ? "flex-end" : "flex-start", maxWidth: "85%" }}>
+                <div style={{ backgroundColor: m.sender_id === senderId ? "#3b82f6" : "#e5e7eb", color: m.sender_id === senderId ? "white" : "#111827", padding: "0.4rem 0.65rem", borderRadius: "0.55rem", fontSize: "0.8rem", lineHeight: 1.4 }}>
+                  {m.text}
+                </div>
+                <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
+                  {new Date(m.created_at).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
+                </p>
               </div>
-              <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: "0.1rem 0 0", textAlign: m.from === role ? "right" : "left" }}>
-                {new Date(m.time).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
-              </p>
-            </div>
-          ))
+            ))
         }
+        <div ref={bottomRef} />
       </div>
       <div style={{ display: "flex", gap: "0.4rem" }}>
         <input
@@ -1155,9 +1188,9 @@ function ChatThread({ applicantId, jobId, role }) {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
           placeholder="Type a message…"
-          style={{ flex: 1, padding: "0.45rem 0.65rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", fontSize: "0.8rem" }}
+          style={{ flex: 1, padding: "0.45rem 0.65rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", fontSize: "0.8rem", fontFamily: "inherit" }}
         />
-        <button onClick={send} style={{ padding: "0.45rem 0.75rem", borderRadius: "0.4rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer" }}>
+        <button onClick={send} style={{ padding: "0.45rem 0.75rem", borderRadius: "0.4rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
           Send
         </button>
       </div>
