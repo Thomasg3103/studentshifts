@@ -82,6 +82,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       ]);
       (profiles || []).forEach(p => { profileMap[p.id] = p; });
       (students || []).forEach(s => { cvMap[s.id] = s; });
+      console.log("[Applicants] students data:", students);
     }
     const applicants = (appData || []).map(a => ({
       id:               a.id,
