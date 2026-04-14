@@ -182,3 +182,7 @@ header {
 .job-card:last-child {
   margin-bottom: 0;
 }
+
+.cv-tooltip-wrap:hover .cv-tooltip {
+  opacity: 1 !important;
+}

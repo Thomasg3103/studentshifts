@@ -513,7 +513,12 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
               <button onClick={() => window.print()} style={cvHeaderBtn} title="Print">🖨</button>
               <button onClick={saveCv} style={cvHeaderBtn} title="Save">⬇</button>
               <button onClick={openWithCv} style={cvHeaderBtn} title="Open With">↗</button>
-              <button onClick={toggleFullScreen} style={cvHeaderBtn} title={isFullScreen ? "Exit Full Screen" : "Full Screen"}>{isFullScreen ? "⊠" : "⛶"}</button>
+              <div style={{ position: "relative", display: "inline-block" }} className="cv-tooltip-wrap">
+                <button onClick={toggleFullScreen} style={cvHeaderBtn}>{isFullScreen ? "⊠" : "⛶"}</button>
+                <span style={{ position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", backgroundColor: "#1e293b", color: "white", fontSize: "0.7rem", fontWeight: "600", padding: "0.2rem 0.5rem", borderRadius: "0.35rem", whiteSpace: "nowrap", pointerEvents: "none", opacity: 0, transition: "opacity 0.15s" }} className="cv-tooltip">
+                  {isFullScreen ? "Exit Full Screen" : "Full Screen"}
+                </span>
+              </div>
               <button onClick={() => setCvUrl(null)} style={{ ...cvHeaderBtn, fontSize: "1rem" }} title="Close">✕</button>
             </div>
           </div>
