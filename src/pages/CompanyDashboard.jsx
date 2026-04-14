@@ -443,6 +443,37 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
     else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
   };
 
+  const saveCv = async () => {
+    try {
+      const res = await fetch(cvUrl);
+      const blob = await res.blob();
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `${applicant.name.replace(/\s+/g, "_")}_CV.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    } catch (e) {
+      alert("Could not save CV: " + e.message);
+    }
+  };
+
+  const openWithCv = async () => {
+    if (navigator.share) {
+      try {
+        const res = await fetch(cvUrl);
+        const blob = await res.blob();
+        const file = new File([blob], `${applicant.name.replace(/\s+/g, "_")}_CV.pdf`, { type: "application/pdf" });
+        await navigator.share({ files: [file], title: `${applicant.name}'s CV` });
+      } catch (e) {
+        if (e.name !== "AbortError") alert("Could not share CV: " + e.message);
+      }
+    } else {
+      window.open(cvUrl, "_blank", "noreferrer");
+    }
+  };
+
   return (
     <>
     {cvUrl && (
@@ -459,8 +490,10 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
                   <button onClick={() => setPageNum(p => Math.min(numPages, p + 1))} disabled={pageNum >= numPages} style={navBtn}>›</button>
                 </div>
               )}
-              <button onClick={() => window.print()} style={{ background: "none", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.4rem", color: "white", fontSize: "0.75rem", fontWeight: "600", padding: "0.25rem 0.6rem", cursor: "pointer", fontFamily: "inherit" }}>🖨 Print</button>
-              <button onClick={goFullScreen} style={{ background: "none", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.4rem", color: "white", fontSize: "0.75rem", fontWeight: "600", padding: "0.25rem 0.6rem", cursor: "pointer", fontFamily: "inherit" }}>⛶ Full Screen</button>
+              <button onClick={() => window.print()} style={cvHeaderBtn}>🖨 Print</button>
+              <button onClick={saveCv} style={cvHeaderBtn}>⬇ Save</button>
+              <button onClick={openWithCv} style={cvHeaderBtn}>↗ Open With</button>
+              <button onClick={goFullScreen} style={cvHeaderBtn}>⛶ Full Screen</button>
               <button onClick={() => setCvUrl(null)} style={{ background: "none", border: "none", color: "white", fontSize: "1.25rem", cursor: "pointer", lineHeight: 1 }}>✕</button>
             </div>
           </div>
@@ -1075,6 +1108,7 @@ const btnGray      = { ...btnBase, background: "linear-gradient(135deg, #f43f5e,
 const zoomBtn      = { padding: "0.2rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" };
 
 const navBtn        = { background: "none", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.4rem", color: "white", fontSize: "0.85rem", fontWeight: "700", padding: "0.1rem 0.5rem", cursor: "pointer", fontFamily: "inherit" };
+const cvHeaderBtn   = { background: "none", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.4rem", color: "white", fontSize: "0.75rem", fontWeight: "600", padding: "0.25rem 0.6rem", cursor: "pointer", fontFamily: "inherit" };
 const btnSmallBase  = { padding: "0.32rem 0.75rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" };
 const btnSmallGreen = { ...btnSmallBase, background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 2px 6px rgba(16,185,129,0.3)" };
 const btnSmallBlue  = { ...btnSmallBase, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 2px 6px rgba(99,102,241,0.3)" };
