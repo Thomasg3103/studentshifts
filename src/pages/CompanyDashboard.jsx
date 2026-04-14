@@ -525,7 +525,7 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus }) {
               ].map(({ icon, label, onClick }) => (
                 <div key={label} style={{ position: "relative", display: "inline-block" }} className="cv-tooltip-wrap">
                   <button onClick={onClick} style={cvHeaderBtn}>{icon}</button>
-                  <span className="cv-tooltip" style={{ position: "absolute", bottom: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", backgroundColor: "#0f172a", color: "white", fontSize: "0.7rem", fontWeight: "600", padding: "0.2rem 0.5rem", borderRadius: "0.35rem", whiteSpace: "nowrap", pointerEvents: "none", opacity: 0, transition: "opacity 0.15s" }}>
+                  <span className="cv-tooltip" style={{ position: "absolute", top: "calc(100% + 6px)", left: "50%", transform: "translateX(-50%)", backgroundColor: "#0f172a", color: "white", fontSize: "0.7rem", fontWeight: "600", padding: "0.2rem 0.5rem", borderRadius: "0.35rem", whiteSpace: "nowrap", pointerEvents: "none", opacity: 0, transition: "opacity 0.15s", zIndex: 10 }}>
                     {label}
                   </span>
                 </div>
