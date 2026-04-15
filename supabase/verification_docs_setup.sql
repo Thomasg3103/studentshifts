@@ -82,4 +82,6 @@ WITH CHECK (
 
 UPDATE profiles
 SET role = 'admin'
-WHERE email = 'thomasgallagher3103@gmail.com';
+WHERE id = (
+  SELECT id FROM auth.users WHERE email = 'thomasgallagher3103@gmail.com'
+);
