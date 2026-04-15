@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { fetchPendingStudents, approveStudent, rejectStudent, getSignedDocumentUrl } from "../lib/auth";
 
-export default function AdminPage({ currentUser, setPage }) {
+export default function AdminPage() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState("");
@@ -76,8 +76,7 @@ export default function AdminPage({ currentUser, setPage }) {
             {students.map(s => (
               <div key={s.id} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem 1.5rem" }}>
                 <div style={{ marginBottom: "0.85rem" }}>
-                  <p style={{ margin: "0 0 0.15rem", fontWeight: "700", fontSize: "1rem", color: "#1e293b" }}>{s.name}</p>
-                  <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>{s.email}</p>
+                  <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "#1e293b" }}>{s.name}</p>
                 </div>
 
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>

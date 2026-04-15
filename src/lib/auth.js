@@ -177,15 +177,14 @@ export async function fetchPendingStudents() {
   const { data, error } = await withTimeout(
     supabase
       .from("students")
-      .select("id, student_id_url, gov_id_url, status, profiles(name, email)")
+      .select("id, student_id_url, gov_id_url, status, profiles(name)")
       .eq("status", "pending_review"),
     10000
   );
   if (error) throw error;
   return (data || []).map(s => ({
     id:           s.id,
-    name:         s.profiles?.name  || "Unknown",
-    email:        s.profiles?.email || "",
+    name:         s.profiles?.name || "Unknown",
     studentIdUrl: s.student_id_url,
     govIdUrl:     s.gov_id_url,
     status:       s.status,
