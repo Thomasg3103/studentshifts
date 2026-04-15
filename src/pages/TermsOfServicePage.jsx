@@ -1,6 +1,6 @@
 import PageWrapper from "../components/PageWrapper";
 
-const CONTACT_EMAIL = "hello@studentshifts.ie";
+const CONTACT_EMAIL = "thomasgallagher3103@gmail.com";
 const LAST_UPDATED  = "15 April 2026";
 
 export default function TermsOfServicePage({ setPage }) {
