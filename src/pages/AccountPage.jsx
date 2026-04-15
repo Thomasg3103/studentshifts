@@ -234,7 +234,7 @@ export default function AccountPage({
         <Section title="Account Details">
           <InfoRow label="Name" value={currentUser.name} />
           <InfoRow label="Email" value={currentUser.email} />
-          <InfoRow label="Role" value={currentUser.role === "student" ? "Student" : "Company"} />
+          <InfoRow label="Role" value={currentUser.role === "student" ? "Student" : currentUser.role === "admin" ? "Admin" : "Company"} />
         </Section>
 
         {/* Verification docs uploaded at signup */}
