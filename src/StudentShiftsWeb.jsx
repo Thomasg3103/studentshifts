@@ -128,6 +128,25 @@ export default function StudentShiftsWeb() {
     return () => { clearTimeout(failsafe); subscription.unsubscribe(); };
   }, []);
 
+  // Poll verification status every 30s for pending students
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== "student" || currentUser.verificationStatus !== "pending_review") return;
+    const interval = setInterval(async () => {
+      try {
+        const profile = await getProfile(currentUser.id);
+        const updated = normaliseProfile({ ...profile, email: profile.email || currentUser.email });
+        if (updated.verificationStatus === "verified") {
+          setCurrentUser(updated);
+          setPage("studentDashboard");
+        } else if (updated.verificationStatus === "rejected") {
+          setCurrentUser(updated);
+          setPage("verifyDocs");
+        }
+      } catch { /* silently ignore */ }
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [currentUser?.id, currentUser?.verificationStatus]);
+
   // Sync studentLocation when user logs in/out
   useEffect(() => {
     setStudentLocation(currentUser?.savedLocation ?? null);

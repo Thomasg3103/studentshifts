@@ -193,7 +193,7 @@ export async function fetchPendingStudents() {
 
 export async function approveStudent(studentId) {
   const { error } = await withTimeout(
-    supabase.from("students").update({ status: "verified" }).eq("id", studentId),
+    supabase.rpc("approve_student", { student_id: studentId }),
     10000
   );
   if (error) throw error;
@@ -201,7 +201,7 @@ export async function approveStudent(studentId) {
 
 export async function rejectStudent(studentId) {
   const { error } = await withTimeout(
-    supabase.from("students").update({ status: "rejected" }).eq("id", studentId),
+    supabase.rpc("reject_student", { student_id: studentId }),
     10000
   );
   if (error) throw error;
