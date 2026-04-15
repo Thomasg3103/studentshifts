@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
-import { updateStudentProfile, uploadAvatar, uploadDocument, signOut, deleteAccount } from "../lib/auth";
+import { updateStudentProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, exportMyData } from "../lib/auth";
 
 export default function AccountPage({
   currentUser,
@@ -26,6 +26,7 @@ export default function AccountPage({
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+  const [exporting, setExporting] = useState(false);
   const [profilePhoto, setProfilePhoto] = useState(currentUser.profilePhoto || "");
   const [profilePhotoFile, setProfilePhotoFile] = useState(null);
 
@@ -178,6 +179,24 @@ export default function AccountPage({
       setSaveError(e.message || "Failed to save. Please try again.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const data = await exportMyData(currentUser.id);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href     = url;
+      a.download = `studentshifts-data-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      alert("Export failed: " + (e.message || "Please try again."));
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -456,6 +475,7 @@ export default function AccountPage({
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginTop: "0.5rem" }}>
           <button onClick={goBack} style={btnGray}>Back to Dashboard</button>
           <button onClick={handleLogout} style={btnRed}>Logout</button>
+          <button onClick={handleExport} disabled={exporting} style={btnGray}>{exporting ? "Exporting…" : "Download My Data"}</button>
           <button onClick={() => { setDeleteConfirm(""); setDeleteError(""); setShowDeleteModal(true); }} style={btnDelete}>Delete Account</button>
         </div>
       </div>

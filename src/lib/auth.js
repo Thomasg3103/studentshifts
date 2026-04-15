@@ -135,6 +135,24 @@ export async function updatePassword(newPassword) {
   if (error) throw error;
 }
 
+export async function exportMyData(userId) {
+  const [profileRes, studentRes, applicationsRes, likedRes, messagesRes] = await Promise.all([
+    supabase.from("profiles").select("id, name, role, created_at").eq("id", userId).single(),
+    supabase.from("students").select("bio, skills, linkedin, location_display, cv_url, cover_letter_url, status").eq("id", userId).single(),
+    supabase.from("applications").select("job_id, status, created_at, jobs(title, company)").eq("student_id", userId),
+    supabase.from("liked_jobs").select("job_id, jobs(title, company)").eq("student_id", userId),
+    supabase.from("chat_messages").select("text, created_at, sender_id").eq("student_id", userId).order("created_at"),
+  ]);
+  return {
+    exportedAt:   new Date().toISOString(),
+    profile:      profileRes.data  || {},
+    student:      studentRes.data  || {},
+    applications: applicationsRes.data || [],
+    likedJobs:    likedRes.data    || [],
+    messages:     messagesRes.data || [],
+  };
+}
+
 export async function deleteAccount() {
   const { error } = await withTimeout(
     supabase.rpc("delete_account"),

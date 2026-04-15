@@ -14,6 +14,9 @@ import CompanyMessages from "./pages/CompanyMessages";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import VerifyDocsPage from "./pages/VerifyDocsPage";
 import AdminPage from "./pages/AdminPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
+import TermsOfServicePage from "./pages/TermsOfServicePage";
+import CookieBanner from "./components/CookieBanner";
 import { supabase } from "./lib/supabase";
 import { getProfile, fetchLikedJobIds, fetchAppliedJobIds } from "./lib/auth";
 
@@ -263,6 +266,10 @@ export default function StudentShiftsWeb() {
         return currentUser && <CompanyMessages currentUser={currentUser} setPage={setPage} />;
       case "about":
         return <AboutPage setPage={setPage} />;
+      case "privacy":
+        return <PrivacyPolicyPage setPage={setPage} />;
+      case "terms":
+        return <TermsOfServicePage setPage={setPage} />;
       default:
         return (
           <StudentDashboard
@@ -291,6 +298,14 @@ export default function StudentShiftsWeb() {
         notifCount={notifCount}
       />
       {renderPage()}
+      <footer style={{ backgroundColor: "#0f172a", color: "rgba(255,255,255,0.5)", textAlign: "center", padding: "1.25rem 1rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif" }}>
+        <span>© {new Date().getFullYear()} StudentShifts · Ireland</span>
+        <span style={{ margin: "0 0.6rem" }}>·</span>
+        <span onClick={() => setPage("privacy")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)" }}>Privacy Policy</span>
+        <span style={{ margin: "0 0.6rem" }}>·</span>
+        <span onClick={() => setPage("terms")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)" }}>Terms of Service</span>
+      </footer>
+      <CookieBanner setPage={setPage} />
     </>
   );
 }
