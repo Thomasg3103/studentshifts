@@ -75,9 +75,19 @@ WITH CHECK (
 );
 
 -- ============================================================
--- 4. Create your admin account
---    a) Sign up normally via the app (as any user)
---    b) Run this to promote the account to admin:
+-- 4. Allow 'admin' as a valid role (drop and recreate constraint)
+-- ============================================================
+
+ALTER TABLE profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+
+ALTER TABLE profiles
+  ADD CONSTRAINT profiles_role_check
+  CHECK (role IN ('student', 'company', 'admin'));
+
+-- ============================================================
+-- 5. Promote your account to admin
+--    a) Sign up normally via the app first
+--    b) Then run this:
 -- ============================================================
 
 UPDATE profiles
