@@ -2,6 +2,20 @@ import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { signUp } from "../lib/auth";
 
+function getPasswordStrength(pw) {
+  if (!pw) return null;
+  let score = 0;
+  if (pw.length >= 8)  score++;
+  if (pw.length >= 12) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (score <= 1) return { level: "Weak",   color: "#ef4444", bars: 1 };
+  if (score === 2) return { level: "Fair",   color: "#f97316", bars: 2 };
+  if (score === 3) return { level: "Good",   color: "#eab308", bars: 3 };
+  return              { level: "Strong", color: "#22c55e", bars: 4 };
+}
+
 export default function SignupPage({ setPage }) {
   const [name, setName]         = useState("");
   const [email, setEmail]       = useState("");
@@ -90,6 +104,20 @@ export default function SignupPage({ setPage }) {
         <input placeholder={role === "company" ? "Company Name" : "Full Name"} value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
         <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
         <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSignup()} style={inputStyle} />
+
+        {password && (() => {
+          const s = getPasswordStrength(password);
+          return (
+            <div style={{ marginTop: "-0.4rem", marginBottom: "0.75rem" }}>
+              <div style={{ display: "flex", gap: "0.3rem", marginBottom: "0.3rem" }}>
+                {[1,2,3,4].map(i => (
+                  <div key={i} style={{ flex: 1, height: "4px", borderRadius: "2px", backgroundColor: i <= s.bars ? s.color : "#e2e8f0", transition: "background-color 0.2s" }} />
+                ))}
+              </div>
+              <p style={{ margin: 0, fontSize: "0.78rem", color: s.color, fontWeight: "600" }}>{s.level} password</p>
+            </div>
+          );
+        })()}
 
         {role === "student" && (
           <div style={{ marginTop: "1.25rem", backgroundColor: "#f8fafc", borderRadius: "0.85rem", padding: "1rem 1.25rem", border: "1px solid #e2e8f0" }}>
