@@ -252,13 +252,23 @@ export async function rejectCompany(companyId) {
   if (error) throw error;
 }
 
-// Sends a transactional email via the Supabase Edge Function.
-// Errors are logged but do not block the caller — always use try/catch.
+// Sends a transactional email via EmailJS (browser-safe, no backend needed).
+// Set VITE_EMAILJS_SERVICE_ID, VITE_EMAILJS_TEMPLATE_ID, VITE_EMAILJS_PUBLIC_KEY in .env
+// EmailJS template must have: To = {{to_email}}, Subject = {{subject}}, Body (HTML) = {{{html_content}}}
 export async function sendEmail({ to, subject, html }) {
-  const { error } = await supabase.functions.invoke("send-email", {
-    body: { to, subject, html },
-  });
-  if (error) throw error;
+  const serviceId  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+  const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+  const publicKey  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+  if (!serviceId || !templateId || !publicKey) {
+    console.warn("EmailJS not configured — fill in VITE_EMAILJS_* in .env");
+    return;
+  }
+  const { default: emailjs } = await import("@emailjs/browser");
+  await emailjs.send(serviceId, templateId, {
+    to_email:     Array.isArray(to) ? to[0] : to,
+    subject,
+    html_content: html,
+  }, { publicKey });
 }
 
 // ── Email HTML templates ──────────────────────────────────────────────────
