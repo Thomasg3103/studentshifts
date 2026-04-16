@@ -196,6 +196,8 @@ export default function StudentShiftsWeb() {
       case "signup":
         return <SignupPage setPage={setPage} />;
       case "studentDashboard":
+        if (currentUser?.role === "student" && !currentUser?.studentIdPath)
+          return <VerifyDocsPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} />;
         return (
           <StudentDashboard
             setPage={setPage}
