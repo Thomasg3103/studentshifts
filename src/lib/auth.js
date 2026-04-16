@@ -1,12 +1,26 @@
 import { supabase, withTimeout } from "./supabase";
 
-export async function signUp({ email, password, name, role }) {
+export async function signUp({ email, password, name, role, croNumber }) {
+  const meta = { name, role };
+  if (role === "company" && croNumber) meta.cro_number = croNumber.trim();
   const { data, error } = await withTimeout(
-    supabase.auth.signUp({ email, password, options: { data: { name, role } } }),
+    supabase.auth.signUp({ email, password, options: { data: meta } }),
     15000, "Sign up timed out — please try again."
   );
   if (error) throw error;
   return data.user;
+}
+
+// Called on first SIGNED_IN for a company — persists cro_number from
+// auth metadata into the companies table (only if not already set).
+export async function saveCompanyCroNumber(userId, croNumber) {
+  if (!croNumber) return;
+  const { error } = await supabase
+    .from("companies")
+    .update({ cro_number: croNumber })
+    .eq("id", userId)
+    .is("cro_number", null);
+  if (error) console.warn("CRO save failed:", error.message);
 }
 
 export async function signIn({ email, password }) {
@@ -195,18 +209,242 @@ export async function fetchPendingStudents() {
   const { data, error } = await withTimeout(
     supabase
       .from("students")
-      .select("id, student_id_url, gov_id_url, status, profiles(name)")
+      .select("id, student_id_url, gov_id_url, status, profiles(name, email)")
       .eq("status", "pending_review"),
     10000
   );
   if (error) throw error;
   return (data || []).map(s => ({
     id:           s.id,
-    name:         s.profiles?.name || "Unknown",
+    name:         s.profiles?.name  || "Unknown",
+    email:        s.profiles?.email || null,
     studentIdUrl: s.student_id_url,
     govIdUrl:     s.gov_id_url,
     status:       s.status,
   }));
+}
+
+export async function fetchPendingCompanies() {
+  const { data, error } = await withTimeout(
+    supabase
+      .from("companies")
+      .select("id, status, cro_number, profiles(name, email)")
+      .eq("status", "pending_review"),
+    10000
+  );
+  if (error) throw error;
+  return (data || []).map(c => ({
+    id:        c.id,
+    name:      c.profiles?.name  || "Unknown",
+    email:     c.profiles?.email || null,
+    croNumber: c.cro_number      || null,
+    status:    c.status,
+  }));
+}
+
+export async function approveCompany(companyId) {
+  const { error } = await withTimeout(
+    supabase.rpc("approve_company", { company_id: companyId }),
+    10000
+  );
+  if (error) throw error;
+}
+
+export async function rejectCompany(companyId) {
+  const { error } = await withTimeout(
+    supabase.rpc("reject_company", { company_id: companyId }),
+    10000
+  );
+  if (error) throw error;
+}
+
+// Sends a transactional email via the Supabase Edge Function.
+// Errors are logged but do not block the caller — always use try/catch.
+export async function sendEmail({ to, subject, html }) {
+  const { error } = await supabase.functions.invoke("send-email", {
+    body: { to, subject, html },
+  });
+  if (error) throw error;
+}
+
+// ── Email HTML templates ──────────────────────────────────────────────────
+
+export function emailStudentApproved(name, appUrl) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+        <tr>
+          <td align="center" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:36px 24px 32px;">
+            <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">StudentShifts</p>
+            <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Find your next shift</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 32px 28px;">
+            <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">You're verified! 🎉</p>
+            <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
+              Hi ${name}, your identity has been verified and your StudentShifts account is now active.<br/><br/>
+              Browse hundreds of flexible student jobs across Ireland and apply in seconds.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center" style="padding:8px 0 28px;">
+                  <a href="${appUrl}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;box-shadow:0 4px 18px rgba(99,102,241,0.4);">
+                    Find your Shift →
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #f1f5f9;padding:20px 32px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+export function emailCompanyApproved(name, appUrl) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+        <tr>
+          <td align="center" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:36px 24px 32px;">
+            <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">StudentShifts</p>
+            <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Find your next shift</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 32px 28px;">
+            <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">Company verified! ✅</p>
+            <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
+              Hi ${name}, your company account on StudentShifts has been verified.<br/><br/>
+              You can now post job listings and start receiving applications from students across Ireland.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center" style="padding:8px 0 28px;">
+                  <a href="${appUrl}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;box-shadow:0 4px 18px rgba(99,102,241,0.4);">
+                    Post a Job →
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #f1f5f9;padding:20px 32px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+export function emailApplicantAccepted(studentName, jobTitle, companyName, appUrl) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+        <tr>
+          <td align="center" style="background:linear-gradient(135deg,#10b981,#059669);padding:36px 24px 32px;">
+            <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">StudentShifts</p>
+            <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Find your next shift</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 32px 28px;">
+            <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">You got the job! 🎉</p>
+            <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
+              Congratulations ${studentName}!<br/><br/>
+              <strong style="color:#1e293b;">${companyName}</strong> has accepted your application for <strong style="color:#1e293b;">${jobTitle}</strong>.<br/><br/>
+              Log in to StudentShifts to send a message to your new employer and get started.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center" style="padding:8px 0 28px;">
+                  <a href="${appUrl}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;box-shadow:0 4px 18px rgba(16,185,129,0.4);">
+                    Open Messages →
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #f1f5f9;padding:20px 32px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+export function emailApplicantDeclined(studentName, jobTitle, companyName) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+        <tr>
+          <td align="center" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);padding:36px 24px 32px;">
+            <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">StudentShifts</p>
+            <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Find your next shift</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 32px 28px;">
+            <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">Application update</p>
+            <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
+              Hi ${studentName},<br/><br/>
+              Thank you for applying for <strong style="color:#1e293b;">${jobTitle}</strong> at <strong style="color:#1e293b;">${companyName}</strong>.<br/><br/>
+              Unfortunately the position has been filled. We encourage you to keep applying — new shifts are added every day.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td style="background-color:#f8fafc;border-radius:10px;padding:16px 20px;">
+                  <p style="margin:0;font-size:13px;color:#64748b;line-height:1.6;">
+                    Good luck with your search! There are plenty more opportunities on StudentShifts.
+                  </p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #f1f5f9;padding:20px 32px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
 }
 
 export async function approveStudent(studentId) {

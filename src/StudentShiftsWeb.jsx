@@ -18,7 +18,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import CookieBanner from "./components/CookieBanner";
 import { supabase } from "./lib/supabase";
-import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses } from "./lib/auth";
+import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber } from "./lib/auth";
 
 // Normalise Supabase profile shape to match what the app expects
 function normaliseProfile(profile) {
@@ -38,6 +38,7 @@ function normaliseProfile(profile) {
     governmentIdName:     extra.gov_id_url         || null,
     studentIdPath:        extra.student_id_url     || null,
     verificationStatus:   extra.status             || null,
+    croNumber:            extra.cro_number          || null,
     savedLocation:      extra.location_lat ? {
       lat:         extra.location_lat,
       lng:         extra.location_lng,
@@ -107,6 +108,11 @@ export default function StudentShiftsWeb() {
           const profile = await getProfile(session.user.id);
           const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
           setCurrentUser(user);
+          // Persist CRO number from signup metadata on first login
+          if (user.role === "company") {
+            const metaCro = session.user.user_metadata?.cro_number;
+            if (metaCro && !user.croNumber) saveCompanyCroNumber(user.id, metaCro);
+          }
           // Show verified screen if this is a fresh email confirmation
           const justVerified = window.location.hash.includes("type=signup") || window.location.hash.includes("type=email");
           if (justVerified) { setPage("emailVerified"); return; }

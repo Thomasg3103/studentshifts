@@ -22,17 +22,19 @@ export default function SignupPage({ setPage }) {
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole]         = useState("student");
+  const [croNumber, setCroNumber] = useState("");
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
   const [done, setDone]         = useState(false);
 
   const handleSignup = async () => {
-    if (!name || !email || !password) { setError("Please fill in your name, email and password."); return; }
+    if (!name || !email || !password) { setError("Please fill in all required fields."); return; }
     if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
+    if (role === "company" && !croNumber.trim()) { setError("Please enter your CRO number."); return; }
     setLoading(true);
     setError("");
     try {
-      await signUp({ email, password, name, role });
+      await signUp({ email, password, name, role, croNumber });
       setDone(true);
     } catch (e) {
       setError(e.message || "Something went wrong. Please try again.");
@@ -40,6 +42,41 @@ export default function SignupPage({ setPage }) {
       setLoading(false);
     }
   };
+
+  if (done && role === "company") {
+    return (
+      <PageWrapper>
+        <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
+          <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📬</div>
+          <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Almost there!</h2>
+          <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
+            We sent a confirmation link to <strong style={{ color: "#1e293b" }}>{email}</strong>.
+          </p>
+
+          {/* Two-step process */}
+          <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "1.5rem" }}>
+            <div style={{ display: "flex", gap: "0.85rem", alignItems: "flex-start", backgroundColor: "#f0fdf4", border: "1px solid #86efac", borderRadius: "0.75rem", padding: "0.85rem 1rem" }}>
+              <span style={{ fontSize: "1.1rem", flexShrink: 0, marginTop: "0.05rem" }}>1️⃣</span>
+              <div>
+                <p style={{ margin: 0, fontWeight: "700", color: "#15803d", fontSize: "0.875rem" }}>Verify your email</p>
+                <p style={{ margin: "0.2rem 0 0", fontSize: "0.78rem", color: "#16a34a", lineHeight: 1.5 }}>Click the confirmation link in the email we just sent you.</p>
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "0.85rem", alignItems: "flex-start", backgroundColor: "#fef3c7", border: "1px solid #fcd34d", borderRadius: "0.75rem", padding: "0.85rem 1rem" }}>
+              <span style={{ fontSize: "1.1rem", flexShrink: 0, marginTop: "0.05rem" }}>2️⃣</span>
+              <div>
+                <p style={{ margin: 0, fontWeight: "700", color: "#92400e", fontSize: "0.875rem" }}>Wait for admin approval</p>
+                <p style={{ margin: "0.2rem 0 0", fontSize: "0.78rem", color: "#b45309", lineHeight: 1.5 }}>Our team will verify your company using your CRO number (<strong>{croNumber}</strong>) and approve your account. You'll receive a confirmation email once approved.</p>
+              </div>
+            </div>
+          </div>
+
+          <p style={{ fontSize: "0.82rem", color: "#94a3b8", marginBottom: "1.25rem" }}>Didn't get the email? Check your spam folder.</p>
+          <button onClick={() => setPage("login")} style={btnPrimary}>Go to Login →</button>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   if (done) {
     return (
@@ -96,9 +133,26 @@ export default function SignupPage({ setPage }) {
           ))}
         </div>
 
-        <input placeholder={role === "company" ? "Company Name" : "Full Name"} value={name} onChange={e => setName(e.target.value)} style={inputStyle} />
-        <input placeholder="Email" value={email} onChange={e => setEmail(e.target.value)} style={inputStyle} />
-        <input type="password" placeholder="Password" value={password} onChange={e => setPassword(e.target.value)} onKeyDown={e => e.key === "Enter" && handleSignup()} style={inputStyle} />
+        <input
+          placeholder={role === "company" ? "Company Name" : "Full Name"}
+          value={name}
+          onChange={e => setName(e.target.value)}
+          style={inputStyle}
+        />
+        <input
+          placeholder="Email"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          style={inputStyle}
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && !croNumber && role === "company" ? null : e.key === "Enter" && handleSignup()}
+          style={inputStyle}
+        />
 
         {password && (() => {
           const s = getPasswordStrength(password);
@@ -114,11 +168,40 @@ export default function SignupPage({ setPage }) {
           );
         })()}
 
+        {/* CRO number — company only */}
+        {role === "company" && (
+          <div style={{ marginBottom: "0.75rem" }}>
+            <input
+              placeholder="CRO Number (e.g. 123456)"
+              value={croNumber}
+              onChange={e => setCroNumber(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSignup()}
+              style={{ ...inputStyle, marginBottom: 0 }}
+            />
+            <p style={{ margin: "0.3rem 0 0", fontSize: "0.76rem", color: "#64748b", lineHeight: 1.4 }}>
+              Your Companies Registration Office number — find it at{" "}
+              <a href="https://search.cro.ie" target="_blank" rel="noreferrer" style={{ color: "#6366f1", fontWeight: "600" }}>search.cro.ie</a>.
+              Used by our admin to verify your company.
+            </p>
+          </div>
+        )}
+
+        {/* Info banners */}
         {role === "student" && (
-          <div style={{ marginTop: "1.25rem", backgroundColor: "#f0f9ff", borderRadius: "0.85rem", padding: "0.9rem 1.1rem", border: "1px solid #bae6fd" }}>
+          <div style={{ marginTop: "0.5rem", backgroundColor: "#f0f9ff", borderRadius: "0.85rem", padding: "0.9rem 1.1rem", border: "1px solid #bae6fd" }}>
             <p style={{ margin: "0 0 0.25rem", fontWeight: "700", color: "#0369a1", fontSize: "0.875rem" }}>🪪 Verification required</p>
             <p style={{ margin: 0, fontSize: "0.78rem", color: "#0369a1", lineHeight: 1.5 }}>
               After confirming your email you'll be asked to upload your Student ID and Government ID. You can apply for jobs once verified.
+            </p>
+          </div>
+        )}
+
+        {role === "company" && (
+          <div style={{ marginTop: "0.5rem", backgroundColor: "#fef3c7", borderRadius: "0.85rem", padding: "0.9rem 1.1rem", border: "1px solid #fcd34d" }}>
+            <p style={{ margin: "0 0 0.25rem", fontWeight: "700", color: "#92400e", fontSize: "0.875rem" }}>🏢 Two-step approval</p>
+            <p style={{ margin: 0, fontSize: "0.78rem", color: "#b45309", lineHeight: 1.5 }}>
+              1. Verify your email address.<br />
+              2. Our admin will review and approve your company — you'll get an email when you're cleared to post jobs.
             </p>
           </div>
         )}

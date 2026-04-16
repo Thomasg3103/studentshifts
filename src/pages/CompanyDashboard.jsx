@@ -3,6 +3,7 @@ import PageWrapper from "../components/PageWrapper";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
+import { sendEmail, emailApplicantAccepted, emailApplicantDeclined } from "../lib/auth";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -247,7 +248,81 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     });
   };
 
-  const updateApplicantStatus = async (applicationId, newStatus) => {
+  const updateApplicantStatus = async (applicationId, newStatus, applicant) => {
+    if (newStatus === "Accepted") {
+      // 1. Accept the winner
+      const { error } = await withTimeout(
+        supabase.from("applications").update({ status: "Accepted" }).eq("id", applicationId),
+        10000, "Update timed out."
+      );
+      if (error) { alert("Failed to accept applicant."); return; }
+
+      // 2. Auto-decline all other pending applicants for this job
+      const { data: others } = await withTimeout(
+        supabase.from("applications")
+          .select("id, student_id")
+          .eq("job_id", activePosting.id)
+          .eq("status", "Pending")
+          .neq("id", applicationId),
+        10000, "Timeout."
+      );
+      const otherIds = (others || []).map(o => o.id);
+      if (otherIds.length) {
+        await withTimeout(
+          supabase.from("applications").update({ status: "Rejected" }).in("id", otherIds),
+          10000, "Timeout."
+        );
+      }
+
+      // 3. Update UI immediately
+      const otherSet = new Set(otherIds);
+      const uiUpdater = (p) => ({
+        ...p,
+        applicants: p.applicants.map(a => {
+          if (a.id === applicationId) return { ...a, status: "Accepted" };
+          if (otherSet.has(a.id))     return { ...a, status: "Rejected" };
+          return a;
+        }),
+      });
+      setPostings(prev => prev.map(p => p.id === activePosting.id ? uiUpdater(p) : p));
+      setActivePosting(prev => uiUpdater(prev));
+
+      // 4. Send emails best-effort (don't block the UI)
+      try {
+        const allStudentIds = [applicant.studentId, ...(others || []).map(o => o.student_id)];
+        const { data: emailProfiles } = await supabase
+          .from("profiles").select("id, email").in("id", allStudentIds);
+        const emailMap = Object.fromEntries((emailProfiles || []).map(p => [p.id, p.email]));
+        const appUrl = window.location.origin;
+
+        await Promise.allSettled([
+          // Acceptance email to winner
+          emailMap[applicant.studentId] && sendEmail({
+            to: emailMap[applicant.studentId],
+            subject: `Congratulations! ${currentUser.name} has accepted your application`,
+            html: emailApplicantAccepted(applicant.name, activePosting.title, currentUser.name, appUrl),
+          }),
+          // Rejection emails to auto-declined applicants
+          ...(others || []).map(o => {
+            const declinedApplicant = activePosting.applicants?.find(a => a.id === o.id);
+            return emailMap[o.student_id] && sendEmail({
+              to: emailMap[o.student_id],
+              subject: `Update on your ${activePosting.title} application`,
+              html: emailApplicantDeclined(
+                declinedApplicant?.name || "there",
+                activePosting.title,
+                currentUser.name,
+              ),
+            });
+          }).filter(Boolean),
+        ]);
+      } catch (e) {
+        console.warn("Email sending failed:", e);
+      }
+      return;
+    }
+
+    // Simple reject (no email, no auto-decline)
     const { error } = await withTimeout(
       supabase.from("applications").update({ status: newStatus }).eq("id", applicationId),
       10000, "Update timed out."
@@ -258,8 +333,31 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     setActivePosting(prev => updater(prev));
   };
 
+  const verificationStatus = currentUser?.verificationStatus;
+  const isVerified = verificationStatus === "verified" || verificationStatus === null;
+
   return (
     <PageWrapper>
+      {/* Verification banner */}
+      {verificationStatus === "pending_review" && (
+        <div style={{ backgroundColor: "#fef3c7", border: "1.5px solid #fcd34d", borderRadius: "0.75rem", padding: "1rem 1.25rem", marginBottom: "1.5rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
+          <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>⏳</span>
+          <div>
+            <p style={{ margin: 0, fontWeight: "700", color: "#92400e", fontSize: "0.95rem" }}>Account pending verification</p>
+            <p style={{ margin: "0.2rem 0 0", color: "#b45309", fontSize: "0.85rem" }}>Our team is reviewing your company account. You'll receive an email once approved and can then start posting jobs.</p>
+          </div>
+        </div>
+      )}
+      {verificationStatus === "rejected" && (
+        <div style={{ backgroundColor: "#fee2e2", border: "1.5px solid #fca5a5", borderRadius: "0.75rem", padding: "1rem 1.25rem", marginBottom: "1.5rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
+          <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>❌</span>
+          <div>
+            <p style={{ margin: 0, fontWeight: "700", color: "#991b1b", fontSize: "0.95rem" }}>Verification declined</p>
+            <p style={{ margin: "0.2rem 0 0", color: "#b91c1c", fontSize: "0.85rem" }}>Your company account was not approved. Please contact support at thomasgallagher3103@gmail.com for assistance.</p>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
         <div>
@@ -268,7 +366,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
             <p style={{ color: "#64748b", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{currentUser.name}</p>
           )}
         </div>
-        <button onClick={openCreate} style={btnGreen}>+ New Job</button>
+        {isVerified && <button onClick={openCreate} style={btnGreen}>+ New Job</button>}
       </div>
 
       {/* Stats */}
@@ -287,8 +385,10 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       ) : postings.length === 0 ? (
         <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280" }}>
           <p style={{ fontSize: "1.25rem", fontWeight: "600", marginBottom: "0.5rem" }}>No job postings yet</p>
-          <p style={{ marginBottom: "1.5rem" }}>Create your first posting to start receiving applicants.</p>
-          <button onClick={openCreate} style={btnGreen}>+ Create Job Posting</button>
+          <p style={{ marginBottom: "1.5rem" }}>
+            {isVerified ? "Create your first posting to start receiving applicants." : "Your account must be verified before you can post jobs."}
+          </p>
+          {isVerified && <button onClick={openCreate} style={btnGreen}>+ Create Job Posting</button>}
         </div>
       ) : loading ? null : (
         <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
@@ -739,8 +839,8 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus, companyId }) {
           <StatusBadge status={applicant.status} />
           {applicant.status === "Pending" && (
             <div style={{ display: "flex", gap: "0.4rem" }}>
-              <button onClick={() => onUpdateStatus(applicant.id, "Accepted")} style={btnSmallGreen}>Accept</button>
-              <button onClick={() => onUpdateStatus(applicant.id, "Rejected")} style={btnSmallRed}>Reject</button>
+              <button onClick={() => onUpdateStatus(applicant.id, "Accepted", applicant)} style={btnSmallGreen}>Accept</button>
+              <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={btnSmallRed}>Reject</button>
             </div>
           )}
           {applicant.status === "Accepted" && (
