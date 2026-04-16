@@ -155,7 +155,9 @@ export default function StudentDashboard({
       for (const loc of unknown) {
         if (cancelled) break;
         try {
-          const result = await geocodeAddress(loc);
+          // Add Galway context for short strings so geocoding resolves correctly
+          const query = /galway|ireland/i.test(loc) ? loc : `${loc}, Galway, Ireland`;
+          const result = await geocodeAddress(query);
           if (result && !cancelled) {
             _geocodeCache[loc] = { lat: result.lat, lng: result.lng };
             setExtraCoords(prev => ({ ...prev, [loc]: { lat: result.lat, lng: result.lng } }));
@@ -284,6 +286,16 @@ export default function StudentDashboard({
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>Find Your Shift</h1>
         <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Browse student-friendly jobs across Galway</p>
       </div>
+
+      {/* Location nudge — shown only to logged-in students with no saved location */}
+      {currentUser?.role === "student" && !studentLocation && (
+        <div onClick={() => setPage("account")} style={{ display: "flex", alignItems: "center", gap: "0.6rem", backgroundColor: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: "0.75rem", padding: "0.6rem 1rem", marginBottom: "1rem", cursor: "pointer" }}>
+          <span style={{ fontSize: "1.1rem" }}>📍</span>
+          <p style={{ margin: 0, fontSize: "0.82rem", color: "#1d4ed8", fontWeight: "600", lineHeight: 1.4 }}>
+            Set your location in Account to see how far each job is from you.
+          </p>
+        </div>
+      )}
 
       {/* Search */}
       <div style={{ marginBottom: "0.75rem" }}>
