@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
 import "../StudentShiftWeb.css";
-import { fetchApplicationStatuses, removeApplication } from "../lib/auth";
+import { removeApplication } from "../lib/auth";
 
 const STATUS_STYLE = {
   Pending:  { bg: "#fef3c7", color: "#d97706", icon: "🕐", label: "Pending" },
@@ -67,17 +67,8 @@ function AppliedJobCard({ job, status, onRemove, setSelectedJob, setPage }) {
   );
 }
 
-export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppliedJobIds, setSelectedJob, setPage, currentUser }) {
-  const [statuses, setStatuses] = useState({});
-  const [loading, setLoading] = useState(true);
+export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppliedJobIds, setSelectedJob, setPage, currentUser, statuses = {} }) {
   const [removeError, setRemoveError] = useState("");
-
-  useEffect(() => {
-    if (!currentUser) { setLoading(false); return; }
-    fetchApplicationStatuses(currentUser.id)
-      .then(map => { setStatuses(map); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [currentUser?.id]);
 
   const handleRemove = async (jobId) => {
     setRemoveError("");
@@ -103,11 +94,7 @@ export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppli
         <p style={{ color: "#ef4444", fontSize: "0.85rem", textAlign: "center", marginBottom: "1rem" }}>{removeError}</p>
       )}
 
-      {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
-          <p style={{ fontSize: "1rem", fontWeight: "600" }}>Loading applications…</p>
-        </div>
-      ) : appliedJobs.length === 0 ? (
+      {appliedJobs.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
           <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📋</p>
           <p style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "0.4rem" }}>No applications yet</p>

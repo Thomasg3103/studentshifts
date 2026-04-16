@@ -18,7 +18,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import CookieBanner from "./components/CookieBanner";
 import { supabase } from "./lib/supabase";
-import { getProfile, fetchLikedJobIds, fetchAppliedJobIds } from "./lib/auth";
+import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses } from "./lib/auth";
 
 // Normalise Supabase profile shape to match what the app expects
 function normaliseProfile(profile) {
@@ -68,8 +68,9 @@ export default function StudentShiftsWeb() {
   const [savedLikedJobIds, setSavedLikedJobIds]   = useState([]);
   const [savedAppliedJobIds, setSavedAppliedJobIds] = useState([]);
   const [studentLocation, setStudentLocation] = useState(null);
-  const [notifCount, setNotifCount]   = useState(0);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [appStatuses, setAppStatuses]   = useState({});
+  const [notifCount, setNotifCount]     = useState(0);
+  const [authLoading, setAuthLoading]   = useState(true);
 
   // Restore session on page load + listen for auth changes
   useEffect(() => {
@@ -168,25 +169,37 @@ export default function StudentShiftsWeb() {
     setStudentLocation(currentUser?.savedLocation ?? null);
   }, [currentUser?.id]);
 
-  // Recompute notification badge for student
+  // Poll application statuses every 30s for students
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== "student") { setAppStatuses({}); return; }
+    const poll = async () => {
+      try {
+        const map = await fetchApplicationStatuses(currentUser.id);
+        setAppStatuses(map);
+      } catch (_) {}
+    };
+    poll();
+    const interval = setInterval(poll, 30000);
+    return () => clearInterval(interval);
+  }, [currentUser?.id]);
+
+  // Recompute notification badge whenever statuses or applied jobs change
   useEffect(() => {
     if (!currentUser || currentUser.role !== "student") { setNotifCount(0); return; }
     const seen = JSON.parse(localStorage.getItem("ss_notif_seen_" + currentUser.id) || "{}");
     const count = appliedJobs.reduce((acc, job) => {
-      const cur  = localStorage.getItem("ss_appstatus_" + currentUser.id + "_" + job.id) || "Pending";
-      const prev = seen[job.id] || "Pending";
-      return acc + (cur !== prev && cur !== "Pending" ? 1 : 0);
+      const cur  = appStatuses[job.id] || "Pending";
+      const prev = seen[job.id]        || "Pending";
+      return acc + (cur !== "Pending" && cur !== prev ? 1 : 0);
     }, 0);
     setNotifCount(count);
-  }, [page, appliedJobs, currentUser?.id]);
+  }, [appStatuses, appliedJobs, currentUser?.id]);
 
   // Mark notifications as seen when student opens Applied Jobs
   useEffect(() => {
     if (page !== "appliedJobs" || !currentUser) return;
     const seen = {};
-    appliedJobs.forEach(job => {
-      seen[job.id] = localStorage.getItem("ss_appstatus_" + currentUser.id + "_" + job.id) || "Pending";
-    });
+    appliedJobs.forEach(job => { seen[job.id] = appStatuses[job.id] || "Pending"; });
     localStorage.setItem("ss_notif_seen_" + currentUser.id, JSON.stringify(seen));
     setNotifCount(0);
   }, [page]);
@@ -264,6 +277,7 @@ export default function StudentShiftsWeb() {
             setSelectedJob={setSelectedJob}
             setPage={setPage}
             currentUser={currentUser}
+            statuses={appStatuses}
           />
         );
       case "admin":
