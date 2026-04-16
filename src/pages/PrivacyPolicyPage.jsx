@@ -21,7 +21,7 @@ export default function PrivacyPolicyPage({ setPage }) {
 
         <Section title="1. Who We Are">
           <p style={body}>
-            StudentShifts is operated by Thomas Gallagher, based in Ireland.<br />
+            StudentShifts is operated by Tom Stephens, Thomas Smith, Thomas Gallagher, John McCarthy, Liam Hyland based in Ireland.<br />
             For any data-related enquiries, contact us at: <a href={`mailto:${CONTACT_EMAIL}`} style={link}>{CONTACT_EMAIL}</a>
           </p>
         </Section>
