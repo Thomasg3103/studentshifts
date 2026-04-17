@@ -253,16 +253,16 @@ export async function rejectCompany(companyId) {
 }
 
 // Sends a transactional email via the Supabase Edge Function.
-export async function sendEmail({ to, subject, html }) {
+export async function sendEmail({ to, subject, html, magicLinkEmail, redirectTo }) {
   const { error } = await supabase.functions.invoke("send-email", {
-    body: { to, subject, html },
+    body: { to, subject, html, magicLinkEmail, redirectTo },
   });
   if (error) throw new Error(error.message || "Email send failed");
 }
 
 // ── Email HTML templates ──────────────────────────────────────────────────
 
-export function emailStudentApproved(name, appUrl) {
+export function emailStudentApproved(name) {
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
@@ -286,7 +286,7 @@ export function emailStudentApproved(name, appUrl) {
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td align="center" style="padding:8px 0 28px;">
-                  <a href="${appUrl}" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;box-shadow:0 4px 18px rgba(99,102,241,0.4);">
+                  <a href="MAGIC_LINK_PLACEHOLDER" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;box-shadow:0 4px 18px rgba(99,102,241,0.4);">
                     Find your Shift →
                   </a>
                 </td>

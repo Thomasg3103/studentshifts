@@ -43,7 +43,9 @@ export default function AdminPage() {
           await sendEmail({
             to: student.email,
             subject: "Your StudentShifts account has been approved!",
-            html: emailStudentApproved(student.name, window.location.origin),
+            html: emailStudentApproved(student.name),
+            magicLinkEmail: student.email,
+            redirectTo: window.location.origin,
           });
         } catch (e) {
           console.warn("Approval email failed:", e.message);
