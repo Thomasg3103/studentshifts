@@ -527,6 +527,7 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
+  const [chatError, setChatError]       = useState("");
   const bottomRef = useRef(null);
 
   useEffect(() => {
@@ -558,6 +559,7 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
     if (!text || !chatStudent) return;
     const isFirst = chatMessages.length === 0;
     setChatInput("");
+    setChatError("");
     try {
       await sendMessage(null, chatStudent.id, companyId, companyId, text);
       // On first message, email the student
@@ -576,6 +578,7 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
       }
     } catch (e) {
       console.error("Send failed:", e);
+      setChatError(e.message || "Failed to send — please try again.");
     }
   };
 
@@ -607,6 +610,9 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
           }
           <div ref={bottomRef} />
         </div>
+        {chatError && (
+          <p style={{ margin: 0, padding: "0.4rem 1rem", fontSize: "0.78rem", color: "#e11d48", backgroundColor: "#fff1f2", borderTop: "1px solid #fecdd3" }}>{chatError}</p>
+        )}
         <div style={{ padding: "0.75rem 1rem", borderTop: "1.5px solid #e5e7eb", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
           <input
             value={chatInput}
