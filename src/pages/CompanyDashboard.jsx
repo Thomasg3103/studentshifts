@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import PageWrapper from "../components/PageWrapper";
+import "../StudentShiftWeb.css";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
@@ -703,13 +704,13 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
               </div>
             )}
             <StudentAvailabilityRow availability={s.availability} />
+            <button
+              onClick={() => { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); }}
+              style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
+            >
+              Message
+            </button>
           </div>
-          <button
-            onClick={() => { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); }}
-            style={{ padding: "0.45rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "white", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}
-          >
-            Message
-          </button>
         </div>
       ))}
     </div>
@@ -777,7 +778,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
   const today = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Closed" && posting.deadline && posting.deadline < today;
   return (
-    <div style={{
+    <div className="job-posting-card" style={{
       padding: "1rem 1.25rem", borderRadius: "0.75rem",
       backgroundColor: "#f9fafb", border: `1.5px solid ${isExpired ? "#fca5a5" : "#e5e7eb"}`,
       display: "flex", justifyContent: "space-between", alignItems: "flex-start",
@@ -818,7 +819,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
         </p>
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
+      <div className="job-posting-btns" style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
         <button onClick={onViewApplicants} style={btnSmallGreen}>View Applicants</button>
         <button onClick={onEdit} style={btnSmallBlue}>Edit</button>
         <button onClick={onExtend} style={btnSmallPurple}>Extend</button>
@@ -1085,7 +1086,7 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus, companyId }) {
     {clOpen && clUrl && <PdfModal url={clUrl} label={`${applicant.name}'s Cover Letter`} fileName={`${applicant.name.replace(/\s+/g, "_")}_Cover_Letter.pdf`} onClose={() => setClOpen(false)} />}
     <div style={{ backgroundColor: "#f9fafb", borderRadius: "0.5rem", border: "1px solid #e5e7eb", padding: "0.75rem 1rem" }}>
       {/* Top row: photo + name/details + status/actions */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.75rem" }}>
+      <div className="applicant-card-top" style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.75rem" }}>
         <div style={{ display: "flex", gap: "0.75rem", flex: 1, minWidth: 0 }}>
           {/* Profile photo */}
           <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", backgroundColor: "#e2e8f0", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1150,7 +1151,7 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus, companyId }) {
             </div>
           </div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem", flexShrink: 0 }}>
+        <div className="applicant-card-actions" style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem", flexShrink: 0 }}>
           <StatusBadge status={applicant.status} />
           {applicant.status === "Pending" && (
             <div style={{ display: "flex", gap: "0.4rem" }}>
