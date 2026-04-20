@@ -422,22 +422,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       </div>
       )}
 
-      {/* Browse Students tab */}
-      {activeTab === "students" && (
-        <BrowseStudents
-          students={students}
-          loading={studentsLoading}
-          fetched={studentsFetched}
-          companyIndustries={currentUser?.industries || []}
-          companyId={currentUser?.id}
-          chatStudent={chatStudent}
-          setChatStudent={setChatStudent}
-          setPage={setPage}
-        />
-      )}
-
-      {/* Student Availability Heatmap */}
-      {activeTab === "jobs" && heatmap && (
+      {/* Student Availability Heatmap — Browse Students tab */}
+      {activeTab === "students" && heatmap && (
         <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showHeatmap ? "1rem" : 0 }}>
             <div>
@@ -450,6 +436,20 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           </div>
           {showHeatmap && <AvailabilityHeatmap data={heatmap} />}
         </div>
+      )}
+
+      {/* Browse Students tab */}
+      {activeTab === "students" && (
+        <BrowseStudents
+          students={students}
+          loading={studentsLoading}
+          fetched={studentsFetched}
+          companyIndustries={currentUser?.industries || []}
+          companyId={currentUser?.id}
+          chatStudent={chatStudent}
+          setChatStudent={setChatStudent}
+          setPage={setPage}
+        />
       )}
 
       {/* Postings — jobs tab only */}
