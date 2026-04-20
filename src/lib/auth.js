@@ -42,10 +42,9 @@ export async function updateCompanyProfile(userId, updates) {
   if (error) throw error;
 }
 
-export async function fetchStudentsForCompany(companyIndustries) {
-  if (!companyIndustries?.length) return [];
+export async function fetchAllVerifiedStudents() {
   const { data, error } = await withTimeout(
-    supabase.rpc("get_students_for_company", { company_industries: companyIndustries }),
+    supabase.rpc("get_all_verified_students"),
     10000
   );
   if (error) throw error;

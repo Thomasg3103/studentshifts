@@ -3,7 +3,7 @@ import PageWrapper from "../components/PageWrapper";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
-import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, fetchAvailabilityHeatmap, fetchStudentsForCompany, fetchMessages, sendMessage } from "../lib/auth";
+import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage } from "../lib/auth";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -55,11 +55,11 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     fetchAvailabilityHeatmap().then(setHeatmap).catch(() => {});
   }, []);
 
-  // Load matching students when Browse Students tab is first opened
+  // Load all verified students when Browse Students tab is first opened
   useEffect(() => {
     if (activeTab !== "students" || studentsFetched || !currentUser) return;
     setStudentsLoading(true);
-    fetchStudentsForCompany(currentUser.industries || [])
+    fetchAllVerifiedStudents()
       .then(data => { setStudents(data); setStudentsFetched(true); })
       .catch(() => setStudentsFetched(true))
       .finally(() => setStudentsLoading(false));
@@ -522,6 +522,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
 /* ─── Sub-components ─────────────────────────────────────────────────────── */
 
 function BrowseStudents({ students, loading, fetched, companyIndustries, companyId, chatStudent, setChatStudent, setPage }) {
+  const [filterByIndustries, setFilterByIndustries] = useState(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
@@ -610,35 +611,51 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
     return <p style={{ textAlign: "center", color: "#6b7280", padding: "3rem 1rem" }}>Loading students…</p>;
   }
 
-  if (fetched && companyIndustries.length === 0) {
-    return (
-      <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
-        <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🏢</p>
-        <p style={{ fontWeight: "700", fontSize: "1rem", marginBottom: "0.4rem" }}>Set your industries first</p>
-        <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>Add your company's industries in My Account to browse matching students.</p>
-        <button onClick={() => setPage("account")} style={{ padding: "0.7rem 1.5rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "white", fontWeight: "700", fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit" }}>
-          Set Industries →
-        </button>
-      </div>
-    );
-  }
-
   if (fetched && students.length === 0) {
     return (
       <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
         <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🎓</p>
-        <p style={{ fontWeight: "700", fontSize: "1rem", marginBottom: "0.4rem" }}>No matching students yet</p>
-        <p style={{ fontSize: "0.875rem" }}>Verified students who set preferences matching your industries will appear here.</p>
+        <p style={{ fontWeight: "700", fontSize: "1rem", marginBottom: "0.4rem" }}>No verified students yet</p>
+        <p style={{ fontSize: "0.875rem" }}>Verified students will appear here once they join.</p>
       </div>
     );
   }
 
+  const displayStudents = filterByIndustries && companyIndustries.length > 0
+    ? students.filter(s => s.job_preferences?.some(p => companyIndustries.includes(p)))
+    : students;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-      <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "0 0 0.25rem" }}>
-        {students.length} verified student{students.length !== 1 ? "s" : ""} interested in your industries
-      </p>
-      {students.map(s => (
+      {/* Filter bar */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
+        <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>
+          {displayStudents.length} of {students.length} verified student{students.length !== 1 ? "s" : ""}
+          {filterByIndustries && companyIndustries.length > 0 ? " matching your industries" : ""}
+        </p>
+        <div style={{ display: "flex", gap: "0.4rem" }}>
+          <button
+            onClick={() => setFilterByIndustries(false)}
+            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${!filterByIndustries ? "#6366f1" : "#e2e8f0"}`, backgroundColor: !filterByIndustries ? "#eef2ff" : "white", color: !filterByIndustries ? "#4f46e5" : "#64748b" }}
+          >
+            All Students
+          </button>
+          <button
+            onClick={() => setFilterByIndustries(true)}
+            disabled={companyIndustries.length === 0}
+            title={companyIndustries.length === 0 ? "Set your industries in My Account first" : ""}
+            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: companyIndustries.length === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", border: `1.5px solid ${filterByIndustries ? "#6366f1" : "#e2e8f0"}`, backgroundColor: filterByIndustries ? "#eef2ff" : "white", color: filterByIndustries ? "#4f46e5" : "#64748b", opacity: companyIndustries.length === 0 ? 0.5 : 1 }}
+          >
+            My Industries
+          </button>
+        </div>
+      </div>
+      {displayStudents.length === 0 && (
+        <p style={{ textAlign: "center", color: "#6b7280", padding: "2rem 1rem", fontSize: "0.875rem" }}>
+          No students match your industries yet. Students need to set matching job preferences in their account.
+        </p>
+      )}
+      {displayStudents.map(s => (
         <div key={s.id} style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {s.profile_photo_url
