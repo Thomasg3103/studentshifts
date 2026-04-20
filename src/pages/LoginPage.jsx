@@ -7,6 +7,7 @@ export default function LoginPage({ setPage }) {
   const [password, setPassword]   = useState("");
   const [error, setError]         = useState("");
   const [loading, setLoading]     = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [forgotMode, setForgotMode] = useState(false);
   const [resetSent, setResetSent]   = useState(false);
   const [resetEmail, setResetEmail] = useState("");
@@ -109,14 +110,23 @@ export default function LoginPage({ setPage }) {
           onChange={e => setEmail(e.target.value)}
           style={fieldStyle}
         />
-        <input
-          placeholder="Password"
-          type="password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && handleLogin()}
-          style={fieldStyle}
-        />
+        <div style={{ position: "relative" }}>
+          <input
+            placeholder="Password"
+            type={showPassword ? "text" : "password"}
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleLogin()}
+            style={{ ...fieldStyle, margin: 0, paddingRight: "2.75rem" }}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(p => !p)}
+            style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", padding: 0, cursor: "pointer", color: "#94a3b8", fontSize: "1.1rem", lineHeight: 1 }}
+          >
+            {showPassword ? "🙈" : "👁"}
+          </button>
+        </div>
 
         <div style={{ textAlign: "right", marginTop: "0.25rem", marginBottom: "0.25rem" }}>
           <span
