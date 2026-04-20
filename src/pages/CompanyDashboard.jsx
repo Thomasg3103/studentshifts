@@ -635,18 +635,18 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
         </p>
         <div style={{ display: "flex", gap: "0.4rem" }}>
           <button
-            onClick={() => setFilterByIndustries(false)}
-            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${!filterByIndustries ? "#6366f1" : "#e2e8f0"}`, backgroundColor: !filterByIndustries ? "#eef2ff" : "white", color: !filterByIndustries ? "#4f46e5" : "#64748b" }}
-          >
-            All Students
-          </button>
-          <button
             onClick={() => setFilterByIndustries(true)}
             disabled={companyIndustries.length === 0}
             title={companyIndustries.length === 0 ? "Set your industries in My Account first" : ""}
             style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: companyIndustries.length === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", border: `1.5px solid ${filterByIndustries ? "#6366f1" : "#e2e8f0"}`, backgroundColor: filterByIndustries ? "#eef2ff" : "white", color: filterByIndustries ? "#4f46e5" : "#64748b", opacity: companyIndustries.length === 0 ? 0.5 : 1 }}
           >
             My Industries
+          </button>
+          <button
+            onClick={() => setFilterByIndustries(false)}
+            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${!filterByIndustries ? "#6366f1" : "#e2e8f0"}`, backgroundColor: !filterByIndustries ? "#eef2ff" : "white", color: !filterByIndustries ? "#4f46e5" : "#64748b" }}
+          >
+            All Students
           </button>
         </div>
       </div>
