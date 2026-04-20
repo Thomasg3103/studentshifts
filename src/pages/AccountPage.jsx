@@ -177,6 +177,8 @@ export default function AccountPage({
         skills,
         savedLocation,
         profilePhoto:     photoUrl,
+        availability,
+        jobPreferences,
       };
 
       setCurrentUser(updatedUser);
