@@ -522,7 +522,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
 /* ─── Sub-components ─────────────────────────────────────────────────────── */
 
 function BrowseStudents({ students, loading, fetched, companyIndustries, companyId, chatStudent, setChatStudent, setPage }) {
-  const [filterByIndustries, setFilterByIndustries] = useState(false);
+  const [filterByIndustries, setFilterByIndustries] = useState(true);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
