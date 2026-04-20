@@ -1,7 +1,7 @@
 import PageWrapper from "../components/PageWrapper";
 
 const CONTACT_EMAIL = "thomasgallagher3103@gmail.com";
-const LAST_UPDATED  = "15 April 2026";
+const LAST_UPDATED  = "20 April 2026";
 
 export default function TermsOfServicePage({ setPage }) {
   return (
@@ -77,11 +77,14 @@ export default function TermsOfServicePage({ setPage }) {
           </ul>
         </Section>
 
-        <Section title="7. Messaging">
+        <Section title="7. Messaging &amp; Direct Contact">
           <ul style={list}>
-            <li>The messaging feature is available only to students who have been accepted for a job by a company.</li>
-            <li>All messages must be professional and relevant to the job.</li>
-            <li>We reserve the right to review messages where a breach of these Terms is reported.</li>
+            <li>The messaging feature is available to students who have been accepted for a job by a company, and to verified students who may be contacted directly by companies.</li>
+            <li><strong>By creating a verified student account, you agree that registered companies on StudentShifts may contact you directly through the platform's messaging feature, without you having applied for a job with them first.</strong> This allows companies to reach out about opportunities that match your job preferences and availability.</li>
+            <li>You can manage what companies see by updating your job preferences and availability in your Account settings at any time.</li>
+            <li>All messages must be professional, lawful, and relevant to employment opportunities.</li>
+            <li>Companies must not use direct messaging to send unsolicited promotional content, spam, or communications unrelated to job opportunities.</li>
+            <li>We reserve the right to review messages where a breach of these Terms is reported and to suspend or terminate accounts that misuse the messaging feature.</li>
           </ul>
         </Section>
 
