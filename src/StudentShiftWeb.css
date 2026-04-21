@@ -145,6 +145,13 @@ header {
   .nav-label {
     display: none;
   }
+  /* Hide Liked button and Browse Jobs button — too many items for narrow screens */
+  .nav-liked-wrap {
+    display: none !important;
+  }
+  .nav-browse-wrap {
+    display: none !important;
+  }
   /* PageWrapper — full width, no rounded card on mobile */
   .page-wrapper-outer {
     padding: 0 !important;

@@ -62,9 +62,11 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
               <button onClick={() => setPage("admin")} style={navBtnPrimary}>Admin Dashboard</button>
             ) : currentUser.role === "student" ? (
               <>
-                <button onClick={() => setPage("likedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                  ❤️ <span className="nav-label">Liked</span> <CountBadge n={likedJobs.length} />
-                </button>
+                <div className="nav-liked-wrap" style={{ position: "relative", display: "inline-block" }}>
+                  <button onClick={() => setPage("likedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                    ❤️ <span className="nav-label">Liked</span> <CountBadge n={likedJobs.length} />
+                  </button>
+                </div>
                 <div style={{ position: "relative", display: "inline-block" }}>
                   <button onClick={() => setPage("appliedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                     ✅ <span className="nav-label">Applied</span> <CountBadge n={appliedJobs.length} />
@@ -77,9 +79,11 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
               </>
             ) : (
               <>
-                <button onClick={() => setPage("studentDashboard")} style={navBtnOutline}>Browse Jobs</button>
+                <div className="nav-browse-wrap" style={{ display: "inline-block" }}>
+                  <button onClick={() => setPage("studentDashboard")} style={navBtnOutline}>Browse Jobs</button>
+                </div>
                 <button onClick={() => setPage("companyMessages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>💬 <span className="nav-label">Messages</span></button>
-                <button onClick={() => setPage("companyDashboard")} style={navBtnPrimary}>My Jobs</button>
+                <button onClick={() => setPage("companyDashboard")} style={navBtnPrimary}><span className="nav-label">My </span>Jobs</button>
               </>
             )}
           </>
