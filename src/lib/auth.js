@@ -1,5 +1,34 @@
 import { supabase, withTimeout } from "./supabase";
 
+export async function fetchJobById(jobId) {
+  const { data: job, error } = await withTimeout(
+    supabase.from("jobs").select("*").eq("id", jobId).single(),
+    10000
+  );
+  if (error) throw error;
+  const { data: profile } = await withTimeout(
+    supabase.from("profiles").select("name").eq("id", job.company_id).single(),
+    8000
+  ).catch(() => ({ data: null }));
+  return {
+    id:              job.id,
+    title:           job.title,
+    company:         profile?.name || "Unknown Company",
+    location:        job.location,
+    lat:             job.lat,
+    lng:             job.lng,
+    pay:             job.pay,
+    description:     job.description || "",
+    deadline:        job.deadline || null,
+    days:            job.days || [],
+    times:           Object.fromEntries(Object.entries(job.times || {}).map(([k, v]) => [k, Array.isArray(v) ? v : [v]])),
+    weekendRequired: job.weekend_required || false,
+    photos:          job.photos || [],
+    photoCrops:      job.photo_crops || [],
+    status:          job.status,
+  };
+}
+
 export async function signUp({ email, password, name, role, croNumber, industries }) {
   const meta = { name, role };
   if (role === "company" && croNumber) meta.cro_number = croNumber.trim();

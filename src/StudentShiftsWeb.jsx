@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
 import StudentDashboard from "./pages/StudentDashboard";
 import CompanyDashboard from "./pages/CompanyDashboard";
@@ -18,7 +19,27 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import CookieBanner from "./components/CookieBanner";
 import { supabase } from "./lib/supabase";
-import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries } from "./lib/auth";
+import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobById } from "./lib/auth";
+
+// Map page-name strings to URL paths (for backwards-compat with setPage calls)
+const PAGE_PATH = {
+  studentDashboard:  "/",
+  companyDashboard:  "/company",
+  login:             "/login",
+  signup:            "/signup",
+  account:           "/account",
+  likedJobs:         "/liked",
+  appliedJobs:       "/applied",
+  messages:          "/messages",
+  companyMessages:   "/company/messages",
+  admin:             "/admin",
+  verifyDocs:        "/verify",
+  emailVerified:     "/email-verified",
+  resetPassword:     "/reset-password",
+  about:             "/about",
+  privacy:           "/privacy",
+  terms:             "/terms",
+};
 
 // Normalise Supabase profile shape to match what the app expects
 function normaliseProfile(profile) {
@@ -51,34 +72,63 @@ function normaliseProfile(profile) {
 }
 
 export default function StudentShiftsWeb() {
-  const [page, _setPage]              = useState("studentDashboard");
-  const pageRef                       = useRef("studentDashboard");
-  const prevPageRef                   = useRef(null);
-  const dashboardScrollY              = useRef(0);
+  const navigate      = useNavigate();
+  const location      = useLocation();
+  const locationRef   = useRef(location.pathname);
 
-  const setPage = useCallback((newPage) => {
-    const current = pageRef.current;
-    if (current === "studentDashboard") dashboardScrollY.current = window.scrollY;
-    prevPageRef.current = current;
-    pageRef.current = newPage;
-    if (!(newPage === "studentDashboard" && current === "jobDetails")) window.scrollTo(0, 0);
-    _setPage(newPage);
+  const dashboardScrollY = useRef(0);
+  const [restoreScrollY, setRestoreScrollY] = useState(0);
+
+  // Track selectedJob via ref so setPage("jobDetails") can navigate synchronously
+  const [selectedJob, setSelectedJob] = useState(null);
+  const selectedJobRef = useRef(null);
+
+  const setSelectedJobBoth = useCallback((job) => {
+    selectedJobRef.current = job;
+    setSelectedJob(job);
   }, []);
 
-  const [currentUser, setCurrentUser] = useState(null);
-  const [selectedJob, setSelectedJob] = useState(null);
-  const [likedJobs, setLikedJobs]         = useState([]);
-  const [appliedJobs, setAppliedJobs]     = useState([]);
-  const [savedLikedJobIds, setSavedLikedJobIds]   = useState([]);
+  // setPage — maps old page-name strings to navigate() calls
+  const setPage = useCallback((newPage) => {
+    if (newPage === "jobDetails") {
+      const job = selectedJobRef.current;
+      if (job) navigate(`/jobs/${job.id}`, { state: { job } });
+      return;
+    }
+    const path = PAGE_PATH[newPage];
+    if (path !== undefined) navigate(path);
+  }, [navigate]);
+
+  // Scroll handling: save dashboard position before leaving; restore on return
+  useEffect(() => {
+    const prev = locationRef.current;
+    const curr = location.pathname;
+
+    if (curr === "/" && prev !== null && prev.startsWith("/jobs/")) {
+      // Returning from job details → restore dashboard scroll
+      setRestoreScrollY(dashboardScrollY.current);
+    } else {
+      setRestoreScrollY(0);
+      window.scrollTo(0, 0);
+    }
+
+    // Save dashboard scroll before navigating away
+    if (prev === "/") dashboardScrollY.current = window.scrollY;
+    locationRef.current = curr;
+  }, [location.pathname]);
+
+  const [currentUser, setCurrentUser]       = useState(null);
+  const [likedJobs, setLikedJobs]           = useState([]);
+  const [appliedJobs, setAppliedJobs]       = useState([]);
+  const [savedLikedJobIds, setSavedLikedJobIds]     = useState([]);
   const [savedAppliedJobIds, setSavedAppliedJobIds] = useState([]);
   const [studentLocation, setStudentLocation] = useState(null);
-  const [appStatuses, setAppStatuses]   = useState({});
-  const [notifCount, setNotifCount]     = useState(0);
-  const [authLoading, setAuthLoading]   = useState(true);
+  const [appStatuses, setAppStatuses]       = useState({});
+  const [notifCount, setNotifCount]         = useState(0);
+  const [authLoading, setAuthLoading]       = useState(true);
 
   // Restore session on page load + listen for auth changes
   useEffect(() => {
-    // Failsafe for browsers (e.g. Edge) that block Supabase localStorage access
     const failsafe = setTimeout(() => setAuthLoading(false), 6000);
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
@@ -88,9 +138,9 @@ export default function StudentShiftsWeb() {
             const profile = await getProfile(session.user.id);
             const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
             setCurrentUser(user);
-            if (user.role === "admin")   { setPage("admin"); }
-            else if (user.role === "company") { setPage("companyDashboard"); }
-            else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected")) { setPage("verifyDocs"); }
+            if (user.role === "admin")   { navigate("/admin", { replace: true }); }
+            else if (user.role === "company") { navigate("/company", { replace: true }); }
+            else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected")) { navigate("/verify", { replace: true }); }
             if (user.role === "student") {
               const [likedIds, appliedIds] = await Promise.all([
                 fetchLikedJobIds(user.id).catch(() => []),
@@ -111,20 +161,18 @@ export default function StudentShiftsWeb() {
           const profile = await getProfile(session.user.id);
           const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
           setCurrentUser(user);
-          // Persist CRO number and industries from signup metadata on first login
           if (user.role === "company") {
             const metaCro = session.user.user_metadata?.cro_number;
             if (metaCro && !user.croNumber) saveCompanyCroNumber(user.id, metaCro);
             const metaIndustries = session.user.user_metadata?.industries;
             if (metaIndustries?.length && !user.industries?.length) saveCompanyIndustries(user.id, metaIndustries);
           }
-          // Show verified screen if this is a fresh email confirmation
           const justVerified = window.location.hash.includes("type=signup") || window.location.hash.includes("type=email");
-          if (justVerified) { setPage("emailVerified"); return; }
-          if (user.role === "admin")   { setPage("admin"); }
-          else if (user.role === "company") { setPage("companyDashboard"); }
-          else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected")) { setPage("verifyDocs"); }
-          else { setPage("studentDashboard"); }
+          if (justVerified) { navigate("/email-verified", { replace: true }); return; }
+          if (user.role === "admin")   { navigate("/admin", { replace: true }); }
+          else if (user.role === "company") { navigate("/company", { replace: true }); }
+          else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected")) { navigate("/verify", { replace: true }); }
+          else { navigate("/", { replace: true }); }
           if (user.role === "student") {
             const [likedIds, appliedIds] = await Promise.all([
               fetchLikedJobIds(user.id).catch(() => []),
@@ -138,7 +186,7 @@ export default function StudentShiftsWeb() {
         }
       }
       if (event === "PASSWORD_RECOVERY") {
-        setPage("resetPassword");
+        navigate("/reset-password", { replace: true });
         clearTimeout(failsafe);
         setAuthLoading(false);
         return;
@@ -149,7 +197,7 @@ export default function StudentShiftsWeb() {
         setAppliedJobs([]);
         setSavedLikedJobIds([]);
         setSavedAppliedJobIds([]);
-        setPage("studentDashboard");
+        navigate("/", { replace: true });
       }
     });
 
@@ -165,10 +213,10 @@ export default function StudentShiftsWeb() {
         const updated = normaliseProfile({ ...profile, email: profile.email || currentUser.email });
         if (updated.verificationStatus === "verified") {
           setCurrentUser(updated);
-          setPage("studentDashboard");
+          navigate("/", { replace: true });
         } else if (updated.verificationStatus === "rejected") {
           setCurrentUser(updated);
-          setPage("verifyDocs");
+          navigate("/verify", { replace: true });
         }
       } catch { /* silently ignore */ }
     }, 30000);
@@ -208,12 +256,12 @@ export default function StudentShiftsWeb() {
 
   // Mark notifications as seen when student opens Applied Jobs
   useEffect(() => {
-    if (page !== "appliedJobs" || !currentUser) return;
+    if (location.pathname !== "/applied" || !currentUser) return;
     const seen = {};
     appliedJobs.forEach(job => { seen[job.id] = appStatuses[job.id] || "Pending"; });
     localStorage.setItem("ss_notif_seen_" + currentUser.id, JSON.stringify(seen));
     setNotifCount(0);
-  }, [page]);
+  }, [location.pathname]);
 
   if (authLoading) {
     return (
@@ -226,108 +274,8 @@ export default function StudentShiftsWeb() {
     );
   }
 
-  const renderPage = () => {
-    switch (page) {
-      case "login":
-        return <LoginPage setPage={setPage} setCurrentUser={setCurrentUser} />;
-      case "signup":
-        return <SignupPage setPage={setPage} />;
-      case "studentDashboard":
-        if (currentUser?.role === "student" && !currentUser?.studentIdPath)
-          return <VerifyDocsPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} />;
-        return (
-          <StudentDashboard
-            setPage={setPage}
-            setSelectedJob={setSelectedJob}
-            likedJobs={likedJobs}
-            setLikedJobs={setLikedJobs}
-            appliedJobs={appliedJobs}
-            setAppliedJobs={setAppliedJobs}
-            currentUser={currentUser}
-            studentLocation={studentLocation}
-            savedLikedJobIds={savedLikedJobIds}
-            savedAppliedJobIds={savedAppliedJobIds}
-            restoreScrollY={prevPageRef.current === "jobDetails" ? dashboardScrollY.current : 0}
-          />
-        );
-      case "companyDashboard":
-        return <CompanyDashboard setPage={setPage} currentUser={currentUser} />;
-      case "account":
-        return currentUser ? (
-          <AccountPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} setLikedJobs={setLikedJobs} setAppliedJobs={setAppliedJobs} setStudentLocation={setStudentLocation} />
-        ) : null;
-      case "jobDetails":
-        return selectedJob && (
-          <JobDetails
-            job={selectedJob}
-            setPage={setPage}
-            currentUser={currentUser}
-            likedJobs={likedJobs}
-            setLikedJobs={setLikedJobs}
-            appliedJobs={appliedJobs}
-            setAppliedJobs={setAppliedJobs}
-          />
-        );
-      case "likedJobs":
-        return currentUser && (
-          <LikedJobs
-            likedJobs={likedJobs}
-            setLikedJobs={setLikedJobs}
-            setSavedLikedJobIds={setSavedLikedJobIds}
-            setSelectedJob={setSelectedJob}
-            setPage={setPage}
-            currentUser={currentUser}
-          />
-        );
-      case "appliedJobs":
-        return currentUser && (
-          <AppliedJobs
-            appliedJobs={appliedJobs}
-            setAppliedJobs={setAppliedJobs}
-            setSavedAppliedJobIds={setSavedAppliedJobIds}
-            setSelectedJob={setSelectedJob}
-            setPage={setPage}
-            currentUser={currentUser}
-            statuses={appStatuses}
-          />
-        );
-      case "admin":
-        return currentUser?.role === "admin" && <AdminPage currentUser={currentUser} setPage={setPage} />;
-      case "verifyDocs":
-        return currentUser && (
-          <VerifyDocsPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} />
-        );
-      case "emailVerified":
-        return <EmailVerifiedPage setPage={setPage} currentUser={currentUser} />;
-      case "resetPassword":
-        return <ResetPasswordPage setPage={setPage} />;
-      case "messages":
-        return currentUser && <Messages currentUser={currentUser} setPage={setPage} />;
-      case "companyMessages":
-        return currentUser && <CompanyMessages currentUser={currentUser} setPage={setPage} />;
-      case "about":
-        return <AboutPage setPage={setPage} />;
-      case "privacy":
-        return <PrivacyPolicyPage setPage={setPage} />;
-      case "terms":
-        return <TermsOfServicePage setPage={setPage} />;
-      default:
-        return (
-          <StudentDashboard
-            setPage={setPage}
-            setSelectedJob={setSelectedJob}
-            likedJobs={likedJobs}
-            setLikedJobs={setLikedJobs}
-            appliedJobs={appliedJobs}
-            setAppliedJobs={setAppliedJobs}
-            currentUser={currentUser}
-            studentLocation={studentLocation}
-            savedLikedJobIds={savedLikedJobIds}
-            savedAppliedJobIds={savedAppliedJobIds}
-            restoreScrollY={0}
-          />
-        );
-    }
+  const sharedStudentProps = {
+    likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, currentUser,
   };
 
   return (
@@ -339,7 +287,80 @@ export default function StudentShiftsWeb() {
         appliedJobs={appliedJobs}
         notifCount={notifCount}
       />
-      {renderPage()}
+      <Routes>
+        {/* Home / Student Dashboard */}
+        <Route path="/" element={
+          currentUser?.role === "student" && !currentUser?.studentIdPath
+            ? <VerifyDocsPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} />
+            : <StudentDashboard
+                setPage={setPage}
+                setSelectedJob={setSelectedJobBoth}
+                {...sharedStudentProps}
+                studentLocation={studentLocation}
+                savedLikedJobIds={savedLikedJobIds}
+                savedAppliedJobIds={savedAppliedJobIds}
+                restoreScrollY={restoreScrollY}
+              />
+        } />
+
+        {/* Job Details */}
+        <Route path="/jobs/:id" element={
+          <JobDetailsRoute
+            selectedJob={selectedJob}
+            setPage={setPage}
+            {...sharedStudentProps}
+          />
+        } />
+
+        {/* Auth */}
+        <Route path="/login"   element={<LoginPage setPage={setPage} setCurrentUser={setCurrentUser} />} />
+        <Route path="/signup"  element={<SignupPage setPage={setPage} />} />
+        <Route path="/reset-password" element={<ResetPasswordPage setPage={setPage} />} />
+        <Route path="/email-verified" element={<EmailVerifiedPage setPage={setPage} currentUser={currentUser} />} />
+
+        {/* Student pages */}
+        <Route path="/account" element={currentUser
+          ? <AccountPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} setLikedJobs={setLikedJobs} setAppliedJobs={setAppliedJobs} setStudentLocation={setStudentLocation} />
+          : <Navigate to="/login" replace />
+        } />
+        <Route path="/liked" element={currentUser
+          ? <LikedJobs likedJobs={likedJobs} setLikedJobs={setLikedJobs} setSavedLikedJobIds={setSavedLikedJobIds} setSelectedJob={setSelectedJobBoth} setPage={setPage} currentUser={currentUser} />
+          : <Navigate to="/login" replace />
+        } />
+        <Route path="/applied" element={currentUser
+          ? <AppliedJobs appliedJobs={appliedJobs} setAppliedJobs={setAppliedJobs} setSavedAppliedJobIds={setSavedAppliedJobIds} setSelectedJob={setSelectedJobBoth} setPage={setPage} currentUser={currentUser} statuses={appStatuses} />
+          : <Navigate to="/login" replace />
+        } />
+        <Route path="/messages" element={currentUser
+          ? <Messages currentUser={currentUser} setPage={setPage} />
+          : <Navigate to="/login" replace />
+        } />
+        <Route path="/verify" element={currentUser
+          ? <VerifyDocsPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} />
+          : <Navigate to="/" replace />
+        } />
+
+        {/* Company pages */}
+        <Route path="/company" element={<CompanyDashboard setPage={setPage} currentUser={currentUser} />} />
+        <Route path="/company/messages" element={currentUser
+          ? <CompanyMessages currentUser={currentUser} setPage={setPage} />
+          : <Navigate to="/login" replace />
+        } />
+
+        {/* Admin */}
+        <Route path="/admin" element={currentUser?.role === "admin"
+          ? <AdminPage currentUser={currentUser} setPage={setPage} />
+          : <Navigate to="/" replace />
+        } />
+
+        {/* Info pages */}
+        <Route path="/about"   element={<AboutPage setPage={setPage} />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage setPage={setPage} />} />
+        <Route path="/terms"   element={<TermsOfServicePage setPage={setPage} />} />
+
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
       <footer style={{ backgroundColor: "#0f172a", color: "rgba(255,255,255,0.5)", textAlign: "center", padding: "1.25rem 1rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif" }}>
         <span>© {new Date().getFullYear()} StudentShifts · Ireland</span>
         <span style={{ margin: "0 0.6rem" }}>·</span>
@@ -352,13 +373,59 @@ export default function StudentShiftsWeb() {
   );
 }
 
+// Job details route — handles in-app nav (job in state/memory) and direct URL access (fetches from DB)
+function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs }) {
+  const { id } = useParams();
+  const location = useLocation();
+  const navigate  = useNavigate();
+
+  const stateJob = location.state?.job;
+  const memoryJob = selectedJob?.id === id ? selectedJob : null;
+  const [job, setJob] = useState(stateJob || memoryJob || null);
+  const [loading, setLoading] = useState(!job);
+
+  useEffect(() => {
+    if (job && job.id === id) return;
+    setLoading(true);
+    fetchJobById(id)
+      .then(j => { setJob(j); setLoading(false); })
+      .catch(() => navigate("/", { replace: true }));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}>
+        <div style={{ textAlign: "center" }}>
+          <div style={{ width: "40px", height: "40px", border: "4px solid #e5e7eb", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
+          <p style={{ fontFamily: "'Poppins', sans-serif", fontWeight: "600" }}>Loading job…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!job) return null;
+
+  return (
+    <JobDetails
+      job={job}
+      setPage={setPage}
+      currentUser={currentUser}
+      likedJobs={likedJobs}
+      setLikedJobs={setLikedJobs}
+      appliedJobs={appliedJobs}
+      setAppliedJobs={setAppliedJobs}
+    />
+  );
+}
+
 function EmailVerifiedPage({ setPage, currentUser }) {
+  const navigate = useNavigate();
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (currentUser?.role === "admin") setPage("admin");
-      else if (currentUser?.role === "company") setPage("companyDashboard");
-      else if (currentUser?.role === "student" && (!currentUser?.studentIdPath || currentUser?.verificationStatus === "rejected")) setPage("verifyDocs");
-      else setPage("studentDashboard");
+      if (currentUser?.role === "admin") navigate("/admin", { replace: true });
+      else if (currentUser?.role === "company") navigate("/company", { replace: true });
+      else if (currentUser?.role === "student" && (!currentUser?.studentIdPath || currentUser?.verificationStatus === "rejected")) navigate("/verify", { replace: true });
+      else navigate("/", { replace: true });
     }, 3000);
     return () => clearTimeout(timer);
   }, []);
