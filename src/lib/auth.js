@@ -1,19 +1,18 @@
 import { supabase, withTimeout } from "./supabase";
 
-export async function fetchJobById(jobId) {
-  const { data: job, error } = await withTimeout(
-    supabase.from("jobs").select("*").eq("id", jobId).single(),
-    10000
-  );
-  if (error) throw error;
-  const { data: profile } = await withTimeout(
-    supabase.from("profiles").select("name").eq("id", job.company_id).single(),
-    8000
-  ).catch(() => ({ data: null }));
+export function toJobSlug(str) {
+  return encodeURIComponent(str.trim());
+}
+
+export function fromJobSlug(slug) {
+  return decodeURIComponent(slug);
+}
+
+function normaliseJobRow(job, companyName) {
   return {
     id:              job.id,
     title:           job.title,
-    company:         profile?.name || "Unknown Company",
+    company:         companyName || "Unknown Company",
     location:        job.location,
     lat:             job.lat,
     lng:             job.lng,
@@ -27,6 +26,35 @@ export async function fetchJobById(jobId) {
     photoCrops:      job.photo_crops || [],
     status:          job.status,
   };
+}
+
+// Fetch a single job by title + company name (used for direct URL access)
+export async function fetchJobBySlug(titleSlug, companySlug) {
+  const title   = fromJobSlug(titleSlug);
+  const company = fromJobSlug(companySlug);
+
+  // Fetch jobs matching the title (case-insensitive)
+  const { data: jobs, error } = await withTimeout(
+    supabase.from("jobs").select("*").ilike("title", title).eq("status", "Active"),
+    10000
+  );
+  if (error) throw error;
+  if (!jobs?.length) throw new Error("Job not found");
+
+  // Fetch company names for the candidates
+  const companyIds = [...new Set(jobs.map(j => j.company_id))];
+  const { data: profiles } = await withTimeout(
+    supabase.from("profiles").select("id, name").in("id", companyIds),
+    8000
+  ).catch(() => ({ data: [] }));
+  const nameMap = {};
+  if (profiles) profiles.forEach(p => { nameMap[p.id] = p.name; });
+
+  // Find the job whose company name matches the slug
+  const match = jobs.find(j => (nameMap[j.company_id] || "").toLowerCase() === company.toLowerCase())
+    ?? jobs[0]; // fallback to first title match if company name diverges slightly
+
+  return normaliseJobRow(match, nameMap[match.company_id]);
 }
 
 export async function signUp({ email, password, name, role, croNumber, industries }) {

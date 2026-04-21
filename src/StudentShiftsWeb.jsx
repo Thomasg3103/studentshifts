@@ -19,7 +19,7 @@ import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
 import CookieBanner from "./components/CookieBanner";
 import { supabase } from "./lib/supabase";
-import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobById } from "./lib/auth";
+import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug } from "./lib/auth";
 
 // Map page-name strings to URL paths (for backwards-compat with setPage calls)
 const PAGE_PATH = {
@@ -92,7 +92,7 @@ export default function StudentShiftsWeb() {
   const setPage = useCallback((newPage) => {
     if (newPage === "jobDetails") {
       const job = selectedJobRef.current;
-      if (job) navigate(`/jobs/${job.id}`, { state: { job } });
+      if (job) navigate(`/jobs/${toJobSlug(job.title)}/${toJobSlug(job.company)}`, { state: { job } });
       return;
     }
     const path = PAGE_PATH[newPage];
@@ -304,7 +304,7 @@ export default function StudentShiftsWeb() {
         } />
 
         {/* Job Details */}
-        <Route path="/jobs/:id" element={
+        <Route path="/jobs/:titleSlug/:companySlug" element={
           <JobDetailsRoute
             selectedJob={selectedJob}
             setPage={setPage}
@@ -375,22 +375,27 @@ export default function StudentShiftsWeb() {
 
 // Job details route — handles in-app nav (job in state/memory) and direct URL access (fetches from DB)
 function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs }) {
-  const { id } = useParams();
+  const { titleSlug, companySlug } = useParams();
   const location = useLocation();
   const navigate  = useNavigate();
 
   const stateJob = location.state?.job;
-  const memoryJob = selectedJob?.id === id ? selectedJob : null;
-  const [job, setJob] = useState(stateJob || memoryJob || null);
+  const slugMatches = stateJob
+    ? (toJobSlug(stateJob.title) === titleSlug && toJobSlug(stateJob.company) === companySlug)
+    : false;
+  const memoryMatch = selectedJob
+    ? (toJobSlug(selectedJob.title) === titleSlug && toJobSlug(selectedJob.company) === companySlug)
+    : false;
+  const [job, setJob] = useState((slugMatches ? stateJob : null) || (memoryMatch ? selectedJob : null) || null);
   const [loading, setLoading] = useState(!job);
 
   useEffect(() => {
-    if (job && job.id === id) return;
+    if (job && toJobSlug(job.title) === titleSlug && toJobSlug(job.company) === companySlug) return;
     setLoading(true);
-    fetchJobById(id)
+    fetchJobBySlug(titleSlug, companySlug)
       .then(j => { setJob(j); setLoading(false); })
       .catch(() => navigate("/", { replace: true }));
-  }, [id]);
+  }, [titleSlug, companySlug]);
 
   if (loading) {
     return (
