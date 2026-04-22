@@ -5,7 +5,7 @@ const rateLimit   = require("express-rate-limit");
 
 const app = express();
 app.use(express.json({ limit: "256kb" }));
-app.use(cors());
+app.use(cors({ origin: process.env.FRONTEND_URL || "https://studentshifts.onrender.com" }));
 
 // 30 emails per minute max
 app.use("/send-email", rateLimit({ windowMs: 60_000, max: 30 }));
@@ -42,7 +42,7 @@ app.post("/send-email", async (req, res) => {
     res.json({ success: true });
   } catch (e) {
     console.error("Email error:", e.message);
-    res.status(500).json({ error: e.message });
+    res.status(500).json({ error: "Failed to send email" });
   }
 });
 
