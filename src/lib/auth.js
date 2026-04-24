@@ -226,6 +226,22 @@ export async function createApplication(userId, jobId) {
   throw error;
 }
 
+export async function updateApplicationStage(applicationId, stage) {
+  const { error } = await supabase
+    .from("applications")
+    .update({ pipeline_stage: stage })
+    .eq("id", applicationId);
+  if (error) throw error;
+}
+
+export async function saveApplicationNotes(applicationId, notes) {
+  const { error } = await supabase
+    .from("applications")
+    .update({ company_notes: notes })
+    .eq("id", applicationId);
+  if (error) throw error;
+}
+
 export async function fetchApplicationStatuses(userId) {
   const { data, error } = await withTimeout(
     supabase.from("applications").select("job_id, status").eq("student_id", userId),
