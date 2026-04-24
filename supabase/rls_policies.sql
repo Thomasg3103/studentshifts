@@ -559,6 +559,7 @@ $$;
 -- Replaces the dropped "students: company read applicants" RLS policy.
 -- Only returns rows where the student actually applied to a job owned by the caller.
 -- ================================================================
+DROP FUNCTION IF EXISTS get_company_applicant_profiles(uuid[]);
 CREATE OR REPLACE FUNCTION get_company_applicant_profiles(student_ids uuid[])
 RETURNS TABLE (
   id               uuid,
@@ -586,6 +587,7 @@ $$;
 -- FIX #9: get_all_verified_students — safe columns only (no lat/lng GPS coordinates)
 -- Only callable by verified companies or admins; raises for all others.
 -- ================================================================
+DROP FUNCTION IF EXISTS get_all_verified_students();
 CREATE OR REPLACE FUNCTION get_all_verified_students()
 RETURNS TABLE (
   id                uuid,
