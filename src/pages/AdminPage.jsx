@@ -29,7 +29,7 @@ export default function AdminPage() {
       const url = await getSignedDocumentUrl("verification-docs", path);
       window.open(url, "_blank", "noopener");
     } catch (e) {
-      alert("Could not open document: " + e.message);
+      alert("Could not open document. Please try again.");
     }
   };
 
@@ -52,7 +52,7 @@ export default function AdminPage() {
         }
       }
     } catch (e) {
-      alert("Failed to approve: " + e.message);
+      alert("Failed to approve. Please try again.");
     } finally {
       setActionLoading(null);
     }
@@ -65,7 +65,7 @@ export default function AdminPage() {
       await rejectStudent(studentId);
       setStudents(prev => prev.filter(s => s.id !== studentId));
     } catch (e) {
-      alert("Failed to reject: " + e.message);
+      alert("Failed to reject. Please try again.");
     } finally {
       setActionLoading(null);
     }
@@ -88,7 +88,7 @@ export default function AdminPage() {
         }
       }
     } catch (e) {
-      alert("Failed to approve: " + e.message);
+      alert("Failed to approve. Please try again.");
     } finally {
       setActionLoading(null);
     }
@@ -101,7 +101,7 @@ export default function AdminPage() {
       await rejectCompany(companyId);
       setCompanies(prev => prev.filter(c => c.id !== companyId));
     } catch (e) {
-      alert("Failed to reject: " + e.message);
+      alert("Failed to reject. Please try again.");
     } finally {
       setActionLoading(null);
     }

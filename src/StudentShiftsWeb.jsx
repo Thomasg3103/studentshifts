@@ -337,13 +337,13 @@ export default function StudentShiftsWeb() {
           ? <LikedJobs likedJobs={likedJobs} setLikedJobs={setLikedJobs} setSavedLikedJobIds={setSavedLikedJobIds} setSelectedJob={setSelectedJobBoth} setPage={setPage} currentUser={currentUser} />
           : <Navigate to="/login" replace />
         } />
-        <Route path="/applied" element={currentUser
+        <Route path="/applied" element={currentUser?.role === "student"
           ? <AppliedJobs appliedJobs={appliedJobs} setAppliedJobs={setAppliedJobs} setSavedAppliedJobIds={setSavedAppliedJobIds} setSelectedJob={setSelectedJobBoth} setPage={setPage} currentUser={currentUser} statuses={appStatuses} />
-          : <Navigate to="/login" replace />
+          : <Navigate to="/" replace />
         } />
-        <Route path="/messages" element={currentUser
+        <Route path="/messages" element={currentUser?.role === "student"
           ? <Messages currentUser={currentUser} setPage={setPage} />
-          : <Navigate to="/login" replace />
+          : <Navigate to="/" replace />
         } />
         <Route path="/verify" element={currentUser
           ? <VerifyDocsPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} />

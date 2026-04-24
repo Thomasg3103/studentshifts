@@ -77,16 +77,8 @@ CREATE POLICY "students: admin read all" ON students
 CREATE POLICY "students: admin update" ON students
   FOR UPDATE USING (is_admin());
 
--- Company can read basic info of students who have applied to their jobs
-CREATE POLICY "students: company read applicants" ON students
-  FOR SELECT USING (
-    EXISTS (
-      SELECT 1 FROM applications a
-      JOIN jobs j ON j.id = a.job_id
-      WHERE a.student_id = students.id
-        AND j.company_id = auth.uid()
-    )
-  );
+-- Company read of student applicants is handled via get_company_applicant_profiles() RPC
+-- (direct table access would expose gov_id_url / student_id_url verification document paths)
 
 
 -- ================================================================
@@ -262,25 +254,48 @@ CREATE POLICY "chat_messages: student read" ON chat_messages
 CREATE POLICY "chat_messages: company read" ON chat_messages
   FOR SELECT USING (auth.uid() = company_id);
 
--- Student can only send messages in conversations they belong to (must have an accepted application)
+-- Student can only send messages in conversations they belong to.
+-- For direct messages (job_id IS NULL): only if the company messaged them first, or they have an accepted application with that company.
+-- For job messages (job_id IS NOT NULL): only if they have an accepted application for that job.
 CREATE POLICY "chat_messages: student insert" ON chat_messages
   FOR INSERT WITH CHECK (
     auth.uid() = student_id AND
     auth.uid() = sender_id AND
     (
-      job_id IS NULL OR
-      EXISTS (
-        SELECT 1 FROM applications a
-        JOIN jobs j ON j.id = a.job_id
-        WHERE a.student_id = auth.uid()
-          AND a.job_id = chat_messages.job_id
-          AND j.company_id = chat_messages.company_id
-          AND a.status = 'Accepted'
+      (
+        job_id IS NULL AND (
+          EXISTS (
+            SELECT 1 FROM chat_messages cm
+            WHERE cm.job_id IS NULL
+              AND cm.student_id = auth.uid()
+              AND cm.company_id = chat_messages.company_id
+              AND cm.sender_id = chat_messages.company_id
+          ) OR
+          EXISTS (
+            SELECT 1 FROM applications a
+            JOIN jobs j ON j.id = a.job_id
+            WHERE j.company_id = chat_messages.company_id
+              AND a.student_id = auth.uid()
+              AND a.status = 'Accepted'
+          )
+        )
+      ) OR
+      (
+        job_id IS NOT NULL AND
+        EXISTS (
+          SELECT 1 FROM applications a
+          JOIN jobs j ON j.id = a.job_id
+          WHERE a.student_id = auth.uid()
+            AND a.job_id = chat_messages.job_id
+            AND j.company_id = chat_messages.company_id
+            AND a.status = 'Accepted'
+        )
       )
     )
   );
 
--- Company can send messages only when they own the job OR have an accepted application with the student
+-- Company can send messages only to students with an accepted application for the job (job messages),
+-- or to any verified student for direct outreach (job_id IS NULL).
 CREATE POLICY "chat_messages: company insert" ON chat_messages
   FOR INSERT WITH CHECK (
     auth.uid() = company_id AND
@@ -288,14 +303,18 @@ CREATE POLICY "chat_messages: company insert" ON chat_messages
     (
       (
         job_id IS NOT NULL AND
-        EXISTS (SELECT 1 FROM jobs WHERE id = chat_messages.job_id AND company_id = auth.uid())
+        EXISTS (SELECT 1 FROM jobs WHERE id = chat_messages.job_id AND company_id = auth.uid()) AND
+        EXISTS (
+          SELECT 1 FROM applications a
+          WHERE a.job_id = chat_messages.job_id
+            AND a.student_id = chat_messages.student_id
+            AND a.status = 'Accepted'
+        )
       ) OR
-      EXISTS (
-        SELECT 1 FROM applications a
-        JOIN jobs j ON j.id = a.job_id
-        WHERE j.company_id = auth.uid()
-          AND a.student_id = chat_messages.student_id
-          AND a.status = 'Accepted'
+      (
+        job_id IS NULL AND
+        EXISTS (SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified') AND
+        EXISTS (SELECT 1 FROM students WHERE id = chat_messages.student_id AND status = 'verified')
       )
     )
   );
@@ -327,6 +346,10 @@ CREATE POLICY "avatars: own upload" ON storage.objects
 
 CREATE POLICY "avatars: own update" ON storage.objects
   FOR UPDATE USING (
+    bucket_id = 'avatars' AND
+    auth.uid()::text = (storage.foldername(name))[1]
+  )
+  WITH CHECK (
     bucket_id = 'avatars' AND
     auth.uid()::text = (storage.foldername(name))[1]
   );
@@ -364,6 +387,10 @@ CREATE POLICY "documents: own upload" ON storage.objects
 
 CREATE POLICY "documents: own update" ON storage.objects
   FOR UPDATE USING (
+    bucket_id = 'documents' AND
+    auth.uid()::text = (storage.foldername(name))[1]
+  )
+  WITH CHECK (
     bucket_id = 'documents' AND
     auth.uid()::text = (storage.foldername(name))[1]
   );
@@ -409,6 +436,10 @@ CREATE POLICY "verification-docs: own update" ON storage.objects
   FOR UPDATE USING (
     bucket_id = 'verification-docs' AND
     auth.uid()::text = (storage.foldername(name))[1]
+  )
+  WITH CHECK (
+    bucket_id = 'verification-docs' AND
+    auth.uid()::text = (storage.foldername(name))[1]
   );
 
 -- Students can read their own docs (e.g. to confirm upload)
@@ -447,6 +478,10 @@ CREATE POLICY "job-photos: own upload" ON storage.objects
 
 CREATE POLICY "job-photos: own update" ON storage.objects
   FOR UPDATE USING (
+    bucket_id = 'job-photos' AND
+    auth.uid()::text = (storage.foldername(name))[1]
+  )
+  WITH CHECK (
     bucket_id = 'job-photos' AND
     auth.uid()::text = (storage.foldername(name))[1]
   );
@@ -513,3 +548,134 @@ BEGIN
   DELETE FROM auth.users WHERE id = auth.uid();
 END;
 $$;
+
+
+-- ================================================================
+-- FIX #8: Company applicant read — safe columns only (no gov_id_url / student_id_url)
+-- Replaces the dropped "students: company read applicants" RLS policy.
+-- Only returns rows where the student actually applied to a job owned by the caller.
+-- ================================================================
+CREATE OR REPLACE FUNCTION get_company_applicant_profiles(student_ids uuid[])
+RETURNS TABLE (
+  id               uuid,
+  bio              text,
+  skills           text[],
+  linkedin         text,
+  cv_url           text,
+  cover_letter_url text,
+  profile_photo_url text
+)
+LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT s.id, s.bio, s.skills, s.linkedin, s.cv_url, s.cover_letter_url, s.profile_photo_url
+  FROM students s
+  WHERE s.id = ANY(student_ids)
+    AND EXISTS (
+      SELECT 1 FROM applications a
+      JOIN jobs j ON j.id = a.job_id
+      WHERE j.company_id = auth.uid()
+        AND a.student_id = s.id
+    );
+$$;
+
+
+-- ================================================================
+-- FIX #9: get_all_verified_students — safe columns only (no lat/lng GPS coordinates)
+-- Only callable by verified companies.
+-- ================================================================
+CREATE OR REPLACE FUNCTION get_all_verified_students()
+RETURNS TABLE (
+  id                uuid,
+  name              text,
+  bio               text,
+  skills            text[],
+  linkedin          text,
+  profile_photo_url text,
+  location_display  text,
+  availability      jsonb,
+  job_preferences   text[]
+)
+LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT p.id, p.name, s.bio, s.skills, s.linkedin, s.profile_photo_url,
+         s.location_display, s.availability, s.job_preferences
+  FROM students s
+  JOIN profiles p ON p.id = s.id
+  WHERE s.status = 'verified'
+    AND EXISTS (SELECT 1 FROM companies c WHERE c.id = auth.uid() AND c.status = 'verified');
+$$;
+
+
+-- ================================================================
+-- FIX #14: Prevent cv_url/cover_letter_url path injection
+-- Students cannot set their document URL to another student's storage path.
+-- ================================================================
+DROP POLICY IF EXISTS "students: own update" ON students;
+
+CREATE POLICY "students: own update" ON students
+  FOR UPDATE USING (auth.uid() = id)
+  WITH CHECK (
+    auth.uid() = id AND
+    status = (SELECT status FROM students WHERE id = auth.uid()) AND
+    (cv_url IS NULL OR cv_url LIKE auth.uid()::text || '/%') AND
+    (cover_letter_url IS NULL OR cover_letter_url LIKE auth.uid()::text || '/%')
+  );
+
+
+-- ================================================================
+-- FIX #16: Job status must be 'Active' or 'Closed' — no arbitrary strings
+-- ================================================================
+DROP POLICY IF EXISTS "jobs: company insert" ON jobs;
+DROP POLICY IF EXISTS "jobs: company update" ON jobs;
+
+CREATE POLICY "jobs: company insert" ON jobs
+  FOR INSERT WITH CHECK (
+    auth.uid() = company_id AND
+    EXISTS (SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified') AND
+    status IN ('Active', 'Closed')
+  );
+
+CREATE POLICY "jobs: company update" ON jobs
+  FOR UPDATE USING (auth.uid() = company_id)
+  WITH CHECK (
+    auth.uid() = company_id AND
+    status IN ('Active', 'Closed')
+  );
+
+
+-- ================================================================
+-- FIX #17: Only one accepted application per job (unique partial index)
+-- ================================================================
+CREATE UNIQUE INDEX IF NOT EXISTS applications_one_accepted_per_job
+  ON applications (job_id) WHERE status = 'Accepted';
+
+
+-- ================================================================
+-- FIX #19: CRO number — unique constraint and format validation (1-8 digits)
+-- ================================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'companies_cro_number_unique'
+  ) THEN
+    ALTER TABLE companies ADD CONSTRAINT companies_cro_number_unique UNIQUE (cro_number);
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'companies_cro_number_format'
+  ) THEN
+    ALTER TABLE companies ADD CONSTRAINT companies_cro_number_format
+      CHECK (cro_number IS NULL OR cro_number ~ '^[0-9]{1,8}$');
+  END IF;
+END $$;
+
+
+-- ================================================================
+-- FIX #22: Chat message length — no message longer than 4000 characters
+-- ================================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'chat_messages_text_length'
+  ) THEN
+    ALTER TABLE chat_messages ADD CONSTRAINT chat_messages_text_length
+      CHECK (char_length(text) <= 4000);
+  END IF;
+END $$;

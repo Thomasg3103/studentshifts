@@ -109,7 +109,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     if (studentIds.length) {
       const [{ data: profiles }, { data: students }] = await Promise.all([
         supabase.from("profiles").select("id, name").in("id", studentIds),
-        supabase.from("students").select("id, cv_url, cover_letter_url, bio, skills, linkedin, profile_photo_url").in("id", studentIds),
+        supabase.rpc("get_company_applicant_profiles", { student_ids: studentIds }),
       ]);
       (profiles || []).forEach(p => { profileMap[p.id] = p; });
       (students || []).forEach(s => { cvMap[s.id] = s; });
@@ -165,7 +165,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       supabase.from("jobs").update(updates).eq("id", extendData.id),
       10000, "Update timed out."
     );
-    if (error) { alert("Failed to save: " + error.message); return; }
+    if (error) { alert("Failed to save. Please try again."); return; }
     setPostings(prev => prev.map(p => p.id === extendData.id ? { ...p, ...updates } : p));
     closeModal();
   };
@@ -200,8 +200,13 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       // Build ordered photo URL array — existing first (already URLs), then upload new files in order
       const photoUrls = [...keptUrls];
       const photoCrops = [...allCrops]; // parallel array, same order
+      const ALLOWED_PHOTO_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
+      const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
       for (const file of newFiles) {
-        const path = `${currentUser.id}/${Date.now()}_${file.name}`;
+        const ext = file.name.split('.').pop()?.toLowerCase() || '';
+        if (!ALLOWED_PHOTO_EXTS.has(ext)) { console.warn("Photo upload skipped: invalid type"); continue; }
+        if (file.size > MAX_PHOTO_BYTES) { console.warn("Photo upload skipped: too large"); continue; }
+        const path = `${currentUser.id}/photo_${Date.now()}.${ext}`;
         try {
           const { error: upErr } = await withTimeout(
             supabase.storage.from("job-photos").upload(path, file, { upsert: true }),
@@ -255,7 +260,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       }
       closeModal();
     } catch (e) {
-      alert("Error saving job: " + e.message);
+      alert("Error saving job. Please try again.");
     } finally {
       setFormSaving(false);
     }
@@ -995,7 +1000,7 @@ function PdfModal({ url, label, fileName, onClose }) {
       a.download = fileName;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
-    } catch (e) { alert("Could not save: " + e.message); }
+    } catch (e) { alert("Could not save. Please try again."); }
   };
 
   const openWith = async () => {
@@ -1005,7 +1010,7 @@ function PdfModal({ url, label, fileName, onClose }) {
         const blob = await res.blob();
         const file = new File([blob], fileName, { type: "application/pdf" });
         await navigator.share({ files: [file], title: label });
-      } catch (e) { if (e.name !== "AbortError") alert("Could not share: " + e.message); }
+      } catch (e) { if (e.name !== "AbortError") alert("Could not share. Please try again."); }
     } else {
       window.open(url, "_blank", "noreferrer");
     }
@@ -1062,7 +1067,7 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus, companyId }) {
       try {
         const { getSignedDocumentUrl } = await import("../lib/auth");
         setCvUrl(await getSignedDocumentUrl("documents", applicant.cvName));
-      } catch (e) { alert("Could not load CV: " + e.message); setCvLoading(false); return; }
+      } catch (e) { alert("Could not load CV. Please try again."); setCvLoading(false); return; }
       setCvLoading(false);
     }
     setCvOpen(true);
@@ -1074,7 +1079,7 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus, companyId }) {
       try {
         const { getSignedDocumentUrl } = await import("../lib/auth");
         setClUrl(await getSignedDocumentUrl("documents", applicant.coverLetterName));
-      } catch (e) { alert("Could not load cover letter: " + e.message); setClLoading(false); return; }
+      } catch (e) { alert("Could not load cover letter. Please try again."); setClLoading(false); return; }
       setClLoading(false);
     }
     setClOpen(true);
@@ -1129,7 +1134,7 @@ function ApplicantCard({ applicant, postingId, onUpdateStatus, companyId }) {
             <div style={{ marginBottom: "0.3rem" }}>
               <span style={{ fontSize: "0.68rem", fontWeight: "700", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em" }}>LinkedIn</span>
               <div style={{ marginTop: "0.1rem" }}>
-                {applicant.linkedin
+                {applicant.linkedin && /^https?:\/\//i.test(applicant.linkedin)
                   ? <a href={applicant.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: "0.78rem", color: "#0a66c2", fontWeight: "600", textDecoration: "underline" }}>View Profile</a>
                   : <span style={{ fontSize: "0.78rem", color: "#9ca3af", fontStyle: "italic" }}>Not provided</span>
                 }

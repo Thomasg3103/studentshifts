@@ -1,7 +1,7 @@
 import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
-import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, exportMyData } from "../lib/auth";
+import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData } from "../lib/auth";
 import { jobCategories } from "../data/jobCategories";
 
 export default function AccountPage({
@@ -30,6 +30,7 @@ export default function AccountPage({
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
   const [exporting, setExporting] = useState(false);
@@ -204,7 +205,7 @@ export default function AccountPage({
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      alert("Export failed: " + (e.message || "Please try again."));
+      alert("Export failed. Please try again.");
     } finally {
       setExporting(false);
     }
@@ -214,7 +215,11 @@ export default function AccountPage({
     setDeleting(true);
     setDeleteError("");
     try {
+      await verifyPassword(currentUser.email, deletePassword);
       await deleteAccount();
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('ss_notif_seen_')) localStorage.removeItem(key);
+      }
       setCurrentUser(null);
       setLikedJobs([]);
       setAppliedJobs([]);
@@ -229,6 +234,9 @@ export default function AccountPage({
 
   const confirmLogout = async () => {
     try { await signOut(); } catch (_) {}
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith('ss_notif_seen_')) localStorage.removeItem(key);
+    }
     setCurrentUser(null);
     setLikedJobs([]);
     setAppliedJobs([]);
@@ -243,7 +251,7 @@ export default function AccountPage({
       setIndustrySaved(true);
       setTimeout(() => setIndustrySaved(false), 2500);
     } catch (e) {
-      alert("Failed to save: " + (e.message || "Please try again."));
+      alert("Failed to save. Please try again.");
     } finally {
       setIndustrySaving(false);
     }
@@ -576,7 +584,7 @@ export default function AccountPage({
           <button onClick={goBack} style={btnGray}>Back to Dashboard</button>
           <button onClick={handleLogout} style={btnRed}>Logout</button>
           <button onClick={handleExport} disabled={exporting} style={btnGray}>{exporting ? "Exporting…" : "Download My Data"}</button>
-          <button onClick={() => { setDeleteConfirm(""); setDeleteError(""); setShowDeleteModal(true); }} style={btnDelete}>Delete Account</button>
+          <button onClick={() => { setDeleteConfirm(""); setDeletePassword(""); setDeleteError(""); setShowDeleteModal(true); }} style={btnDelete}>Delete Account</button>
         </div>
       </div>
       {/* Delete Account modal */}
@@ -590,6 +598,16 @@ export default function AccountPage({
             <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1.25rem" }}>
               This is permanent. Your profile, CV, and all data will be deleted and cannot be recovered.
             </p>
+            <p style={{ fontSize: "0.8rem", fontWeight: "600", color: "#374151", margin: "0 0 0.4rem", textAlign: "left" }}>
+              Enter your password to confirm
+            </p>
+            <input
+              type="password"
+              value={deletePassword}
+              onChange={e => setDeletePassword(e.target.value)}
+              placeholder="Password"
+              style={{ ...inputStyle, marginBottom: "0.5rem" }}
+            />
             <p style={{ fontSize: "0.8rem", fontWeight: "600", color: "#374151", margin: "0 0 0.4rem", textAlign: "left" }}>
               Type <strong>DELETE</strong> to confirm
             </p>
@@ -611,8 +629,8 @@ export default function AccountPage({
               </button>
               <button
                 onClick={handleDeleteAccount}
-                disabled={deleteConfirm !== "DELETE" || deleting}
-                style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: deleteConfirm === "DELETE" ? "#dc2626" : "#fca5a5", color: "white", fontWeight: "700", cursor: deleteConfirm === "DELETE" && !deleting ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.9rem" }}
+                disabled={deleteConfirm !== "DELETE" || !deletePassword || deleting}
+                style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: deleteConfirm === "DELETE" && deletePassword ? "#dc2626" : "#fca5a5", color: "white", fontWeight: "700", cursor: deleteConfirm === "DELETE" && deletePassword && !deleting ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.9rem" }}
               >
                 {deleting ? "Deleting…" : "Delete"}
               </button>

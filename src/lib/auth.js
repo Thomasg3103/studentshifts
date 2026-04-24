@@ -17,6 +17,10 @@ export function fromJobSlug(slug) {
   return slug.replace(/-/g, ' ');
 }
 
+function escapeIlike(str) {
+  return str.replace(/%/g, '\\%').replace(/_/g, '\\_');
+}
+
 function normaliseJobRow(job, companyName) {
   return {
     id:              job.id,
@@ -44,7 +48,7 @@ export async function fetchJobBySlug(titleSlug, companySlug) {
 
   // Fetch jobs matching the title (case-insensitive)
   const { data: jobs, error } = await withTimeout(
-    supabase.from("jobs").select("*").ilike("title", title).eq("status", "Active"),
+    supabase.from("jobs").select("*").ilike("title", escapeIlike(title)).eq("status", "Active"),
     10000
   );
   if (error) throw error;
@@ -67,6 +71,7 @@ export async function fetchJobBySlug(titleSlug, companySlug) {
 }
 
 export async function signUp({ email, password, name, role, croNumber, industries }) {
+  if (role !== 'student' && role !== 'company') throw new Error('Invalid role');
   const meta = { name, role };
   if (role === "company" && croNumber) meta.cro_number = croNumber.trim();
   if (role === "company" && industries?.length) meta.industries = industries;
@@ -276,6 +281,14 @@ export async function exportMyData(userId) {
   };
 }
 
+export async function verifyPassword(email, password) {
+  const { error } = await withTimeout(
+    supabase.auth.signInWithPassword({ email, password }),
+    15000, "Verification timed out."
+  );
+  if (error) throw new Error("Incorrect password");
+}
+
 export async function deleteAccount() {
   const { error } = await withTimeout(
     supabase.rpc("delete_account"),
@@ -427,7 +440,7 @@ export function emailStudentApproved(name) {
 
 export function emailCompanyApproved(name, appUrl) {
   const safeName = escapeHtml(name);
-  const safeUrl  = escapeHtml(appUrl);
+  const safeUrl  = /^https?:\/\//i.test(appUrl) ? escapeHtml(appUrl) : '#';
   return `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
