@@ -4,7 +4,7 @@ import "../StudentShiftWeb.css";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
-import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes } from "../lib/auth";
+import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -50,11 +50,20 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsFetched, setStudentsFetched] = useState(false);
   const [chatStudent, setChatStudent] = useState(null); // { id, name } for inline DM
+  const [likedStudentIds, setLikedStudentIds] = useState(new Set());
 
   // Load availability heatmap once
   useEffect(() => {
     fetchAvailabilityHeatmap().then(setHeatmap).catch(() => {});
   }, []);
+
+  // Load liked student IDs on mount
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    fetchLikedStudentIds(currentUser.id)
+      .then(ids => setLikedStudentIds(new Set(ids)))
+      .catch(() => {});
+  }, [currentUser?.id]);
 
   // Load all verified students when Browse Students tab is first opened
   useEffect(() => {
@@ -96,7 +105,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     setActivePosting({ ...posting, applicants: [], applicantsLoading: true, applicantsError: null });
     setModal("applicants");
     const { data: appData, error: appError } = await withTimeout(
-      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes").eq("job_id", posting.id).order("created_at", { ascending: true }),
+      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time").eq("job_id", posting.id).order("created_at", { ascending: true }),
       10000, "Loading applicants timed out."
     );
     if (appError) {
@@ -124,9 +133,12 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       skills:           cvMap[a.student_id]?.skills           || [],
       linkedin:         cvMap[a.student_id]?.linkedin         || "",
       profilePhoto:     cvMap[a.student_id]?.profile_photo_url || null,
-      status:        a.status,
-      pipelineStage: a.pipeline_stage || "applied",
-      notes:         a.company_notes  || "",
+      status:         a.status,
+      pipelineStage:  a.pipeline_stage  || "applied",
+      notes:          a.company_notes   || "",
+      interviewRound: a.interview_round || 1,
+      trialDate:      a.trial_date      || "",
+      trialTime:      a.trial_time      || "",
     }));
     setActivePosting(prev => ({ ...prev, applicants, applicantsLoading: false }));
   };
@@ -388,6 +400,45 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     setActivePosting(prev => prev ? updater(prev) : prev);
   };
 
+  const toggleLike = async (studentId) => {
+    const isLiked = likedStudentIds.has(studentId);
+    try {
+      if (isLiked) {
+        await unlikeStudent(currentUser.id, studentId);
+        setLikedStudentIds(prev => { const next = new Set(prev); next.delete(studentId); return next; });
+      } else {
+        await likeStudent(currentUser.id, studentId);
+        setLikedStudentIds(prev => new Set([...prev, studentId]));
+      }
+    } catch { /* silently ignore */ }
+  };
+
+  const handleIncrementRound = async (applicationId, currentRound) => {
+    try {
+      await incrementInterviewRound(applicationId, currentRound);
+      const updater = p => ({
+        ...p,
+        applicants: p.applicants.map(a => a.id === applicationId ? { ...a, interviewRound: currentRound + 1 } : a),
+      });
+      setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
+      setActivePosting(prev => prev ? updater(prev) : prev);
+    } catch {
+      alert("Failed to update interview round. Please try again.");
+    }
+  };
+
+  const handleSaveTrialSchedule = async (applicationId, date, time) => {
+    try {
+      await saveTrialSchedule(applicationId, date, time);
+      const updater = p => ({
+        ...p,
+        applicants: p.applicants.map(a => a.id === applicationId ? { ...a, trialDate: date, trialTime: time } : a),
+      });
+      setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
+      setActivePosting(prev => prev ? updater(prev) : prev);
+    } catch { /* silently ignore — schedule is non-critical */ }
+  };
+
   const handleCloseJob = async (jobId, { foundStudent, winnerId, winnerApplicant }) => {
     if (foundStudent && winnerId && winnerApplicant) {
       await updateApplicantStatus(winnerId, "Accepted", winnerApplicant);
@@ -494,6 +545,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           chatStudent={chatStudent}
           setChatStudent={setChatStudent}
           setPage={setPage}
+          likedStudentIds={likedStudentIds}
+          onToggleLike={toggleLike}
         />
       )}
 
@@ -536,7 +589,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       {/* Applicants Modal */}
       {modal === "applicants" && activePosting && (
         <Modal onClose={closeModal} title={`Applicants — ${activePosting.title}`}>
-          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} companyId={currentUser?.id} />
+          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
         </Modal>
       )}
 
@@ -566,7 +619,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
 
 /* ─── Sub-components ─────────────────────────────────────────────────────── */
 
-function BrowseStudents({ students, loading, fetched, companyIndustries, companyId, companyName, chatStudent, setChatStudent, setPage }) {
+function BrowseStudents({ students, loading, fetched, companyIndustries, companyId, companyName, chatStudent, setChatStudent, setPage, likedStudentIds, onToggleLike }) {
   const [filterByIndustries, setFilterByIndustries] = useState(true);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
@@ -721,7 +774,9 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
           No students match your industries yet. Students need to set matching job preferences in their account.
         </p>
       )}
-      {displayStudents.map(s => (
+      {displayStudents.map(s => {
+        const isLiked = likedStudentIds?.has(s.id);
+        return (
         <div key={s.id} style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {s.profile_photo_url
@@ -730,7 +785,16 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
             }
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: "0 0 0.2rem", fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{s.name}</p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.2rem" }}>
+              <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{s.name}</p>
+              <button
+                onClick={() => onToggleLike?.(s.id)}
+                title={isLiked ? "Remove from liked" : "Save student"}
+                style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", lineHeight: 1, padding: "0.1rem 0.25rem", color: isLiked ? "#e11d48" : "#cbd5e1" }}
+              >
+                {isLiked ? "♥" : "♡"}
+              </button>
+            </div>
             {s.bio && <p style={{ margin: "0 0 0.4rem", fontSize: "0.8rem", color: "#64748b", lineHeight: 1.5 }}>{s.bio}</p>}
             {s.skills?.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
@@ -755,7 +819,7 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
             </button>
           </div>
         </div>
-      ))}
+        ); })}
     </div>
   );
 }
@@ -967,7 +1031,7 @@ const PIPELINE_STAGES = [
   { key: "decision",    label: "Decision" },
 ];
 
-function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId }) {
+function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, likedStudents }) {
   const [activeStage, setActiveStage]             = useState("applied");
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showCloseJob, setShowCloseJob]           = useState(false);
@@ -1058,6 +1122,35 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
         </div>
       )}
 
+      {/* Liked students — Shortlisted tab only, not yet applied */}
+      {activeStage === "shortlisted" && (() => {
+        const appliedIds = new Set(posting.applicants.map(a => a.studentId));
+        const saved = (likedStudents || []).filter(s => !appliedIds.has(s.id));
+        if (saved.length === 0) return null;
+        return (
+          <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1.5px solid #e2e8f0" }}>
+            <p style={{ margin: "0 0 0.6rem", fontSize: "0.72rem", fontWeight: "800", color: "#6366f1", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+              Saved Students — haven't applied yet
+            </p>
+            {saved.map(s => (
+              <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.6rem 0.85rem", borderRadius: "0.6rem", border: "1.5px solid #e0e7ff", backgroundColor: "#f5f3ff", marginBottom: "0.4rem" }}>
+                <div style={{ width: "32px", height: "32px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {s.profile_photo_url
+                    ? <img src={s.profile_photo_url} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : <span style={{ fontSize: "1rem" }}>👤</span>
+                  }
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: 0, fontWeight: "700", fontSize: "0.85rem", color: "#1e293b" }}>{s.name}</p>
+                  {s.bio && <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.bio}</p>}
+                </div>
+                <span style={{ fontSize: "0.7rem", color: "#6366f1", fontWeight: "600", whiteSpace: "nowrap" }}>♥ Saved</span>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       {/* Close Job button — Decision tab only, no accepted applicant yet */}
       {activeStage === "decision" && posting.applicants.every(a => a.status !== "Accepted") && (
         <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1.5px solid #e2e8f0" }}>
@@ -1080,6 +1173,8 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
           onStageAction={handleStageAction}
           onUpdateStatus={onUpdateStatus}
           onNotesSaved={onNotesSaved}
+          onIncrementRound={onIncrementRound}
+          onSaveTrialSchedule={onSaveTrialSchedule}
         />
       )}
 
@@ -1130,7 +1225,7 @@ function ApplicantRow({ applicant, onClick }) {
   );
 }
 
-function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved }) {
+function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, onSaveTrialSchedule }) {
   const [cvUrl, setCvUrl]     = useState(null);
   const [clUrl, setClUrl]     = useState(null);
   const [cvLoading, setCvLoading] = useState(false);
@@ -1139,9 +1234,12 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
   const [clOpen, setClOpen]   = useState(false);
   const [notes, setNotes]     = useState(applicant.notes || "");
   const [notesSaving, setNotesSaving] = useState(false);
+  const [trialDate, setTrialDate] = useState(applicant.trialDate || "");
+  const [trialTime, setTrialTime] = useState(applicant.trialTime || "");
 
-  // Sync notes if applicant prop changes (e.g. parent refresh)
+  // Sync notes/trial if applicant prop changes (e.g. parent refresh)
   useEffect(() => { setNotes(applicant.notes || ""); }, [applicant.id]);
+  useEffect(() => { setTrialDate(applicant.trialDate || ""); setTrialTime(applicant.trialTime || ""); }, [applicant.id]);
 
   const openCv = async () => {
     if (!cvUrl) {
@@ -1273,6 +1371,33 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             />
           </Section>
 
+          {/* Trial schedule — only in trial stage */}
+          {stage === "trial" && (
+            <Section label="Trial Shift Schedule">
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                <input
+                  type="date"
+                  value={trialDate}
+                  onChange={e => setTrialDate(e.target.value)}
+                  onBlur={() => onSaveTrialSchedule?.(applicant.id, trialDate, trialTime)}
+                  style={{ flex: 1, minWidth: "130px", padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151" }}
+                />
+                <input
+                  type="time"
+                  value={trialTime}
+                  onChange={e => setTrialTime(e.target.value)}
+                  onBlur={() => onSaveTrialSchedule?.(applicant.id, trialDate, trialTime)}
+                  style={{ flex: 1, minWidth: "100px", padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151" }}
+                />
+              </div>
+              {(trialDate || trialTime) && (
+                <p style={{ margin: "0.4rem 0 0", fontSize: "0.75rem", color: "#16a34a", fontWeight: "600" }}>
+                  {trialDate && trialTime ? `Scheduled: ${trialDate} at ${trialTime}` : trialDate ? `Date: ${trialDate}` : `Time: ${trialTime}`}
+                </p>
+              )}
+            </Section>
+          )}
+
           {/* Chat — only for accepted applicants */}
           {applicant.status === "Accepted" && (
             <Section label="Messages">
@@ -1290,6 +1415,12 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             <button onClick={() => onStageAction(applicant.id, "interview")} style={panelActionBtn("#6366f1")}>Invite to Interview →</button>
           )}
           {stage === "interview" && (<>
+            {(applicant.interviewRound || 1) > 1 && (
+              <p style={{ margin: "0 0 0.1rem", fontSize: "0.78rem", fontWeight: "700", color: "#64748b", textAlign: "center" }}>
+                Round {applicant.interviewRound}
+              </p>
+            )}
+            <button onClick={() => onIncrementRound?.(applicant.id, applicant.interviewRound || 1)} style={panelActionBtn("#6b7280")}>Next Round of Interviews ↺</button>
             <button onClick={() => onStageAction(applicant.id, "trial")} style={panelActionBtn("#6366f1")}>Advance to Trial →</button>
             <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#475569")}>Skip to Decision →</button>
           </>)}
