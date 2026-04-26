@@ -96,7 +96,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     setActivePosting({ ...posting, applicants: [], applicantsLoading: true, applicantsError: null });
     setModal("applicants");
     const { data: appData, error: appError } = await withTimeout(
-      supabase.from("applications").select("id, status, student_id").eq("job_id", posting.id).order("created_at", { ascending: true }),
+      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes").eq("job_id", posting.id).order("created_at", { ascending: true }),
       10000, "Loading applicants timed out."
     );
     if (appError) {
@@ -124,7 +124,9 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       skills:           cvMap[a.student_id]?.skills           || [],
       linkedin:         cvMap[a.student_id]?.linkedin         || "",
       profilePhoto:     cvMap[a.student_id]?.profile_photo_url || null,
-      status: a.status,
+      status:        a.status,
+      pipelineStage: a.pipeline_stage || "applied",
+      notes:         a.company_notes  || "",
     }));
     setActivePosting(prev => ({ ...prev, applicants, applicantsLoading: false }));
   };
@@ -921,48 +923,93 @@ function ExtendForm({ data, setData, onSave, onCancel }) {
   );
 }
 
+const PIPELINE_STAGES = [
+  { key: "applied",     label: "Applied" },
+  { key: "shortlisted", label: "Shortlisted" },
+  { key: "interview",   label: "Interview" },
+  { key: "trial",       label: "Trial" },
+  { key: "decision",    label: "Decision" },
+];
+
 function ApplicantsView({ posting, onUpdateStatus, companyId }) {
+  const [activeStage, setActiveStage] = useState("applied");
+
   if (posting.applicantsLoading) {
     return <p style={{ color: "#6b7280", textAlign: "center", padding: "2rem 1rem" }}>Loading applicants…</p>;
   }
   if (posting.applicantsError) {
-    return <p style={{ color: "#ef4444", textAlign: "center", padding: "2rem 1rem" }}>Error: {posting.applicantsError}</p>;
+    return <p style={{ color: "#ef4444", textAlign: "center", padding: "2rem 1rem" }}>Error loading applicants. Please try again.</p>;
   }
   if (posting.applicants.length === 0) {
-    return (
-      <p style={{ color: "#6b7280", textAlign: "center", padding: "2rem 1rem" }}>
-        No applicants yet for this posting.
-      </p>
-    );
+    return <p style={{ color: "#6b7280", textAlign: "center", padding: "2rem 1rem" }}>No applicants yet for this posting.</p>;
   }
 
-  const pending  = posting.applicants.filter(a => a.status === "Pending").length;
-  const accepted = posting.applicants.filter(a => a.status === "Accepted").length;
-  const rejected = posting.applicants.filter(a => a.status === "Rejected").length;
+  const countFor = (stage) => posting.applicants.filter(a => a.pipelineStage === stage).length;
+  const visible  = posting.applicants.filter(a => a.pipelineStage === activeStage);
 
   return (
     <div>
-      {/* Mini stats */}
-      <div style={{ display: "flex", gap: "0.75rem", marginBottom: "1rem", flexWrap: "wrap" }}>
-        {[["Pending", pending, "#d97706"], ["Accepted", accepted, "#16a34a"], ["Rejected", rejected, "#dc2626"]].map(([label, val, color]) => (
-          <div key={label} style={{ flex: 1, minWidth: "80px", textAlign: "center", padding: "0.5rem", backgroundColor: "#f9fafb", borderRadius: "0.5rem", border: "1px solid #e5e7eb" }}>
-            <p style={{ fontWeight: "700", fontSize: "1.25rem", color, margin: 0 }}>{val}</p>
-            <p style={{ fontSize: "0.7rem", color: "#6b7280", margin: 0 }}>{label}</p>
-          </div>
-        ))}
+      {/* Pipeline stage tabs */}
+      <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", overflowX: "auto", borderBottom: "2px solid #e2e8f0", paddingBottom: 0 }}>
+        {PIPELINE_STAGES.map(({ key, label }) => {
+          const count  = countFor(key);
+          const active = activeStage === key;
+          return (
+            <button
+              key={key}
+              onClick={() => setActiveStage(key)}
+              style={{
+                flexShrink: 0,
+                padding: "0.5rem 0.9rem",
+                border: "none",
+                borderBottom: active ? "2px solid #6366f1" : "2px solid transparent",
+                marginBottom: "-2px",
+                background: "transparent",
+                fontWeight: active ? "700" : "600",
+                fontSize: "0.82rem",
+                color: active ? "#6366f1" : "#64748b",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.35rem",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {label}
+              {count > 0 && (
+                <span style={{
+                  fontSize: "0.68rem", fontWeight: "700",
+                  backgroundColor: active ? "#6366f1" : "#94a3b8",
+                  color: "white", borderRadius: "999px",
+                  padding: "0.05rem 0.4rem", minWidth: "16px", textAlign: "center",
+                }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-        {posting.applicants.map(applicant => (
-          <ApplicantCard
-            key={applicant.id}
-            applicant={applicant}
-            postingId={posting.id}
-            onUpdateStatus={onUpdateStatus}
-            companyId={companyId}
-          />
-        ))}
-      </div>
+      {/* Applicant cards for active stage */}
+      {visible.length === 0 ? (
+        <p style={{ color: "#94a3b8", textAlign: "center", padding: "2rem 1rem", fontSize: "0.875rem" }}>
+          No applicants in this stage yet.
+        </p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          {visible.map(applicant => (
+            <ApplicantCard
+              key={applicant.id}
+              applicant={applicant}
+              postingId={posting.id}
+              onUpdateStatus={onUpdateStatus}
+              companyId={companyId}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
