@@ -386,8 +386,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       });
       setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
       setActivePosting(prev => prev ? updater(prev) : prev);
-    } catch {
-      alert("Failed to update stage. Please try again.");
+    } catch (e) {
+      alert(`Failed to update stage: ${e?.message || "Unknown error"}`);
     }
   };
 

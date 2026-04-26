@@ -227,11 +227,13 @@ export async function createApplication(userId, jobId) {
 }
 
 export async function updateApplicationStage(applicationId, stage) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("applications")
     .update({ pipeline_stage: stage })
-    .eq("id", applicationId);
+    .eq("id", applicationId)
+    .select("id");
   if (error) throw error;
+  if (!data?.length) throw new Error("Stage update failed — row not found or permission denied");
 }
 
 export async function saveApplicationNotes(applicationId, notes) {
@@ -239,6 +241,49 @@ export async function saveApplicationNotes(applicationId, notes) {
     .from("applications")
     .update({ company_notes: notes })
     .eq("id", applicationId);
+  if (error) throw error;
+}
+
+export async function incrementInterviewRound(applicationId, currentRound) {
+  const { data, error } = await supabase
+    .from("applications")
+    .update({ interview_round: currentRound + 1 })
+    .eq("id", applicationId)
+    .select("id");
+  if (error) throw error;
+  if (!data?.length) throw new Error("Round update failed — row not found or permission denied");
+}
+
+export async function saveTrialSchedule(applicationId, trialDate, trialTime) {
+  const { error } = await supabase
+    .from("applications")
+    .update({ trial_date: trialDate || null, trial_time: trialTime || null })
+    .eq("id", applicationId);
+  if (error) throw error;
+}
+
+export async function fetchLikedStudentIds(companyId) {
+  const { data, error } = await supabase
+    .from("company_liked_students")
+    .select("student_id")
+    .eq("company_id", companyId);
+  if (error) throw error;
+  return (data || []).map(r => r.student_id);
+}
+
+export async function likeStudent(companyId, studentId) {
+  const { error } = await supabase
+    .from("company_liked_students")
+    .insert({ company_id: companyId, student_id: studentId });
+  if (error && error.code !== "23505") throw error;
+}
+
+export async function unlikeStudent(companyId, studentId) {
+  const { error } = await supabase
+    .from("company_liked_students")
+    .delete()
+    .eq("company_id", companyId)
+    .eq("student_id", studentId);
   if (error) throw error;
 }
 
