@@ -214,7 +214,10 @@ CREATE POLICY "applications: company read" ON applications
     )
   );
 
--- Company can update application status, pipeline stage, and notes; immutable columns (student_id, job_id) are frozen
+-- Company can update application status, pipeline stage, notes, interview round, and trial schedule.
+-- Self-referencing subqueries (to freeze student_id/job_id) are omitted: they trigger recursive RLS
+-- evaluation that causes the subquery to return NULL, making WITH CHECK fail silently.
+-- The USING clause already limits updates to the company's own job applications.
 CREATE POLICY "applications: company update status" ON applications
   FOR UPDATE USING (
     EXISTS (
@@ -230,9 +233,7 @@ CREATE POLICY "applications: company update status" ON applications
         AND jobs.company_id = auth.uid()
     ) AND
     status IN ('Pending', 'Accepted', 'Rejected') AND
-    pipeline_stage IN ('applied', 'shortlisted', 'interview', 'trial', 'decision') AND
-    student_id = (SELECT student_id FROM applications a2 WHERE a2.id = applications.id) AND
-    job_id    = (SELECT job_id    FROM applications a2 WHERE a2.id = applications.id)
+    pipeline_stage IN ('applied', 'shortlisted', 'interview', 'trial', 'decision')
   );
 
 -- Admin full access
@@ -732,4 +733,63 @@ BEGIN
     ALTER TABLE applications
       ADD COLUMN company_notes text;
   END IF;
+
+  -- Interview round counter (incremented each time company advances to next interview round)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'applications' AND column_name = 'interview_round'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN interview_round integer NOT NULL DEFAULT 1;
+  END IF;
+
+  -- Trial shift schedule
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'applications' AND column_name = 'trial_date'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN trial_date date;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'applications' AND column_name = 'trial_time'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN trial_time text;
+  END IF;
 END $$;
+
+
+-- ================================================================
+-- PIPELINE: Company liked students
+-- Stores students a company has saved from Browse Students.
+-- Surfaced alongside shortlisted applicants so companies have one
+-- place to see everyone they're interested in.
+-- ================================================================
+CREATE TABLE IF NOT EXISTS company_liked_students (
+  id         uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  company_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  student_id uuid NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  created_at timestamptz DEFAULT now(),
+  UNIQUE (company_id, student_id)
+);
+ALTER TABLE company_liked_students ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "company_liked: own read"   ON company_liked_students;
+DROP POLICY IF EXISTS "company_liked: own insert" ON company_liked_students;
+DROP POLICY IF EXISTS "company_liked: own delete" ON company_liked_students;
+DROP POLICY IF EXISTS "company_liked: admin all"  ON company_liked_students;
+
+CREATE POLICY "company_liked: own read" ON company_liked_students
+  FOR SELECT USING (auth.uid() = company_id);
+
+CREATE POLICY "company_liked: own insert" ON company_liked_students
+  FOR INSERT WITH CHECK (
+    auth.uid() = company_id AND
+    EXISTS (SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified')
+  );
+
+CREATE POLICY "company_liked: own delete" ON company_liked_students
+  FOR DELETE USING (auth.uid() = company_id);
+
+CREATE POLICY "company_liked: admin all" ON company_liked_students
+  FOR ALL USING (is_admin());

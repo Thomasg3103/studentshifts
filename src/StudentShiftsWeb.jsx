@@ -439,14 +439,15 @@ function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLike
 function EmailVerifiedPage({ setPage, currentUser }) {
   const navigate = useNavigate();
   useEffect(() => {
+    if (!currentUser) return;
     const timer = setTimeout(() => {
-      if (currentUser?.role === "admin") navigate("/admin", { replace: true });
-      else if (currentUser?.role === "company") navigate("/company", { replace: true });
-      else if (currentUser?.role === "student" && (!currentUser?.studentIdPath || currentUser?.verificationStatus === "rejected")) navigate("/verify", { replace: true });
+      if (currentUser.role === "admin") navigate("/admin", { replace: true });
+      else if (currentUser.role === "company") navigate("/company", { replace: true });
+      else if (currentUser.role === "student" && (!currentUser.studentIdPath || currentUser.verificationStatus === "rejected")) navigate("/verify", { replace: true });
       else navigate("/", { replace: true });
-    }, 3000);
+    }, 2000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [currentUser]);
 
   return (
     <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
