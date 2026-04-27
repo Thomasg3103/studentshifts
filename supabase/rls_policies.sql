@@ -771,6 +771,14 @@ BEGIN
   ) THEN
     ALTER TABLE applications ADD COLUMN interview_time text;
   END IF;
+
+  -- Per-round schedule array: [{date, time}, ...] indexed by round (0-based)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'applications' AND column_name = 'interview_rounds_data'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN interview_rounds_data jsonb NOT NULL DEFAULT '[]';
+  END IF;
 END $$;
 
 

@@ -270,6 +270,14 @@ export async function saveInterviewSchedule(applicationId, date, time) {
   if (error) throw error;
 }
 
+export async function saveInterviewRoundsData(applicationId, rounds) {
+  const { error } = await supabase
+    .from("applications")
+    .update({ interview_rounds_data: rounds })
+    .eq("id", applicationId);
+  if (error) throw error;
+}
+
 export async function fetchLikedStudentIds(companyId) {
   const { data, error } = await supabase
     .from("company_liked_students")

@@ -4,7 +4,7 @@ import "../StudentShiftWeb.css";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
-import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, emailInterviewInvite, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, saveInterviewSchedule, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
+import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, emailInterviewInvite, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -105,7 +105,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     setActivePosting({ ...posting, applicants: [], applicantsLoading: true, applicantsError: null });
     setModal("applicants");
     const { data: appData, error: appError } = await withTimeout(
-      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time, interview_date, interview_time").eq("job_id", posting.id).order("created_at", { ascending: true }),
+      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time, interview_date, interview_time, interview_rounds_data").eq("job_id", posting.id).order("created_at", { ascending: true }),
       10000, "Loading applicants timed out."
     );
     if (appError) {
@@ -141,6 +141,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       trialTime:      a.trial_time      || "",
       interviewDate:  a.interview_date  || "",
       interviewTime:  a.interview_time  || "",
+      interviewRoundsData: a.interview_rounds_data || [],
     }));
     setActivePosting(prev => ({ ...prev, applicants, applicantsLoading: false }));
   };
@@ -415,12 +416,15 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     } catch { /* silently ignore */ }
   };
 
-  const handleIncrementRound = async (applicationId, currentRound) => {
+  const handleIncrementRound = async (applicationId, currentRound, newRoundsData) => {
     try {
       await incrementInterviewRound(applicationId, currentRound);
+      await saveInterviewRoundsData(applicationId, newRoundsData);
       const updater = p => ({
         ...p,
-        applicants: p.applicants.map(a => a.id === applicationId ? { ...a, interviewRound: currentRound + 1 } : a),
+        applicants: p.applicants.map(a => a.id === applicationId
+          ? { ...a, interviewRound: currentRound + 1, interviewRoundsData: newRoundsData }
+          : a),
       });
       setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
       setActivePosting(prev => prev ? updater(prev) : prev);
@@ -429,12 +433,12 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     }
   };
 
-  const handleSaveInterviewSchedule = async (applicationId, date, time) => {
+  const handleSaveInterviewRoundsData = async (applicationId, rounds) => {
     try {
-      await saveInterviewSchedule(applicationId, date, time);
+      await saveInterviewRoundsData(applicationId, rounds);
       const updater = p => ({
         ...p,
-        applicants: p.applicants.map(a => a.id === applicationId ? { ...a, interviewDate: date, interviewTime: time } : a),
+        applicants: p.applicants.map(a => a.id === applicationId ? { ...a, interviewRoundsData: rounds } : a),
       });
       setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
       setActivePosting(prev => prev ? updater(prev) : prev);
@@ -622,7 +626,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       {/* Applicants Modal */}
       {modal === "applicants" && activePosting && (
         <Modal onClose={closeModal} title={`Applicants — ${activePosting.title}`}>
-          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewSchedule={handleSaveInterviewSchedule} onSendInterviewInvite={handleSendInterviewInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
+          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewRoundsData={handleSaveInterviewRoundsData} onSendInterviewInvite={handleSendInterviewInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
         </Modal>
       )}
 
@@ -1064,7 +1068,7 @@ const PIPELINE_STAGES = [
   { key: "decision",    label: "Decision" },
 ];
 
-function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, onSaveInterviewSchedule, onSendInterviewInvite, likedStudents }) {
+function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, likedStudents }) {
   const [activeStage, setActiveStage]             = useState("applied");
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showCloseJob, setShowCloseJob]           = useState(false);
@@ -1219,7 +1223,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
           onNotesSaved={onNotesSaved}
           onIncrementRound={onIncrementRound}
           onSaveTrialSchedule={onSaveTrialSchedule}
-          onSaveInterviewSchedule={onSaveInterviewSchedule}
+          onSaveInterviewRoundsData={onSaveInterviewRoundsData}
           onSendInterviewInvite={onSendInterviewInvite}
         />
       )}
@@ -1373,7 +1377,7 @@ function CheckItem({ ok, label, warn }) {
   );
 }
 
-function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, onSaveTrialSchedule, onSaveInterviewSchedule, onSendInterviewInvite }) {
+function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite }) {
   const [cvUrl, setCvUrl]     = useState(null);
   const [clUrl, setClUrl]     = useState(null);
   const [cvLoading, setCvLoading] = useState(false);
@@ -1384,10 +1388,24 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
   const [notesSaving, setNotesSaving] = useState(false);
   const [trialDate, setTrialDate] = useState(applicant.trialDate || "");
   const [trialTime, setTrialTime] = useState(applicant.trialTime || "");
-  const [interviewDate, setInterviewDate] = useState(applicant.interviewDate || "");
-  const [interviewTime, setInterviewTime] = useState(applicant.interviewTime || "");
   const [profileOpen, setProfileOpen] = useState((applicant.pipelineStage || "applied") === "applied");
-  const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(null); // null = closed, number = round index
+
+  const buildRounds = (a) => {
+    const stored = Array.isArray(a.interviewRoundsData) ? a.interviewRoundsData : [];
+    const count  = Math.max(a.interviewRound || 1, 1);
+    const result = [];
+    for (let i = 0; i < count; i++) {
+      result.push({ date: stored[i]?.date || "", time: stored[i]?.time || "" });
+    }
+    // Backward compat: if round 1 empty but old single fields exist, use them
+    if (result.length > 0 && !result[0].date && !result[0].time && (a.interviewDate || a.interviewTime)) {
+      result[0] = { date: a.interviewDate || "", time: a.interviewTime || "" };
+    }
+    return result;
+  };
+
+  const [interviewRounds, setInterviewRounds] = useState(() => buildRounds(applicant));
 
   // Sync all local state when switching to a different applicant
   useEffect(() => {
@@ -1395,10 +1413,9 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
     setNotes(applicant.notes || "");
     setTrialDate(applicant.trialDate || "");
     setTrialTime(applicant.trialTime || "");
-    setInterviewDate(applicant.interviewDate || "");
-    setInterviewTime(applicant.interviewTime || "");
+    setInterviewRounds(buildRounds(applicant));
     setProfileOpen(s === "applied");
-    setInviteModalOpen(false);
+    setInviteModalOpen(null);
   }, [applicant.id]);
 
   const openCv = async () => {
@@ -1559,31 +1576,46 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             />
           </Section>
 
-          {/* Interview schedule — shortlisted and interview stages */}
+          {/* Interview rounds — shortlisted and interview stages */}
           {(stage === "shortlisted" || stage === "interview") && (
             <Section label="Interview Schedule">
-              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.6rem" }}>
-                <input
-                  type="date"
-                  value={interviewDate}
-                  onChange={e => setInterviewDate(e.target.value)}
-                  onBlur={() => onSaveInterviewSchedule?.(applicant.id, interviewDate, interviewTime)}
-                  style={{ flex: 1, minWidth: "130px", padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151" }}
-                />
-                <input
-                  type="time"
-                  value={interviewTime}
-                  onChange={e => setInterviewTime(e.target.value)}
-                  onBlur={() => onSaveInterviewSchedule?.(applicant.id, interviewDate, interviewTime)}
-                  style={{ flex: 1, minWidth: "100px", padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151" }}
-                />
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+                {interviewRounds.map((round, i) => (
+                  <div key={i} style={{ backgroundColor: "#faf5ff", border: "1.5px solid #e9d5ff", borderRadius: "0.6rem", padding: "0.65rem 0.75rem" }}>
+                    <p style={{ margin: "0 0 0.45rem", fontSize: "0.72rem", fontWeight: "800", color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                      Interview {i + 1}
+                    </p>
+                    <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.45rem" }}>
+                      <input
+                        type="date"
+                        value={round.date}
+                        onChange={e => {
+                          const v = e.target.value;
+                          setInterviewRounds(prev => prev.map((r, idx) => idx === i ? { ...r, date: v } : r));
+                        }}
+                        onBlur={() => onSaveInterviewRoundsData?.(applicant.id, interviewRounds)}
+                        style={{ flex: 1, minWidth: "120px", padding: "0.4rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", fontSize: "0.8rem", fontFamily: "inherit", color: "#374151", backgroundColor: "white" }}
+                      />
+                      <input
+                        type="time"
+                        value={round.time}
+                        onChange={e => {
+                          const v = e.target.value;
+                          setInterviewRounds(prev => prev.map((r, idx) => idx === i ? { ...r, time: v } : r));
+                        }}
+                        onBlur={() => onSaveInterviewRoundsData?.(applicant.id, interviewRounds)}
+                        style={{ flex: 1, minWidth: "90px", padding: "0.4rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", fontSize: "0.8rem", fontFamily: "inherit", color: "#374151", backgroundColor: "white" }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => setInviteModalOpen(i)}
+                      style={{ width: "100%", padding: "0.4rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", backgroundColor: "white", color: "#7c3aed", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
+                    >
+                      ✉ Send Invite
+                    </button>
+                  </div>
+                ))}
               </div>
-              <button
-                onClick={() => setInviteModalOpen(true)}
-                style={{ width: "100%", padding: "0.5rem", borderRadius: "0.5rem", border: "1.5px solid #e9d5ff", backgroundColor: "#f5f3ff", color: "#7c3aed", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
-              >
-                ✉ Send Interview Invite
-              </button>
             </Section>
           )}
 
@@ -1623,14 +1655,16 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
         </div>
 
         {/* Interview invite modal (rendered inside panel so it layers correctly) */}
-        {inviteModalOpen && (
+        {inviteModalOpen !== null && (
           <InterviewInviteModal
             applicant={applicant}
-            date={interviewDate}
-            time={interviewTime}
-            onClose={() => setInviteModalOpen(false)}
+            roundNumber={inviteModalOpen + 1}
+            date={interviewRounds[inviteModalOpen]?.date || ""}
+            time={interviewRounds[inviteModalOpen]?.time || ""}
+            onClose={() => setInviteModalOpen(null)}
             onSend={async (note, teamsLink) => {
-              await onSendInterviewInvite?.(applicant.id, interviewDate, interviewTime, note, teamsLink);
+              const r = interviewRounds[inviteModalOpen] || {};
+              await onSendInterviewInvite?.(applicant.id, r.date || "", r.time || "", note, teamsLink);
             }}
           />
         )}
@@ -1644,15 +1678,15 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             <button onClick={() => onStageAction(applicant.id, "interview")} style={panelActionBtn("#6366f1")}>Invite to Interview →</button>
           )}
           {stage === "interview" && (<>
-            {(applicant.interviewRound || 1) > 1 && (
-              <p style={{ margin: "0 0 0.1rem", fontSize: "0.78rem", fontWeight: "700", color: "#64748b", textAlign: "center" }}>
-                Round {applicant.interviewRound}
-              </p>
-            )}
-            <button onClick={() => onIncrementRound?.(applicant.id, applicant.interviewRound || 1)} style={panelActionBtn("#6b7280")}>Next Round of Interviews ↺</button>
+            <button onClick={() => {
+              const newRounds = [...interviewRounds, { date: "", time: "" }];
+              setInterviewRounds(newRounds);
+              onIncrementRound?.(applicant.id, applicant.interviewRound || 1, newRounds);
+            }} style={panelActionBtn("#6b7280")}>+ Next Round of Interviews</button>
             <button onClick={async () => {
-              if (interviewDate || interviewTime) {
-                await onSaveTrialSchedule?.(applicant.id, interviewDate, interviewTime);
+              const last = interviewRounds[interviewRounds.length - 1] || {};
+              if (last.date || last.time) {
+                await onSaveTrialSchedule?.(applicant.id, last.date || "", last.time || "");
               }
               onStageAction(applicant.id, "trial");
             }} style={panelActionBtn("#6366f1")}>Advance to Trial →</button>
@@ -1671,7 +1705,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
   );
 }
 
-function InterviewInviteModal({ applicant, date, time, onClose, onSend }) {
+function InterviewInviteModal({ applicant, roundNumber, date, time, onClose, onSend }) {
   const [note, setNote]           = useState("");
   const [teamsLink, setTeamsLink] = useState("");
   const [sending, setSending]     = useState(false);
@@ -1696,7 +1730,7 @@ function InterviewInviteModal({ applicant, date, time, onClose, onSend }) {
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1300 }} />
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1301, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(400px,92vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
-        <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Send Interview Invite</h3>
+        <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Send Interview {roundNumber} Invite</h3>
         <p style={{ margin: "0 0 1.1rem", fontSize: "0.82rem", color: "#64748b" }}>To: <strong>{applicant.name}</strong> · {whenLine}</p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
