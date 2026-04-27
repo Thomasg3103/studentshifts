@@ -17,7 +17,7 @@ function AppliedJobCard({ job, status, onRemove, setSelectedJob, setPage }) {
 
   return (
     <div className="job-card" style={{ display: "flex", alignItems: "flex-start", padding: 0, overflow: "hidden", marginBottom: 0 }}>
-      <div style={{ width: "120px", height: "120px", flexShrink: 0, position: "relative", backgroundColor: "#0f172a" }}>
+      <div style={{ width: "120px", height: "120px", flexShrink: 0, position: "relative", backgroundColor: "#0f172a", overflow: "hidden" }}>
         {photo ? (
           <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
             <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
