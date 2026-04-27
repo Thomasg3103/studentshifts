@@ -457,25 +457,6 @@ export default function StudentDashboard({
           </div>
         )}
 
-        {/* Mobile: Filters toggle */}
-        {isMobile && (
-          <button
-            onClick={() => setMobileFiltersOpen(o => !o)}
-            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.1rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", background: "white", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", marginBottom: "0.75rem", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
-          >
-            ⚙ Filters {activeFilterCount > 0 && <Pip n={activeFilterCount} />}
-            {sortBy && <span style={{ fontSize: "0.75rem", color: "#6366f1", fontWeight: 700 }}>· {sortLabel[sortBy]}</span>}
-            <span style={{ marginLeft: "auto" }}>{mobileFiltersOpen ? "▲" : "▼"}</span>
-          </button>
-        )}
-
-        {/* Mobile filter panel */}
-        {isMobile && mobileFiltersOpen && (
-          <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", marginBottom: "1rem", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
-            <FilterPanel />
-          </div>
-        )}
-
         {/* Main layout: sidebar + jobs */}
         <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-start" }}>
 
@@ -514,6 +495,15 @@ export default function StudentDashboard({
                   <button onClick={() => setGridCols(2)} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "#6366f1" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
                 </div>
               </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+              {isMobile && (
+                <button
+                  onClick={() => setMobileFiltersOpen(o => !o)}
+                  style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${activeFilterCount > 0 ? "#6366f1" : "#e2e8f0"}`, backgroundColor: activeFilterCount > 0 ? "#eef2ff" : "white", color: activeFilterCount > 0 ? "#4f46e5" : "#64748b", fontWeight: activeFilterCount > 0 ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "0.35rem", whiteSpace: "nowrap" }}
+                >
+                  Filters {activeFilterCount > 0 && <Pip n={activeFilterCount} />} {mobileFiltersOpen ? "▲" : "▼"}
+                </button>
+              )}
               <div style={{ position: "relative" }} ref={sortDropdownRef}>
                 <button
                   onClick={() => setSortDropdownOpen(o => !o)}
@@ -542,7 +532,15 @@ export default function StudentDashboard({
                   </div>
                 )}
               </div>
+              </div>
             </div>
+
+            {/* Mobile filter panel */}
+            {isMobile && mobileFiltersOpen && (
+              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", marginBottom: "0.75rem", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+                <FilterPanel />
+              </div>
+            )}
 
             {/* States */}
             {jobsError && !jobsLoading && (
