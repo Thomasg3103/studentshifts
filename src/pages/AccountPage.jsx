@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
+import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
 import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData } from "../lib/auth";
 import { jobCategories } from "../data/jobCategories";
@@ -261,6 +262,7 @@ export default function AccountPage({
   const goBack = () => setPage(currentUser.role === "student" ? "studentDashboard" : currentUser.role === "admin" ? "admin" : "companyDashboard");
 
   return (
+    <><BackButton />
     <PageWrapper>
       <div style={{ maxWidth: "480px", margin: "0 auto" }}>
 
@@ -669,7 +671,7 @@ export default function AccountPage({
         </div>
       )}
 
-    </PageWrapper>
+    </PageWrapper></>
   );
 }
 

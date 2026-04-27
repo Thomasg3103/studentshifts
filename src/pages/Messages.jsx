@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import PageWrapper from "../components/PageWrapper";
+import BackButton from "../components/BackButton";
 import { fetchAcceptedConversations, fetchStudentDirectConversations, fetchMessages, sendMessage } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 
@@ -136,6 +137,7 @@ export default function Messages({ currentUser, setPage }) {
   }
 
   return (
+    <><BackButton />
     <PageWrapper>
       <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>💬 Messages</h1>
@@ -197,7 +199,7 @@ export default function Messages({ currentUser, setPage }) {
           )}
         </div>
       )}
-    </PageWrapper>
+    </PageWrapper></>
   );
 }
 

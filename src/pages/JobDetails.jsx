@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
+import BackButton from "../components/BackButton";
 import { likeJob, unlikeJob, createApplication } from "../lib/auth";
 
 
@@ -62,6 +63,7 @@ export default function JobDetails({
     : null;
 
   return (
+    <><BackButton />
     <PageWrapper>
       {/* Banner photo carousel */}
       {(() => {
@@ -205,7 +207,7 @@ export default function JobDetails({
           </div>
         </div>
       )}
-    </PageWrapper>
+    </PageWrapper></>
   );
 }
 

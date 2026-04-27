@@ -1,5 +1,6 @@
 import { useState } from "react";
 import PageWrapper from "../components/PageWrapper";
+import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
 import { removeApplication } from "../lib/auth";
 
@@ -83,6 +84,7 @@ export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppli
   };
 
   return (
+    <><BackButton />
     <PageWrapper>
       <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>✅ Applied Jobs</h1>
@@ -119,7 +121,7 @@ export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppli
           </div>
         </>
       )}
-    </PageWrapper>
+    </PageWrapper></>
   );
 }
 

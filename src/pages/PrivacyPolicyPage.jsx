@@ -1,14 +1,14 @@
 import PageWrapper from "../components/PageWrapper";
+import BackButton from "../components/BackButton";
 
 const CONTACT_EMAIL = "thomasgallagher3103@gmail.com";
 const LAST_UPDATED  = "15 April 2026";
 
 export default function PrivacyPolicyPage({ setPage }) {
   return (
+    <><BackButton />
     <PageWrapper>
       <div style={{ maxWidth: "680px", margin: "0 auto", color: "#1e293b", fontFamily: "inherit" }}>
-
-        <button onClick={() => setPage("studentDashboard")} style={backBtn}>← Back</button>
 
         <h1 style={h1}>Privacy Policy</h1>
         <p style={meta}>Last updated: {LAST_UPDATED}</p>
@@ -154,7 +154,7 @@ export default function PrivacyPolicyPage({ setPage }) {
         </div>
 
       </div>
-    </PageWrapper>
+    </PageWrapper></>
   );
 }
 

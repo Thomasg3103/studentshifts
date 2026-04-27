@@ -1,7 +1,9 @@
 import PageWrapper from "../components/PageWrapper";
+import BackButton from "../components/BackButton";
 
 export default function AboutPage({ setPage }) {
   return (
+    <><BackButton />
     <PageWrapper>
 
       {/* Hero */}
@@ -92,7 +94,7 @@ export default function AboutPage({ setPage }) {
         </button>
       </div>
 
-    </PageWrapper>
+    </PageWrapper></>
   );
 }
 

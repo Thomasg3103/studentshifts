@@ -1,5 +1,6 @@
 import React from "react";
 import PageWrapper from "../components/PageWrapper";
+import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
 import { unlikeJob } from "../lib/auth";
 
@@ -12,6 +13,7 @@ export default function LikedJobs({ likedJobs, setLikedJobs, setSavedLikedJobIds
   };
 
   return (
+    <><BackButton />
     <PageWrapper>
       <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>❤️ Liked Jobs</h1>
@@ -76,7 +78,7 @@ export default function LikedJobs({ likedJobs, setLikedJobs, setSavedLikedJobIds
           </div>
         </>
       )}
-    </PageWrapper>
+    </PageWrapper></>
   );
 }
 
