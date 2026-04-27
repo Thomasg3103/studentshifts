@@ -70,14 +70,14 @@ export default function JobDetails({
         const photos = job.photos?.length > 0 ? job.photos : [];
         if (photos.length === 0) {
           return (
-            <div style={{ margin: "-2rem -2.5rem 1.5rem", borderRadius: "1.25rem 1.25rem 0 0", aspectRatio: "16/7", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #312e81 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ margin: "-2rem -2.5rem 1.5rem", borderRadius: "1.25rem 1.25rem 0 0", aspectRatio: "1/1", maxHeight: "420px", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #312e81 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ fontSize: "3rem", opacity: 0.25 }}>🏢</span>
             </div>
           );
         }
         const idx = Math.min(photoIdx, photos.length - 1);
         return (
-          <div style={{ position: "relative", margin: "-2rem -2.5rem 1.5rem", borderRadius: "1.25rem 1.25rem 0 0", aspectRatio: "16/7", backgroundColor: "#0f172a", overflow: "hidden", display: "block" }}>
+          <div style={{ position: "relative", margin: "-2rem -2.5rem 1.5rem", borderRadius: "1.25rem 1.25rem 0 0", aspectRatio: "1/1", maxHeight: "420px", backgroundColor: "#0f172a", overflow: "hidden", display: "block" }}>
             {(() => {
               const crop = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
               return (

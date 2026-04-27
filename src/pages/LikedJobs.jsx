@@ -34,25 +34,19 @@ export default function LikedJobs({ likedJobs, setLikedJobs, setSavedLikedJobIds
               const photo = job.photos?.[0] || null;
               const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
               return (
-                <div key={job.id} className="job-card" style={{ flexDirection: "column", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0 }}>
-                  <div style={{ width: "100%", aspectRatio: "16/7", backgroundColor: "#0f172a", overflow: "hidden", position: "relative", flexShrink: 0 }}>
+                <div key={job.id} className="job-card" style={{ display: "flex", alignItems: "flex-start", padding: 0, overflow: "hidden", marginBottom: 0 }}>
+                  <div style={{ width: "120px", height: "120px", flexShrink: 0, position: "relative", backgroundColor: "#0f172a" }}>
                     {photo ? (
-                      <div style={{
-                        position: "absolute", inset: 0,
-                        transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`,
-                        transformOrigin: "center",
-                      }}>
-                        <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
-                      </div>
+                      <img src={photo} alt={job.company} style={{ width: "120px", height: "120px", objectFit: "cover", display: "block" }} />
                     ) : (
-                      <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <div style={{ width: "120px", height: "120px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#0f172a,#312e81)" }}>
                         <span style={{ fontSize: "2rem", opacity: 0.3 }}>🏢</span>
                       </div>
                     )}
                   </div>
-                  <div style={{ padding: "0.85rem 1rem" }}>
+                  <div style={{ flex: 1, padding: "0.85rem 1rem", minWidth: 0 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.2rem" }}>
-                      <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "#1e293b" }}>{job.title}</h2>
+                      <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title}</h2>
                       <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
                         <button onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View</button>
                         <button onClick={() => removeLike(job)} style={btnRed}>Remove</button>
