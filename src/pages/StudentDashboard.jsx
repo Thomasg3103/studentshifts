@@ -58,6 +58,7 @@ export default function StudentDashboard({
   const [savedSearches,    setSavedSearches]    = useState(() => { try { return JSON.parse(localStorage.getItem(ssKey) || "[]"); } catch { return []; } });
   const [saveSearchName,   setSaveSearchName]   = useState("");
   const [showSaveInput,    setShowSaveInput]    = useState(false);
+  const [gridCols,         setGridCols]         = useState(1);
 
   useEffect(() => {
     const handler = () => setWindowWidth(window.innerWidth);
@@ -502,11 +503,17 @@ export default function StudentDashboard({
               />
             </div>
 
-            {/* Job count + Sort By */}
+            {/* Job count + grid toggle + Sort By */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
-              <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4f46e5", backgroundColor: "#eef2ff", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
-                {displayJobs.length} job{displayJobs.length !== 1 ? "s" : ""}
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4f46e5", backgroundColor: "#eef2ff", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
+                  {displayJobs.length} job{displayJobs.length !== 1 ? "s" : ""}
+                </span>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", backgroundColor: "#f1f5f9", borderRadius: "0.6rem", padding: "0.2rem" }}>
+                  <button onClick={() => setGridCols(1)} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "#6366f1" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
+                  <button onClick={() => setGridCols(2)} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "#6366f1" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
+                </div>
+              </div>
               <div style={{ position: "relative" }} ref={sortDropdownRef}>
                 <button
                   onClick={() => setSortDropdownOpen(o => !o)}
@@ -562,8 +569,8 @@ export default function StudentDashboard({
               </div>
             )}
 
-            {/* Horizontal job cards */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+            {/* Job cards */}
+            <div className="job-list-grid" style={{ display: "grid", gridTemplateColumns: gridCols === 2 ? "1fr 1fr" : "1fr", gap: "0.85rem" }}>
               {displayJobs.map(job => {
                 const isLiked   = likedJobs.some(j => j.id === job.id);
                 const isApplied = appliedJobs.some(j => j.id === job.id);
