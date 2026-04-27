@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect } from "react";
-import PageWrapper from "../components/PageWrapper";
+import { useState, useRef, useEffect, useCallback } from "react";
 import "../StudentShiftWeb.css";
 import { jobCategories, getCategoryForTitle } from "../data/jobCategories";
 import { haversineDistance, formatDistance, mockLocationCoords, geocodeAddress } from "../utils/geo";
@@ -29,58 +28,59 @@ const DESC = {
   "Event Staff":         "Set up and assist at hotel events — great for students who thrive in a lively social environment.",
 };
 
-
-
 function deadlineLabel(dateStr) {
   if (!dateStr) return null;
   return new Date(dateStr).toLocaleDateString("en-IE", { month: "short", day: "numeric" });
 }
-
 function daysUntil(dateStr) {
   if (!dateStr) return null;
   return Math.ceil((new Date(dateStr) - new Date()) / 86400000);
 }
 
-// Module-level geocode cache — persists across remounts within the same session
 const _geocodeCache = {};
 
 export default function StudentDashboard({
-  setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, currentUser, studentLocation, savedLikedJobIds, savedAppliedJobIds, restoreScrollY,
+  setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
+  currentUser, studentLocation, savedLikedJobIds, savedAppliedJobIds, restoreScrollY,
 }) {
+  const [jobs,         setJobs]         = useState([]);
+  const [jobsLoading,  setJobsLoading]  = useState(true);
+  const [jobsError,    setJobsError]    = useState(false);
+  const [extraCoords,  setExtraCoords]  = useState(_geocodeCache);
+  const [windowWidth,  setWindowWidth]  = useState(window.innerWidth);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const searchInputRef = useRef(null);
 
-  const [jobs, setJobs] = useState([]);
-  const [jobsLoading, setJobsLoading] = useState(true);
-  const [jobsError, setJobsError] = useState(false);
-  const [extraCoords, setExtraCoords] = useState(_geocodeCache);
+  // Saved searches: [{ name, filters }]
+  const ssKey = "ss_saved_searches_" + (currentUser?.id || "guest");
+  const [savedSearches,    setSavedSearches]    = useState(() => { try { return JSON.parse(localStorage.getItem(ssKey) || "[]"); } catch { return []; } });
+  const [saveSearchName,   setSaveSearchName]   = useState("");
+  const [showSaveInput,    setShowSaveInput]    = useState(false);
+
+  useEffect(() => {
+    const handler = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+
+  const isMobile = windowWidth < 768;
 
   useEffect(() => {
     withTimeout(
-      supabase
-        .from("jobs")
-        .select("*")
-        .eq("status", "Active")
-        .order("created_at", { ascending: false }),
+      supabase.from("jobs").select("*").eq("status", "Active").order("created_at", { ascending: false }),
       10000, "Loading jobs timed out."
     ).then(async ({ data, error }) => {
       if (error) { setJobsError(true); setJobsLoading(false); return; }
       if (!data || data.length === 0) { setJobsLoading(false); return; }
-
-      // Filter out jobs whose deadline has already passed
       const today = new Date().toISOString().split("T")[0];
       const liveJobs = data.filter(j => !j.deadline || j.deadline >= today);
       if (liveJobs.length === 0) { setJobsLoading(false); return; }
-
-      // Fetch company names from profiles using the unique company_ids
       const companyIds = [...new Set(liveJobs.map(j => j.company_id))];
       let nameMap = {};
       try {
-        const { data: profiles } = await withTimeout(
-          supabase.from("profiles").select("id, name").in("id", companyIds),
-          8000
-        );
+        const { data: profiles } = await withTimeout(supabase.from("profiles").select("id, name").in("id", companyIds), 8000);
         if (profiles) profiles.forEach(p => { nameMap[p.id] = p.name; });
       } catch (_) {}
-
       setJobs(liveJobs.map(j => ({
         id:              j.id,
         title:           j.title,
@@ -91,6 +91,7 @@ export default function StudentDashboard({
         pay:             j.pay,
         description:     j.description || DESC[j.title] || "",
         deadline:        j.deadline || null,
+        createdAt:       j.created_at,
         days:            j.days || [],
         times:           Object.fromEntries(Object.entries(j.times || {}).map(([k, v]) => [k, Array.isArray(v) ? v : [v]])),
         weekendRequired: j.weekend_required || false,
@@ -102,42 +103,17 @@ export default function StudentDashboard({
     }).catch(e => { console.error("[StudentDashboard] jobs error:", e); setJobsError(true); setJobsLoading(false); });
   }, []);
 
-  // Once jobs + saved IDs are both loaded, hydrate liked/applied state
   useEffect(() => {
     if (!jobs.length || !currentUser) return;
     if (savedLikedJobIds?.length)   setLikedJobs(jobs.filter(j => savedLikedJobIds.includes(j.id)));
     if (savedAppliedJobIds?.length) setAppliedJobs(jobs.filter(j => savedAppliedJobIds.includes(j.id)));
   }, [jobs, currentUser?.id]);
 
-  const weekdays    = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-  const workweek    = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
-  const timeSlots   = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
-  const allLocations = [...new Set(jobs.map(j => j.location))].sort();
-
-  const [prefOnly,        setPrefOnly]        = useState(false);
-  const [selectedDays,    setSelectedDays]    = useState([]);
-  const [dayTimes,        setDayTimes]        = useState({});
-  const [warning,         setWarning]         = useState("");
-  const [openDropdown,    setOpenDropdown]    = useState(null);
-  const [selectedLocations, setSelectedLocations] = useState([]);
-  const [selectedJobTypes,  setSelectedJobTypes]  = useState([]);
-  const [weekendOnly,     setWeekendOnly]     = useState(false);
-  const [allWeekOnly,     setAllWeekOnly]     = useState(false);
-  const [noWeekends,      setNoWeekends]      = useState(false);
-  const [distanceKm,      setDistanceKm]      = useState(0);
-  const [searchQuery,     setSearchQuery]     = useState("");
-  const [sortBy,          setSortBy]          = useState("");
-  const [gridCols,        setGridCols]        = useState(1);
-  const [photoIndexes,    setPhotoIndexes]    = useState({});
-  const [openSubSection,  setOpenSubSection]  = useState(null);
-  const filterBarRef = useRef(null);
-
-  // Restore scroll position when returning from job details
   useEffect(() => {
     if (restoreScrollY > 0) requestAnimationFrame(() => window.scrollTo(0, restoreScrollY));
   }, []);
 
-  // Geocode job locations that have no stored lat/lng and aren't in the mock map
+  // Geocode missing locations
   useEffect(() => {
     if (!jobs.length) return;
     const unknown = [...new Set(
@@ -150,7 +126,6 @@ export default function StudentDashboard({
       for (const loc of unknown) {
         if (cancelled) break;
         try {
-          // Add Galway context for short strings so geocoding resolves correctly
           const query = /galway|ireland/i.test(loc) ? loc : `${loc}, Galway, Ireland`;
           const result = await geocodeAddress(query);
           if (result && !cancelled) {
@@ -169,20 +144,35 @@ export default function StudentDashboard({
     return mockLocationCoords[job.location] || extraCoords[job.location] || null;
   };
 
-  const jobDistance = (job) => {
+  const jobDistance = useCallback((job) => {
     if (!studentLocation) return null;
     const coords = getJobCoords(job);
     if (!coords) return null;
     return haversineDistance(studentLocation.lat, studentLocation.lng, coords.lat, coords.lng);
-  };
+  }, [studentLocation, extraCoords]);
 
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (filterBarRef.current && !filterBarRef.current.contains(e.target)) setOpenDropdown(null);
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  // Filter state
+  const weekdays  = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  const workweek  = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+  const timeSlots = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
+  const allLocations = [...new Set(jobs.map(j => j.location))].sort();
+
+  const [prefOnly,          setPrefOnly]          = useState(false);
+  const [selectedDays,      setSelectedDays]      = useState([]);
+  const [dayTimes,          setDayTimes]          = useState({});
+  const [warning,           setWarning]           = useState("");
+  const [selectedLocations, setSelectedLocations] = useState([]);
+  const [selectedJobTypes,  setSelectedJobTypes]  = useState([]);
+  const [weekendOnly,       setWeekendOnly]       = useState(false);
+  const [allWeekOnly,       setAllWeekOnly]       = useState(false);
+  const [noWeekends,        setNoWeekends]        = useState(false);
+  const [distanceKm,        setDistanceKm]        = useState(0);
+  const [searchQuery,       setSearchQuery]       = useState("");
+  const [sortBy,            setSortBy]            = useState("");
+
+  // Sidebar section collapse state (all open by default)
+  const [openSections, setOpenSections] = useState({ sort: true, days: true, location: false, jobType: false, schedule: true, distance: true, saved: true });
+  const toggleSection = (k) => setOpenSections(p => ({ ...p, [k]: !p[k] }));
 
   const toggleDay = (day) => {
     let updated = [...selectedDays];
@@ -197,29 +187,55 @@ export default function StudentDashboard({
     }
     setSelectedDays(updated);
   };
-
   const updateTime      = (day, time) => setDayTimes({ ...dayTimes, [day]: time });
   const toggleLocation  = (loc)  => setSelectedLocations(prev => prev.includes(loc)  ? prev.filter(l => l !== loc)  : [...prev, loc]);
   const toggleJobType   = (type) => setSelectedJobTypes(prev  => prev.includes(type) ? prev.filter(t => t !== type) : [...prev, type]);
 
   const clearAll = () => {
-    setSelectedDays([]);
-    setDayTimes({});
-    setSelectedLocations([]);
-    setSelectedJobTypes([]);
-    setWeekendOnly(false);
-    setAllWeekOnly(false);
-    setNoWeekends(false);
-    setDistanceKm(0);
-    setSearchQuery("");
-    setSortBy("");
-    setWarning("");
+    setSelectedDays([]); setDayTimes({}); setSelectedLocations([]); setSelectedJobTypes([]);
+    setWeekendOnly(false); setAllWeekOnly(false); setNoWeekends(false);
+    setDistanceKm(0); setSearchQuery(""); setSortBy(""); setWarning("");
+  };
+
+  const currentFilters = () => ({
+    selectedDays, dayTimes, selectedLocations, selectedJobTypes,
+    weekendOnly, allWeekOnly, noWeekends, distanceKm, sortBy, prefOnly,
+  });
+
+  const applyFilters = (f) => {
+    setSelectedDays(f.selectedDays || []);
+    setDayTimes(f.dayTimes || {});
+    setSelectedLocations(f.selectedLocations || []);
+    setSelectedJobTypes(f.selectedJobTypes || []);
+    setWeekendOnly(f.weekendOnly || false);
+    setAllWeekOnly(f.allWeekOnly || false);
+    setNoWeekends(f.noWeekends || false);
+    setDistanceKm(f.distanceKm || 0);
+    setSortBy(f.sortBy || "");
+    setPrefOnly(f.prefOnly || false);
+  };
+
+  const saveSearch = () => {
+    if (!saveSearchName.trim()) return;
+    const updated = [...savedSearches, { name: saveSearchName.trim(), filters: currentFilters() }];
+    setSavedSearches(updated);
+    localStorage.setItem(ssKey, JSON.stringify(updated));
+    setSaveSearchName("");
+    setShowSaveInput(false);
+  };
+
+  const deleteSearch = (i) => {
+    const updated = savedSearches.filter((_, idx) => idx !== i);
+    setSavedSearches(updated);
+    localStorage.setItem(ssKey, JSON.stringify(updated));
   };
 
   const hasActiveFilters = selectedDays.length > 0 || selectedLocations.length > 0 || selectedJobTypes.length > 0 || weekendOnly || allWeekOnly || noWeekends || distanceKm > 0 || searchQuery.trim() !== "";
   const activeFilterCount = (selectedDays.length > 0 ? 1 : 0) + (selectedLocations.length > 0 ? 1 : 0) + (selectedJobTypes.length > 0 ? 1 : 0) + (weekendOnly ? 1 : 0) + (allWeekOnly ? 1 : 0) + (noWeekends ? 1 : 0) + (distanceKm > 0 ? 1 : 0);
 
   const userPrefs = currentUser?.jobPreferences || [];
+
+  // Filter logic (time filter uses >= not exact match)
   const filteredJobs = jobs.filter(job => {
     if (prefOnly && userPrefs.length > 0) {
       const cat = getCategoryForTitle(job.title);
@@ -228,7 +244,7 @@ export default function StudentDashboard({
     if (selectedDays.length > 0) {
       const daysMatch = selectedDays.every(day => {
         if (!job.days.includes(day)) return false;
-        if (dayTimes[day]) return job.times[day]?.includes(dayTimes[day]);
+        if (dayTimes[day]) return job.times[day]?.some(t => t >= dayTimes[day]);
         return true;
       });
       if (!daysMatch) return false;
@@ -254,8 +270,10 @@ export default function StudentDashboard({
 
   const payNum = (p) => parseFloat(p.replace(/[^0-9.]/g, "")) || 0;
   const displayJobs = sortBy === "" ? filteredJobs : [...filteredJobs].sort((a, b) => {
-    if (sortBy === "payHigh")      return payNum(b.pay) - payNum(a.pay);
-    if (sortBy === "payLow")       return payNum(a.pay) - payNum(b.pay);
+    if (sortBy === "payHigh")     return payNum(b.pay) - payNum(a.pay);
+    if (sortBy === "payLow")      return payNum(a.pay) - payNum(b.pay);
+    if (sortBy === "dateNewest")  return new Date(b.createdAt) - new Date(a.createdAt);
+    if (sortBy === "dateOldest")  return new Date(a.createdAt) - new Date(b.createdAt);
     if (sortBy === "distanceNear") { const da = jobDistance(a) ?? Infinity;  const db = jobDistance(b) ?? Infinity;  return da - db; }
     if (sortBy === "distanceFar")  { const da = jobDistance(a) ?? -Infinity; const db = jobDistance(b) ?? -Infinity; return db - da; }
     return 0;
@@ -270,393 +288,386 @@ export default function StudentDashboard({
     else likeJob(currentUser.id, job.id).catch(console.error);
   };
 
+  const sortLabel = {
+    "":             "Best Match",
+    "payHigh":      "Pay: High → Low",
+    "payLow":       "Pay: Low → High",
+    "dateNewest":   "Date: Newest",
+    "dateOldest":   "Date: Oldest",
+    "distanceNear": "Distance: Closest",
+    "distanceFar":  "Distance: Furthest",
+  };
 
-  const dropdownBtnStyle = (isActive) => ({
-    padding: "0.45rem 1rem", borderRadius: "2rem",
-    border: `1.5px solid ${isActive ? "#6366f1" : "#e2e8f0"}`,
-    backgroundColor: isActive ? "#eef2ff" : "white",
-    color: isActive ? "#4f46e5" : "#64748b",
-    fontWeight: isActive ? "700" : "500",
-    fontSize: "0.82rem", cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit",
-  });
+  // Sidebar / filter panel content
+  const FilterPanel = () => (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+
+      {/* Sort By */}
+      <FilterSection title="Sort By" open={openSections.sort} onToggle={() => toggleSection("sort")}>
+        {[
+          { value: "",             label: "Best Match" },
+          { value: "payHigh",      label: "Pay: High → Low" },
+          { value: "payLow",       label: "Pay: Low → High" },
+          { value: "dateNewest",   label: "Date Posted: Newest" },
+          { value: "dateOldest",   label: "Date Posted: Oldest" },
+          ...(studentLocation ? [
+            { value: "distanceNear", label: "Distance: Closest → Furthest" },
+            { value: "distanceFar",  label: "Distance: Furthest → Closest" },
+          ] : []),
+        ].map(({ value, label }) => (
+          <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.84rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "#4f46e5" : "#374151", padding: "0.2rem 0" }}>
+            <input type="radio" name="sortBy" checked={sortBy === value} onChange={() => setSortBy(value)} style={{ cursor: "pointer", accentColor: "#6366f1" }} />
+            {label}
+          </label>
+        ))}
+      </FilterSection>
+
+      {/* Days & Times */}
+      <FilterSection title={<>Days &amp; Times {selectedDays.length > 0 && <Pip n={selectedDays.length} />}</>} open={openSections.days} onToggle={() => toggleSection("days")}>
+        {warning && <p style={{ color: "#ef4444", fontSize: "0.76rem", marginBottom: "0.4rem" }}>{warning}</p>}
+        {weekdays.map(day => (
+          <div key={day} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
+            <input type="checkbox" id={`sd-${day}`} checked={selectedDays.includes(day)} onChange={() => toggleDay(day)} style={{ cursor: "pointer", width: "14px", height: "14px", accentColor: "#6366f1" }} />
+            <label htmlFor={`sd-${day}`} style={{ fontWeight: 500, minWidth: "85px", cursor: "pointer", fontSize: "0.83rem" }}>{day}</label>
+            <select
+              value={dayTimes[day] || ""} onChange={e => updateTime(day, e.target.value)}
+              disabled={!selectedDays.includes(day)}
+              style={{ padding: "0.15rem 0.3rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.75rem", color: selectedDays.includes(day) ? "#111827" : "#9ca3af", cursor: selectedDays.includes(day) ? "pointer" : "not-allowed", backgroundColor: selectedDays.includes(day) ? "white" : "#f9fafb", flex: 1 }}
+            >
+              <option value="">Any time</option>
+              {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        ))}
+      </FilterSection>
+
+      {/* Location */}
+      <FilterSection title={<>Location {selectedLocations.length > 0 && <Pip n={selectedLocations.length} />}</>} open={openSections.location} onToggle={() => toggleSection("location")}>
+        {allLocations.map(loc => (
+          <label key={loc} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: 500 }}>
+            <input type="checkbox" checked={selectedLocations.includes(loc)} onChange={() => toggleLocation(loc)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "#6366f1" }} />
+            {loc}
+          </label>
+        ))}
+      </FilterSection>
+
+      {/* Job Type */}
+      <FilterSection title={<>Job Type {selectedJobTypes.length > 0 && <Pip n={selectedJobTypes.length} />}</>} open={openSections.jobType} onToggle={() => toggleSection("jobType")}>
+        {Object.keys(jobCategories).map(type => (
+          <label key={type} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: 500 }}>
+            <input type="checkbox" checked={selectedJobTypes.includes(type)} onChange={() => toggleJobType(type)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "#6366f1" }} />
+            {type}
+          </label>
+        ))}
+      </FilterSection>
+
+      {/* Schedule */}
+      <FilterSection title="Schedule" open={openSections.schedule} onToggle={() => toggleSection("schedule")}>
+        {[
+          { label: "Weekend Work", active: weekendOnly, toggle: () => setWeekendOnly(p => !p) },
+          { label: "All Week",     active: allWeekOnly, toggle: () => setAllWeekOnly(p => !p) },
+          { label: "No Weekends",  active: noWeekends,  toggle: () => setNoWeekends(p => !p) },
+        ].map(({ label, active, toggle }) => (
+          <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: active ? 700 : 500, color: active ? "#4f46e5" : "#374151" }}>
+            <input type="checkbox" checked={active} onChange={toggle} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "#6366f1" }} />
+            {label}
+          </label>
+        ))}
+      </FilterSection>
+
+      {/* Distance */}
+      <FilterSection title="Distance" open={openSections.distance} onToggle={() => toggleSection("distance")}>
+        {studentLocation ? (
+          <>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
+              <span style={{ fontSize: "0.81rem", color: "#374151", fontWeight: 500 }}>{distanceKm === 0 ? "Any distance" : `Within ${distanceKm} km`}</span>
+              {distanceKm > 0 && <button onClick={() => setDistanceKm(0)} style={{ fontSize: "0.72rem", color: "#6366f1", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>Reset</button>}
+            </div>
+            <input type="range" min="0" max="50" step="1" value={distanceKm} onChange={e => setDistanceKm(Number(e.target.value))} style={{ width: "100%", accentColor: "#6366f1", cursor: "pointer" }} />
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "#9ca3af" }}>
+              <span>0 km</span><span>25 km</span><span>50 km</span>
+            </div>
+          </>
+        ) : (
+          <p style={{ fontSize: "0.78rem", color: "#9ca3af", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
+        )}
+      </FilterSection>
+
+      {/* Saved Searches */}
+      <FilterSection title="Saved Searches" open={openSections.saved} onToggle={() => toggleSection("saved")}>
+        {savedSearches.length === 0 && !showSaveInput && (
+          <p style={{ fontSize: "0.78rem", color: "#9ca3af", margin: "0 0 0.5rem" }}>No saved searches yet.</p>
+        )}
+        {savedSearches.map((s, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.4rem" }}>
+            <button onClick={() => applyFilters(s.filters)} style={{ flex: 1, textAlign: "left", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: "0.5rem", padding: "0.3rem 0.6rem", fontSize: "0.8rem", fontWeight: 600, color: "#4f46e5", cursor: "pointer", fontFamily: "inherit", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {s.name}
+            </button>
+            <button onClick={() => deleteSearch(i)} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "1rem", padding: "0 0.2rem", lineHeight: 1 }}>×</button>
+          </div>
+        ))}
+        {showSaveInput ? (
+          <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.25rem" }}>
+            <input
+              value={saveSearchName}
+              onChange={e => setSaveSearchName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && saveSearch()}
+              placeholder="Search name…"
+              autoFocus
+              style={{ flex: 1, padding: "0.3rem 0.5rem", borderRadius: "0.4rem", border: "1.5px solid #c7d2fe", fontSize: "0.8rem", fontFamily: "inherit", outline: "none" }}
+            />
+            <button onClick={saveSearch} style={{ background: "#6366f1", border: "none", color: "white", borderRadius: "0.4rem", padding: "0.3rem 0.6rem", cursor: "pointer", fontWeight: 700, fontSize: "0.78rem", fontFamily: "inherit" }}>Save</button>
+            <button onClick={() => { setShowSaveInput(false); setSaveSearchName(""); }} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "0.85rem", padding: "0 0.2rem" }}>✕</button>
+          </div>
+        ) : (
+          <button onClick={() => setShowSaveInput(true)} style={{ marginTop: "0.25rem", background: "none", border: "1.5px dashed #c7d2fe", color: "#6366f1", borderRadius: "0.5rem", padding: "0.3rem 0.75rem", fontSize: "0.78rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", width: "100%" }}>
+            + Save Current Search
+          </button>
+        )}
+      </FilterSection>
+
+      {/* Clear */}
+      {(hasActiveFilters || sortBy !== "") && (
+        <button onClick={clearAll} style={{ padding: "0.55rem", borderRadius: "0.6rem", border: "1.5px solid #fda4af", backgroundColor: "#fff1f2", color: "#e11d48", fontWeight: 700, fontSize: "0.83rem", cursor: "pointer", fontFamily: "inherit", width: "100%" }}>
+          Clear All Filters
+        </button>
+      )}
+    </div>
+  );
 
   return (
-    <PageWrapper>
-      <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
-        <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>Find Your Shift</h1>
-        <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Browse student-friendly jobs across Galway</p>
-      </div>
+    <div style={{ backgroundColor: "#f1f5f9", minHeight: "100vh", fontFamily: "'Poppins', sans-serif" }}>
+      <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "1.5rem 1.25rem" }}>
 
-      {/* Location nudge — shown only to logged-in students with no saved location */}
-      {currentUser?.role === "student" && !studentLocation && (
-        <div onClick={() => setPage("account")} style={{ display: "flex", alignItems: "center", gap: "0.6rem", backgroundColor: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: "0.75rem", padding: "0.6rem 1rem", marginBottom: "1rem", cursor: "pointer" }}>
-          <span style={{ fontSize: "1.1rem" }}>📍</span>
-          <p style={{ margin: 0, fontSize: "0.82rem", color: "#1d4ed8", fontWeight: "600", lineHeight: 1.4 }}>
-            Set your location in Account to see how far each job is from you.
-          </p>
-        </div>
-      )}
-
-      {/* Preference toggle — only shown to logged-in students who have preferences set */}
-      {currentUser?.role === "student" && userPrefs.length > 0 && (
-        <div style={{ display: "flex", backgroundColor: "#f1f5f9", borderRadius: "0.75rem", padding: "0.25rem", marginBottom: "1rem", gap: "0.25rem" }}>
-          {[{ val: false, label: "All Jobs" }, { val: true, label: "My Preferences" }].map(({ val, label }) => (
+        {/* Top action tabs */}
+        <div style={{ display: "flex", gap: "0.6rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
+          {[
+            { label: "Find Shift", action: () => clearAll() },
+            { label: "Browse",     action: () => { clearAll(); } },
+            { label: "Search",     action: () => { searchInputRef.current?.focus(); } },
+          ].map(({ label, action }) => (
             <button
-              key={String(val)}
-              onClick={() => setPrefOnly(val)}
-              style={{
-                flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none",
-                fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit",
-                backgroundColor: prefOnly === val ? "white" : "transparent",
-                color: prefOnly === val ? "#6366f1" : "#64748b",
-                boxShadow: prefOnly === val ? "0 1px 6px rgba(0,0,0,0.1)" : "none",
-              }}
+              key={label}
+              onClick={action}
+              style={{ padding: "0.55rem 1.4rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#1e293b", fontWeight: 700, fontSize: "0.88rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = "#6366f1"; e.currentTarget.style.color = "#4f46e5"; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.color = "#1e293b"; }}
             >
               {label}
             </button>
           ))}
         </div>
-      )}
 
-      {/* Search */}
-      <div style={{ marginBottom: "0.75rem" }}>
-        <input
-          placeholder="Search by job title or company…"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          style={{ width: "100%", padding: "0.7rem 1rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b" }}
-        />
-      </div>
-
-      {/* Filter Bar */}
-      <div ref={filterBarRef} style={{ marginBottom: "1.5rem", position: "relative" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", alignItems: "center" }}>
-
-          {/* Relevance dropdown */}
-          <div style={{ position: "relative" }}>
-            <button onClick={() => setOpenDropdown(openDropdown === "relevance" ? null : "relevance")} style={dropdownBtnStyle(sortBy !== "")}>
-              {sortBy === "" ? "Relevance" : sortBy === "payHigh" ? "Pay: High → Low" : sortBy === "payLow" ? "Pay: Low → High" : sortBy === "distanceNear" ? "Closest First" : sortBy === "distanceFar" ? "Furthest First" : "Relevance"} ▾
-            </button>
-            {openDropdown === "relevance" && (
-              <div style={dropdownPanel}>
-                {[
-                  { value: "",             label: "Default" },
-                  { value: "payHigh",      label: "Pay: High → Low" },
-                  { value: "payLow",       label: "Pay: Low → High" },
-                  ...(studentLocation ? [
-                    { value: "distanceNear", label: "Distance: Closest → Furthest" },
-                    { value: "distanceFar",  label: "Distance: Furthest → Closest" },
-                  ] : []),
-                ].map(({ value, label }) => (
-                  <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: sortBy === value ? "700" : "500", color: sortBy === value ? "#4f46e5" : "#374151", fontSize: "0.85rem" }}>
-                    <input type="radio" name="sortBy" checked={sortBy === value} onChange={() => { setSortBy(value); setOpenDropdown(null); }} style={{ cursor: "pointer" }} />
-                    {label}
-                  </label>
-                ))}
-              </div>
-            )}
+        {/* Location nudge */}
+        {currentUser?.role === "student" && !studentLocation && (
+          <div onClick={() => setPage("account")} style={{ display: "flex", alignItems: "center", gap: "0.6rem", backgroundColor: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: "0.75rem", padding: "0.6rem 1rem", marginBottom: "1rem", cursor: "pointer" }}>
+            <span style={{ fontSize: "1.1rem" }}>📍</span>
+            <p style={{ margin: 0, fontSize: "0.82rem", color: "#1d4ed8", fontWeight: 600, lineHeight: 1.4 }}>
+              Set your location in Account to see how far each job is from you.
+            </p>
           </div>
+        )}
 
-          {/* Filters dropdown */}
-          <div style={{ position: "relative" }}>
-            <button onClick={() => setOpenDropdown(openDropdown === "filters" ? null : "filters")} style={dropdownBtnStyle(activeFilterCount > 0)}>
-              Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""} ▾
-            </button>
-            {openDropdown === "filters" && (
-              <div style={{ ...dropdownPanel, minWidth: "300px", maxHeight: "520px", overflowY: "auto" }}>
-
-                {/* Days & Times — collapsible */}
-                <button onClick={() => setOpenSubSection(openSubSection === "days" ? null : "days")} style={subSectionBtn}>
-                  <span>Days &amp; Times {selectedDays.length > 0 && <span style={activePip}>{selectedDays.length}</span>}</span>
-                  <span>{openSubSection === "days" ? "▴" : "▾"}</span>
-                </button>
-                {openSubSection === "days" && (
-                  <div style={{ paddingTop: "0.4rem", paddingBottom: "0.2rem" }}>
-                    {warning && <p style={{ color: "#ef4444", fontSize: "0.78rem", marginBottom: "0.4rem" }}>{warning}</p>}
-                    {weekdays.map(day => (
-                      <div key={day} style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.45rem" }}>
-                        <input type="checkbox" id={`day-${day}`} checked={selectedDays.includes(day)} onChange={() => toggleDay(day)} style={{ cursor: "pointer", width: "15px", height: "15px" }} />
-                        <label htmlFor={`day-${day}`} style={{ fontWeight: "500", minWidth: "90px", cursor: "pointer", fontSize: "0.85rem" }}>{day}</label>
-                        <select value={dayTimes[day] || ""} onChange={e => updateTime(day, e.target.value)} disabled={!selectedDays.includes(day)}
-                          style={{ padding: "0.2rem 0.4rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.78rem", color: selectedDays.includes(day) ? "#111827" : "#9ca3af", cursor: selectedDays.includes(day) ? "pointer" : "not-allowed", backgroundColor: selectedDays.includes(day) ? "white" : "#f9fafb" }}>
-                          <option value="">Any time</option>
-                          {timeSlots.map(time => <option key={time} value={time}>{time}</option>)}
-                        </select>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "0.4rem 0" }} />
-
-                {/* Location — collapsible */}
-                <button onClick={() => setOpenSubSection(openSubSection === "location" ? null : "location")} style={subSectionBtn}>
-                  <span>Location {selectedLocations.length > 0 && <span style={activePip}>{selectedLocations.length}</span>}</span>
-                  <span>{openSubSection === "location" ? "▴" : "▾"}</span>
-                </button>
-                {openSubSection === "location" && (
-                  <div style={{ paddingTop: "0.4rem", paddingBottom: "0.2rem" }}>
-                    {allLocations.map(loc => (
-                      <label key={loc} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: "500", fontSize: "0.85rem" }}>
-                        <input type="checkbox" checked={selectedLocations.includes(loc)} onChange={() => toggleLocation(loc)} style={{ width: "15px", height: "15px", cursor: "pointer" }} />
-                        {loc}
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "0.4rem 0" }} />
-
-                {/* Job Type — collapsible */}
-                <button onClick={() => setOpenSubSection(openSubSection === "jobType" ? null : "jobType")} style={subSectionBtn}>
-                  <span>Job Type {selectedJobTypes.length > 0 && <span style={activePip}>{selectedJobTypes.length}</span>}</span>
-                  <span>{openSubSection === "jobType" ? "▴" : "▾"}</span>
-                </button>
-                {openSubSection === "jobType" && (
-                  <div style={{ paddingTop: "0.4rem", paddingBottom: "0.2rem" }}>
-                    {Object.keys(jobCategories).map(type => (
-                      <label key={type} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: "500", fontSize: "0.85rem" }}>
-                        <input type="checkbox" checked={selectedJobTypes.includes(type)} onChange={() => toggleJobType(type)} style={{ width: "15px", height: "15px", cursor: "pointer" }} />
-                        {type}
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "0.4rem 0" }} />
-
-                {/* Schedule toggles — always visible */}
-                <p style={{ ...filterSectionLabel, marginTop: "0.4rem" }}>Schedule</p>
-                {[
-                  { label: "Weekend Work", active: weekendOnly, toggle: () => setWeekendOnly(p => !p) },
-                  { label: "All Week",     active: allWeekOnly, toggle: () => setAllWeekOnly(p => !p) },
-                  { label: "No Weekends",  active: noWeekends,  toggle: () => setNoWeekends(p => !p) },
-                ].map(({ label, active, toggle }) => (
-                  <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem", cursor: "pointer", fontWeight: active ? "700" : "500", color: active ? "#4f46e5" : "#374151", fontSize: "0.85rem" }}>
-                    <input type="checkbox" checked={active} onChange={toggle} style={{ width: "15px", height: "15px", cursor: "pointer" }} />
-                    {label}
-                  </label>
-                ))}
-
-                <hr style={{ border: "none", borderTop: "1px solid #e5e7eb", margin: "0.4rem 0" }} />
-
-                {/* Distance filter */}
-                <p style={{ ...filterSectionLabel, marginTop: "0.4rem" }}>Distance</p>
-                {studentLocation ? (
-                  <div style={{ paddingBottom: "0.4rem" }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
-                      <span style={{ fontSize: "0.82rem", color: "#374151", fontWeight: "500" }}>
-                        {distanceKm === 0 ? "Any distance" : `Within ${distanceKm} km`}
-                      </span>
-                      {distanceKm > 0 && (
-                        <button onClick={() => setDistanceKm(0)} style={{ fontSize: "0.72rem", color: "#6366f1", background: "none", border: "none", cursor: "pointer", fontWeight: "700", padding: 0, fontFamily: "inherit" }}>Reset</button>
-                      )}
-                    </div>
-                    <input
-                      type="range" min="0" max="50" step="1"
-                      value={distanceKm}
-                      onChange={e => setDistanceKm(Number(e.target.value))}
-                      style={{ width: "100%", accentColor: "#6366f1", cursor: "pointer" }}
-                    />
-                    <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "#9ca3af", marginTop: "0.1rem" }}>
-                      <span>0 km</span><span>25 km</span><span>50 km</span>
-                    </div>
-                  </div>
-                ) : (
-                  <p style={{ fontSize: "0.78rem", color: "#9ca3af", fontStyle: "italic", margin: "0.2rem 0 0.4rem" }}>
-                    Save your location in Account to filter by distance.
-                  </p>
-                )}
-
-              </div>
-            )}
+        {/* Preference tabs */}
+        {currentUser?.role === "student" && userPrefs.length > 0 && (
+          <div style={{ display: "flex", backgroundColor: "#e8edf5", borderRadius: "0.75rem", padding: "0.25rem", marginBottom: "1rem", gap: "0.25rem" }}>
+            {[{ val: false, label: "All Jobs" }, { val: true, label: "My Preferences" }].map(({ val, label }) => (
+              <button key={String(val)} onClick={() => setPrefOnly(val)} style={{ flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: prefOnly === val ? "white" : "transparent", color: prefOnly === val ? "#6366f1" : "#64748b", boxShadow: prefOnly === val ? "0 1px 6px rgba(0,0,0,0.1)" : "none" }}>
+                {label}
+              </button>
+            ))}
           </div>
+        )}
 
-          {(hasActiveFilters || sortBy !== "") && (
-            <button onClick={clearAll} style={{ padding: "0.45rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fda4af", backgroundColor: "#fff1f2", color: "#e11d48", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}>
-              Clear
-            </button>
+        {/* Mobile: Filters toggle */}
+        {isMobile && (
+          <button
+            onClick={() => setMobileFiltersOpen(o => !o)}
+            style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.6rem 1.1rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", background: "white", fontWeight: 700, fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", marginBottom: "0.75rem", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
+          >
+            ⚙ Filters {activeFilterCount > 0 && <Pip n={activeFilterCount} />}
+            {sortBy && <span style={{ fontSize: "0.75rem", color: "#6366f1", fontWeight: 700 }}>· {sortLabel[sortBy]}</span>}
+            <span style={{ marginLeft: "auto" }}>{mobileFiltersOpen ? "▲" : "▼"}</span>
+          </button>
+        )}
+
+        {/* Mobile filter panel */}
+        {isMobile && mobileFiltersOpen && (
+          <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", marginBottom: "1rem", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+            <FilterPanel />
+          </div>
+        )}
+
+        {/* Main layout: sidebar + jobs */}
+        <div style={{ display: "flex", gap: "1.5rem", alignItems: "flex-start" }}>
+
+          {/* Sidebar — desktop only */}
+          {!isMobile && (
+            <aside style={{ width: "260px", flexShrink: 0, position: "sticky", top: "88px" }}>
+              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                <FilterPanel />
+              </div>
+            </aside>
           )}
 
-          {/* Grid toggle */}
-          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.3rem", backgroundColor: "#f1f5f9", borderRadius: "0.6rem", padding: "0.2rem" }}>
-            <button onClick={() => setGridCols(1)} title="Single column" style={{ padding: "0.3rem 0.5rem", border: "none", borderRadius: "0.45rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "#6366f1" : "#94a3b8", fontWeight: "700", fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
-            <button onClick={() => setGridCols(2)} title="Two columns" style={{ padding: "0.3rem 0.5rem", border: "none", borderRadius: "0.45rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "#6366f1" : "#94a3b8", fontWeight: "700", fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
-          </div>
+          {/* Job list */}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            {/* Search bar */}
+            <div style={{ marginBottom: "0.9rem" }}>
+              <input
+                ref={searchInputRef}
+                placeholder="Search by job title or company…"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{ width: "100%", padding: "0.7rem 1rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white", outline: "none" }}
+                onFocus={e => e.target.style.borderColor = "#6366f1"}
+                onBlur={e => e.target.style.borderColor = "#e2e8f0"}
+              />
+            </div>
 
-          <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "#4f46e5", backgroundColor: "#eef2ff", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
-            {displayJobs.length} job{displayJobs.length !== 1 ? "s" : ""}
-          </span>
-        </div>
-      </div>
+            {/* Job count + active sort label */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+              <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4f46e5", backgroundColor: "#eef2ff", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
+                {displayJobs.length} job{displayJobs.length !== 1 ? "s" : ""}
+              </span>
+              {sortBy && (
+                <span style={{ fontSize: "0.78rem", color: "#64748b" }}>Sorted by: <strong style={{ color: "#374151" }}>{sortLabel[sortBy]}</strong></span>
+              )}
+            </div>
 
-      {/* Error State */}
-      {jobsError && !jobsLoading && (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
-          <p style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "0.4rem", color: "#ef4444" }}>Couldn't load jobs</p>
-          <p style={{ fontSize: "0.875rem" }}>There was a problem connecting to the server. Please check your connection and try refreshing the page.</p>
-        </div>
-      )}
+            {/* States */}
+            {jobsError && !jobsLoading && (
+              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
+                <p style={{ fontSize: "1.1rem", fontWeight: 600, color: "#ef4444" }}>Couldn't load jobs</p>
+                <p style={{ fontSize: "0.875rem" }}>Check your connection and refresh the page.</p>
+              </div>
+            )}
+            {jobsLoading && (
+              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
+                <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
+                <p style={{ fontWeight: 600 }}>Loading jobs…</p>
+              </div>
+            )}
+            {!jobsLoading && !jobsError && displayJobs.length === 0 && (
+              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
+                <p style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>No jobs match your filters</p>
+                <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>
+                  {searchQuery.trim() ? `No results for "${searchQuery}"` : "Try removing some filters."}
+                </p>
+                <button onClick={clearAll} style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                  Clear All Filters
+                </button>
+              </div>
+            )}
 
-      {/* Empty State */}
-      {jobsLoading && (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
-          <p style={{ fontSize: "1rem", fontWeight: "600" }}>Loading jobs…</p>
-        </div>
-      )}
-      {!jobsLoading && !jobsError && displayJobs.length === 0 && (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
-          <p style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "0.4rem" }}>No jobs match your search</p>
-          <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>
-            {searchQuery.trim() ? `No results for "${searchQuery}" — try a different keyword.` : "Try removing some filters to see more results."}
-          </p>
-          <button onClick={clearAll} style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "white", border: "none", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(99,102,241,0.35)" }}>
-            Clear All Filters
-          </button>
-        </div>
-      )}
+            {/* Horizontal job cards */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+              {displayJobs.map(job => {
+                const isLiked   = likedJobs.some(j => j.id === job.id);
+                const isApplied = appliedJobs.some(j => j.id === job.id);
+                const dist      = jobDistance(job);
+                const dl        = job.deadline;
+                const dlDays    = daysUntil(dl);
+                const dlSoon    = dlDays !== null && dlDays <= 7 && dlDays >= 0;
+                const photo     = job.photos?.[0] || null;
 
-      {/* Job List */}
-      <div className="job-list-grid" style={{ display: "grid", gridTemplateColumns: gridCols === 2 ? "1fr 1fr" : "1fr", gap: "1rem" }}>
-        {displayJobs.map((job) => {
-          const isLiked   = likedJobs.some(j => j.id === job.id);
-          const isApplied = appliedJobs.some(j => j.id === job.id);
-          const dist      = jobDistance(job);
-          const dl        = job.deadline;
-          const dlDays    = daysUntil(dl);
-          const dlSoon    = dlDays !== null && dlDays <= 7 && dlDays >= 0;
-
-          return (
-            <div key={job.id} className="job-card" style={{ flexDirection: "column", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0 }}>
-              {/* Company banner photo carousel */}
-              {(() => {
-                const photos = job.photos?.length > 0 ? job.photos : [];
-                const idx = photoIndexes[job.id] || 0;
-                const crop = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
-                const prev = (e) => { e.stopPropagation(); setPhotoIndexes(p => ({ ...p, [job.id]: (idx - 1 + photos.length) % photos.length })); };
-                const next = (e) => { e.stopPropagation(); setPhotoIndexes(p => ({ ...p, [job.id]: (idx + 1) % photos.length })); };
-                if (photos.length === 0) {
-                  return (
-                    <div style={{ width: "100%", aspectRatio: "16/7", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #312e81 100%)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <span style={{ fontSize: "2rem", opacity: 0.3 }}>🏢</span>
-                    </div>
-                  );
-                }
                 return (
-                  <div style={{ position: "relative", width: "100%", aspectRatio: "16/7", backgroundColor: "#0f172a", overflow: "hidden" }}>
-                    <div style={{
-                      position: "absolute", inset: 0,
-                      transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`,
-                      transformOrigin: "center",
-                    }}>
-                      <img src={photos[idx]} alt={job.company}
-                        style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-                      />
-                    </div>
-                    <div style={{ position: "absolute", top: "7px", right: "9px", backgroundColor: "rgba(0,0,0,0.5)", color: "white", fontSize: "0.7rem", fontWeight: "700", padding: "2px 7px", borderRadius: "999px", lineHeight: 1.5 }}>
-                      {idx + 1}/{photos.length}
-                    </div>
-                    {photos.length > 1 && (
-                      <>
-                        <button onClick={prev} style={arrowBtn("left")}>‹</button>
-                        <button onClick={next} style={arrowBtn("right")}>›</button>
-                        <div style={{ position: "absolute", bottom: "6px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "4px" }}>
-                          {photos.map((_, i) => (
-                            <div key={i} style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: i === idx ? "white" : "rgba(255,255,255,0.4)" }} />
-                          ))}
+                  <div key={job.id} className="job-card" style={{ display: "flex", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "default" }}>
+
+                    {/* Square photo */}
+                    <div style={{ width: "120px", flexShrink: 0, position: "relative", backgroundColor: "#0f172a" }}>
+                      {photo ? (
+                        <img
+                          src={photo}
+                          alt={job.company}
+                          style={{ width: "120px", height: "100%", objectFit: "cover", display: "block" }}
+                        />
+                      ) : (
+                        <div style={{ width: "120px", height: "100%", minHeight: "100px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#0f172a,#312e81)" }}>
+                          <span style={{ fontSize: "2rem", opacity: 0.3 }}>🏢</span>
                         </div>
-                      </>
-                    )}
+                      )}
+                    </div>
+
+                    {/* Middle info */}
+                    <div style={{ flex: 1, padding: "0.85rem 1rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                      <div>
+                        <h2 style={{ fontWeight: 800, fontSize: "1rem", margin: "0 0 0.15rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
+                        <p style={{ margin: "0 0 0.5rem", fontSize: "0.83rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
+                      </div>
+
+                      {/* Days / Times / Distance */}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.5rem" }}>
+                        {job.days.map(day => (
+                          <span key={day} style={{ fontSize: "0.7rem", backgroundColor: "#eef2ff", color: "#4f46e5", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600 }}>
+                            {day.slice(0, 3)} · {job.times[day]?.join(", ")}
+                          </span>
+                        ))}
+                        {dist !== null && (
+                          <span style={{ fontSize: "0.7rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600 }}>
+                            📍 {formatDistance(dist)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Pay + deadline */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                        <span style={{ fontWeight: 700, color: "#111827", fontSize: "0.92rem" }}>{job.pay}</span>
+                        {dl && (
+                          <span style={{ fontSize: "0.68rem", padding: "0.1rem 0.45rem", borderRadius: "999px", fontWeight: 600, backgroundColor: dlSoon ? "#fef3c7" : "#f3f4f6", color: dlSoon ? "#d97706" : "#6b7280", border: `1px solid ${dlSoon ? "#fde68a" : "#e5e7eb"}` }}>
+                            Closes {deadlineLabel(dl)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Right: action buttons */}
+                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: "0.5rem", padding: "0.85rem 1rem 0.85rem 0", flexShrink: 0 }}>
+                      <button
+                        onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
+                        style={{ padding: "0.45rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "white", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", boxShadow: "0 2px 8px rgba(99,102,241,0.3)" }}
+                      >
+                        View
+                      </button>
+                      <button
+                        onClick={() => toggleLike(job)}
+                        disabled={isApplied}
+                        style={{ padding: "0.4rem 1rem", borderRadius: "2rem", fontWeight: 700, fontSize: "0.78rem", cursor: isApplied ? "default" : "pointer", fontFamily: "inherit", whiteSpace: "nowrap", border: isApplied ? "none" : (isLiked ? "none" : "2px solid #f43f5e"), backgroundColor: isApplied ? "#10b981" : (isLiked ? "#10b981" : "white"), color: isApplied ? "white" : (isLiked ? "white" : "#f43f5e") }}
+                      >
+                        {isApplied ? "✅" : (isLiked ? "✅" : "❤️")}
+                      </button>
+                    </div>
                   </div>
                 );
-              })()}
-
-
-              {/* Content */}
-              <div style={{ padding: "0.85rem 1rem" }}>
-                {/* Title + buttons */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.2rem" }}>
-                  <h2 style={{ fontWeight: "bold", fontSize: "1.05rem", margin: 0 }}>{job.title}</h2>
-                  <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
-                    <button onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View</button>
-                    <button
-                      onClick={() => toggleLike(job)}
-                      disabled={isApplied}
-                      style={{
-                        ...btnBase,
-                        backgroundColor: isApplied ? "#10b981" : (isLiked ? "#10b981" : "white"),
-                        color: isApplied ? "white" : (isLiked ? "white" : "#f43f5e"),
-                        border: isApplied ? "none" : (isLiked ? "none" : "2px solid #f43f5e"),
-                        boxShadow: "none",
-                      }}
-                    >
-                      {isApplied ? "✅" : (isLiked ? "✅" : "❤️")}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Company · location · distance */}
-                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.15rem" }}>
-                  <span style={{ color: "#6b7280", fontSize: "0.85rem" }}>{job.company} · {job.location}</span>
-                  {dist !== null && (
-                    <span style={{ fontSize: "0.7rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: "0.1rem 0.4rem", borderRadius: "999px", fontWeight: "600" }}>
-                      {formatDistance(dist)}
-                    </span>
-                  )}
-                </div>
-
-                {/* Pay + deadline */}
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
-                  <span style={{ fontWeight: "700", color: "#111827", fontSize: "0.9rem" }}>{job.pay}</span>
-                  {dl && (
-                    <span style={{ fontSize: "0.7rem", padding: "0.1rem 0.45rem", borderRadius: "999px", fontWeight: "600", backgroundColor: dlSoon ? "#fef3c7" : "#f3f4f6", color: dlSoon ? "#d97706" : "#6b7280", border: `1px solid ${dlSoon ? "#fde68a" : "#e5e7eb"}` }}>
-                      {`Closes ${deadlineLabel(dl)}`}
-                    </span>
-                  )}
-                </div>
-
-                {/* Description (2-line clamp) */}
-                {job.description && (
-                  <p style={{ fontSize: "0.8rem", color: "#6b7280", margin: "0 0 0.35rem", lineHeight: 1.45, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-                    {job.description}
-                  </p>
-                )}
-
-                {/* Day tags */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                  {job.days.map(day => (
-                    <span key={day} style={{ fontSize: "0.7rem", backgroundColor: "#eef2ff", color: "#4f46e5", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600" }}>
-                      {day.slice(0, 3)} · {job.times[day]?.join(", ")}
-                    </span>
-                  ))}
-                </div>
-              </div>
+              })}
             </div>
-          );
-        })}
+          </div>
+        </div>
       </div>
-    </PageWrapper>
+    </div>
   );
 }
 
-const dropdownPanel = {
-  position: "absolute", top: "calc(100% + 0.4rem)", left: 0, zIndex: 100,
-  backgroundColor: "white", border: "1.5px solid #e5e7eb", borderRadius: "0.6rem",
-  boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "0.75rem 1rem", minWidth: "220px",
-};
+function FilterSection({ title, open, onToggle, children }) {
+  return (
+    <div>
+      <button
+        onClick={onToggle}
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", background: "none", border: "none", padding: "0.35rem 0", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", color: "#1e293b", fontFamily: "inherit", textAlign: "left", marginBottom: open ? "0.5rem" : 0 }}
+      >
+        <span>{title}</span>
+        <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{open ? "▲" : "▼"}</span>
+      </button>
+      {open && <div>{children}</div>}
+      <hr style={{ border: "none", borderTop: "1px solid #f1f5f9", margin: "0.6rem 0 0" }} />
+    </div>
+  );
+}
 
-const btnBase = { padding: "0.38rem 0.9rem", borderRadius: "2rem", color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "0.8rem", fontFamily: "inherit" };
-const btnBlue = { ...btnBase, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 2px 8px rgba(99,102,241,0.3)" };
-
-const arrowBtn = (side) => ({
-  position: "absolute", top: "50%", [side]: "8px",
-  transform: "translateY(-50%)",
-  background: "rgba(0,0,0,0.45)", border: "none", color: "white",
-  borderRadius: "50%", width: "28px", height: "28px",
-  fontSize: "1.2rem", lineHeight: "1", cursor: "pointer",
-  display: "flex", alignItems: "center", justifyContent: "center",
-  zIndex: 2,
-});
-const filterSectionLabel = { fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0 0 0.4rem" };
-const subSectionBtn = { display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", background: "none", border: "none", padding: "0.35rem 0", cursor: "pointer", fontWeight: "600", fontSize: "0.88rem", color: "#1e293b", fontFamily: "inherit", textAlign: "left" };
-const activePip = { display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "#6366f1", color: "white", borderRadius: "999px", fontSize: "0.65rem", fontWeight: "700", minWidth: "16px", height: "16px", padding: "0 0.3rem", marginLeft: "0.3rem" };
+function Pip({ n }) {
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "#6366f1", color: "white", borderRadius: "999px", fontSize: "0.62rem", fontWeight: 700, minWidth: "16px", height: "16px", padding: "0 0.25rem", marginLeft: "0.3rem" }}>
+      {n}
+    </span>
+  );
+}

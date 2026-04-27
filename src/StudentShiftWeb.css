@@ -104,68 +104,9 @@ header {
 }
 
 @media (max-width: 640px) {
-  /* Switch header to two-row flex layout so all buttons stay visible */
   header {
-    display: flex !important;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
     padding: 0.5rem 0.85rem !important;
-    gap: 0;
   }
-  /* Row 1: profile+about on left, logo fills remaining space */
-  .header-left {
-    order: 1;
-    flex: 0 0 auto;
-  }
-  .header-logo {
-    order: 2;
-    flex: 1;
-    justify-content: center;
-    min-width: 0;
-  }
-  /* Row 2: all action buttons, full width, centred */
-  .header-right {
-    order: 3;
-    flex: 0 0 100%;
-    justify-content: center !important;
-    flex-wrap: wrap;
-    border-top: 1px solid rgba(255,255,255,0.12);
-    padding-top: 0.4rem;
-    margin-top: 0.3rem;
-  }
-  /* Show nav-labels in the action row so buttons are readable */
-  .header-right .nav-label {
-    display: inline !important;
-  }
-  /* Remove the hide rules from the previous approach */
-  .nav-liked-wrap, .nav-browse-wrap {
-    display: inline-block !important;
-  }
-  /* Compact nav buttons */
-  header button {
-    padding: 0.32rem 0.7rem !important;
-    font-size: 0.78rem !important;
-  }
-  .job-card {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .job-card-buttons {
-    margin-left: 0;
-    margin-top: 1rem;
-    width: 100%;
-  }
-  .job-card-buttons button {
-    flex: 1;
-  }
-  .filter-dropdown {
-    position: fixed;
-    left: 1rem;
-    right: 1rem;
-    width: auto;
-  }
-  /* Header logo — shrink SVG icon and text on mobile */
   .header-logo-icon svg {
     width: 32px !important;
     height: 36px !important;
@@ -174,7 +115,6 @@ header {
   .header-logo-text .logo-shifts {
     font-size: 1.05rem !important;
   }
-  /* Hide nav button text labels, keep emoji */
   .nav-label {
     display: none;
   }
@@ -188,10 +128,6 @@ header {
     border-radius: 0 !important;
     box-shadow: none !important;
     min-height: 100vh;
-  }
-  /* Force single column job grid on mobile */
-  .job-list-grid {
-    grid-template-columns: 1fr !important;
   }
 }
 

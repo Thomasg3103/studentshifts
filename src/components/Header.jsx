@@ -1,52 +1,70 @@
+import { useState, useRef, useEffect } from "react";
+import { supabase } from "../lib/supabase";
+
 export default function Header({ currentUser, setPage, likedJobs, appliedJobs, notifCount }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const optionalBadge = (() => {
     if (currentUser?.role !== "student") return 0;
-    let missing = 0;
-    if (!currentUser.cvName) missing++;
-    if (!currentUser.coverLetterName) missing++;
-    if (!currentUser.linkedIn) missing++;
-    return missing;
+    let n = 0;
+    if (!currentUser.cvName) n++;
+    if (!currentUser.coverLetterName) n++;
+    if (!currentUser.linkedIn) n++;
+    return n;
   })();
+
+  useEffect(() => {
+    const handler = e => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const homeRoute = currentUser?.role === "company" ? "companyDashboard"
+    : currentUser?.role === "admin" ? "admin"
+    : "studentDashboard";
+
+  const signOut = async () => {
+    setMenuOpen(false);
+    await supabase.auth.signOut();
+  };
+
+  const menuItems = currentUser ? [
+    { label: "About",       action: () => { setMenuOpen(false); setPage("about"); } },
+    { label: "Help Centre", action: () => { setMenuOpen(false); setPage("about"); } },
+    { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("about"); } },
+    { separator: true },
+    { label: "Sign Out", action: signOut, danger: true },
+  ] : [
+    { label: "Login",       action: () => { setMenuOpen(false); setPage("login"); } },
+    { label: "Sign Up",     action: () => { setMenuOpen(false); setPage("signup"); } },
+    { separator: true },
+    { label: "About",       action: () => { setMenuOpen(false); setPage("about"); } },
+    { label: "Help Centre", action: () => { setMenuOpen(false); setPage("about"); } },
+    { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("about"); } },
+  ];
 
   return (
     <header style={{
-      display: "grid",
-      gridTemplateColumns: "1fr auto 1fr",
-      alignItems: "center",
-      padding: "0.9rem 2.5rem",
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "0.85rem 2.5rem",
       background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
       color: "white",
       boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
-      position: "sticky",
-      top: 0,
-      zIndex: 100,
+      position: "sticky", top: 0, zIndex: 100,
+      boxSizing: "border-box",
     }}>
 
-      {/* Left — Account (when logged in) + About */}
-      <div className="header-left" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-        {currentUser && (
-          <div style={{ position: "relative", display: "inline-block" }}>
-            <button onClick={() => setPage("account")} style={{ ...navBtnPrimary, display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
-              {currentUser.profilePhoto
-                ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", display: "block", flexShrink: 0 }} />
-                : <PersonIcon />
-              }
-            </button>
-            {optionalBadge > 0 && <span style={notifDot}>{optionalBadge}</span>}
-          </div>
-        )}
-        <button onClick={() => setPage("about")} style={navBtnOutline}>About</button>
-      </div>
-
-      {/* Centre — Logo */}
+      {/* Logo — LEFT */}
       <div
         className="header-logo"
-        style={{ display: "flex", alignItems: "center", gap: "0.85rem", cursor: "pointer" }}
-        onClick={() => setPage("studentDashboard")}
+        onClick={() => setPage(homeRoute)}
+        style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.85rem", flexShrink: 0 }}
       >
         <div className="header-logo-icon"><LogoIcon /></div>
-        <div className="header-logo-text" style={{ lineHeight: "1.15" }}>
+        <div className="header-logo-text" style={{ lineHeight: 1.15 }}>
           <div className="logo-student" style={{ margin: 0, fontSize: "2.1rem", fontWeight: "800", background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.02em" }}>Student</div>
           <div className="logo-shifts" style={{ margin: 0, fontSize: "2.1rem", fontWeight: "800", letterSpacing: "-0.02em" }}>
             <span style={{ color: "white" }}>Shifts</span><span style={{ color: "#6366f1" }}>.ie</span>
@@ -54,40 +72,91 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
         </div>
       </div>
 
-      {/* Right — Liked/Applied (student) or Login/Sign Up (logged out) */}
-      <div className="header-right" style={{ display: "flex", gap: "0.5rem", alignItems: "center", justifyContent: "flex-end" }}>
-        {currentUser ? (
+      {/* Right cluster */}
+      <div className="header-right" style={{ display: "flex", alignItems: "center", gap: "0.5rem", position: "relative" }} ref={menuRef}>
+
+        {/* Student icons */}
+        {currentUser?.role === "student" && (
           <>
-            {currentUser.role === "admin" ? (
-              <button onClick={() => setPage("admin")} style={navBtnPrimary}>Admin Dashboard</button>
-            ) : currentUser.role === "student" ? (
-              <>
-                <button onClick={() => setPage("likedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                  ❤️ <span className="nav-label">Liked</span> <CountBadge n={likedJobs.length} />
-                </button>
-                <div style={{ position: "relative", display: "inline-block" }}>
-                  <button onClick={() => setPage("appliedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                    ✅ <span className="nav-label">Applied</span> <CountBadge n={appliedJobs.length} />
-                  </button>
-                  {notifCount > 0 && <span style={notifDot}>{notifCount}</span>}
-                </div>
-                <button onClick={() => setPage("messages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                  💬 <span className="nav-label">Messages</span>
-                </button>
-              </>
-            ) : (
-              <>
-                <button onClick={() => setPage("studentDashboard")} style={navBtnOutline}><span className="nav-label">Browse </span>Jobs</button>
-                <button onClick={() => setPage("companyMessages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>💬 <span className="nav-label">Messages</span></button>
-                <button onClick={() => setPage("companyDashboard")} style={navBtnPrimary}><span className="nav-label">My </span>Jobs</button>
-              </>
-            )}
+            <button onClick={() => setPage("likedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+              ❤️ <span className="nav-label">Liked</span> <CountBadge n={likedJobs.length} />
+            </button>
+            <div style={{ position: "relative", display: "inline-block" }}>
+              <button onClick={() => setPage("appliedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                📄 <span className="nav-label">Applied</span> <CountBadge n={appliedJobs.length} />
+              </button>
+              {notifCount > 0 && <span style={notifDot}>{notifCount}</span>}
+            </div>
+            <button onClick={() => setPage("messages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+              💬 <span className="nav-label">Messages</span>
+            </button>
           </>
-        ) : (
+        )}
+
+        {/* Company items */}
+        {currentUser?.role === "company" && (
+          <>
+            <button onClick={() => setPage("studentDashboard")} style={navBtnOutline}><span className="nav-label">Browse </span>Jobs</button>
+            <button onClick={() => setPage("companyMessages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>💬 <span className="nav-label">Messages</span></button>
+            <button onClick={() => setPage("companyDashboard")} style={navBtnPrimary}><span className="nav-label">My </span>Jobs</button>
+          </>
+        )}
+
+        {/* Admin */}
+        {currentUser?.role === "admin" && (
+          <button onClick={() => setPage("admin")} style={navBtnPrimary}>Admin Dashboard</button>
+        )}
+
+        {/* Logged-out Login/Sign Up */}
+        {!currentUser && (
           <>
             <button onClick={() => setPage("login")} style={navBtnOutline}>Login</button>
             <button onClick={() => setPage("signup")} style={navBtnPrimary}>Sign Up</button>
           </>
+        )}
+
+        {/* Account icon */}
+        {currentUser && (
+          <div style={{ position: "relative", display: "inline-block" }}>
+            <button onClick={() => setPage("account")} style={{ ...navBtnPrimary, display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+              {currentUser.profilePhoto
+                ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
+                : <PersonIcon />
+              }
+            </button>
+            {optionalBadge > 0 && <span style={notifDot}>{optionalBadge}</span>}
+          </div>
+        )}
+
+        {/* Hamburger */}
+        <button
+          onClick={() => setMenuOpen(o => !o)}
+          style={{ background: "transparent", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.5rem", width: "38px", height: "38px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px", cursor: "pointer", flexShrink: 0 }}
+        >
+          <span style={{ width: "18px", height: "2px", background: "white", borderRadius: "1px", display: "block" }} />
+          <span style={{ width: "18px", height: "2px", background: "white", borderRadius: "1px", display: "block" }} />
+          <span style={{ width: "18px", height: "2px", background: "white", borderRadius: "1px", display: "block" }} />
+        </button>
+
+        {/* Dropdown */}
+        {menuOpen && (
+          <div style={{ position: "absolute", top: "48px", right: 0, backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", boxShadow: "0 8px 32px rgba(0,0,0,0.15)", zIndex: 300, minWidth: "180px", overflow: "hidden" }}>
+            {menuItems.map((item, i) =>
+              item.separator ? (
+                <hr key={i} style={{ border: "none", borderTop: "1px solid #f1f5f9", margin: "0.25rem 0" }} />
+              ) : (
+                <button
+                  key={item.label}
+                  onClick={item.action}
+                  style={{ display: "block", width: "100%", padding: "0.75rem 1.25rem", background: "none", border: "none", textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, color: item.danger ? "#ef4444" : "#1e293b" }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f8fafc"}
+                  onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                >
+                  {item.label}
+                </button>
+              )
+            )}
+          </div>
         )}
       </div>
     </header>
@@ -135,47 +204,24 @@ function CountBadge({ n }) {
   );
 }
 
-
-
 const navBtnPrimary = {
-  padding: "0.48rem 1.1rem",
-  borderRadius: "2rem",
+  padding: "0.48rem 1.1rem", borderRadius: "2rem",
   background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-  color: "white",
-  border: "none",
-  cursor: "pointer",
-  fontWeight: "700",
-  fontSize: "0.82rem",
-  boxShadow: "0 4px 14px rgba(99,102,241,0.45)",
-  fontFamily: "inherit",
+  color: "white", border: "none", cursor: "pointer",
+  fontWeight: "700", fontSize: "0.82rem",
+  boxShadow: "0 4px 14px rgba(99,102,241,0.45)", fontFamily: "inherit",
 };
-
 const navBtnOutline = {
-  padding: "0.45rem 1.1rem",
-  borderRadius: "2rem",
-  backgroundColor: "transparent",
-  color: "white",
+  padding: "0.45rem 1.1rem", borderRadius: "2rem",
+  backgroundColor: "transparent", color: "white",
   border: "1.5px solid rgba(255,255,255,0.28)",
-  cursor: "pointer",
-  fontWeight: "600",
-  fontSize: "0.82rem",
-  fontFamily: "inherit",
+  cursor: "pointer", fontWeight: "600", fontSize: "0.82rem", fontFamily: "inherit",
 };
-
 const notifDot = {
-  position: "absolute",
-  top: "-4px",
-  right: "-4px",
-  backgroundColor: "#f43f5e",
-  color: "white",
-  fontSize: "0.62rem",
-  fontWeight: "700",
-  width: "16px",
-  height: "16px",
-  borderRadius: "50%",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  pointerEvents: "none",
-  border: "2px solid #0f172a",
+  position: "absolute", top: "-4px", right: "-4px",
+  backgroundColor: "#f43f5e", color: "white",
+  fontSize: "0.62rem", fontWeight: "700",
+  width: "16px", height: "16px", borderRadius: "50%",
+  display: "flex", alignItems: "center", justifyContent: "center",
+  pointerEvents: "none", border: "2px solid #0f172a",
 };
