@@ -49,7 +49,9 @@ export default function StudentDashboard({
   const [extraCoords,  setExtraCoords]  = useState(_geocodeCache);
   const [windowWidth,  setWindowWidth]  = useState(window.innerWidth);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const searchInputRef = useRef(null);
+  const sortDropdownRef = useRef(null);
 
   // Saved searches: [{ name, filters }]
   const ssKey = "ss_saved_searches_" + (currentUser?.id || "guest");
@@ -61,6 +63,14 @@ export default function StudentDashboard({
     const handler = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = e => {
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(e.target)) setSortDropdownOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const isMobile = windowWidth < 768;
@@ -302,26 +312,6 @@ export default function StudentDashboard({
   const FilterPanel = () => (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
 
-      {/* Sort By */}
-      <FilterSection title="Sort By" open={openSections.sort} onToggle={() => toggleSection("sort")}>
-        {[
-          { value: "",             label: "Best Match" },
-          { value: "payHigh",      label: "Pay: High → Low" },
-          { value: "payLow",       label: "Pay: Low → High" },
-          { value: "dateNewest",   label: "Date Posted: Newest" },
-          { value: "dateOldest",   label: "Date Posted: Oldest" },
-          ...(studentLocation ? [
-            { value: "distanceNear", label: "Distance: Closest → Furthest" },
-            { value: "distanceFar",  label: "Distance: Furthest → Closest" },
-          ] : []),
-        ].map(({ value, label }) => (
-          <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", cursor: "pointer", fontSize: "0.84rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "#4f46e5" : "#374151", padding: "0.2rem 0" }}>
-            <input type="radio" name="sortBy" checked={sortBy === value} onChange={() => setSortBy(value)} style={{ cursor: "pointer", accentColor: "#6366f1" }} />
-            {label}
-          </label>
-        ))}
-      </FilterSection>
-
       {/* Days & Times */}
       <FilterSection title={<>Days &amp; Times {selectedDays.length > 0 && <Pip n={selectedDays.length} />}</>} open={openSections.days} onToggle={() => toggleSection("days")}>
         {warning && <p style={{ color: "#ef4444", fontSize: "0.76rem", marginBottom: "0.4rem" }}>{warning}</p>}
@@ -439,23 +429,10 @@ export default function StudentDashboard({
     <div style={{ backgroundColor: "#f1f5f9", minHeight: "100vh", fontFamily: "'Poppins', sans-serif" }}>
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "1.5rem 1.25rem" }}>
 
-        {/* Top action tabs */}
-        <div style={{ display: "flex", gap: "0.6rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-          {[
-            { label: "Find Shift", action: () => clearAll() },
-            { label: "Browse",     action: () => { clearAll(); } },
-            { label: "Search",     action: () => { searchInputRef.current?.focus(); } },
-          ].map(({ label, action }) => (
-            <button
-              key={label}
-              onClick={action}
-              style={{ padding: "0.55rem 1.4rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#1e293b", fontWeight: 700, fontSize: "0.88rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = "#6366f1"; e.currentTarget.style.color = "#4f46e5"; }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.color = "#1e293b"; }}
-            >
-              {label}
-            </button>
-          ))}
+        {/* Page heading */}
+        <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
+          <h1 style={{ margin: 0, fontWeight: 800, fontSize: "1.85rem", color: "#1e293b" }}>Find Your Shift</h1>
+          <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Browse student-friendly jobs across Galway</p>
         </div>
 
         {/* Location nudge */}
@@ -525,14 +502,39 @@ export default function StudentDashboard({
               />
             </div>
 
-            {/* Job count + active sort label */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+            {/* Job count + Sort By */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
               <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#4f46e5", backgroundColor: "#eef2ff", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
                 {displayJobs.length} job{displayJobs.length !== 1 ? "s" : ""}
               </span>
-              {sortBy && (
-                <span style={{ fontSize: "0.78rem", color: "#64748b" }}>Sorted by: <strong style={{ color: "#374151" }}>{sortLabel[sortBy]}</strong></span>
-              )}
+              <div style={{ position: "relative" }} ref={sortDropdownRef}>
+                <button
+                  onClick={() => setSortDropdownOpen(o => !o)}
+                  style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${sortBy ? "#6366f1" : "#e2e8f0"}`, backgroundColor: sortBy ? "#eef2ff" : "white", color: sortBy ? "#4f46e5" : "#64748b", fontWeight: sortBy ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                >
+                  {sortLabel[sortBy] || "Sort by"} ▾
+                </button>
+                {sortDropdownOpen && (
+                  <div style={{ position: "absolute", top: "calc(100% + 0.4rem)", right: 0, zIndex: 50, backgroundColor: "white", border: "1.5px solid #e5e7eb", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "0.5rem 0.75rem", minWidth: "210px" }}>
+                    {[
+                      { value: "",             label: "Best Match" },
+                      { value: "payHigh",      label: "Pay: High → Low" },
+                      { value: "payLow",       label: "Pay: Low → High" },
+                      { value: "dateNewest",   label: "Date Posted: Newest" },
+                      { value: "dateOldest",   label: "Date Posted: Oldest" },
+                      ...(studentLocation ? [
+                        { value: "distanceNear", label: "Distance: Closest → Furthest" },
+                        { value: "distanceFar",  label: "Distance: Furthest → Closest" },
+                      ] : []),
+                    ].map(({ value, label }) => (
+                      <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0", cursor: "pointer", fontSize: "0.85rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "#4f46e5" : "#374151" }}>
+                        <input type="radio" name="sortByAbove" checked={sortBy === value} onChange={() => { setSortBy(value); setSortDropdownOpen(false); }} style={{ cursor: "pointer", accentColor: "#6366f1" }} />
+                        {label}
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* States */}
