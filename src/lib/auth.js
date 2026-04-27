@@ -278,6 +278,16 @@ export async function saveInterviewRoundsData(applicationId, rounds) {
   if (error) throw error;
 }
 
+export async function moveToInterviewRound(applicationId, round) {
+  const { data, error } = await supabase
+    .from("applications")
+    .update({ pipeline_stage: "interview", interview_round: round })
+    .eq("id", applicationId)
+    .select("id");
+  if (error) throw error;
+  if (!data?.length) throw new Error("Move failed — row not found or permission denied");
+}
+
 export async function fetchLikedStudentIds(companyId) {
   const { data, error } = await supabase
     .from("company_liked_students")

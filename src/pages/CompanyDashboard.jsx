@@ -4,7 +4,7 @@ import "../StudentShiftWeb.css";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
-import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, emailInterviewInvite, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
+import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, emailInterviewInvite, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -380,12 +380,18 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     setActivePosting(prev => updater(prev));
   };
 
-  const handleStageChange = async (applicationId, newStage) => {
+  const handleStageChange = async (applicationId, newStage, round) => {
     try {
-      await updateApplicationStage(applicationId, newStage);
+      if (newStage === "interview" && round !== undefined) {
+        await moveToInterviewRound(applicationId, round);
+      } else {
+        await updateApplicationStage(applicationId, newStage);
+      }
       const updater = p => ({
         ...p,
-        applicants: p.applicants.map(a => a.id === applicationId ? { ...a, pipelineStage: newStage } : a),
+        applicants: p.applicants.map(a => a.id === applicationId
+          ? { ...a, pipelineStage: newStage, ...(round !== undefined ? { interviewRound: round } : {}) }
+          : a),
       });
       setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
       setActivePosting(prev => prev ? updater(prev) : prev);
@@ -1068,6 +1074,35 @@ const PIPELINE_STAGES = [
   { key: "decision",    label: "Decision" },
 ];
 
+// Returns a virtual stage key that includes the round number for interview stages
+const getVirtualStageKey = (a) =>
+  a.pipelineStage === "interview" ? `interview_${a.interviewRound || 1}` : a.pipelineStage;
+
+// Decodes a virtual stage key back to the DB stage + round
+const resolveStageKey = (key) => {
+  if (key.startsWith("interview_")) {
+    return { dbStage: "interview", round: parseInt(key.replace("interview_", ""), 10) };
+  }
+  return { dbStage: key, round: undefined };
+};
+
+// Builds the dynamic stage list, expanding interview rounds as they're added
+const buildDynamicStages = (applicants) => {
+  const maxRound = applicants.reduce(
+    (m, a) => a.pipelineStage === "interview" ? Math.max(m, a.interviewRound || 1) : m, 1
+  );
+  return [
+    { key: "applied",     label: "Applied" },
+    { key: "shortlisted", label: "Shortlisted" },
+    ...Array.from({ length: maxRound }, (_, i) => ({
+      key:   `interview_${i + 1}`,
+      label: i === 0 ? "Interview" : `Interview Rd ${i + 1}`,
+    })),
+    { key: "trial",    label: "Trial" },
+    { key: "decision", label: "Decision" },
+  ];
+};
+
 function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, likedStudents }) {
   const [activeStage, setActiveStage]             = useState("applied");
   const [selectedApplicant, setSelectedApplicant] = useState(null);
@@ -1084,18 +1119,28 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
     return <p style={{ color: "#6b7280", textAlign: "center", padding: "2rem 1rem" }}>No applicants yet for this posting.</p>;
   }
 
-  const countFor = (stage) => posting.applicants.filter(a => a.pipelineStage === stage).length;
-  const visible  = posting.applicants.filter(a => a.pipelineStage === activeStage);
+  const dynamicStages = buildDynamicStages(posting.applicants);
+
+  const countFor = (key) => posting.applicants.filter(a => getVirtualStageKey(a) === key).length;
+  const visible  = posting.applicants.filter(a => getVirtualStageKey(a) === activeStage);
 
   // Keep selected applicant in sync when parent state updates (stage/notes changes)
   const liveSelected = selectedApplicant
     ? posting.applicants.find(a => a.id === selectedApplicant.id) || selectedApplicant
     : null;
 
-  const handleStageAction = async (applicationId, newStage) => {
-    await onStageChange(applicationId, newStage);
+  const handleStageAction = async (applicationId, stageKey) => {
+    const { dbStage, round } = resolveStageKey(stageKey);
+    await onStageChange(applicationId, dbStage, round);
     setSelectedApplicant(null);
-    setActiveStage(newStage);
+    setActiveStage(stageKey);
+  };
+
+  // Wrapper: increments round, switches to the new round's tab, closes panel
+  const handleRoundIncrement = async (applicationId, currentRound, newRoundsData) => {
+    await onIncrementRound(applicationId, currentRound, newRoundsData);
+    setSelectedApplicant(null);
+    setActiveStage(`interview_${currentRound + 1}`);
   };
 
   return (
@@ -1107,11 +1152,20 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
       </div>
 
       {viewMode === "kanban" ? (
-        <KanbanBoard applicants={posting.applicants} onSelectApplicant={setSelectedApplicant} onStageChange={onStageChange} />
+        <KanbanBoard
+          applicants={posting.applicants}
+          stages={dynamicStages}
+          onSelectApplicant={setSelectedApplicant}
+          onMoveToStage={async (applicationId, stageKey) => {
+            const { dbStage, round } = resolveStageKey(stageKey);
+            try { await onStageChange(applicationId, dbStage, round); }
+            catch (e) { alert(`Failed to move: ${e?.message || "Unknown error"}`); }
+          }}
+        />
       ) : (<>
         {/* Pipeline stage tabs */}
         <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", overflowX: "auto", borderBottom: "2px solid #e2e8f0", paddingBottom: 0 }}>
-        {PIPELINE_STAGES.map(({ key, label }) => {
+        {dynamicStages.map(({ key, label }) => {
           const count  = countFor(key);
           const active = activeStage === key;
           return (
@@ -1221,7 +1275,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
           onStageAction={handleStageAction}
           onUpdateStatus={onUpdateStatus}
           onNotesSaved={onNotesSaved}
-          onIncrementRound={onIncrementRound}
+          onIncrementRound={handleRoundIncrement}
           onSaveTrialSchedule={onSaveTrialSchedule}
           onSaveInterviewRoundsData={onSaveInterviewRoundsData}
           onSendInterviewInvite={onSendInterviewInvite}
@@ -1275,34 +1329,35 @@ function ApplicantRow({ applicant, onClick }) {
   );
 }
 
-function KanbanBoard({ applicants, onSelectApplicant, onStageChange }) {
-  const [draggingId, setDraggingId]     = useState(null);
+function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
+  const [draggingId, setDraggingId]       = useState(null);
   const [dragOverStage, setDragOverStage] = useState(null);
 
-  const colColors = {
-    applied:     { bg: "#f8fafc", border: "#e2e8f0", header: "#64748b" },
-    shortlisted: { bg: "#f0f9ff", border: "#bae6fd", header: "#0284c7" },
-    interview:   { bg: "#faf5ff", border: "#e9d5ff", header: "#7c3aed" },
-    trial:       { bg: "#f0fdf4", border: "#bbf7d0", header: "#16a34a" },
-    decision:    { bg: "#fff7ed", border: "#fed7aa", header: "#ea580c" },
+  const getColColor = (key) => {
+    if (key === "applied")              return { bg: "#f8fafc", border: "#e2e8f0", header: "#64748b" };
+    if (key === "shortlisted")          return { bg: "#f0f9ff", border: "#bae6fd", header: "#0284c7" };
+    if (key.startsWith("interview_"))   return { bg: "#faf5ff", border: "#e9d5ff", header: "#7c3aed" };
+    if (key === "trial")                return { bg: "#f0fdf4", border: "#bbf7d0", header: "#16a34a" };
+    if (key === "decision")             return { bg: "#fff7ed", border: "#fed7aa", header: "#ea580c" };
+    return { bg: "#f8fafc", border: "#e2e8f0", header: "#64748b" };
   };
 
-  const handleDrop = (e, targetStage) => {
+  const handleDrop = (e, targetKey) => {
     e.preventDefault();
     setDragOverStage(null);
     if (!draggingId) return;
     const a = applicants.find(x => x.id === draggingId);
-    if (a && a.pipelineStage !== targetStage) {
-      onStageChange?.(draggingId, targetStage);
+    if (a && getVirtualStageKey(a) !== targetKey) {
+      onMoveToStage?.(draggingId, targetKey);
     }
     setDraggingId(null);
   };
 
   return (
     <div style={{ display: "flex", gap: "0.6rem", overflowX: "auto", paddingBottom: "0.75rem", alignItems: "flex-start" }}>
-      {PIPELINE_STAGES.map(({ key, label }) => {
-        const cards  = applicants.filter(a => a.pipelineStage === key);
-        const c      = colColors[key];
+      {(stages || []).map(({ key, label }) => {
+        const cards  = applicants.filter(a => getVirtualStageKey(a) === key);
+        const c      = getColColor(key);
         const isOver = dragOverStage === key;
         return (
           <div
@@ -1675,7 +1730,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             <button onClick={() => onStageAction(applicant.id, "shortlisted")} style={panelActionBtn("#6366f1")}>Shortlist →</button>
           )}
           {stage === "shortlisted" && (
-            <button onClick={() => onStageAction(applicant.id, "interview")} style={panelActionBtn("#6366f1")}>Invite to Interview →</button>
+            <button onClick={() => onStageAction(applicant.id, "interview_1")} style={panelActionBtn("#6366f1")}>Invite to Interview →</button>
           )}
           {stage === "interview" && (<>
             <button onClick={() => {
