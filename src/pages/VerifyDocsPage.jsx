@@ -118,14 +118,22 @@ function FileUpload({ label, hint, accept, onChange, file }) {
         {label} <span style={{ color: "#f43f5e" }}>*</span>
       </label>
       <p style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.35rem", marginTop: 0 }}>{hint}</p>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap", border: `1.5px dashed ${file ? "#10b981" : "#e2e8f0"}`, borderRadius: "0.6rem", padding: "0.55rem 0.75rem", backgroundColor: file ? "#f0fdf4" : "white" }}>
-        <label style={{ cursor: "pointer", fontSize: "0.8rem", fontWeight: "600", color: "#6366f1", whiteSpace: "nowrap" }}>
-          {file ? "Change" : "Upload File"}
-          <input type="file" accept={accept} style={{ display: "none" }} onChange={e => onChange(e.target.files[0] || null)} />
-        </label>
-        <span style={{ fontSize: "0.8rem", color: file ? "#10b981" : "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {file ? `✓ ${file.name}` : "No file chosen"}
-        </span>
+      <div style={{ border: `1.5px dashed ${file ? "#10b981" : "#e2e8f0"}`, borderRadius: "0.6rem", padding: "0.55rem 0.75rem", backgroundColor: file ? "#f0fdf4" : "white" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: file ? "0.4rem" : 0 }}>
+          <label style={{ cursor: "pointer", fontSize: "0.78rem", fontWeight: "600", color: "#6366f1", whiteSpace: "nowrap", padding: "0.3rem 0.65rem", borderRadius: "0.4rem", border: "1.5px solid #6366f1", lineHeight: 1.4 }}>
+            📷 Take Photo
+            <input type="file" accept="image/*" capture="environment" style={{ display: "none" }} onChange={e => onChange(e.target.files[0] || null)} />
+          </label>
+          <label style={{ cursor: "pointer", fontSize: "0.78rem", fontWeight: "600", color: "#475569", whiteSpace: "nowrap", padding: "0.3rem 0.65rem", borderRadius: "0.4rem", border: "1.5px solid #cbd5e1", lineHeight: 1.4 }}>
+            📁 Upload File
+            <input type="file" accept={accept} style={{ display: "none" }} onChange={e => onChange(e.target.files[0] || null)} />
+          </label>
+        </div>
+        {file && (
+          <span style={{ fontSize: "0.78rem", color: "#10b981", display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            ✓ {file.name}
+          </span>
+        )}
       </div>
     </div>
   );
