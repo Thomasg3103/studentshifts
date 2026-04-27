@@ -64,10 +64,34 @@ Commit and push to `origin/main`. Render auto-deploys from main.
 ThomasGallagher1 / thomasgallagher3103@gmail.com
 
 ## Outstanding tasks
-1. Change sender email from gmail → Brevo domain (BLOCKED: waiting on mate with Brevo login)
-2. Update privacy@studentshifts.ie / hello@studentshifts.ie in Privacy + Terms pages (BLOCKED: waiting on email creation)
-3. Buy studentshifts.ie domain
-4. Solicitor review of Privacy Policy + Terms of Service
-5. Register with DPC at dataprotection.ie before real users go live
-6. Third-party student ID verification API (before full public launch)
-7. Mobile app (separate project)
+
+### Company Dashboard additions
+- Drag-to-move in kanban board view
+- Interview stage: send email with company note + timeslot + optional Teams invite
+- Interview stage: multiple rounds as separate columns/sub-stages
+- "Advance to Trial" pre-fills trial time from interview timeslot
+- Applied stage: show full profile by default; other stages collapse profile behind "View Profile" button
+
+### Landing page (brand new — doesn't exist)
+- Header: logo left, account icon + hamburger right
+- Hero: headline + job search bar
+- Sections: Companies Hiring (mock), How It Works, By The Numbers, Download App, Jobs by Location
+- Global footer: About, Jobs, Login, Sign Up, Help Centre, Advertise a Job, social links, FAQs, Contact
+
+### Student Dashboard revamp
+- Header: add Liked/Applied/Messages icons between account + hamburger
+- Filters sidebar (desktop) / toggle button (mobile)
+- Sort by: Best Match, Pay H→L, Pay L→H, Date Newest/Oldest, Distance Near/Far
+- Saved searches feature
+- Job card: horizontal layout, square image left, info middle, view+like right, distance shown
+- Back button below header on all inner screens
+- Time filter fix: use >= not exact match
+- Time slot selection: student picks ONE slot if job has multiple
+
+### Later (before full launch, not yet)
+- Brevo sender email — waiting on mate with Brevo login
+- Contact emails (privacy@/hello@) — waiting on new addresses being created
+- Third-party ID verification API
+- Buy studentshifts.ie domain
+- Solicitor review of Privacy Policy + Terms; register with DPC
+- Mobile app (separate project)
