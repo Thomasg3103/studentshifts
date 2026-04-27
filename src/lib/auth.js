@@ -262,6 +262,14 @@ export async function saveTrialSchedule(applicationId, trialDate, trialTime) {
   if (error) throw error;
 }
 
+export async function saveInterviewSchedule(applicationId, date, time) {
+  const { error } = await supabase
+    .from("applications")
+    .update({ interview_date: date || null, interview_time: time || null })
+    .eq("id", applicationId);
+  if (error) throw error;
+}
+
 export async function fetchLikedStudentIds(companyId) {
   const { data, error } = await supabase
     .from("company_liked_students")
@@ -678,6 +686,68 @@ export function emailCompanyInterested(studentName, companyName) {
               </tr>
             </table>
             <p style="margin:0;font-size:13px;color:#94a3b8;text-align:center;">You're receiving this because your profile is visible to verified companies on StudentShifts.</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #f1f5f9;padding:20px 32px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
+export function emailInterviewInvite(studentName, companyName, date, time, note, teamsLink) {
+  const sName   = escapeHtml(studentName);
+  const cName   = escapeHtml(companyName);
+  const safeNote = note ? escapeHtml(note) : "";
+  const safeTeams = teamsLink && /^https?:\/\//i.test(teamsLink) ? escapeHtml(teamsLink) : "";
+  const whenLine = date && time ? `${escapeHtml(date)} at ${escapeHtml(time)}`
+    : date ? escapeHtml(date)
+    : time ? escapeHtml(time)
+    : "To be confirmed";
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f1f5f9;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+        <tr>
+          <td align="center" style="background:linear-gradient(135deg,#7c3aed,#6366f1);padding:36px 24px 32px;">
+            <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">StudentShifts</p>
+            <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Find your next shift</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 32px 28px;">
+            <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">You've been invited to interview! 🗓️</p>
+            <p style="margin:0 0 20px;font-size:15px;color:#64748b;line-height:1.6;">
+              Hi ${sName},<br/><br/>
+              <strong style="color:#1e293b;">${cName}</strong> would like to invite you for an interview on StudentShifts.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
+              <tr>
+                <td style="background-color:#f5f3ff;border:1.5px solid #e9d5ff;border-radius:10px;padding:16px 20px;">
+                  <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:0.05em;">Interview Details</p>
+                  <p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>When:</strong> ${whenLine}</p>
+                  ${safeNote ? `<p style="margin:8px 0 0;font-size:14px;color:#374151;line-height:1.5;"><strong>Note from ${cName}:</strong><br/>${safeNote}</p>` : ""}
+                  ${safeTeams ? `<p style="margin:10px 0 0;font-size:14px;color:#1e293b;"><strong>Teams Link:</strong> <a href="${safeTeams}" style="color:#6366f1;">${safeTeams}</a></p>` : ""}
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center" style="padding:8px 0 28px;">
+                  <a href="MAGIC_LINK_PLACEHOLDER" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#6366f1);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;box-shadow:0 4px 18px rgba(124,58,237,0.4);">
+                    Open StudentShifts →
+                  </a>
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
         <tr>

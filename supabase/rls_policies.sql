@@ -756,6 +756,21 @@ BEGIN
   ) THEN
     ALTER TABLE applications ADD COLUMN trial_time text;
   END IF;
+
+  -- Interview schedule (date + time for sending invite to student)
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'applications' AND column_name = 'interview_date'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN interview_date date;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'applications' AND column_name = 'interview_time'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN interview_time text;
+  END IF;
 END $$;
 
 

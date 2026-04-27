@@ -4,7 +4,7 @@ import "../StudentShiftWeb.css";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
-import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
+import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, emailInterviewInvite, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, saveInterviewSchedule, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -105,7 +105,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     setActivePosting({ ...posting, applicants: [], applicantsLoading: true, applicantsError: null });
     setModal("applicants");
     const { data: appData, error: appError } = await withTimeout(
-      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time").eq("job_id", posting.id).order("created_at", { ascending: true }),
+      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time, interview_date, interview_time").eq("job_id", posting.id).order("created_at", { ascending: true }),
       10000, "Loading applicants timed out."
     );
     if (appError) {
@@ -139,6 +139,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       interviewRound: a.interview_round || 1,
       trialDate:      a.trial_date      || "",
       trialTime:      a.trial_time      || "",
+      interviewDate:  a.interview_date  || "",
+      interviewTime:  a.interview_time  || "",
     }));
     setActivePosting(prev => ({ ...prev, applicants, applicantsLoading: false }));
   };
@@ -427,6 +429,37 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     }
   };
 
+  const handleSaveInterviewSchedule = async (applicationId, date, time) => {
+    try {
+      await saveInterviewSchedule(applicationId, date, time);
+      const updater = p => ({
+        ...p,
+        applicants: p.applicants.map(a => a.id === applicationId ? { ...a, interviewDate: date, interviewTime: time } : a),
+      });
+      setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
+      setActivePosting(prev => prev ? updater(prev) : prev);
+    } catch { /* silently ignore */ }
+  };
+
+  const handleSendInterviewInvite = async (applicationId, date, time, note, teamsLink) => {
+    const applicant = activePosting?.applicants?.find(a => a.id === applicationId);
+    if (!applicant) return;
+    try {
+      const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: [applicant.studentId] });
+      const studentEmail = emailRows?.[0]?.email;
+      if (!studentEmail) throw new Error("Could not find student email.");
+      await sendEmail({
+        to: studentEmail,
+        subject: `Interview Invitation from ${currentUser.name}`,
+        html: emailInterviewInvite(applicant.name, currentUser.name, date, time, note, teamsLink),
+        magicLinkEmail: studentEmail,
+        redirectTo: window.location.origin,
+      });
+    } catch (e) {
+      throw new Error(e?.message || "Failed to send invite.");
+    }
+  };
+
   const handleSaveTrialSchedule = async (applicationId, date, time) => {
     try {
       await saveTrialSchedule(applicationId, date, time);
@@ -589,7 +622,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       {/* Applicants Modal */}
       {modal === "applicants" && activePosting && (
         <Modal onClose={closeModal} title={`Applicants — ${activePosting.title}`}>
-          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
+          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewSchedule={handleSaveInterviewSchedule} onSendInterviewInvite={handleSendInterviewInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
         </Modal>
       )}
 
@@ -1031,7 +1064,7 @@ const PIPELINE_STAGES = [
   { key: "decision",    label: "Decision" },
 ];
 
-function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, likedStudents }) {
+function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, onSaveInterviewSchedule, onSendInterviewInvite, likedStudents }) {
   const [activeStage, setActiveStage]             = useState("applied");
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showCloseJob, setShowCloseJob]           = useState(false);
@@ -1070,7 +1103,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
       </div>
 
       {viewMode === "kanban" ? (
-        <KanbanBoard applicants={posting.applicants} onSelectApplicant={setSelectedApplicant} />
+        <KanbanBoard applicants={posting.applicants} onSelectApplicant={setSelectedApplicant} onStageChange={onStageChange} />
       ) : (<>
         {/* Pipeline stage tabs */}
         <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", overflowX: "auto", borderBottom: "2px solid #e2e8f0", paddingBottom: 0 }}>
@@ -1186,6 +1219,8 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
           onNotesSaved={onNotesSaved}
           onIncrementRound={onIncrementRound}
           onSaveTrialSchedule={onSaveTrialSchedule}
+          onSaveInterviewSchedule={onSaveInterviewSchedule}
+          onSendInterviewInvite={onSendInterviewInvite}
         />
       )}
 
@@ -1236,7 +1271,10 @@ function ApplicantRow({ applicant, onClick }) {
   );
 }
 
-function KanbanBoard({ applicants, onSelectApplicant }) {
+function KanbanBoard({ applicants, onSelectApplicant, onStageChange }) {
+  const [draggingId, setDraggingId]     = useState(null);
+  const [dragOverStage, setDragOverStage] = useState(null);
+
   const colColors = {
     applied:     { bg: "#f8fafc", border: "#e2e8f0", header: "#64748b" },
     shortlisted: { bg: "#f0f9ff", border: "#bae6fd", header: "#0284c7" },
@@ -1244,26 +1282,68 @@ function KanbanBoard({ applicants, onSelectApplicant }) {
     trial:       { bg: "#f0fdf4", border: "#bbf7d0", header: "#16a34a" },
     decision:    { bg: "#fff7ed", border: "#fed7aa", header: "#ea580c" },
   };
+
+  const handleDrop = (e, targetStage) => {
+    e.preventDefault();
+    setDragOverStage(null);
+    if (!draggingId) return;
+    const a = applicants.find(x => x.id === draggingId);
+    if (a && a.pipelineStage !== targetStage) {
+      onStageChange?.(draggingId, targetStage);
+    }
+    setDraggingId(null);
+  };
+
   return (
     <div style={{ display: "flex", gap: "0.6rem", overflowX: "auto", paddingBottom: "0.75rem", alignItems: "flex-start" }}>
       {PIPELINE_STAGES.map(({ key, label }) => {
-        const cards = applicants.filter(a => a.pipelineStage === key);
-        const c = colColors[key];
+        const cards  = applicants.filter(a => a.pipelineStage === key);
+        const c      = colColors[key];
+        const isOver = dragOverStage === key;
         return (
-          <div key={key} style={{ minWidth: "160px", flex: "0 0 160px", backgroundColor: c.bg, border: `1.5px solid ${c.border}`, borderRadius: "0.75rem", padding: "0.6rem" }}>
+          <div
+            key={key}
+            onDragOver={e => { e.preventDefault(); setDragOverStage(key); }}
+            onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverStage(null); }}
+            onDrop={e => handleDrop(e, key)}
+            style={{
+              minWidth: "160px", flex: "0 0 160px",
+              backgroundColor: isOver ? (c.bg) : c.bg,
+              border: `1.5px solid ${isOver ? c.header : c.border}`,
+              borderRadius: "0.75rem", padding: "0.6rem",
+              transition: "border-color 0.15s",
+              boxShadow: isOver ? `0 0 0 3px ${c.header}22` : "none",
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
               <span style={{ fontSize: "0.72rem", fontWeight: "800", color: c.header, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
               <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: c.border, color: c.header, borderRadius: "999px", padding: "0.05rem 0.4rem" }}>{cards.length}</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", minHeight: "40px" }}>
               {cards.length === 0 && (
-                <p style={{ fontSize: "0.72rem", color: "#94a3b8", textAlign: "center", padding: "0.75rem 0", margin: 0 }}>Empty</p>
+                <p style={{ fontSize: "0.72rem", color: isOver ? c.header : "#94a3b8", textAlign: "center", padding: "0.75rem 0", margin: 0, fontStyle: isOver ? "normal" : "normal", fontWeight: isOver ? "700" : "400" }}>
+                  {isOver ? "Drop here" : "Empty"}
+                </p>
               )}
               {cards.map(applicant => (
                 <button
                   key={applicant.id}
+                  draggable
+                  onDragStart={e => {
+                    setDraggingId(applicant.id);
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", applicant.id);
+                  }}
+                  onDragEnd={() => { setDraggingId(null); setDragOverStage(null); }}
                   onClick={() => onSelectApplicant(applicant)}
-                  style={{ width: "100%", display: "flex", alignItems: "center", gap: "0.45rem", padding: "0.5rem 0.55rem", borderRadius: "0.5rem", border: "1.5px solid rgba(0,0,0,0.06)", backgroundColor: "white", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", gap: "0.45rem",
+                    padding: "0.5rem 0.55rem", borderRadius: "0.5rem",
+                    border: "1.5px solid rgba(0,0,0,0.06)", backgroundColor: "white",
+                    cursor: "grab", fontFamily: "inherit", textAlign: "left",
+                    opacity: draggingId === applicant.id ? 0.45 : 1,
+                    transition: "opacity 0.15s",
+                  }}
                 >
                   <div style={{ width: "28px", height: "28px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {applicant.profilePhoto
@@ -1293,7 +1373,7 @@ function CheckItem({ ok, label, warn }) {
   );
 }
 
-function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, onSaveTrialSchedule }) {
+function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, onSaveTrialSchedule, onSaveInterviewSchedule, onSendInterviewInvite }) {
   const [cvUrl, setCvUrl]     = useState(null);
   const [clUrl, setClUrl]     = useState(null);
   const [cvLoading, setCvLoading] = useState(false);
@@ -1304,10 +1384,22 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
   const [notesSaving, setNotesSaving] = useState(false);
   const [trialDate, setTrialDate] = useState(applicant.trialDate || "");
   const [trialTime, setTrialTime] = useState(applicant.trialTime || "");
+  const [interviewDate, setInterviewDate] = useState(applicant.interviewDate || "");
+  const [interviewTime, setInterviewTime] = useState(applicant.interviewTime || "");
+  const [profileOpen, setProfileOpen] = useState((applicant.pipelineStage || "applied") === "applied");
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
-  // Sync notes/trial if applicant prop changes (e.g. parent refresh)
-  useEffect(() => { setNotes(applicant.notes || ""); }, [applicant.id]);
-  useEffect(() => { setTrialDate(applicant.trialDate || ""); setTrialTime(applicant.trialTime || ""); }, [applicant.id]);
+  // Sync all local state when switching to a different applicant
+  useEffect(() => {
+    const s = applicant.pipelineStage || "applied";
+    setNotes(applicant.notes || "");
+    setTrialDate(applicant.trialDate || "");
+    setTrialTime(applicant.trialTime || "");
+    setInterviewDate(applicant.interviewDate || "");
+    setInterviewTime(applicant.interviewTime || "");
+    setProfileOpen(s === "applied");
+    setInviteModalOpen(false);
+  }, [applicant.id]);
 
   const openCv = async () => {
     if (!cvUrl) {
@@ -1399,51 +1491,61 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             </Section>
           )}
 
-          {/* Bio */}
-          <Section label="Bio">
-            <p style={{ margin: 0, fontSize: "0.85rem", color: applicant.bio ? "#374151" : "#9ca3af", fontStyle: applicant.bio ? "normal" : "italic", lineHeight: 1.6 }}>
-              {applicant.bio || "Not provided"}
-            </p>
-          </Section>
+          {/* View Profile toggle — non-applied stages */}
+          {stage !== "applied" && (
+            <button
+              onClick={() => setProfileOpen(p => !p)}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "0.55rem 0.85rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", backgroundColor: profileOpen ? "#f8fafc" : "white", color: "#374151", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
+            >
+              <span>{profileOpen ? "Hide Profile" : "View Profile"}</span>
+              <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{profileOpen ? "▲" : "▼"}</span>
+            </button>
+          )}
 
-          {/* Skills */}
-          <Section label="Skills">
-            {applicant.skills?.length > 0 ? (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                {applicant.skills.map(s => (
-                  <span key={s} style={{ fontSize: "0.72rem", backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: "999px", padding: "0.15rem 0.5rem", fontWeight: "600" }}>{s}</span>
-                ))}
+          {/* Bio + Skills + LinkedIn + Documents — always visible for applied, toggleable otherwise */}
+          {(stage === "applied" || profileOpen) && (<>
+            <Section label="Bio">
+              <p style={{ margin: 0, fontSize: "0.85rem", color: applicant.bio ? "#374151" : "#9ca3af", fontStyle: applicant.bio ? "normal" : "italic", lineHeight: 1.6 }}>
+                {applicant.bio || "Not provided"}
+              </p>
+            </Section>
+
+            <Section label="Skills">
+              {applicant.skills?.length > 0 ? (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                  {applicant.skills.map(s => (
+                    <span key={s} style={{ fontSize: "0.72rem", backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: "999px", padding: "0.15rem 0.5rem", fontWeight: "600" }}>{s}</span>
+                  ))}
+                </div>
+              ) : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not listed</p>}
+            </Section>
+
+            <Section label="LinkedIn">
+              {applicant.linkedin && /^https?:\/\//i.test(applicant.linkedin)
+                ? <a href={applicant.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: "0.85rem", color: "#0a66c2", fontWeight: "600", textDecoration: "underline" }}>View Profile</a>
+                : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not provided</p>
+              }
+            </Section>
+
+            <Section label="Documents">
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                <button
+                  onClick={openCv}
+                  disabled={!applicant.cvName || cvLoading}
+                  style={{ padding: "0.4rem 0.9rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: applicant.cvName ? "white" : "#f8fafc", color: applicant.cvName ? "#16a34a" : "#9ca3af", fontWeight: "600", fontSize: "0.8rem", cursor: applicant.cvName ? "pointer" : "default", fontFamily: "inherit" }}
+                >
+                  {cvLoading ? "Loading…" : "📄 CV"}
+                </button>
+                <button
+                  onClick={openCoverLetter}
+                  disabled={!applicant.coverLetterName || clLoading}
+                  style={{ padding: "0.4rem 0.9rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: applicant.coverLetterName ? "white" : "#f8fafc", color: applicant.coverLetterName ? "#6366f1" : "#9ca3af", fontWeight: "600", fontSize: "0.8rem", cursor: applicant.coverLetterName ? "pointer" : "default", fontFamily: "inherit" }}
+                >
+                  {clLoading ? "Loading…" : "📝 Cover Letter"}
+                </button>
               </div>
-            ) : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not listed</p>}
-          </Section>
-
-          {/* LinkedIn */}
-          <Section label="LinkedIn">
-            {applicant.linkedin && /^https?:\/\//i.test(applicant.linkedin)
-              ? <a href={applicant.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: "0.85rem", color: "#0a66c2", fontWeight: "600", textDecoration: "underline" }}>View Profile</a>
-              : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not provided</p>
-            }
-          </Section>
-
-          {/* Documents */}
-          <Section label="Documents">
-            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-              <button
-                onClick={openCv}
-                disabled={!applicant.cvName || cvLoading}
-                style={{ padding: "0.4rem 0.9rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: applicant.cvName ? "white" : "#f8fafc", color: applicant.cvName ? "#16a34a" : "#9ca3af", fontWeight: "600", fontSize: "0.8rem", cursor: applicant.cvName ? "pointer" : "default", fontFamily: "inherit" }}
-              >
-                {cvLoading ? "Loading…" : "📄 CV"}
-              </button>
-              <button
-                onClick={openCoverLetter}
-                disabled={!applicant.coverLetterName || clLoading}
-                style={{ padding: "0.4rem 0.9rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: applicant.coverLetterName ? "white" : "#f8fafc", color: applicant.coverLetterName ? "#6366f1" : "#9ca3af", fontWeight: "600", fontSize: "0.8rem", cursor: applicant.coverLetterName ? "pointer" : "default", fontFamily: "inherit" }}
-              >
-                {clLoading ? "Loading…" : "📝 Cover Letter"}
-              </button>
-            </div>
-          </Section>
+            </Section>
+          </>)}
 
           {/* Notes */}
           <Section label={notesSaving ? "Notes (saving…)" : "Notes"}>
@@ -1456,6 +1558,34 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
               style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.5, color: "#374151" }}
             />
           </Section>
+
+          {/* Interview schedule — only in interview stage */}
+          {stage === "interview" && (
+            <Section label="Interview Schedule">
+              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.6rem" }}>
+                <input
+                  type="date"
+                  value={interviewDate}
+                  onChange={e => setInterviewDate(e.target.value)}
+                  onBlur={() => onSaveInterviewSchedule?.(applicant.id, interviewDate, interviewTime)}
+                  style={{ flex: 1, minWidth: "130px", padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151" }}
+                />
+                <input
+                  type="time"
+                  value={interviewTime}
+                  onChange={e => setInterviewTime(e.target.value)}
+                  onBlur={() => onSaveInterviewSchedule?.(applicant.id, interviewDate, interviewTime)}
+                  style={{ flex: 1, minWidth: "100px", padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151" }}
+                />
+              </div>
+              <button
+                onClick={() => setInviteModalOpen(true)}
+                style={{ width: "100%", padding: "0.5rem", borderRadius: "0.5rem", border: "1.5px solid #e9d5ff", backgroundColor: "#f5f3ff", color: "#7c3aed", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
+              >
+                ✉ Send Interview Invite
+              </button>
+            </Section>
+          )}
 
           {/* Trial schedule — only in trial stage */}
           {stage === "trial" && (
@@ -1492,6 +1622,19 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           )}
         </div>
 
+        {/* Interview invite modal (rendered inside panel so it layers correctly) */}
+        {inviteModalOpen && (
+          <InterviewInviteModal
+            applicant={applicant}
+            date={interviewDate}
+            time={interviewTime}
+            onClose={() => setInviteModalOpen(false)}
+            onSend={async (note, teamsLink) => {
+              await onSendInterviewInvite?.(applicant.id, interviewDate, interviewTime, note, teamsLink);
+            }}
+          />
+        )}
+
         {/* Stage action buttons */}
         <div style={{ padding: "1rem 1.25rem", borderTop: "1.5px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0 }}>
           {stage === "applied" && (
@@ -1507,7 +1650,12 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
               </p>
             )}
             <button onClick={() => onIncrementRound?.(applicant.id, applicant.interviewRound || 1)} style={panelActionBtn("#6b7280")}>Next Round of Interviews ↺</button>
-            <button onClick={() => onStageAction(applicant.id, "trial")} style={panelActionBtn("#6366f1")}>Advance to Trial →</button>
+            <button onClick={async () => {
+              if (interviewDate || interviewTime) {
+                await onSaveTrialSchedule?.(applicant.id, interviewDate, interviewTime);
+              }
+              onStageAction(applicant.id, "trial");
+            }} style={panelActionBtn("#6366f1")}>Advance to Trial →</button>
             <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#475569")}>Skip to Decision →</button>
           </>)}
           {stage === "trial" && (
@@ -1517,6 +1665,70 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             <button onClick={() => onUpdateStatus(applicant.id, "Accepted", applicant)} style={panelActionBtn("#16a34a")}>Hire this Applicant ✓</button>
             <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>Decline ✕</button>
           </>)}
+        </div>
+      </div>
+    </>
+  );
+}
+
+function InterviewInviteModal({ applicant, date, time, onClose, onSend }) {
+  const [note, setNote]           = useState("");
+  const [teamsLink, setTeamsLink] = useState("");
+  const [sending, setSending]     = useState(false);
+  const [error, setError]         = useState("");
+
+  const send = async () => {
+    setSending(true);
+    setError("");
+    try {
+      await onSend(note, teamsLink);
+      onClose();
+    } catch (e) {
+      setError(e?.message || "Failed to send. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const whenLine = date && time ? `${date} at ${time}` : date || time || "Time not set";
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1300 }} />
+      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1301, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(400px,92vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
+        <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Send Interview Invite</h3>
+        <p style={{ margin: "0 0 1.1rem", fontSize: "0.82rem", color: "#64748b" }}>To: <strong>{applicant.name}</strong> · {whenLine}</p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <div>
+            <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Note to student <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>
+            <textarea
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              placeholder="e.g. Please bring a copy of your CV. Interview will be with the hiring manager."
+              rows={3}
+              style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.5, color: "#374151" }}
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Microsoft Teams link <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>
+            <input
+              type="url"
+              value={teamsLink}
+              onChange={e => setTeamsLink(e.target.value)}
+              placeholder="https://teams.microsoft.com/…"
+              style={{ width: "100%", padding: "0.5rem 0.7rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", boxSizing: "border-box", color: "#374151" }}
+            />
+          </div>
+        </div>
+
+        {error && <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "#e11d48", fontWeight: "600" }}>{error}</p>}
+
+        <div style={{ display: "flex", gap: "0.6rem", marginTop: "1.25rem" }}>
+          <button onClick={onClose} style={{ flex: 1, padding: "0.65rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+          <button onClick={send} disabled={sending} style={{ flex: 2, padding: "0.65rem", borderRadius: "0.6rem", border: "none", background: "linear-gradient(135deg,#7c3aed,#6366f1)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: sending ? "default" : "pointer", fontFamily: "inherit", opacity: sending ? 0.7 : 1 }}>
+            {sending ? "Sending…" : "Send Invite ✉"}
+          </button>
         </div>
       </div>
     </>
