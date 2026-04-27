@@ -1559,8 +1559,8 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             />
           </Section>
 
-          {/* Interview schedule — only in interview stage */}
-          {stage === "interview" && (
+          {/* Interview schedule — shortlisted and interview stages */}
+          {(stage === "shortlisted" || stage === "interview") && (
             <Section label="Interview Schedule">
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.6rem" }}>
                 <input
