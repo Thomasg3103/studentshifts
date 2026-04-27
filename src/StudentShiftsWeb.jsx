@@ -17,6 +17,7 @@ import VerifyDocsPage from "./pages/VerifyDocsPage";
 import AdminPage from "./pages/AdminPage";
 import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 import TermsOfServicePage from "./pages/TermsOfServicePage";
+import LandingPage from "./pages/LandingPage";
 import CookieBanner from "./components/CookieBanner";
 import { supabase } from "./lib/supabase";
 import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug } from "./lib/auth";
@@ -273,6 +274,8 @@ export default function StudentShiftsWeb() {
     setNotifCount(0);
   }, [location.pathname]);
 
+  const isLanding = !currentUser && location.pathname === "/";
+
   if (authLoading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f1f5f9" }}>
@@ -290,17 +293,21 @@ export default function StudentShiftsWeb() {
 
   return (
     <>
-      <Header
-        currentUser={currentUser}
-        setPage={setPage}
-        likedJobs={likedJobs}
-        appliedJobs={appliedJobs}
-        notifCount={notifCount}
-      />
+      {!isLanding && (
+        <Header
+          currentUser={currentUser}
+          setPage={setPage}
+          likedJobs={likedJobs}
+          appliedJobs={appliedJobs}
+          notifCount={notifCount}
+        />
+      )}
       <Routes>
-        {/* Home / Student Dashboard */}
+        {/* Home / Student Dashboard / Landing */}
         <Route path="/" element={
-          currentUser?.role === "student" && !currentUser?.studentIdPath
+          !currentUser
+            ? <LandingPage currentUser={currentUser} />
+            : currentUser?.role === "student" && !currentUser?.studentIdPath
             ? <VerifyDocsPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} />
             : <StudentDashboard
                 setPage={setPage}
@@ -374,13 +381,20 @@ export default function StudentShiftsWeb() {
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <footer style={{ backgroundColor: "#0f172a", color: "rgba(255,255,255,0.5)", textAlign: "center", padding: "1.25rem 1rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif" }}>
-        <span>© {new Date().getFullYear()} StudentShifts · Ireland</span>
-        <span style={{ margin: "0 0.6rem" }}>·</span>
-        <span onClick={() => setPage("privacy")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)" }}>Privacy Policy</span>
-        <span style={{ margin: "0 0.6rem" }}>·</span>
-        <span onClick={() => setPage("terms")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)" }}>Terms of Service</span>
-      </footer>
+      {!isLanding && (
+        <footer style={{ backgroundColor: "#0f172a", color: "rgba(255,255,255,0.5)", textAlign: "center", padding: "1.25rem 1rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif" }}>
+          <span onClick={() => setPage("about")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)", marginRight: "1rem" }}>About Us</span>
+          <span onClick={() => setPage("studentDashboard")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)", marginRight: "1rem" }}>Jobs</span>
+          <span onClick={() => setPage("login")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)", marginRight: "1rem" }}>Login</span>
+          <span onClick={() => setPage("signup")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)", marginRight: "1.5rem" }}>Sign Up</span>
+          <span style={{ margin: "0 0.6rem", color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span>© {new Date().getFullYear()} StudentShifts · Ireland</span>
+          <span style={{ margin: "0 0.6rem", color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span onClick={() => setPage("privacy")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)" }}>Privacy Policy</span>
+          <span style={{ margin: "0 0.6rem", color: "rgba(255,255,255,0.2)" }}>·</span>
+          <span onClick={() => setPage("terms")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)" }}>Terms of Service</span>
+        </footer>
+      )}
       <CookieBanner setPage={setPage} />
     </>
   );
