@@ -927,14 +927,26 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
   const isActive = posting.status === "Active";
   const today = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Closed" && posting.deadline && posting.deadline < today;
+  const photo = posting.photos?.[0] || null;
   return (
     <div className="job-posting-card" style={{
-      padding: "1rem 1.25rem", borderRadius: "0.75rem",
+      borderRadius: "0.75rem", overflow: "hidden",
       backgroundColor: "#f9fafb", border: `1.5px solid ${isExpired ? "#fca5a5" : "#e5e7eb"}`,
-      display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-      gap: "1rem", opacity: isActive ? 1 : 0.75,
+      display: "flex", alignItems: "flex-start",
+      opacity: isActive ? 1 : 0.75,
     }}>
-      <div style={{ flex: 1 }}>
+      {/* Square photo */}
+      <div style={{ width: "120px", height: "120px", flexShrink: 0, position: "relative", backgroundColor: "#0f172a" }}>
+        {photo ? (
+          <img src={photo} alt={posting.title} style={{ width: "120px", height: "120px", objectFit: "cover", display: "block" }} />
+        ) : (
+          <div style={{ width: "120px", height: "120px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#0f172a,#312e81)" }}>
+            <span style={{ fontSize: "2rem", opacity: 0.3 }}>🏢</span>
+          </div>
+        )}
+      </div>
+
+      <div style={{ flex: 1, padding: "0.85rem 0.85rem 0.85rem 1rem", minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
           <h2 style={{ fontWeight: "bold", fontSize: "1.1rem", margin: 0 }}>{posting.title}</h2>
           <span style={{
@@ -969,7 +981,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
         </p>
       </div>
 
-      <div className="job-posting-btns" style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0 }}>
+      <div className="job-posting-btns" style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0, padding: "0.85rem 1rem 0.85rem 0" }}>
         <button onClick={onViewApplicants} style={btnSmallGreen}>View Applicants</button>
         <button onClick={onEdit} style={btnSmallBlue}>Edit</button>
         <button onClick={onExtend} style={btnSmallPurple}>Extend</button>
