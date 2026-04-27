@@ -2424,7 +2424,7 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
               </div>
               <div
                 ref={previewRef}
-                style={{ position: "relative", width: "100%", aspectRatio: "16/7", backgroundColor: "#0f172a", borderRadius: "0.6rem", overflow: "hidden", border: "1.5px solid #e2e8f0", cursor: isDragging ? "grabbing" : "grab", userSelect: "none" }}
+                style={{ position: "relative", width: "100%", aspectRatio: "1/1", maxHeight: "340px", backgroundColor: "#0f172a", borderRadius: "0.6rem", overflow: "hidden", border: "1.5px solid #e2e8f0", cursor: isDragging ? "grabbing" : "grab", userSelect: "none" }}
                 onMouseDown={e => { e.preventDefault(); startDrag(e.clientX, e.clientY); }}
                 onTouchStart={e => { e.preventDefault(); startDrag(e.touches[0].clientX, e.touches[0].clientY); }}
               >
