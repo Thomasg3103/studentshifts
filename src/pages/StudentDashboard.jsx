@@ -583,13 +583,11 @@ export default function StudentDashboard({
                   <div key={job.id} className="job-card" style={{ display: "flex", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "default" }}>
 
                     {/* Square photo */}
-                    <div style={{ width: "120px", height: "120px", flexShrink: 0, alignSelf: "flex-start", position: "relative", backgroundColor: "#e2e8f0", overflow: "hidden" }}>
+                    <div style={{ width: "120px", height: "120px", flexShrink: 0, alignSelf: "flex-start", backgroundColor: "#e2e8f0" }}>
                       {photo ? (
-                        <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-                          <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                        </div>
+                        <img src={photo} alt={job.company} style={{ width: "120px", height: "120px", objectFit: "cover", display: "block" }} />
                       ) : (
-                        <div style={{ width: "120px", height: "120px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
+                        <div style={{ width: "120px", height: "120px", display: "flex", alignItems: "center", justifyContent: "center" }}>
                           <span style={{ fontSize: "2rem", opacity: 0.5 }}>🏢</span>
                         </div>
                       )}
