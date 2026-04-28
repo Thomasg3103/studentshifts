@@ -79,7 +79,9 @@ export default function JobDetails({
             <div style={{ width: "180px", height: "180px", flexShrink: 0, borderRadius: "0.85rem", overflow: "hidden", backgroundColor: "#0f172a", position: "relative" }}>
               {photos.length > 0 ? (
                 <>
-                  <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
+                    <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  </div>
                   {photos.length > 1 && (
                     <>
                       <button onClick={() => setPhotoIdx((idx - 1 + photos.length) % photos.length)} style={arrowBtn("left")}>‹</button>

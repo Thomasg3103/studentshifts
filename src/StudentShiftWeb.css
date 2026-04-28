@@ -144,7 +144,6 @@ header {
 }
 
 .job-card:hover {
-  transform: translateY(-3px);
   box-shadow: 0 10px 32px rgba(99,102,241,0.14);
 }
 
