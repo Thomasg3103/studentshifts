@@ -76,7 +76,7 @@ export default function JobDetails({
           <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap" }}>
 
             {/* Square thumbnail */}
-            <div style={{ width: "180px", height: "180px", flexShrink: 0, borderRadius: "0.85rem", overflow: "hidden", backgroundColor: "#0f172a", position: "relative" }}>
+            <div style={{ width: "180px", height: "180px", flexShrink: 0, borderRadius: "0.85rem", overflow: "hidden", backgroundColor: "#e2e8f0", position: "relative" }}>
               {photos.length > 0 ? (
                 <>
                   <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
@@ -93,8 +93,8 @@ export default function JobDetails({
                   )}
                 </>
               ) : (
-                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #312e81 100%)" }}>
-                  <span style={{ fontSize: "2.5rem", opacity: 0.25 }}>🏢</span>
+                <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
+                  <span style={{ fontSize: "2.5rem", opacity: 0.5 }}>🏢</span>
                 </div>
               )}
             </div>
