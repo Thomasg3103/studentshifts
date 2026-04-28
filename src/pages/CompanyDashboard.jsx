@@ -939,7 +939,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
       {/* Square photo */}
       <div style={{ width: "120px", height: "120px", flexShrink: 0, position: "relative", backgroundColor: "#0f172a", overflow: "hidden" }}>
         {photo ? (
-          <img src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }} />
+          <img src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         ) : (
           <div style={{ width: "120px", height: "120px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#0f172a,#312e81)" }}>
             <span style={{ fontSize: "2rem", opacity: 0.3 }}>🏢</span>
