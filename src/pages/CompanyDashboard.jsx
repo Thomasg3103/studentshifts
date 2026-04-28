@@ -939,9 +939,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
       {/* Square photo */}
       <div style={{ width: "120px", height: "120px", flexShrink: 0, position: "relative", backgroundColor: "#0f172a", overflow: "hidden" }}>
         {photo ? (
-          <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-            <img src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
-          </div>
+          <img src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         ) : (
           <div style={{ width: "120px", height: "120px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#0f172a,#312e81)" }}>
             <span style={{ fontSize: "2rem", opacity: 0.3 }}>🏢</span>
@@ -2431,16 +2429,9 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
                 onMouseDown={e => { e.preventDefault(); startDrag(e.clientX, e.clientY); }}
                 onTouchStart={e => { e.preventDefault(); startDrag(e.touches[0].clientX, e.touches[0].clientY); }}
               >
-                <div style={{
-                  position: "absolute", inset: 0,
-                  transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`,
-                  transformOrigin: "center",
-                  transition: isDragging ? "none" : "transform 0.1s ease",
-                }}>
-                  <img src={src} alt="preview" draggable={false}
-                    style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-                  />
-                </div>
+                <img src={src} alt="preview" draggable={false}
+                  style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                />
               </div>
             </div>
           ) : null;
