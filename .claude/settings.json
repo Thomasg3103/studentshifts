@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git commit -m 'Update CLAUDE.md with new feature backlog *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git commit -m 'Add render.yaml to fix SPA page-reload 404 *)",
+      "Bash(git commit -m 'Add landing page for logged-out visitors *)",
+      "Bash(git commit -m 'Revamp student dashboard and header layout *)",
+      "Bash(git commit -m 'Fix dashboard layout: restore heading, move sort above jobs *)",
+      "Bash(git commit -m 'Restore grid view toggle \\(single/two column\\) on dashboard *)",
+      "Bash(git commit -m 'Fix JSX structure and align Filters button with Sort By on mobile *)"
+    ]
+  }
+}

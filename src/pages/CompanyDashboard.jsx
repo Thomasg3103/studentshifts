@@ -2432,8 +2432,12 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
                 onTouchStart={e => { e.preventDefault(); startDrag(e.touches[0].clientX, e.touches[0].clientY); }}
               >
                 <div style={{
-                  position: "absolute", inset: 0,
-                  transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`,
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  width: "100%",
+                  height: "100%",
+                  transform: `translate(-50%, -50%) translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`,
                   transformOrigin: "center",
                   transition: isDragging ? "none" : "transform 0.1s ease",
                 }}>
