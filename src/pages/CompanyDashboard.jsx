@@ -2095,14 +2095,18 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
       if (!previewRef.current) return;
       const { width, height } = previewRef.current.getBoundingClientRect();
       // Store as percentage of container so it scales correctly on any screen size
-      setCropSettings(prev => ({
-        ...prev,
-        [d.idx]: {
-          ...(prev[d.idx] || { zoom: 1 }),
-          offsetX: d.originX + ((cx - d.startX) / width  * 100),
-          offsetY: d.originY + ((cy - d.startY) / height * 100),
-        },
-      }));
+      setCropSettings(prev => {
+        const current = prev[d.idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
+
+        return {
+          ...prev,
+          [d.idx]: {
+            ...(prev[d.idx] || { zoom: 1 }),
+            offsetX: d.originX + ((cx - d.startX) / width  * 100),
+            offsetY: d.originY + ((cy - d.startY) / height * 100),
+          },
+        };
+      });
     };
     const onUp = () => { dragRef.current.active = false; setIsDragging(false); };
     window.addEventListener("mousemove", onMove);
