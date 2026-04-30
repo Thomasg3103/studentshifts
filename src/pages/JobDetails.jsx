@@ -79,7 +79,7 @@ export default function JobDetails({
             <div style={{ width: "180px", height: "180px", flexShrink: 0, borderRadius: "0.85rem", overflow: "hidden", position: "relative" }}>
               {photos.length > 0 ? (
                 <>
-                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
+                  <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `scale(${crop.zoom}) translate(${crop.offsetX}%, ${crop.offsetY}%)`, transformOrigin: "center" }}>
                     <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                   </div>
                   {photos.length > 1 && (

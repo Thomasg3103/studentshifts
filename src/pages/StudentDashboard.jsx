@@ -585,7 +585,7 @@ export default function StudentDashboard({
                     {/* Square photo */}
                     <div style={{ width: "120px", height: "120px", flexShrink: 0, alignSelf: "flex-start", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
                       {photo ? (
-                    <div style={{position: "absolute", top: "50%", left: "50%", width: "100%", height: "100%", transform: `translate(-50%, -50%) translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center"}}>
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `scale(${crop.zoom}) translate(${crop.offsetX}%, ${crop.offsetY}%)`, transformOrigin: "center" }}>
                           <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         </div>
                       ) : (
