@@ -669,42 +669,17 @@ function Pip({ n }) {
 }
 
 function SmoothSlider({ value, onChange, max = 50 }) {
-  const trackRef = useRef(null);
-  const dragging = useRef(false);
-
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    const calc = (clientX) => {
-      const r = el.getBoundingClientRect();
-      return Math.round(Math.max(0, Math.min(max, (clientX - r.left) / r.width * max)));
-    };
-    const onDown = (e) => { e.preventDefault(); dragging.current = true;  onChange(calc(e.clientX)); };
-    const onMove = (e) => { if (dragging.current) onChange(calc(e.clientX)); };
-    const onUp   = ()  => { dragging.current = false; };
-    el.addEventListener("pointerdown",   onDown, { passive: false });
-    window.addEventListener("pointermove",   onMove);
-    window.addEventListener("pointerup",     onUp);
-    window.addEventListener("pointercancel", onUp);
-    return () => {
-      el.removeEventListener("pointerdown",   onDown);
-      window.removeEventListener("pointermove",   onMove);
-      window.removeEventListener("pointerup",     onUp);
-      window.removeEventListener("pointercancel", onUp);
-    };
-  }, [max, onChange]);
-
   const pct = (value / max) * 100;
-
   return (
-    <div
-      ref={trackRef}
-      style={{ position: "relative", height: "24px", display: "flex", alignItems: "center", cursor: "pointer", userSelect: "none", touchAction: "none" }}
-    >
-      <div style={{ position: "absolute", left: 0, right: 0, height: "5px", borderRadius: "3px", backgroundColor: "#e2e8f0" }}>
-        <div style={{ width: `${pct}%`, height: "100%", backgroundColor: "#6366f1", borderRadius: "3px" }} />
-      </div>
-      <div style={{ position: "absolute", left: `${pct}%`, transform: "translateX(-50%)", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "white", border: "2.5px solid #6366f1", boxShadow: "0 1px 6px rgba(99,102,241,0.4)", pointerEvents: "none" }} />
-    </div>
+    <input
+      type="range"
+      min={0}
+      max={max}
+      step={1}
+      value={value}
+      onChange={e => onChange(Number(e.target.value))}
+      className="dist-slider"
+      style={{ background: `linear-gradient(to right, #6366f1 ${pct}%, #e2e8f0 ${pct}%)` }}
+    />
   );
 }
