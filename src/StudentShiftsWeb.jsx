@@ -382,7 +382,7 @@ export default function StudentShiftsWeb() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!isLanding && (
-        <footer style={{ backgroundColor: "#0f172a", color: "rgba(255,255,255,0.5)", textAlign: "center", padding: "1.25rem 1rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif" }}>
+        <footer className="app-footer" style={{ backgroundColor: "#0f172a", color: "rgba(255,255,255,0.5)", textAlign: "center", padding: "1.25rem 1rem", fontSize: "0.78rem", fontFamily: "'Poppins', sans-serif" }}>
           <span onClick={() => setPage("about")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)", marginRight: "1rem" }}>About Us</span>
           <span onClick={() => setPage("studentDashboard")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)", marginRight: "1rem" }}>Jobs</span>
           <span onClick={() => setPage("login")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)", marginRight: "1rem" }}>Login</span>
