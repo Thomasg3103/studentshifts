@@ -669,17 +669,41 @@ function Pip({ n }) {
 }
 
 function SmoothSlider({ value, onChange, max = 50 }) {
+  const trackRef = useRef(null);
+  const dragging = useRef(false);
+  const onChangeRef = useRef(onChange);
+  const maxRef = useRef(max);
+
+  useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+  useEffect(() => { maxRef.current = max; }, [max]);
+
+  const valueFromClientX = (clientX) => {
+    if (!trackRef.current) return;
+    const rect = trackRef.current.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    onChangeRef.current(Math.round(ratio * maxRef.current));
+  };
+
+  useEffect(() => {
+    const onMove = (e) => { if (dragging.current) valueFromClientX(e.clientX); };
+    const onUp   = () => { dragging.current = false; };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup",   onUp);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup",   onUp);
+    };
+  }, []);
+
   const pct = (value / max) * 100;
+
   return (
-    <input
-      type="range"
-      min={0}
-      max={max}
-      step={1}
-      value={value}
-      onChange={e => onChange(Number(e.target.value))}
-      className="dist-slider"
-      style={{ background: `linear-gradient(to right, #6366f1 ${pct}%, #e2e8f0 ${pct}%)` }}
-    />
+    <div
+      ref={trackRef}
+      onPointerDown={(e) => { e.preventDefault(); dragging.current = true; valueFromClientX(e.clientX); }}
+      style={{ position: "relative", height: "6px", borderRadius: "999px", background: `linear-gradient(to right, #6366f1 ${pct}%, #e2e8f0 ${pct}%)`, cursor: "pointer", margin: "0.75rem 0", userSelect: "none", touchAction: "none" }}
+    >
+      <div style={{ position: "absolute", top: "50%", left: `${pct}%`, transform: "translate(-50%, -50%)", width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "#6366f1", boxShadow: "0 1px 4px rgba(0,0,0,0.25)", pointerEvents: "none" }} />
+    </div>
   );
 }
