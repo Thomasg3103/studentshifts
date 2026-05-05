@@ -444,16 +444,24 @@ export default function StudentDashboard({
           {/* Job list */}
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Search bar */}
-            <div style={{ marginBottom: "0.9rem" }}>
+            <div style={{ marginBottom: "0.9rem", position: "relative" }}>
               <input
                 ref={searchInputRef}
                 placeholder="Search by job title or company…"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                style={{ width: "100%", padding: "0.7rem 1rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white", outline: "none" }}
+                style={{ width: "100%", padding: "0.7rem 2.5rem 0.7rem 1rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white", outline: "none" }}
                 onFocus={e => e.target.style.borderColor = "#6366f1"}
                 onBlur={e => e.target.style.borderColor = "#e2e8f0"}
               />
+              {searchQuery && (
+                <button
+                  onClick={() => { setSearchQuery(""); searchInputRef.current?.focus(); }}
+                  style={{ position: "absolute", right: "0.6rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: "1.1rem", lineHeight: 1, padding: "0.2rem", display: "flex", alignItems: "center" }}
+                >
+                  ×
+                </button>
+              )}
             </div>
 
             {/* Saved search chips */}
