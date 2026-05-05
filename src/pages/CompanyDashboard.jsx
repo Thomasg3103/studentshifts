@@ -258,10 +258,12 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       };
 
       if (formData.id) {
-        const { error } = await withTimeout(
-          supabase.from("jobs").update(jobData).eq("id", formData.id),
+        console.log("[saveForm] updating job", formData.id, "photo_crops:", JSON.stringify(jobData.photo_crops));
+        const { error, data: updateData } = await withTimeout(
+          supabase.from("jobs").update(jobData).eq("id", formData.id).select("id, photo_crops"),
           10000, "Database timeout — please try again."
         );
+        console.log("[saveForm] update result — error:", error, "data:", JSON.stringify(updateData));
         if (error) throw error;
         setPostings(prev => prev.map(p => p.id === formData.id
           ? { ...normaliseJob({ ...jobData, id: formData.id }), applicants: p.applicants, applicantCount: p.applicantCount }
