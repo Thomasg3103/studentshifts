@@ -7,10 +7,11 @@ import { likeJob, unlikeJob, createApplication } from "../lib/auth";
 export default function JobDetails({
   job, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
 }) {
-  const [applyModal, setApplyModal] = useState(null);
-  const [photoIdx, setPhotoIdx]     = useState(0);
-  const [submitting, setSubmitting] = useState(false);
-  const [applyError, setApplyError] = useState(null);
+  const [applyModal, setApplyModal]       = useState(null);
+  const [photoIdx, setPhotoIdx]           = useState(0);
+  const [submitting, setSubmitting]       = useState(false);
+  const [applyError, setApplyError]       = useState(null);
+  const [fullscreenIdx, setFullscreenIdx] = useState(null);
 
   if (!job) return null;
 
@@ -76,7 +77,7 @@ export default function JobDetails({
           <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap" }}>
 
             {/* Square thumbnail */}
-            <div style={{ width: "180px", height: "180px", flexShrink: 0, borderRadius: "0.85rem", overflow: "hidden", position: "relative" }}>
+            <div style={{ width: "180px", height: "180px", flexShrink: 0, borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
               {photos.length > 0 ? (
                 <>
                   <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
@@ -201,7 +202,38 @@ export default function JobDetails({
           </div>
         </div>
       )}
-    </PageWrapper></>
+    </PageWrapper>
+
+      {/* Fullscreen photo lightbox */}
+      {fullscreenIdx !== null && (
+        <div
+          onClick={() => setFullscreenIdx(null)}
+          style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.92)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
+        >
+          {/* Close */}
+          <button onClick={() => setFullscreenIdx(null)} style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: "50%", width: "40px", height: "40px", fontSize: "1.3rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>✕</button>
+
+          {/* Image */}
+          <img
+            src={photos[fullscreenIdx]}
+            alt={job.company}
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: "100%", maxHeight: "90vh", objectFit: "contain", borderRadius: "0.5rem", boxShadow: "0 8px 40px rgba(0,0,0,0.6)" }}
+          />
+
+          {/* Arrows */}
+          {photos.length > 1 && (
+            <>
+              <button onClick={e => { e.stopPropagation(); setFullscreenIdx((fullscreenIdx - 1 + photos.length) % photos.length); }} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: "50%", width: "44px", height: "44px", fontSize: "1.5rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
+              <button onClick={e => { e.stopPropagation(); setFullscreenIdx((fullscreenIdx + 1) % photos.length); }} style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: "50%", width: "44px", height: "44px", fontSize: "1.5rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
+              <div style={{ position: "absolute", bottom: "1.25rem", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "6px" }}>
+                {photos.map((_, i) => <div key={i} onClick={e => { e.stopPropagation(); setFullscreenIdx(i); }} style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: i === fullscreenIdx ? "white" : "rgba(255,255,255,0.35)", cursor: "pointer" }} />)}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 
