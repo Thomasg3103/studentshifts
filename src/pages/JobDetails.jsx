@@ -214,13 +214,20 @@ export default function JobDetails({
           {/* Close */}
           <button onClick={() => setFullscreenIdx(null)} style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: "50%", width: "40px", height: "40px", fontSize: "1.3rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>✕</button>
 
-          {/* Image */}
-          <img
-            src={photos[fullscreenIdx]}
-            alt={job.company}
-            onClick={e => e.stopPropagation()}
-            style={{ maxWidth: "100%", maxHeight: "90vh", objectFit: "contain", borderRadius: "0.5rem", boxShadow: "0 8px 40px rgba(0,0,0,0.6)" }}
-          />
+          {/* Cropped image — same transform as thumbnail */}
+          {(() => {
+            const fsCrop = job.photoCrops?.[fullscreenIdx] || { zoom: 1, offsetX: 0, offsetY: 0 };
+            return (
+              <div
+                onClick={e => e.stopPropagation()}
+                style={{ width: "min(90vw, 90vh)", height: "min(90vw, 90vh)", position: "relative", overflow: "hidden", borderRadius: "0.5rem", boxShadow: "0 8px 40px rgba(0,0,0,0.6)", flexShrink: 0 }}
+              >
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${fsCrop.offsetX}%, ${fsCrop.offsetY}%) scale(${fsCrop.zoom})`, transformOrigin: "center" }}>
+                  <img src={photos[fullscreenIdx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                </div>
+              </div>
+            );
+          })()}
 
           {/* Arrows */}
           {photos.length > 1 && (

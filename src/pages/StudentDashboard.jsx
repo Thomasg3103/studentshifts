@@ -52,13 +52,10 @@ export default function StudentDashboard({
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
   const searchInputRef = useRef(null);
   const sortDropdownRef = useRef(null);
-  const savePopoverRef  = useRef(null);
-
   // Saved searches: [{ name, filters }]
   const ssKey = "ss_saved_searches_" + (currentUser?.id || "guest");
   const [savedSearches,    setSavedSearches]    = useState(() => { try { return JSON.parse(localStorage.getItem(ssKey) || "[]"); } catch { return []; } });
-  const [saveSearchName,   setSaveSearchName]   = useState("");
-  const [showSaveInput,    setShowSaveInput]    = useState(false);
+  const [justSaved,        setJustSaved]        = useState(false);
   const [gridCols,         setGridCols]         = useState(1);
 
   useEffect(() => {
@@ -70,14 +67,6 @@ export default function StudentDashboard({
   useEffect(() => {
     const handler = e => {
       if (sortDropdownRef.current && !sortDropdownRef.current.contains(e.target)) setSortDropdownOpen(false);
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  useEffect(() => {
-    const handler = e => {
-      if (savePopoverRef.current && !savePopoverRef.current.contains(e.target)) setShowSaveInput(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
@@ -238,12 +227,12 @@ export default function StudentDashboard({
   };
 
   const saveSearch = () => {
-    if (!saveSearchName.trim()) return;
-    const updated = [...savedSearches, { name: saveSearchName.trim(), filters: currentFilters() }];
+    const name = searchQuery.trim() || `Search ${savedSearches.length + 1}`;
+    const updated = [...savedSearches, { name, filters: currentFilters() }];
     setSavedSearches(updated);
     localStorage.setItem(ssKey, JSON.stringify(updated));
-    setSaveSearchName("");
-    setShowSaveInput(false);
+    setJustSaved(true);
+    setTimeout(() => setJustSaved(false), 1500);
   };
 
   const deleteSearch = (i) => {
@@ -484,34 +473,12 @@ export default function StudentDashboard({
                   <button onClick={() => setGridCols(1)} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "#6366f1" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
                   <button onClick={() => setGridCols(2)} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "#6366f1" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
                 </div>
-                {/* Save search popover */}
-                <div style={{ position: "relative" }} ref={savePopoverRef}>
-                  <button
-                    onClick={() => setShowSaveInput(o => !o)}
-                    title="Save current search"
-                    style={{ padding: "0.28rem 0.55rem", border: `1.5px solid ${showSaveInput ? "#6366f1" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", backgroundColor: showSaveInput ? "#eef2ff" : "white", color: showSaveInput ? "#6366f1" : "#94a3b8", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, fontFamily: "inherit" }}
-                  >⭐</button>
-                  {showSaveInput && (
-                    <div style={{ position: "absolute", top: "calc(100% + 0.4rem)", left: 0, zIndex: 50, backgroundColor: "white", border: "1.5px solid #e5e7eb", borderRadius: "0.75rem", padding: "0.75rem", minWidth: "230px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}>
-                      <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.5rem" }}>Save current search</p>
-                      <div style={{ display: "flex", gap: "0.4rem", marginBottom: savedSearches.length > 0 ? "0.75rem" : 0 }}>
-                        <input value={saveSearchName} onChange={e => setSaveSearchName(e.target.value)} onKeyDown={e => e.key === "Enter" && saveSearch()} placeholder="Name this search…" autoFocus style={{ flex: 1, padding: "0.3rem 0.5rem", borderRadius: "0.4rem", border: "1.5px solid #c7d2fe", fontSize: "0.8rem", fontFamily: "inherit", outline: "none" }} />
-                        <button onClick={saveSearch} style={{ background: "#6366f1", border: "none", color: "white", borderRadius: "0.4rem", padding: "0.3rem 0.6rem", cursor: "pointer", fontWeight: 700, fontSize: "0.78rem", fontFamily: "inherit" }}>Save</button>
-                      </div>
-                      {savedSearches.length > 0 && (
-                        <>
-                          <p style={{ fontSize: "0.68rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.4rem" }}>Saved searches</p>
-                          {savedSearches.map((s, i) => (
-                            <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.3rem" }}>
-                              <button onClick={() => { applyFilters(s.filters); setShowSaveInput(false); }} style={{ flex: 1, textAlign: "left", background: "#eef2ff", border: "1px solid #c7d2fe", borderRadius: "0.4rem", padding: "0.25rem 0.5rem", fontSize: "0.78rem", fontWeight: 600, color: "#4f46e5", cursor: "pointer", fontFamily: "inherit", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.name}</button>
-                              <button onClick={() => deleteSearch(i)} style={{ background: "none", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "0.9rem", padding: "0 0.1rem", lineHeight: 1, flexShrink: 0 }}>×</button>
-                            </div>
-                          ))}
-                        </>
-                      )}
-                    </div>
-                  )}
-                </div>
+                {/* Save search button — auto-saves using search bar text as name */}
+                <button
+                  onClick={saveSearch}
+                  title="Save current search"
+                  style={{ padding: "0.28rem 0.55rem", border: `1.5px solid ${justSaved ? "#6366f1" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", backgroundColor: justSaved ? "#eef2ff" : "white", color: justSaved ? "#6366f1" : "#94a3b8", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, fontFamily: "inherit" }}
+                >⭐</button>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               {isMobile && (
@@ -701,25 +668,34 @@ function SmoothSlider({ value, onChange, max = 50 }) {
   const active   = useRef(false);
 
   useEffect(() => {
+    const el = trackRef.current;
+    if (!el) return;
     const calc = (clientX) => {
-      const r = trackRef.current.getBoundingClientRect();
+      const r = el.getBoundingClientRect();
       return Math.round(Math.max(0, Math.min(max, (clientX - r.left) / r.width * max)));
     };
     const onMove = (e) => {
-      if (!active.current || !trackRef.current) return;
+      if (!active.current) return;
       if (e.cancelable) e.preventDefault();
       onChange(calc(e.touches ? e.touches[0].clientX : e.clientX));
     };
+    const onStart = (e) => {
+      e.preventDefault();
+      active.current = true;
+      onChange(calc(e.touches[0].clientX));
+    };
     const onUp = () => { active.current = false; };
-    window.addEventListener("mousemove",  onMove);
-    window.addEventListener("mouseup",    onUp);
-    window.addEventListener("touchmove",  onMove, { passive: false });
-    window.addEventListener("touchend",   onUp);
+    el.addEventListener("touchstart", onStart, { passive: false });
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup",   onUp);
+    window.addEventListener("touchmove", onMove, { passive: false });
+    window.addEventListener("touchend",  onUp);
     return () => {
-      window.removeEventListener("mousemove",  onMove);
-      window.removeEventListener("mouseup",    onUp);
-      window.removeEventListener("touchmove",  onMove);
-      window.removeEventListener("touchend",   onUp);
+      el.removeEventListener("touchstart", onStart);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup",   onUp);
+      window.removeEventListener("touchmove", onMove);
+      window.removeEventListener("touchend",  onUp);
     };
   }, [max, onChange]);
 
@@ -735,7 +711,6 @@ function SmoothSlider({ value, onChange, max = 50 }) {
     <div
       ref={trackRef}
       onMouseDown={e => { e.preventDefault(); start(e.clientX); }}
-      onTouchStart={e => start(e.touches[0].clientX)}
       style={{ position: "relative", height: "24px", display: "flex", alignItems: "center", cursor: "pointer", userSelect: "none", touchAction: "none" }}
     >
       <div style={{ position: "absolute", left: 0, right: 0, height: "5px", borderRadius: "3px", backgroundColor: "#e2e8f0" }}>
