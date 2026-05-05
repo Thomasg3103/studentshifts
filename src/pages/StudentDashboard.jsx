@@ -220,6 +220,7 @@ export default function StudentDashboard({
   const currentFilters = () => ({
     selectedDays, dayTimes, selectedLocations, selectedJobTypes,
     weekendOnly, allWeekOnly, noWeekends, distanceKm, sortBy, prefOnly,
+    searchQuery,
   });
 
   const applyFilters = (f) => {
@@ -233,6 +234,7 @@ export default function StudentDashboard({
     setDistanceKm(f.distanceKm || 0);
     setSortBy(f.sortBy || "");
     setPrefOnly(f.prefOnly || false);
+    setSearchQuery(f.searchQuery || "");
   };
 
   const saveSearch = () => {
@@ -465,7 +467,7 @@ export default function StudentDashboard({
               <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.6rem" }}>
                 {savedSearches.map((s, i) => (
                   <button key={i} onClick={() => applyFilters(s.filters)} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.25rem 0.5rem 0.25rem 0.7rem", borderRadius: "999px", border: "1.5px solid #c7d2fe", backgroundColor: "#eef2ff", color: "#4f46e5", fontSize: "0.77rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-                    🔖 {s.name}
+                    ⭐ {s.name}
                     <span role="button" onClick={e => { e.stopPropagation(); deleteSearch(i); }} style={{ marginLeft: "0.1rem", color: "#a5b4fc", fontWeight: 700, fontSize: "0.9rem", lineHeight: 1, cursor: "pointer", padding: "0 0.1rem" }}>×</span>
                   </button>
                 ))}
@@ -488,7 +490,7 @@ export default function StudentDashboard({
                     onClick={() => setShowSaveInput(o => !o)}
                     title="Save current search"
                     style={{ padding: "0.28rem 0.55rem", border: `1.5px solid ${showSaveInput ? "#6366f1" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", backgroundColor: showSaveInput ? "#eef2ff" : "white", color: showSaveInput ? "#6366f1" : "#94a3b8", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, fontFamily: "inherit" }}
-                  >🔖</button>
+                  >⭐</button>
                   {showSaveInput && (
                     <div style={{ position: "absolute", top: "calc(100% + 0.4rem)", left: 0, zIndex: 50, backgroundColor: "white", border: "1.5px solid #e5e7eb", borderRadius: "0.75rem", padding: "0.75rem", minWidth: "230px", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" }}>
                       <p style={{ fontSize: "0.7rem", fontWeight: 700, color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.5rem" }}>Save current search</p>
@@ -705,12 +707,13 @@ function SmoothSlider({ value, onChange, max = 50 }) {
     };
     const onMove = (e) => {
       if (!active.current || !trackRef.current) return;
+      if (e.cancelable) e.preventDefault();
       onChange(calc(e.touches ? e.touches[0].clientX : e.clientX));
     };
     const onUp = () => { active.current = false; };
     window.addEventListener("mousemove",  onMove);
     window.addEventListener("mouseup",    onUp);
-    window.addEventListener("touchmove",  onMove, { passive: true });
+    window.addEventListener("touchmove",  onMove, { passive: false });
     window.addEventListener("touchend",   onUp);
     return () => {
       window.removeEventListener("mousemove",  onMove);

@@ -59,6 +59,8 @@ export default function JobDetails({
     }
   };
 
+  const photos    = job.photos?.length > 0 ? job.photos : [];
+
   const deadlineStr = job.deadline
     ? new Date(job.deadline).toLocaleDateString("en-IE", { month: "long", day: "numeric", year: "numeric" })
     : null;
@@ -69,7 +71,6 @@ export default function JobDetails({
 
       {/* ── Header: photo + key info ── */}
       {(() => {
-        const photos = job.photos?.length > 0 ? job.photos : [];
         const idx    = Math.min(photoIdx, Math.max(0, photos.length - 1));
         const crop   = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
