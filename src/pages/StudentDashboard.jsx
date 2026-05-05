@@ -673,16 +673,21 @@ function SmoothSlider({ value, onChange, max = 50 }) {
   const dragging = useRef(false);
 
   useEffect(() => {
-    const onMove = (e) => {
-      if (!dragging.current || !trackRef.current) return;
-      const r = trackRef.current.getBoundingClientRect();
-      onChange(Math.round(Math.max(0, Math.min(max, (e.clientX - r.left) / r.width * max))));
+    const el = trackRef.current;
+    if (!el) return;
+    const calc = (clientX) => {
+      const r = el.getBoundingClientRect();
+      return Math.round(Math.max(0, Math.min(max, (clientX - r.left) / r.width * max)));
     };
-    const onUp = () => { dragging.current = false; };
+    const onDown = (e) => { e.preventDefault(); dragging.current = true;  onChange(calc(e.clientX)); };
+    const onMove = (e) => { if (dragging.current) onChange(calc(e.clientX)); };
+    const onUp   = ()  => { dragging.current = false; };
+    el.addEventListener("pointerdown",   onDown, { passive: false });
     window.addEventListener("pointermove",   onMove);
     window.addEventListener("pointerup",     onUp);
     window.addEventListener("pointercancel", onUp);
     return () => {
+      el.removeEventListener("pointerdown",   onDown);
       window.removeEventListener("pointermove",   onMove);
       window.removeEventListener("pointerup",     onUp);
       window.removeEventListener("pointercancel", onUp);
@@ -694,12 +699,6 @@ function SmoothSlider({ value, onChange, max = 50 }) {
   return (
     <div
       ref={trackRef}
-      onPointerDown={e => {
-        e.preventDefault();
-        dragging.current = true;
-        const r = trackRef.current.getBoundingClientRect();
-        onChange(Math.round(Math.max(0, Math.min(max, (e.clientX - r.left) / r.width * max))));
-      }}
       style={{ position: "relative", height: "24px", display: "flex", alignItems: "center", cursor: "pointer", userSelect: "none", touchAction: "none" }}
     >
       <div style={{ position: "absolute", left: 0, right: 0, height: "5px", borderRadius: "3px", backgroundColor: "#e2e8f0" }}>
