@@ -104,9 +104,6 @@ header {
 }
 
 @media (max-width: 640px) {
-  header {
-    padding: 0.5rem 0.85rem !important;
-  }
   .header-logo-icon svg {
     width: 32px !important;
     height: 36px !important;
@@ -128,6 +125,17 @@ header {
     border-radius: 0 !important;
     box-shadow: none !important;
     min-height: 100vh;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Extra bottom padding so content clears the mobile bottom nav */
+  .page-inner {
+    padding-bottom: calc(2rem + 64px) !important;
+  }
+  /* Move scroll-to-top button above the bottom nav */
+  .scroll-top-btn {
+    bottom: calc(64px + 1rem) !important;
   }
 }
 

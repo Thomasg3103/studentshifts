@@ -40,6 +40,7 @@ export default function PageWrapper({ children }) {
       {showTop && (
         <button
           onClick={scrollToTop}
+          className="scroll-top-btn"
           style={{
             position: "fixed",
             bottom: "2rem",
