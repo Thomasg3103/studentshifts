@@ -436,7 +436,7 @@ export default function StudentDashboard({
           {!isMobile && (
             <aside style={{ width: "260px", flexShrink: 0, position: "sticky", top: "88px" }}>
               <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
-                <FilterPanel />
+                {FilterPanel()}
               </div>
             </aside>
           )}
@@ -528,7 +528,7 @@ export default function StudentDashboard({
             {/* Mobile filter panel */}
             {isMobile && mobileFiltersOpen && (
               <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", marginBottom: "0.75rem", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
-                <FilterPanel />
+                {FilterPanel()}
               </div>
             )}
 
