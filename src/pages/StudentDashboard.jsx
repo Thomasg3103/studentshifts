@@ -670,11 +670,24 @@ function Pip({ n }) {
 
 function SmoothSlider({ value, onChange, max = 50 }) {
   const trackRef = useRef(null);
+  const dragging = useRef(false);
 
-  const calc = (clientX) => {
-    const r = trackRef.current.getBoundingClientRect();
-    return Math.round(Math.max(0, Math.min(max, (clientX - r.left) / r.width * max)));
-  };
+  useEffect(() => {
+    const onMove = (e) => {
+      if (!dragging.current || !trackRef.current) return;
+      const r = trackRef.current.getBoundingClientRect();
+      onChange(Math.round(Math.max(0, Math.min(max, (e.clientX - r.left) / r.width * max))));
+    };
+    const onUp = () => { dragging.current = false; };
+    window.addEventListener("pointermove",   onMove);
+    window.addEventListener("pointerup",     onUp);
+    window.addEventListener("pointercancel", onUp);
+    return () => {
+      window.removeEventListener("pointermove",   onMove);
+      window.removeEventListener("pointerup",     onUp);
+      window.removeEventListener("pointercancel", onUp);
+    };
+  }, [max, onChange]);
 
   const pct = (value / max) * 100;
 
@@ -683,12 +696,9 @@ function SmoothSlider({ value, onChange, max = 50 }) {
       ref={trackRef}
       onPointerDown={e => {
         e.preventDefault();
-        trackRef.current.setPointerCapture(e.pointerId);
-        onChange(calc(e.clientX));
-      }}
-      onPointerMove={e => {
-        if (!trackRef.current.hasPointerCapture(e.pointerId)) return;
-        onChange(calc(e.clientX));
+        dragging.current = true;
+        const r = trackRef.current.getBoundingClientRect();
+        onChange(Math.round(Math.max(0, Math.min(max, (e.clientX - r.left) / r.width * max))));
       }}
       style={{ position: "relative", height: "24px", display: "flex", alignItems: "center", cursor: "pointer", userSelect: "none", touchAction: "none" }}
     >
