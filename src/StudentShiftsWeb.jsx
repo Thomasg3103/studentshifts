@@ -395,7 +395,7 @@ export default function StudentShiftsWeb() {
           <span onClick={() => setPage("terms")} style={{ cursor: "pointer", color: "rgba(255,255,255,0.6)" }}>Terms of Service</span>
         </footer>
       )}
-      <CookieBanner setPage={setPage} />
+      <CookieBanner setPage={setPage} hasBottomNav={!!(currentUser?.role === "student")} />
     </>
   );
 }

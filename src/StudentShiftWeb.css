@@ -137,9 +137,13 @@ header {
   .scroll-top-btn {
     bottom: calc(64px + 1rem) !important;
   }
-  /* Footer clears the bottom nav */
+  /* App footer clears the bottom nav */
   .app-footer {
     padding-bottom: calc(1.25rem + 64px) !important;
+  }
+  /* Landing page footer clears the cookie banner (~80px on mobile) */
+  .landing-footer {
+    padding-bottom: calc(1.5rem + 90px) !important;
   }
 }
 

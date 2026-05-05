@@ -2,7 +2,7 @@ import { useState } from "react";
 
 const STORAGE_KEY = "ss_cookie_notice_dismissed";
 
-export default function CookieBanner({ setPage }) {
+export default function CookieBanner({ setPage, hasBottomNav }) {
   const [dismissed, setDismissed] = useState(
     () => localStorage.getItem(STORAGE_KEY) === "1"
   );
@@ -17,7 +17,7 @@ export default function CookieBanner({ setPage }) {
   return (
     <div style={{
       position: "fixed",
-      bottom: 0,
+      bottom: hasBottomNav ? "64px" : 0,
       left: 0,
       right: 0,
       backgroundColor: "#0f172a",

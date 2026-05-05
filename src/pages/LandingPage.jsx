@@ -293,7 +293,7 @@ function LandingFooter({ navigate, currentUser }) {
   };
 
   return (
-    <footer style={{ backgroundColor: "#0f172a", color: "rgba(255,255,255,0.55)", fontFamily: "'Poppins', sans-serif", padding: "3.5rem 1.5rem 1.5rem" }}>
+    <footer className="landing-footer" style={{ backgroundColor: "#0f172a", color: "rgba(255,255,255,0.55)", fontFamily: "'Poppins', sans-serif", padding: "3.5rem 1.5rem 1.5rem" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "2.5rem", marginBottom: "2.5rem" }}>
 
