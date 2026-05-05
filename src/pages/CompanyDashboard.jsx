@@ -258,12 +258,10 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       };
 
       if (formData.id) {
-        console.log("[saveForm] updating job", formData.id, "photo_crops:", JSON.stringify(jobData.photo_crops));
-        const { error, data: updateData } = await withTimeout(
-          supabase.from("jobs").update(jobData).eq("id", formData.id).select("id, photo_crops"),
+        const { error } = await withTimeout(
+          supabase.from("jobs").update(jobData).eq("id", formData.id),
           10000, "Database timeout — please try again."
         );
-        console.log("[saveForm] update result — error:", error, "data:", JSON.stringify(updateData));
         if (error) throw error;
         setPostings(prev => prev.map(p => p.id === formData.id
           ? { ...normaliseJob({ ...jobData, id: formData.id }), applicants: p.applicants, applicantCount: p.applicantCount }
@@ -2433,7 +2431,7 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
               </div>
               <div
                 ref={previewRef}
-                style={{ position: "relative", width: "100%", aspectRatio: "1/1", maxHeight: "340px", backgroundColor: "#0f172a", borderRadius: "0.6rem", overflow: "hidden", border: "1.5px solid #e2e8f0", cursor: isDragging ? "grabbing" : "grab", userSelect: "none" }}
+                style={{ position: "relative", width: "100%", maxWidth: "340px", aspectRatio: "1/1", backgroundColor: "#0f172a", borderRadius: "0.6rem", overflow: "hidden", border: "1.5px solid #e2e8f0", cursor: isDragging ? "grabbing" : "grab", userSelect: "none" }}
                 onMouseDown={e => { e.preventDefault(); startDrag(e.clientX, e.clientY); }}
                 onTouchStart={e => { e.preventDefault(); startDrag(e.touches[0].clientX, e.touches[0].clientY); }}
               >
