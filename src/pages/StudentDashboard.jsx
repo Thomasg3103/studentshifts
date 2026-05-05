@@ -228,6 +228,11 @@ export default function StudentDashboard({
 
   const saveSearch = () => {
     const name = searchQuery.trim() || `Search ${savedSearches.length + 1}`;
+    if (savedSearches.some(s => s.name === name)) {
+      setJustSaved(true);
+      setTimeout(() => setJustSaved(false), 1500);
+      return;
+    }
     const updated = [...savedSearches, { name, filters: currentFilters() }];
     setSavedSearches(updated);
     localStorage.setItem(ssKey, JSON.stringify(updated));
@@ -665,52 +670,26 @@ function Pip({ n }) {
 
 function SmoothSlider({ value, onChange, max = 50 }) {
   const trackRef = useRef(null);
-  const active   = useRef(false);
 
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    const calc = (clientX) => {
-      const r = el.getBoundingClientRect();
-      return Math.round(Math.max(0, Math.min(max, (clientX - r.left) / r.width * max)));
-    };
-    const onMove = (e) => {
-      if (!active.current) return;
-      if (e.cancelable) e.preventDefault();
-      onChange(calc(e.touches ? e.touches[0].clientX : e.clientX));
-    };
-    const onStart = (e) => {
-      e.preventDefault();
-      active.current = true;
-      onChange(calc(e.touches[0].clientX));
-    };
-    const onUp = () => { active.current = false; };
-    el.addEventListener("touchstart", onStart, { passive: false });
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup",   onUp);
-    window.addEventListener("touchmove", onMove, { passive: false });
-    window.addEventListener("touchend",  onUp);
-    return () => {
-      el.removeEventListener("touchstart", onStart);
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup",   onUp);
-      window.removeEventListener("touchmove", onMove);
-      window.removeEventListener("touchend",  onUp);
-    };
-  }, [max, onChange]);
+  const calc = (clientX) => {
+    const r = trackRef.current.getBoundingClientRect();
+    return Math.round(Math.max(0, Math.min(max, (clientX - r.left) / r.width * max)));
+  };
 
   const pct = (value / max) * 100;
-  const start = (clientX) => {
-    if (!trackRef.current) return;
-    active.current = true;
-    const r = trackRef.current.getBoundingClientRect();
-    onChange(Math.round(Math.max(0, Math.min(max, (clientX - r.left) / r.width * max))));
-  };
 
   return (
     <div
       ref={trackRef}
-      onMouseDown={e => { e.preventDefault(); start(e.clientX); }}
+      onPointerDown={e => {
+        e.preventDefault();
+        trackRef.current.setPointerCapture(e.pointerId);
+        onChange(calc(e.clientX));
+      }}
+      onPointerMove={e => {
+        if (!trackRef.current.hasPointerCapture(e.pointerId)) return;
+        onChange(calc(e.clientX));
+      }}
       style={{ position: "relative", height: "24px", display: "flex", alignItems: "center", cursor: "pointer", userSelect: "none", touchAction: "none" }}
     >
       <div style={{ position: "absolute", left: 0, right: 0, height: "5px", borderRadius: "3px", backgroundColor: "#e2e8f0" }}>
