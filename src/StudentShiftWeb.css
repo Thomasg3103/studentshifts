@@ -128,7 +128,7 @@ header {
   }
 }
 
-@media (max-width: 767px) {
+@media (max-width: 1023px) {
   /* Extra bottom padding so content clears the mobile bottom nav */
   .page-inner {
     padding-bottom: calc(2rem + 64px) !important;

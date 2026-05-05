@@ -72,7 +72,7 @@ export default function StudentDashboard({
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const isMobile = windowWidth < 768;
+  const isMobile = windowWidth < 1024;
 
   useEffect(() => {
     withTimeout(

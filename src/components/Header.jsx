@@ -8,7 +8,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
   const menuRef = useRef(null);
   const location = useLocation();
 
-  const isMobile = windowWidth < 768;
+  const isMobile = windowWidth < 1024;
 
   const optionalBadge = (() => {
     if (currentUser?.role !== "student") return 0;
@@ -213,12 +213,6 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
       boxShadow: "0 -4px 16px rgba(0,0,0,0.07)",
     }}>
 
-      {/* Home */}
-      <button onClick={() => setPage("studentDashboard")} style={tab(isHome)}>
-        <HomeIcon active={isHome} />
-        Home
-      </button>
-
       {/* Liked */}
       <button onClick={() => setPage("likedJobs")} style={tab(isLiked)}>
         <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>❤️</span>
@@ -237,6 +231,12 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
           <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "6px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{notifCount}</span>
         )}
       </div>
+
+      {/* Home — centre */}
+      <button onClick={() => setPage("studentDashboard")} style={tab(isHome)}>
+        <HomeIcon active={isHome} />
+        Home
+      </button>
 
       {/* Messages */}
       <button onClick={() => setPage("messages")} style={tab(isMessages)}>
