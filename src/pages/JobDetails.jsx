@@ -187,35 +187,57 @@ export default function JobDetails({
               <>
                 <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#f5f3ff", border: "2px solid #c4b5fd", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>🗓️</div>
                 <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Available Shifts</h3>
-                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "1.1rem" }}>Optionally pick a shift you prefer, then continue.</p>
-                <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.45rem", marginBottom: "1.25rem" }}>
+                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "1rem" }}>This job has {job.days.length} shifts available.</p>
+                <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.25rem" }}>
+                  {job.days.map(day => {
+                    const t = job.times?.[day];
+                    const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
+                    return (
+                      <div key={day} style={{ padding: "0.6rem 0.9rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", background: "#fafafa", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1e293b" }}>{day}</span>
+                        {timeStr && <span style={{ fontSize: "0.82rem", color: "#64748b", fontWeight: 500 }}>· {timeStr}</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ display: "flex", gap: "0.6rem", flexDirection: "column" }}>
+                  <button onClick={() => setApplyModal("confirm")} style={{ width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Apply to All Shifts</button>
+                  <div style={{ display: "flex", gap: "0.6rem" }}>
+                    <button onClick={() => setApplyModal(null)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+                    <button onClick={() => { setSelectedDay(null); setApplyModal("pickShift"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #A21D54", backgroundColor: "white", color: "#A21D54", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Pick a Shift</button>
+                  </div>
+                </div>
+              </>
+            ) : applyModal === "pickShift" ? (
+              <>
+                <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#f5f3ff", border: "2px solid #c4b5fd", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>🗓️</div>
+                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Pick a Shift</h3>
+                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "1rem" }}>Select the shift that works for you.</p>
+                <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.25rem" }}>
                   {job.days.map(day => {
                     const t = job.times?.[day];
                     const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
                     const sel = selectedDay === day;
                     return (
-                      <button key={day}
-                        onClick={() => setSelectedDay(sel ? null : day)}
+                      <button key={day} onClick={() => setSelectedDay(sel ? null : day)}
                         style={{ padding: "0.6rem 0.9rem", borderRadius: "0.65rem", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", border: sel ? "2px solid #A21D54" : "1.5px solid #e2e8f0", background: sel ? "#fce7f3" : "#fafafa", color: sel ? "#A21D54" : "#374151" }}>
-                        <span>{day}{timeStr ? (<span style={{ color: sel ? "#C2185B" : "#64748b", fontWeight: 500 }}> · {timeStr}</span>) : null}</span>
-                        {sel && <span style={{ fontSize: "0.75rem", fontWeight: 700 }}>✓ Selected</span>}
+                        <span>{day}{timeStr ? (<span style={{ fontWeight: 500, color: sel ? "#C2185B" : "#64748b" }}> · {timeStr}</span>) : null}</span>
+                        {sel && <span style={{ fontSize: "0.72rem", fontWeight: 700 }}>✓</span>}
                       </button>
                     );
                   })}
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
-                  <button onClick={() => setApplyModal(null)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-                  <button onClick={() => setApplyModal("confirm")} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>
-                    {selectedDay ? "Apply with this shift" : "Apply →"}
-                  </button>
+                  <button onClick={() => setApplyModal("shifts")} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
+                  <button onClick={() => { if (selectedDay) setApplyModal("confirm"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: selectedDay ? "linear-gradient(135deg, #A21D54, #C2185B)" : "#e2e8f0", color: selectedDay ? "white" : "#94a3b8", fontWeight: "700", cursor: selectedDay ? "pointer" : "default", fontFamily: "inherit" }}>Apply →</button>
                 </div>
               </>
             ) : applyModal === "confirm" ? (
               <>
                 <div style={{ width: "56px", height: "56px", borderRadius: "1rem", background: "linear-gradient(135deg, #A21D54, #C2185B)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem", boxShadow: "0 8px 20px rgba(162,29,84,0.35)" }}>📋</div>
                 <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "#1e293b" }}>Apply for {job.title}?</h3>
-                <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: needsSlotPick && selectedDay ? "0.6rem" : "1.5rem" }}>{job.company} — your CV will be shared with the employer.</p>
-                {needsSlotPick && selectedDay && (
+                <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: selectedDay ? "0.6rem" : "1.5rem" }}>{job.company} — your CV will be shared with the employer.</p>
+                {selectedDay && (
                   <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.65rem 0.9rem", marginBottom: "1.25rem", textAlign: "left" }}>
                     <p style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.25rem" }}>Preferred shift</p>
                     <p style={{ fontSize: "0.88rem", color: "#374151", fontWeight: "600", margin: 0 }}>
