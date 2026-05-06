@@ -123,7 +123,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
                 </button>
                 <div style={{ position: "relative", display: "inline-block" }}>
                   <button onClick={() => setPage("appliedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                    📄 <span className="nav-label">Applied</span> <CountBadge n={appliedJobs.length} />
+                    📄 <span className="nav-label">Applied</span>
                   </button>
                   {notifCount > 0 && <span style={notifDot}>{notifCount}</span>}
                 </div>
@@ -213,18 +213,21 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
     }}>
 
       {/* Liked */}
-      <button onClick={() => setPage("likedJobs")} style={tab(isLiked)}>
-        <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>❤️</span>
-        Liked
-        {likedJobs.length > 0 && <span style={{ fontSize: "0.55rem" }}>({likedJobs.length})</span>}
-      </button>
+      <div style={{ flex: 1, position: "relative" }}>
+        <button onClick={() => setPage("likedJobs")} style={{ ...tab(isLiked), width: "100%", height: "100%" }}>
+          <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>❤️</span>
+          Liked
+        </button>
+        {likedJobs.length > 0 && (
+          <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "6px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{likedJobs.length}</span>
+        )}
+      </div>
 
       {/* Applied */}
       <div style={{ flex: 1, position: "relative" }}>
         <button onClick={() => setPage("appliedJobs")} style={{ ...tab(isApplied), width: "100%", height: "100%" }}>
           <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>📄</span>
           Applied
-          {appliedJobs.length > 0 && <span style={{ fontSize: "0.55rem" }}>({appliedJobs.length})</span>}
         </button>
         {notifCount > 0 && (
           <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "6px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{notifCount}</span>
