@@ -162,5 +162,5 @@ const h2     = { margin: "0 0 0.6rem", fontWeight: "700", fontSize: "1.1rem", co
 const meta   = { margin: "0 0 2rem", fontSize: "0.82rem", color: "#94a3b8" };
 const body   = { margin: "0 0 0.75rem", fontSize: "0.9rem", color: "#475569", lineHeight: 1.7 };
 const list   = { paddingLeft: "1.25rem", margin: "0 0 0.75rem", fontSize: "0.9rem", color: "#475569", lineHeight: 1.8 };
-const link   = { color: "#6366f1", textDecoration: "none", fontWeight: "600" };
+const link   = { color: "#A21D54", textDecoration: "none", fontWeight: "600" };
 const backBtn = { marginBottom: "1.5rem", padding: "0.45rem 1rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" };

@@ -57,7 +57,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName }) {
             : messages.map(m => (
               <div key={m.id} style={{ alignSelf: m.sender_id === senderId ? "flex-end" : "flex-start", maxWidth: "80%" }}>
                 <div style={{
-                  backgroundColor: m.sender_id === senderId ? "#6366f1" : "#e5e7eb",
+                  backgroundColor: m.sender_id === senderId ? "#A21D54" : "#e5e7eb",
                   color: m.sender_id === senderId ? "white" : "#111827",
                   padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45,
                 }}>
@@ -81,7 +81,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName }) {
         />
         <button
           onClick={send}
-          style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
+          style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
         >
           Send
         </button>
@@ -159,14 +159,14 @@ export default function CompanyMessages({ currentUser, setPage }) {
                 <button
                   key={`direct_${conv.studentId}`}
                   onClick={() => setActive({ ...conv, jobId: null })}
-                  style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.9rem 1.1rem", borderRadius: "0.75rem", backgroundColor: "white", border: "1.5px solid #c7d2fe", cursor: "pointer", textAlign: "left", width: "100%", fontFamily: "inherit" }}
+                  style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.9rem 1.1rem", borderRadius: "0.75rem", backgroundColor: "white", border: "1.5px solid #fce7f3", cursor: "pointer", textAlign: "left", width: "100%", fontFamily: "inherit" }}
                 >
-                  <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "linear-gradient(135deg, #A21D54, #C2185B)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <span style={{ fontSize: "1.1rem" }}>👤</span>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: 0, fontWeight: "700", fontSize: "0.92rem", color: "#1e293b" }}>{conv.studentName}</p>
-                    <p style={{ margin: 0, fontSize: "0.78rem", color: "#6366f1", fontWeight: "600" }}>Direct message</p>
+                    <p style={{ margin: 0, fontSize: "0.78rem", color: "#A21D54", fontWeight: "600" }}>Direct message</p>
                   </div>
                   <span style={{ fontSize: "1rem", color: "#9ca3af" }}>›</span>
                 </button>
@@ -182,7 +182,7 @@ export default function CompanyMessages({ currentUser, setPage }) {
                   onClick={() => setActive(conv)}
                   style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.9rem 1.1rem", borderRadius: "0.75rem", backgroundColor: "white", border: "1.5px solid #e5e7eb", cursor: "pointer", textAlign: "left", width: "100%", fontFamily: "inherit" }}
                 >
-                  <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "linear-gradient(135deg, #A21D54, #C2185B)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     <span style={{ fontSize: "1.1rem" }}>👤</span>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -202,8 +202,8 @@ export default function CompanyMessages({ currentUser, setPage }) {
 
 const btnPrimary = {
   padding: "0.75rem 1.75rem", borderRadius: "2rem", border: "none",
-  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
-  boxShadow: "0 4px 14px rgba(99,102,241,0.3)",
+  background: "linear-gradient(135deg, #A21D54, #C2185B)",
+  boxShadow: "0 4px 14px rgba(162,29,84,0.3)",
   color: "white", fontWeight: "700", fontSize: "0.9rem",
   cursor: "pointer", fontFamily: "inherit",
 };

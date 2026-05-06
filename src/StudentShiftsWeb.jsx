@@ -279,10 +279,10 @@ export default function StudentShiftsWeb() {
 
   if (authLoading) {
     return (
-      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f1f5f9" }}>
+      <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#fafafa" }}>
         <div style={{ textAlign: "center", color: "#64748b" }}>
           <img src="/favicon.svg" alt="StudentShifts" style={{ width: "48px", height: "54px", marginBottom: "0.5rem" }} />
-          <p style={{ fontWeight: "600", fontFamily: "'Poppins', sans-serif" }}>Loading StudentShifts…</p>
+          <p style={{ fontWeight: "600", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Loading StudentShifts…</p>
         </div>
       </div>
     );
@@ -416,8 +416,8 @@ function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLike
     return (
       <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: "40px", height: "40px", border: "4px solid #e5e7eb", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
-          <p style={{ fontFamily: "'Poppins', sans-serif", fontWeight: "600" }}>Loading job…</p>
+          <div style={{ width: "40px", height: "40px", border: "4px solid #e5e7eb", borderTopColor: "#A21D54", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
+          <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: "600" }}>Loading job…</p>
         </div>
       </div>
     );
@@ -459,7 +459,7 @@ function EmailVerifiedPage({ setPage, currentUser }) {
         <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
           Your account is now active. Taking you to StudentShifts…
         </p>
-        <div style={{ width: "48px", height: "48px", border: "4px solid #e5e7eb", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
+        <div style={{ width: "48px", height: "48px", border: "4px solid #e5e7eb", borderTopColor: "#A21D54", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />
       </div>
     </div>
   );

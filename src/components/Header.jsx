@@ -72,7 +72,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
     <div style={{ position: "absolute", top: "48px", right: 0, backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", boxShadow: "0 8px 32px rgba(0,0,0,0.15)", zIndex: 300, minWidth: "180px", overflow: "hidden" }}>
       {menuItems.map((item, i) =>
         item.separator ? (
-          <hr key={i} style={{ border: "none", borderTop: "1px solid #f1f5f9", margin: "0.25rem 0" }} />
+          <hr key={i} style={{ border: "none", borderTop: "1px solid #fafafa", margin: "0.25rem 0" }} />
         ) : (
           <button key={item.label} onClick={item.action}
             style={{ display: "block", width: "100%", padding: "0.75rem 1.25rem", background: "none", border: "none", textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, color: item.danger ? "#ef4444" : "#1e293b" }}
@@ -92,9 +92,9 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
         display: "flex", alignItems: "center",
         justifyContent: isMobile ? "center" : "space-between",
         padding: isMobile ? "0.6rem 1rem" : "0.85rem 2.5rem",
-        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+        background: "linear-gradient(135deg, #A21D54 0%, #C2185B 100%)",
         color: "white",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+        boxShadow: "0 4px 20px rgba(162,29,84,0.35)",
         position: "sticky", top: 0, zIndex: 100,
         boxSizing: "border-box",
       }}>
@@ -107,10 +107,9 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
         >
           <div className="header-logo-icon"><LogoIcon /></div>
           <div className="header-logo-text" style={{ lineHeight: 1.15 }}>
-            <div className="logo-student" style={{ margin: 0, fontSize: "2.1rem", fontWeight: "800", background: "linear-gradient(90deg, #6366f1, #8b5cf6, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.02em" }}>Student</div>
-            <div className="logo-shifts" style={{ margin: 0, fontSize: "2.1rem", fontWeight: "800", letterSpacing: "-0.02em" }}>
-              <span style={{ color: "white" }}>Shifts</span><span style={{ color: "#6366f1" }}>.ie</span>
-            </div>
+            <span style={{ fontSize: "1.7rem", fontWeight: "800", color: "white", letterSpacing: "-0.02em" }}>
+              StudentShifts<span style={{ opacity: 0.7 }}>.ie</span>
+            </span>
           </div>
         </div>
 
@@ -201,7 +200,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
     gap: "2px", flex: 1, padding: "0.35rem 0",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-    color: active ? "#6366f1" : "#94a3b8",
+    color: active ? "#A21D54" : "#94a3b8",
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
   });
 
@@ -248,8 +247,8 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
       <div style={{ flex: 1, position: "relative" }}>
         <button onClick={() => setPage("account")} style={{ ...tab(isAccount), width: "100%", height: "100%" }}>
           {currentUser?.profilePhoto
-            ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "#6366f1" : "#e2e8f0"}` }} />
-            : <PersonIcon color={isAccount ? "#6366f1" : "#94a3b8"} />
+            ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "#A21D54" : "#e2e8f0"}` }} />
+            : <PersonIcon color={isAccount ? "#A21D54" : "#94a3b8"} />
           }
           Account
         </button>
@@ -263,31 +262,20 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
 
 function LogoIcon() {
   return (
-    <svg width="68" height="76" viewBox="0 0 46 52" fill="none">
-      <defs>
-        <linearGradient id="logoHeart" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#f43f5e" />
-          <stop offset="100%" stopColor="#e11d48" />
-        </linearGradient>
-        <clipPath id="logoHeartClip">
-          <path d="M23 48 C23 48 3 36 3 22 C3 14 9 8 16.5 8 C19.8 8 22.5 9.6 23 12 C23.5 9.6 26.2 8 29.5 8 C37 8 43 14 43 22 C43 36 23 48 23 48Z" />
-        </clipPath>
-      </defs>
-      <path d="M23 48 C23 48 3 36 3 22 C3 14 9 8 16.5 8 C19.8 8 22.5 9.6 23 12 C23.5 9.6 26.2 8 29.5 8 C37 8 43 14 43 22 C43 36 23 48 23 48Z" fill="url(#logoHeart)" />
-      <g clipPath="url(#logoHeartClip)">
-        <line x1="3" y1="20" x2="43" y2="20" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
-        <line x1="3" y1="28" x2="43" y2="28" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" />
-        <line x1="3" y1="36" x2="43" y2="36" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
-      </g>
-      <rect x="14" y="3" width="4" height="9" rx="2" fill="white" opacity="0.8" />
-      <rect x="28" y="3" width="4" height="9" rx="2" fill="white" opacity="0.8" />
-    </svg>
+    <div style={{ width: "44px", height: "44px", borderRadius: "12px", backgroundColor: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <polygon points="12,3 22,8 12,13 2,8" fill="#A21D54" />
+        <path d="M6 10.5v4.5c0 1.93 2.69 3.5 6 3.5s6-1.57 6-3.5v-4.5" stroke="#A21D54" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
+        <line x1="20" y1="8" x2="20" y2="14" stroke="#A21D54" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="20" cy="15.5" r="1.5" fill="#A21D54" />
+      </svg>
+    </div>
   );
 }
 
 function HomeIcon({ active }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "#6366f1" : "none"} stroke={active ? "#6366f1" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "#A21D54" : "none"} stroke={active ? "#A21D54" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
@@ -313,15 +301,15 @@ function CountBadge({ n }) {
 
 const navBtnPrimary = {
   padding: "0.48rem 1.1rem", borderRadius: "2rem",
-  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+  background: "linear-gradient(135deg, #A21D54, #C2185B)",
   color: "white", border: "none", cursor: "pointer",
   fontWeight: "700", fontSize: "0.82rem",
-  boxShadow: "0 4px 14px rgba(99,102,241,0.45)", fontFamily: "inherit",
+  boxShadow: "0 4px 14px rgba(162,29,84,0.45)", fontFamily: "inherit",
 };
 const navBtnOutline = {
   padding: "0.45rem 1.1rem", borderRadius: "2rem",
-  backgroundColor: "transparent", color: "white",
-  border: "1.5px solid rgba(255,255,255,0.28)",
+  backgroundColor: "rgba(255,255,255,0.15)", color: "white",
+  border: "1.5px solid rgba(255,255,255,0.5)",
   cursor: "pointer", fontWeight: "600", fontSize: "0.82rem", fontFamily: "inherit",
 };
 const notifDot = {
@@ -330,5 +318,5 @@ const notifDot = {
   fontSize: "0.62rem", fontWeight: "700",
   width: "16px", height: "16px", borderRadius: "50%",
   display: "flex", alignItems: "center", justifyContent: "center",
-  pointerEvents: "none", border: "2px solid #0f172a",
+  pointerEvents: "none", border: "2px solid #C2185B",
 };

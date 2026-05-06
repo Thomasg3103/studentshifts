@@ -119,7 +119,7 @@ export default function SignupPage({ setPage }) {
         )}
 
         {/* Role toggle */}
-        <div style={{ display: "flex", backgroundColor: "#f1f5f9", borderRadius: "0.75rem", padding: "0.25rem", marginBottom: "1.1rem", gap: "0.25rem" }}>
+        <div style={{ display: "flex", backgroundColor: "#fafafa", borderRadius: "0.75rem", padding: "0.25rem", marginBottom: "1.1rem", gap: "0.25rem" }}>
           {[{ val: "student", label: "🎓 Student" }, { val: "company", label: "🏢 Company" }].map(({ val, label }) => (
             <button
               key={val}
@@ -128,7 +128,7 @@ export default function SignupPage({ setPage }) {
                 flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none",
                 fontWeight: "600", fontSize: "0.875rem", cursor: "pointer",
                 backgroundColor: role === val ? "white" : "transparent",
-                color: role === val ? "#6366f1" : "#64748b",
+                color: role === val ? "#A21D54" : "#64748b",
                 boxShadow: role === val ? "0 1px 6px rgba(0,0,0,0.1)" : "none",
                 fontFamily: "inherit",
               }}
@@ -185,7 +185,7 @@ export default function SignupPage({ setPage }) {
             />
             <p style={{ margin: "0.3rem 0 0", fontSize: "0.76rem", color: "#64748b", lineHeight: 1.4 }}>
               Your Companies Registration Office number — find it at{" "}
-              <a href="https://search.cro.ie" target="_blank" rel="noreferrer" style={{ color: "#6366f1", fontWeight: "600" }}>search.cro.ie</a>.
+              <a href="https://search.cro.ie" target="_blank" rel="noreferrer" style={{ color: "#A21D54", fontWeight: "600" }}>search.cro.ie</a>.
               Used by our admin to verify your company.
             </p>
           </div>
@@ -206,9 +206,9 @@ export default function SignupPage({ setPage }) {
                   style={{
                     padding: "0.3rem 0.75rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600",
                     cursor: "pointer", fontFamily: "inherit",
-                    border: `1.5px solid ${industries.includes(cat) ? "#6366f1" : "#e2e8f0"}`,
-                    backgroundColor: industries.includes(cat) ? "#eef2ff" : "white",
-                    color: industries.includes(cat) ? "#4f46e5" : "#64748b",
+                    border: `1.5px solid ${industries.includes(cat) ? "#A21D54" : "#e2e8f0"}`,
+                    backgroundColor: industries.includes(cat) ? "#fce7f3" : "white",
+                    color: industries.includes(cat) ? "#A21D54" : "#64748b",
                   }}
                 >
                   {industries.includes(cat) ? "✓ " : ""}{cat}
@@ -244,7 +244,7 @@ export default function SignupPage({ setPage }) {
         <button onClick={() => setPage("studentDashboard")} style={btnHome}>← Back to Home</button>
         <p style={{ marginTop: "1.25rem", fontSize: "0.875rem", color: "#64748b", textAlign: "center" }}>
           Already have an account?{" "}
-          <span style={{ color: "#6366f1", cursor: "pointer", fontWeight: "700" }} onClick={() => setPage("login")}>
+          <span style={{ color: "#A21D54", cursor: "pointer", fontWeight: "700" }} onClick={() => setPage("login")}>
             Sign in
           </span>
         </p>
@@ -257,5 +257,5 @@ export default function SignupPage({ setPage }) {
 
 const inputStyle = { width: "100%", padding: "0.72rem 1rem", marginBottom: "0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "0.95rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };
-const btnPrimary = { ...btnBase, marginTop: "1.25rem", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 18px rgba(99,102,241,0.35)" };
+const btnPrimary = { ...btnBase, marginTop: "1.25rem", background: "linear-gradient(135deg, #A21D54, #C2185B)", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" };
 const btnHome    = { ...btnBase, marginTop: "0.6rem", background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 18px rgba(244,63,94,0.35)" };

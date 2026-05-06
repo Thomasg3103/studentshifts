@@ -66,25 +66,22 @@ export default function LandingPage({ currentUser }) {
   };
 
   return (
-    <div style={{ fontFamily: "'Poppins', sans-serif", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
 
       {/* ── Header ── */}
       <header style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0.85rem 2.5rem",
-        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
+        background: "linear-gradient(135deg, #A21D54 0%, #C2185B 100%)",
+        boxShadow: "0 4px 20px rgba(162,29,84,0.35)",
         position: "sticky", top: 0, zIndex: 200,
       }}>
         {/* Logo */}
         <div onClick={() => navigate("/")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.85rem" }}>
           <LogoIcon />
-          <div style={{ lineHeight: 1.15 }}>
-            <div style={{ fontSize: "1.9rem", fontWeight: 800, background: "linear-gradient(90deg,#6366f1,#8b5cf6,#a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", letterSpacing: "-0.02em" }}>Student</div>
-            <div style={{ fontSize: "1.9rem", fontWeight: 800, letterSpacing: "-0.02em" }}>
-              <span style={{ color: "white" }}>Shifts</span><span style={{ color: "#6366f1" }}>.ie</span>
-            </div>
-          </div>
+          <span style={{ fontSize: "1.7rem", fontWeight: 800, color: "white", letterSpacing: "-0.02em" }}>
+            StudentShifts<span style={{ opacity: 0.7 }}>.ie</span>
+          </span>
         </div>
 
         {/* Account icon + Hamburger */}
@@ -122,7 +119,7 @@ export default function LandingPage({ currentUser }) {
                   key={item.label}
                   onClick={() => { setMenuOpen(false); navigate(item.path); }}
                   style={{ display: "block", width: "100%", padding: "0.75rem 1.25rem", background: "none", border: "none", textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, color: "#1e293b" }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f1f5f9"}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = "#fafafa"}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
                 >
                   {item.label}
@@ -135,12 +132,12 @@ export default function LandingPage({ currentUser }) {
 
       {/* ── Hero ── */}
       <section style={{
-        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #312e81 100%)",
+        background: "linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #7b0d2e 100%)",
         color: "white", textAlign: "center", padding: "5rem 1.5rem 4.5rem",
       }}>
         <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.6rem)", fontWeight: 900, lineHeight: 1.12, margin: "0 0 1rem", letterSpacing: "-0.03em" }}>
           Find Flexible Shifts That<br />
-          <span style={{ background: "linear-gradient(90deg,#6366f1,#8b5cf6,#a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          <span style={{ background: "linear-gradient(90deg,#A21D54,#C2185B,#E57399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             Fit Your Student Life
           </span>
         </h1>
@@ -216,8 +213,8 @@ export default function LandingPage({ currentUser }) {
         <SectionHeading>StudentShifts by the Numbers</SectionHeading>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", marginBottom: "3.5rem" }}>
           {STATS.map(({ n, label }) => (
-            <div key={label} style={{ backgroundColor: "#eef2ff", borderRadius: "1rem", padding: "1.75rem 1rem", textAlign: "center" }}>
-              <p style={{ fontWeight: 800, fontSize: "2rem", color: "#6366f1", margin: 0 }}>{n}</p>
+            <div key={label} style={{ backgroundColor: "#fce7f3", borderRadius: "1rem", padding: "1.75rem 1rem", textAlign: "center" }}>
+              <p style={{ fontWeight: 800, fontSize: "2rem", color: "#A21D54", margin: 0 }}>{n}</p>
               <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "0.3rem 0 0", fontWeight: 600 }}>{label}</p>
             </div>
           ))}
@@ -258,7 +255,7 @@ export default function LandingPage({ currentUser }) {
                   key={city}
                   onClick={() => navigate("/login")}
                   style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "1.5px solid rgba(255,255,255,0.1)", borderRadius: "0.9rem", padding: "1.1rem 1rem", textAlign: "center", cursor: "pointer", color: "white", fontFamily: "inherit", transition: "background 0.15s, border-color 0.15s" }}
-                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(99,102,241,0.22)"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)"; }}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(162,29,84,0.22)"; e.currentTarget.style.borderColor = "rgba(162,29,84,0.5)"; }}
                   onMouseLeave={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
                 >
                   <div style={{ fontSize: "1.5rem", marginBottom: "0.4rem" }}>📍</div>
@@ -290,25 +287,14 @@ function SectionHeading({ children, light }) {
 
 function LogoIcon() {
   return (
-    <svg width="52" height="58" viewBox="0 0 46 52" fill="none">
-      <defs>
-        <linearGradient id="landingLogoGrad" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#f43f5e" />
-          <stop offset="100%" stopColor="#e11d48" />
-        </linearGradient>
-        <clipPath id="landingLogoClip">
-          <path d="M23 48 C23 48 3 36 3 22 C3 14 9 8 16.5 8 C19.8 8 22.5 9.6 23 12 C23.5 9.6 26.2 8 29.5 8 C37 8 43 14 43 22 C43 36 23 48 23 48Z" />
-        </clipPath>
-      </defs>
-      <path d="M23 48 C23 48 3 36 3 22 C3 14 9 8 16.5 8 C19.8 8 22.5 9.6 23 12 C23.5 9.6 26.2 8 29.5 8 C37 8 43 14 43 22 C43 36 23 48 23 48Z" fill="url(#landingLogoGrad)" />
-      <g clipPath="url(#landingLogoClip)">
-        <line x1="3" y1="20" x2="43" y2="20" stroke="rgba(255,255,255,0.25)" strokeWidth="1.5" />
-        <line x1="3" y1="28" x2="43" y2="28" stroke="rgba(255,255,255,0.18)" strokeWidth="1.5" />
-        <line x1="3" y1="36" x2="43" y2="36" stroke="rgba(255,255,255,0.12)" strokeWidth="1.5" />
-      </g>
-      <rect x="14" y="3" width="4" height="9" rx="2" fill="white" opacity="0.8" />
-      <rect x="28" y="3" width="4" height="9" rx="2" fill="white" opacity="0.8" />
-    </svg>
+    <div style={{ width: "44px", height: "44px", borderRadius: "12px", backgroundColor: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+        <polygon points="12,3 22,8 12,13 2,8" fill="#A21D54" />
+        <path d="M6 10.5v4.5c0 1.93 2.69 3.5 6 3.5s6-1.57 6-3.5v-4.5" stroke="#A21D54" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
+        <line x1="20" y1="8" x2="20" y2="14" stroke="#A21D54" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="20" cy="15.5" r="1.5" fill="#A21D54" />
+      </svg>
+    </div>
   );
 }
 

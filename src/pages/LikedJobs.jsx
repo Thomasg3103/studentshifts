@@ -58,7 +58,7 @@ export default function LikedJobs({ likedJobs, setLikedJobs, setSavedLikedJobIds
                     <p style={{ fontWeight: "700", color: "#111827", marginBottom: "0.4rem", fontSize: "0.9rem" }}>{job.pay}</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                       {job.days.map(day => (
-                        <span key={day} style={{ fontSize: "0.7rem", backgroundColor: "#eef2ff", color: "#4f46e5", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600" }}>
+                        <span key={day} style={{ fontSize: "0.7rem", backgroundColor: "#fce7f3", color: "#A21D54", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600" }}>
                           {day.slice(0, 3)} · {job.times[day]?.join(", ")}
                         </span>
                       ))}
@@ -79,6 +79,6 @@ export default function LikedJobs({ likedJobs, setLikedJobs, setSavedLikedJobIds
 }
 
 const btnBase = { padding: "0.38rem 0.9rem", borderRadius: "2rem", color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "0.8rem", fontFamily: "inherit" };
-const btnBlue = { ...btnBase, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 2px 8px rgba(99,102,241,0.3)" };
+const btnBlue = { ...btnBase, background: "linear-gradient(135deg, #A21D54, #C2185B)", boxShadow: "0 2px 8px rgba(162,29,84,0.3)" };
 const btnRed  = { ...btnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 2px 8px rgba(244,63,94,0.3)" };
 const btnGray = { ...btnBase, backgroundColor: "#64748b", padding: "0.75rem 1.75rem", fontSize: "0.9rem", borderRadius: "2rem" };

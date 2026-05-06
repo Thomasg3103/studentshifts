@@ -143,10 +143,10 @@ export default function AdminPage() {
                   background: active ? "white" : "transparent",
                   fontWeight: active ? "700" : "600",
                   fontSize: "0.875rem",
-                  color: active ? "#6366f1" : "#64748b",
+                  color: active ? "#A21D54" : "#64748b",
                   cursor: "pointer",
                   fontFamily: "inherit",
-                  borderBottom: active ? "2px solid #6366f1" : "2px solid transparent",
+                  borderBottom: active ? "2px solid #A21D54" : "2px solid transparent",
                   marginBottom: "-2px",
                   display: "flex",
                   alignItems: "center",
@@ -155,7 +155,7 @@ export default function AdminPage() {
               >
                 {label}
                 {count > 0 && (
-                  <span style={{ fontSize: "0.7rem", fontWeight: "700", backgroundColor: active ? "#6366f1" : "#94a3b8", color: "white", borderRadius: "999px", padding: "0.1rem 0.45rem", minWidth: "18px", textAlign: "center" }}>
+                  <span style={{ fontSize: "0.7rem", fontWeight: "700", backgroundColor: active ? "#A21D54" : "#94a3b8", color: "white", borderRadius: "999px", padding: "0.1rem 0.45rem", minWidth: "18px", textAlign: "center" }}>
                     {count}
                   </span>
                 )}
@@ -297,6 +297,6 @@ function EmptyState({ label }) {
 }
 
 const cardStyle      = { backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem 1.5rem" };
-const docBtn         = { padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#6366f1", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" };
+const docBtn         = { padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#A21D54", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" };
 const actionBtnBase  = { padding: "0.6rem 1.25rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" };
 const verifyLinkStyle = { display: "inline-flex", alignItems: "center", padding: "0.3rem 0.75rem", borderRadius: "0.45rem", border: "1.5px solid #bae6fd", backgroundColor: "white", color: "#0369a1", fontWeight: "600", fontSize: "0.76rem", textDecoration: "none", fontFamily: "inherit" };

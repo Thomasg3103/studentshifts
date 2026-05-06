@@ -9,7 +9,7 @@ export default function AppFooter({ currentUser }) {
   };
 
   return (
-    <footer className="app-footer" style={{ backgroundColor: "#0f172a", color: "rgba(255,255,255,0.55)", fontFamily: "'Poppins', sans-serif", padding: "3.5rem 1.5rem 1.5rem" }}>
+    <footer className="app-footer" style={{ backgroundColor: "#0f172a", color: "rgba(255,255,255,0.55)", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "3.5rem 1.5rem 1.5rem" }}>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))", gap: "2.5rem", marginBottom: "2.5rem" }}>
 
@@ -43,7 +43,7 @@ export default function AppFooter({ currentUser }) {
             <FLink onClick={() => {}}>TikTok</FLink>
             <FLink onClick={() => {}}>LinkedIn</FLink>
             <FLink onClick={() => {}}>Twitter / X</FLink>
-            <button style={{ marginTop: "0.9rem", padding: "0.5rem 1.2rem", borderRadius: "2rem", background: "linear-gradient(135deg,#6366f1,#8b5cf6)", color: "white", border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: "0.78rem" }}>
+            <button style={{ marginTop: "0.9rem", padding: "0.5rem 1.2rem", borderRadius: "2rem", background: "linear-gradient(135deg,#A21D54,#C2185B)", color: "white", border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: "0.78rem" }}>
               Download App
             </button>
           </div>

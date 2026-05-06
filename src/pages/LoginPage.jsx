@@ -131,7 +131,7 @@ export default function LoginPage({ setPage }) {
         <div style={{ textAlign: "right", marginTop: "0.25rem", marginBottom: "0.25rem" }}>
           <span
             onClick={() => { setForgotMode(true); setResetEmail(email); }}
-            style={{ fontSize: "0.82rem", color: "#6366f1", cursor: "pointer", fontWeight: "600" }}
+            style={{ fontSize: "0.82rem", color: "#A21D54", cursor: "pointer", fontWeight: "600" }}
           >
             Forgot password?
           </span>
@@ -145,7 +145,7 @@ export default function LoginPage({ setPage }) {
 
         <p style={{ marginTop: "1.25rem", fontSize: "0.875rem", color: "#64748b" }}>
           Don't have an account?{" "}
-          <span style={{ color: "#6366f1", cursor: "pointer", fontWeight: "700" }} onClick={() => setPage("signup")}>
+          <span style={{ color: "#A21D54", cursor: "pointer", fontWeight: "700" }} onClick={() => setPage("signup")}>
             Create one free
           </span>
         </p>
@@ -155,8 +155,8 @@ export default function LoginPage({ setPage }) {
   );
 }
 
-const fieldStyle = { width: "100%", padding: "0.72rem 1rem", margin: "0.4rem 0", display: "block", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", boxSizing: "border-box", fontSize: "0.95rem", fontFamily: "'Poppins', sans-serif", color: "#1e293b", outline: "none" };
+const fieldStyle = { width: "100%", padding: "0.72rem 1rem", margin: "0.4rem 0", display: "block", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", boxSizing: "border-box", fontSize: "0.95rem", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#1e293b", outline: "none" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", marginTop: "0.6rem", fontSize: "0.95rem", fontFamily: "inherit" };
-const btnPrimary = { ...btnBase, background: "linear-gradient(135deg, #6366f1, #8b5cf6)", boxShadow: "0 4px 18px rgba(99,102,241,0.35)", marginTop: "1rem" };
-const btnGhost   = { ...btnBase, backgroundColor: "#f1f5f9", color: "#64748b", boxShadow: "none" };
+const btnPrimary = { ...btnBase, background: "linear-gradient(135deg, #A21D54, #C2185B)", boxShadow: "0 4px 18px rgba(162,29,84,0.35)", marginTop: "1rem" };
+const btnGhost   = { ...btnBase, backgroundColor: "#fafafa", color: "#64748b", boxShadow: "none" };
 const btnHome    = { ...btnBase, marginTop: "0.75rem", background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 18px rgba(244,63,94,0.35)" };

@@ -36,7 +36,7 @@ export default function CookieBanner({ setPage, hasBottomNav }) {
         No tracking or advertising cookies are used.{" "}
         <span
           onClick={() => setPage("privacy")}
-          style={{ color: "#a78bfa", cursor: "pointer", fontWeight: "600", textDecoration: "underline" }}
+          style={{ color: "#E57399", cursor: "pointer", fontWeight: "600", textDecoration: "underline" }}
         >
           Privacy Policy
         </span>
@@ -47,7 +47,7 @@ export default function CookieBanner({ setPage, hasBottomNav }) {
           padding: "0.5rem 1.25rem",
           borderRadius: "2rem",
           border: "none",
-          background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+          background: "linear-gradient(135deg, #A21D54, #C2185B)",
           color: "white",
           fontWeight: "700",
           fontSize: "0.85rem",

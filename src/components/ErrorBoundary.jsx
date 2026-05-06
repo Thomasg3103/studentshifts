@@ -17,7 +17,7 @@ export default class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f1f5f9", padding: "2rem" }}>
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#fafafa", padding: "2rem" }}>
           <div style={{ textAlign: "center", maxWidth: "400px" }}>
             <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚠️</div>
             <h2 style={{ fontWeight: "800", fontSize: "1.4rem", color: "#1e293b", marginBottom: "0.5rem" }}>Something went wrong</h2>
@@ -26,7 +26,7 @@ export default class ErrorBoundary extends Component {
             </p>
             <button
               onClick={() => window.location.reload()}
-              style={{ padding: "0.7rem 1.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #6366f1, #8b5cf6)", color: "white", fontWeight: "700", fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(99,102,241,0.35)" }}
+              style={{ padding: "0.7rem 1.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(162,29,84,0.35)" }}
             >
               Refresh
             </button>

@@ -1,13 +1,13 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 html, body, #root {
   margin: 0;
   padding: 0;
   min-height: 100%;
   width: 100%;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   color: #1e293b;
-  background-color: #f1f5f9;
+  background-color: #fafafa;
   overflow-x: hidden;
 }
 
@@ -20,14 +20,14 @@ html, body, #root {
 
 header {
   width: 100%;
-  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  background: linear-gradient(135deg, #A21D54 0%, #C2185B 100%);
   color: white;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.9rem 2.5rem;
   box-sizing: border-box;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  box-shadow: 0 4px 20px rgba(162,29,84,0.35);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -48,7 +48,7 @@ header {
   align-items: center;
   justify-content: flex-start;
   padding: 2rem;
-  background-color: #f1f5f9;
+  background-color: #fafafa;
   box-sizing: border-box;
 }
 
@@ -74,7 +74,7 @@ header {
   color: #1e293b;
 }
 
-.view-btn  { background-color: #6366f1; color: white; }
+.view-btn  { background-color: #A21D54; color: white; }
 .apply-btn { background-color: #10b981; color: white; }
 .back-btn  { background-color: #64748b; color: white; }
 
@@ -161,7 +161,7 @@ header {
 }
 
 .job-card:hover {
-  box-shadow: 0 10px 32px rgba(99,102,241,0.14);
+  box-shadow: 0 10px 32px rgba(162,29,84,0.14);
 }
 
 .job-card:last-child {
@@ -192,8 +192,8 @@ header {
   height: 20px;
   border-radius: 50%;
   background: white;
-  border: 2.5px solid #6366f1;
-  box-shadow: 0 1px 6px rgba(99,102,241,0.4);
+  border: 2.5px solid #A21D54;
+  box-shadow: 0 1px 6px rgba(162,29,84,0.4);
   cursor: pointer;
 }
 .dist-slider::-moz-range-thumb {
@@ -201,9 +201,9 @@ header {
   height: 20px;
   border-radius: 50%;
   background: white;
-  border: 2.5px solid #6366f1;
-  box-shadow: 0 1px 6px rgba(99,102,241,0.4);
+  border: 2.5px solid #A21D54;
+  box-shadow: 0 1px 6px rgba(162,29,84,0.4);
   cursor: pointer;
-  border: 2.5px solid #6366f1;
+  border: 2.5px solid #A21D54;
 }
-.dist-slider::-moz-range-progress { background: #6366f1; border-radius: 3px; }
+.dist-slider::-moz-range-progress { background: #A21D54; border-radius: 3px; }

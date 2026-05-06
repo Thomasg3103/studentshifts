@@ -20,8 +20,8 @@ export default function PageWrapper({ children }) {
       justifyContent: "center",
       padding: "2.5rem 1rem",
       boxSizing: "border-box",
-      backgroundColor: "#f1f5f9",
-      fontFamily: "'Poppins', sans-serif",
+      backgroundColor: "#fafafa",
+      fontFamily: "'Plus Jakarta Sans', sans-serif",
     }}>
 
       <div className="page-inner" style={{
@@ -48,12 +48,12 @@ export default function PageWrapper({ children }) {
             width: "44px",
             height: "44px",
             borderRadius: "50%",
-            background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
+            background: "linear-gradient(135deg, #A21D54, #C2185B)",
             color: "white",
             border: "none",
             fontSize: "1.1rem",
             cursor: "pointer",
-            boxShadow: "0 4px 16px rgba(99,102,241,0.45)",
+            boxShadow: "0 4px 16px rgba(162,29,84,0.45)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
