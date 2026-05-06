@@ -16,6 +16,19 @@ RETURNS boolean LANGUAGE sql SECURITY DEFINER STABLE AS $$
   );
 $$;
 
+-- ----------------------------------------------------------------
+-- HELPER: count_recent_applications(uid)
+-- Counts how many applications a student submitted in the last hour.
+-- SECURITY DEFINER so it can query applications without triggering
+-- recursive RLS evaluation (42P17) from the INSERT policy.
+-- ----------------------------------------------------------------
+CREATE OR REPLACE FUNCTION count_recent_applications(uid uuid)
+RETURNS bigint LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT COUNT(*) FROM applications
+  WHERE student_id = uid
+    AND created_at > now() - interval '1 hour';
+$$;
+
 
 -- ================================================================
 -- TABLE: profiles
@@ -188,16 +201,13 @@ DROP POLICY IF EXISTS "applications: admin all"             ON applications;
 CREATE POLICY "applications: student own read" ON applications
   FOR SELECT USING (auth.uid() = student_id);
 
--- Student can apply for a job, only if verified and within rate limit (max 20 per hour)
+-- Student can apply for a job, only if verified and within rate limit (max 20 per hour).
+-- Rate limit uses count_recent_applications() (SECURITY DEFINER) to avoid recursive RLS (42P17).
 CREATE POLICY "applications: student own insert" ON applications
   FOR INSERT WITH CHECK (
     auth.uid() = student_id AND
     EXISTS (SELECT 1 FROM students WHERE id = auth.uid() AND status = 'verified') AND
-    (
-      SELECT COUNT(*) FROM applications
-      WHERE student_id = auth.uid()
-        AND created_at > now() - interval '1 hour'
-    ) < 20
+    count_recent_applications(auth.uid()) < 20
   );
 
 -- Student can only withdraw applications that are still Pending or Rejected (not Accepted)
