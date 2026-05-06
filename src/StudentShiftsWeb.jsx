@@ -257,23 +257,12 @@ export default function StudentShiftsWeb() {
   // Recompute notification badge whenever statuses or applied jobs change
   useEffect(() => {
     if (!currentUser || currentUser.role !== "student") { setNotifCount(0); return; }
-    const seen = JSON.parse(localStorage.getItem("ss_notif_seen_" + currentUser.id) || "{}");
     const count = appliedJobs.reduce((acc, job) => {
-      const cur  = appStatuses[job.id] || "Pending";
-      const prev = seen[job.id]        || "Pending";
-      return acc + (cur !== "Pending" && cur !== prev ? 1 : 0);
+      const status = appStatuses[job.id] || "Pending";
+      return acc + (status !== "Pending" ? 1 : 0);
     }, 0);
     setNotifCount(count);
   }, [appStatuses, appliedJobs, currentUser?.id]);
-
-  // Mark notifications as seen when student opens Applied Jobs
-  useEffect(() => {
-    if (location.pathname !== "/applied" || !currentUser) return;
-    const seen = {};
-    appliedJobs.forEach(job => { seen[job.id] = appStatuses[job.id] || "Pending"; });
-    localStorage.setItem("ss_notif_seen_" + currentUser.id, JSON.stringify(seen));
-    setNotifCount(0);
-  }, [location.pathname]);
 
   const isLanding = !currentUser && location.pathname === "/";
 
