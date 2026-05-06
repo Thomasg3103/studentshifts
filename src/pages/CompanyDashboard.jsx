@@ -30,6 +30,7 @@ function normaliseJob(j) {
     status:          j.status || "Active",
     photos:          j.photos || [],
     photoCrops:      j.photo_crops || [],
+    filledShifts:    j.filled_shifts || [],
     applicants:      [],
     applicantCount:  j.applicant_count || 0,
   };
@@ -313,16 +314,36 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       );
       if (error) { alert("Failed to accept applicant."); return; }
 
-      // 2. Auto-decline all other pending applicants for this job
+      // 2. Mark the hired shift as filled on the job posting
+      const hiredDay = applicant.preferredShift ? applicant.preferredShift.split(" · ")[0].trim() : null;
+      const currentFilledShifts = activePosting.filledShifts || [];
+      const newFilledShifts = hiredDay && !currentFilledShifts.includes(hiredDay)
+        ? [...currentFilledShifts, hiredDay]
+        : currentFilledShifts;
+      if (newFilledShifts !== currentFilledShifts) {
+        await withTimeout(
+          supabase.from("jobs").update({ filled_shifts: newFilledShifts }).eq("id", activePosting.id),
+          10000, "Timeout."
+        );
+      }
+
+      // 3. Auto-decline pending applicants who competed for the same shift.
+      //    If the hired student had a specific shift, only decline applicants with
+      //    the same shift day or no preferred shift (applied to all). Applicants
+      //    for other shifts stay pending so they can be hired for those shifts.
       const { data: others } = await withTimeout(
         supabase.from("applications")
-          .select("id, student_id")
+          .select("id, student_id, preferred_shift")
           .eq("job_id", activePosting.id)
           .eq("status", "Pending")
           .neq("id", applicationId),
         10000, "Timeout."
       );
-      const otherIds = (others || []).map(o => o.id);
+      const otherIds = (others || []).filter(o => {
+        if (!hiredDay) return true; // hired for all shifts → decline everyone
+        const oDay = o.preferred_shift ? o.preferred_shift.split(" · ")[0].trim() : null;
+        return !oDay || oDay === hiredDay; // same shift or applied to all → decline
+      }).map(o => o.id);
       if (otherIds.length) {
         await withTimeout(
           supabase.from("applications").update({ status: "Rejected" }).in("id", otherIds),
@@ -330,10 +351,11 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         );
       }
 
-      // 3. Update UI immediately
+      // 4. Update UI immediately
       const otherSet = new Set(otherIds);
       const uiUpdater = (p) => ({
         ...p,
+        filledShifts: newFilledShifts,
         applicants: p.applicants.map(a => {
           if (a.id === applicationId) return { ...a, status: "Accepted" };
           if (otherSet.has(a.id))     return { ...a, status: "Rejected" };
@@ -343,7 +365,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       setPostings(prev => prev.map(p => p.id === activePosting.id ? uiUpdater(p) : p));
       setActivePosting(prev => uiUpdater(prev));
 
-      // 4. Send emails best-effort (don't block the UI)
+      // 5. Send emails best-effort (don't block the UI)
       try {
         const allStudentIds = [applicant.studentId, ...(others || []).map(o => o.student_id)];
         const { data: emailProfiles } = await supabase
@@ -361,10 +383,11 @@ export default function CompanyDashboard({ setPage, currentUser }) {
             redirectTo: appUrl,
           }),
           // Rejection emails to auto-declined applicants
-          ...(others || []).map(o => {
-            const declinedApplicant = activePosting.applicants?.find(a => a.id === o.id);
-            return emailMap[o.student_id] && sendEmail({
-              to: emailMap[o.student_id],
+          ...(otherIds.map(id => {
+            const declinedApplicant = activePosting.applicants?.find(a => a.id === id);
+            const oStudentId = others?.find(o => o.id === id)?.student_id;
+            return oStudentId && emailMap[oStudentId] && sendEmail({
+              to: emailMap[oStudentId],
               subject: `Update on your ${activePosting.title} application`,
               html: emailApplicantDeclined(
                 declinedApplicant?.name || "there",
@@ -372,7 +395,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
                 currentUser.name,
               ),
             });
-          }).filter(Boolean),
+          })).filter(Boolean),
         ]);
       } catch (e) {
         console.warn("Email sending failed:", e);
@@ -976,14 +999,21 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
           {posting.location} · {posting.pay}
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.5rem" }}>
-          {posting.days.map(day => (
-            <span key={day} style={{
-              fontSize: "0.7rem", backgroundColor: "#eff6ff", color: "#1d4ed8",
-              padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600",
-            }}>
-              {day.slice(0, 3)}{posting.times?.[day] ? ` · ${posting.times[day]}` : ""}
-            </span>
-          ))}
+          {posting.days.map(day => {
+            const isFilled = (posting.filledShifts || []).includes(day);
+            return (
+              <span key={day} style={{
+                fontSize: "0.7rem",
+                backgroundColor: isFilled ? "#f1f5f9" : "#eff6ff",
+                color: isFilled ? "#94a3b8" : "#1d4ed8",
+                padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600",
+                textDecoration: isFilled ? "line-through" : "none",
+              }}>
+                {day.slice(0, 3)}{posting.times?.[day] ? ` · ${posting.times[day]}` : ""}
+                {isFilled ? " ✓" : ""}
+              </span>
+            );
+          })}
           {posting.weekendRequired && (
             <span style={{ fontSize: "0.7rem", backgroundColor: "#fef3c7", color: "#d97706", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600" }}>
               Weekend

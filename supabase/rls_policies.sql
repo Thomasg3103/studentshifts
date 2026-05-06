@@ -797,6 +797,14 @@ BEGIN
   ) THEN
     ALTER TABLE applications ADD COLUMN preferred_shift text;
   END IF;
+
+  -- Days that have been filled (hired) on a job posting, e.g. ARRAY['Monday','Wednesday']
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'jobs' AND column_name = 'filled_shifts'
+  ) THEN
+    ALTER TABLE jobs ADD COLUMN filled_shifts text[] NOT NULL DEFAULT '{}';
+  END IF;
 END $$;
 
 
