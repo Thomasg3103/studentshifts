@@ -21,7 +21,7 @@ import LandingPage from "./pages/LandingPage";
 import CookieBanner from "./components/CookieBanner";
 import AppFooter from "./components/AppFooter";
 import { supabase } from "./lib/supabase";
-import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug } from "./lib/auth";
+import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug, fetchJobsByIds } from "./lib/auth";
 
 // Map page-name strings to URL paths (for backwards-compat with setPage calls)
 const PAGE_PATH = {
@@ -150,6 +150,14 @@ export default function StudentShiftsWeb() {
               ]);
               setSavedLikedJobIds(likedIds);
               setSavedAppliedJobIds(appliedIds);
+              const allIds = [...new Set([...likedIds, ...appliedIds])];
+              if (allIds.length) {
+                fetchJobsByIds(allIds).then(jobs => {
+                  const jobMap = Object.fromEntries(jobs.map(j => [j.id, j]));
+                  setLikedJobs(likedIds.map(id => jobMap[id]).filter(Boolean));
+                  setAppliedJobs(appliedIds.map(id => jobMap[id]).filter(Boolean));
+                }).catch(() => {});
+              }
             }
           } catch (e) {
             console.error("Failed to load profile", e);
@@ -182,6 +190,14 @@ export default function StudentShiftsWeb() {
             ]);
             setSavedLikedJobIds(likedIds);
             setSavedAppliedJobIds(appliedIds);
+            const allIds = [...new Set([...likedIds, ...appliedIds])];
+            if (allIds.length) {
+              fetchJobsByIds(allIds).then(jobs => {
+                const jobMap = Object.fromEntries(jobs.map(j => [j.id, j]));
+                setLikedJobs(likedIds.map(id => jobMap[id]).filter(Boolean));
+                setAppliedJobs(appliedIds.map(id => jobMap[id]).filter(Boolean));
+              }).catch(() => {});
+            }
           }
         } catch (e) {
           console.error("Failed to load profile", e);
@@ -279,6 +295,7 @@ export default function StudentShiftsWeb() {
 
   const sharedStudentProps = {
     likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, currentUser,
+    setSavedLikedJobIds, setSavedAppliedJobIds,
   };
 
   return (
@@ -378,7 +395,7 @@ export default function StudentShiftsWeb() {
 }
 
 // Job details route — handles in-app nav (job in state/memory) and direct URL access (fetches from DB)
-function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs }) {
+function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, setSavedLikedJobIds, setSavedAppliedJobIds }) {
   const { titleSlug, companySlug } = useParams();
   const location = useLocation();
   const navigate  = useNavigate();
@@ -423,6 +440,8 @@ function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLike
       setLikedJobs={setLikedJobs}
       appliedJobs={appliedJobs}
       setAppliedJobs={setAppliedJobs}
+      setSavedLikedJobIds={setSavedLikedJobIds}
+      setSavedAppliedJobIds={setSavedAppliedJobIds}
     />
   );
 }

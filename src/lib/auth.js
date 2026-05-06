@@ -191,6 +191,19 @@ export async function fetchAvailabilityHeatmap() {
 //     unique(student_id, job_id)
 //   );
 
+export async function fetchJobsByIds(ids) {
+  if (!ids.length) return [];
+  const { data: jobs, error } = await withTimeout(
+    supabase.from("jobs").select("*").in("id", ids),
+    10000
+  );
+  if (error || !jobs?.length) return [];
+  const companyIds = [...new Set(jobs.map(j => j.company_id))];
+  const { data: profiles } = await supabase.from("profiles").select("id, name").in("id", companyIds);
+  const nameMap = Object.fromEntries((profiles || []).map(p => [p.id, p.name]));
+  return jobs.map(j => normaliseJobRow(j, nameMap[j.company_id]));
+}
+
 export async function fetchLikedJobIds(userId) {
   const { data, error } = await withTimeout(
     supabase.from("liked_jobs").select("job_id").eq("student_id", userId),

@@ -42,6 +42,7 @@ const _geocodeCache = {};
 export default function StudentDashboard({
   setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
   currentUser, studentLocation, savedLikedJobIds, savedAppliedJobIds, restoreScrollY,
+  setSavedLikedJobIds, setSavedAppliedJobIds,
 }) {
   const [jobs,         setJobs]         = useState([]);
   const [jobsLoading,  setJobsLoading]  = useState(true);
@@ -115,8 +116,21 @@ export default function StudentDashboard({
 
   useEffect(() => {
     if (!jobs.length || !currentUser) return;
-    if (savedLikedJobIds?.length)   setLikedJobs(jobs.filter(j => savedLikedJobIds.includes(j.id)));
-    if (savedAppliedJobIds?.length) setAppliedJobs(jobs.filter(j => savedAppliedJobIds.includes(j.id)));
+    const jobMap = Object.fromEntries(jobs.map(j => [j.id, j]));
+    if (savedLikedJobIds?.length) {
+      setLikedJobs(prev => {
+        const fromDb = savedLikedJobIds.map(id => jobMap[id]).filter(Boolean);
+        const locallyAdded = prev.filter(j => jobMap[j.id] && !savedLikedJobIds.includes(j.id));
+        return [...fromDb, ...locallyAdded];
+      });
+    }
+    if (savedAppliedJobIds?.length) {
+      setAppliedJobs(prev => {
+        const fromDb = savedAppliedJobIds.map(id => jobMap[id]).filter(Boolean);
+        const locallyAdded = prev.filter(j => jobMap[j.id] && !savedAppliedJobIds.includes(j.id));
+        return [...fromDb, ...locallyAdded];
+      });
+    }
   }, [jobs, currentUser?.id]);
 
   useEffect(() => {
@@ -301,6 +315,7 @@ export default function StudentDashboard({
     if (appliedJobs.some(j => j.id === job.id)) return;
     const isLiked = likedJobs.some(j => j.id === job.id);
     setLikedJobs(isLiked ? likedJobs.filter(j => j.id !== job.id) : [...likedJobs, job]);
+    setSavedLikedJobIds?.(prev => isLiked ? prev.filter(id => id !== job.id) : [...new Set([...prev, job.id])]);
     if (isLiked) unlikeJob(currentUser.id, job.id).catch(console.error);
     else likeJob(currentUser.id, job.id).catch(console.error);
   };

@@ -6,6 +6,7 @@ import { likeJob, unlikeJob, createApplication } from "../lib/auth";
 
 export default function JobDetails({
   job, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
+  setSavedLikedJobIds, setSavedAppliedJobIds,
 }) {
   const [applyModal, setApplyModal]       = useState(null);
   const [photoIdx, setPhotoIdx]           = useState(0);
@@ -25,6 +26,7 @@ export default function JobDetails({
     if (!currentUser) { setPage("login"); return; }
     if (isApplied) return;
     setLikedJobs(isLiked ? likedJobs.filter(j => j.id !== job.id) : [...likedJobs, job]);
+    setSavedLikedJobIds?.(prev => isLiked ? prev.filter(id => id !== job.id) : [...new Set([...prev, job.id])]);
     if (isLiked) unlikeJob(currentUser.id, job.id).catch(console.error);
     else likeJob(currentUser.id, job.id).catch(console.error);
   };
@@ -60,8 +62,10 @@ export default function JobDetails({
       })() : null;
       await createApplication(currentUser.id, job.id, preferredShift);
       setAppliedJobs([...appliedJobs, job]);
+      setSavedAppliedJobIds?.(prev => [...new Set([...prev, job.id])]);
       if (isLiked) {
         setLikedJobs(likedJobs.filter(j => j.id !== job.id));
+        setSavedLikedJobIds?.(prev => prev.filter(id => id !== job.id));
         unlikeJob(currentUser.id, job.id).catch(console.error);
       }
       setApplyModal("success");
