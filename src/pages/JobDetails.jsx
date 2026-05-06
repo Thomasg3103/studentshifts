@@ -61,6 +61,7 @@ export default function JobDetails({
       }
       setApplyModal("success");
     } catch (e) {
+      console.error("Apply error:", e);
       setApplyError("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
