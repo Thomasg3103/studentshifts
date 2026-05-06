@@ -12,14 +12,14 @@ export default function JobDetails({
   const [submitting, setSubmitting]       = useState(false);
   const [applyError, setApplyError]       = useState(null);
   const [fullscreenIdx, setFullscreenIdx] = useState(null);
-  const [selectedSlots, setSelectedSlots] = useState({});
+  const [selectedDay, setSelectedDay] = useState(null);
 
   if (!job) return null;
 
   const isLiked   = likedJobs.some(j => j.id === job.id);
   const isApplied = appliedJobs.some(j => j.id === job.id);
 
-  const hasMultipleSlots = job.days?.some(day => (job.times?.[day] || []).length > 1);
+  const needsSlotPick = (job.days?.length ?? 0) > 1;
 
   const toggleLike = () => {
     if (!currentUser) { setPage("login"); return; }
@@ -40,8 +40,8 @@ export default function JobDetails({
       setApplyModal("noCV");
       return;
     }
-    if (hasMultipleSlots) {
-      setSelectedSlots({});
+    if (needsSlotPick) {
+      setSelectedDay(null);
       setApplyModal("pickSlots");
       return;
     }
@@ -186,38 +186,26 @@ export default function JobDetails({
       ) : applyModal === "pickSlots" ? (
               <>
                 <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#f5f3ff", border: "2px solid #c4b5fd", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>🗓️</div>
-                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.3rem", color: "#1e293b" }}>Pick your time slots</h3>
-                <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1.25rem" }}>Choose one slot per day for this role.</p>
-                <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.85rem", marginBottom: "1.5rem" }}>
+                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.3rem", color: "#1e293b" }}>Pick your slot</h3>
+                <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1.25rem" }}>Choose the day and time you want to work.</p>
+                <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "1.5rem" }}>
                   {job.days.map(day => {
-                    const slots = job.times?.[day] || [];
+                    const t = job.times?.[day];
+                    const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
+                    const sel = selectedDay === day;
                     return (
-                      <div key={day}>
-                        <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#64748b", margin: "0 0 0.3rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>{day}</p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                          {slots.map(slot => {
-                            const sel = selectedSlots[day] === slot || slots.length === 1;
-                            return (
-                              <button key={slot}
-                                onClick={() => slots.length > 1 && setSelectedSlots(prev => ({ ...prev, [day]: slot }))}
-                                style={{ padding: "0.3rem 0.8rem", borderRadius: "999px", fontFamily: "inherit", fontSize: "0.82rem", fontWeight: 600, cursor: slots.length > 1 ? "pointer" : "default", border: sel ? "1.5px solid #A21D54" : "1.5px solid #e2e8f0", background: sel ? "#fce7f3" : "white", color: sel ? "#A21D54" : "#64748b" }}>
-                                {slot}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
+                      <button key={day} onClick={() => setSelectedDay(day)}
+                        style={{ padding: "0.65rem 0.9rem", borderRadius: "0.65rem", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, cursor: "pointer", textAlign: "left", border: sel ? "2px solid #A21D54" : "1.5px solid #e2e8f0", background: sel ? "#fce7f3" : "white", color: sel ? "#A21D54" : "#374151" }}>
+                        {day}{timeStr ? ` · ${timeStr}` : ""}
+                      </button>
                     );
                   })}
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <button onClick={() => setApplyModal(null)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
                   <button
-                    onClick={() => {
-                      const allPicked = job.days.every(day => (job.times?.[day] || []).length <= 1 || selectedSlots[day]);
-                      if (allPicked) setApplyModal("confirm");
-                    }}
-                    style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>
+                    onClick={() => { if (selectedDay) setApplyModal("confirm"); }}
+                    style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: selectedDay ? "linear-gradient(135deg, #A21D54, #C2185B)" : "#e2e8f0", color: selectedDay ? "white" : "#94a3b8", fontWeight: "700", cursor: selectedDay ? "pointer" : "default", fontFamily: "inherit" }}>
                     Continue →
                   </button>
                 </div>
@@ -226,14 +214,13 @@ export default function JobDetails({
               <>
                 <div style={{ width: "56px", height: "56px", borderRadius: "1rem", background: "linear-gradient(135deg, #A21D54, #C2185B)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem", boxShadow: "0 8px 20px rgba(162,29,84,0.35)" }}>📋</div>
                 <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "#1e293b" }}>Apply for {job.title}?</h3>
-                <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: hasMultipleSlots ? "0.6rem" : "1.5rem" }}>{job.company} — your CV will be shared with the employer.</p>
-                {hasMultipleSlots && (
+                <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: needsSlotPick && selectedDay ? "0.6rem" : "1.5rem" }}>{job.company} — your CV will be shared with the employer.</p>
+                {needsSlotPick && selectedDay && (
                   <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.65rem 0.9rem", marginBottom: "1.25rem", textAlign: "left" }}>
-                    <p style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.4rem" }}>Your slots</p>
-                    {job.days.map(day => {
-                      const slot = selectedSlots[day] || job.times?.[day]?.[0];
-                      return <p key={day} style={{ fontSize: "0.82rem", color: "#374151", fontWeight: "600", margin: "0.1rem 0" }}>{day}: {slot}</p>;
-                    })}
+                    <p style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.25rem" }}>Your slot</p>
+                    <p style={{ fontSize: "0.88rem", color: "#374151", fontWeight: "600", margin: 0 }}>
+                      {selectedDay}{(() => { const t = job.times?.[selectedDay]; const s = Array.isArray(t) ? t.join(", ") : t; return s ? ` · ${s}` : ""; })()}
+                    </p>
                   </div>
                 )}
                 {applyError && (
