@@ -1554,6 +1554,11 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "#1e293b" }}>{applicant.name}</p>
             <StatusBadge status={applicant.status} />
+            {applicant.preferredShift && (
+              <p style={{ margin: "0.25rem 0 0", fontSize: "0.75rem", fontWeight: 700, color: "#A21D54", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                🗓️ {applicant.preferredShift}
+              </p>
+            )}
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "1.3rem", cursor: "pointer", color: "#64748b", lineHeight: 1, padding: "0.25rem" }}>✕</button>
         </div>
@@ -1564,12 +1569,6 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           {/* Application Screening — applied stage only */}
           {stage === "applied" && (
             <Section label="Application Screening">
-              {applicant.preferredShift && (
-                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem", padding: "0.45rem 0.7rem", backgroundColor: "#fce7f3", border: "1.5px solid #f9a8d4", borderRadius: "0.5rem" }}>
-                  <span style={{ fontSize: "0.82rem" }}>🗓️</span>
-                  <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#A21D54" }}>Preferred shift: {applicant.preferredShift}</span>
-                </div>
-              )}
               <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                 <CheckItem ok={!!applicant.cvName}              label="CV uploaded" />
                 <CheckItem ok={!!applicant.coverLetterName}     label="Cover letter uploaded" />
