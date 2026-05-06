@@ -128,6 +128,14 @@ header {
   }
 }
 
+/* Footers always clear the cookie banner (fixed bottom bar) on all screen sizes */
+.app-footer {
+  padding-bottom: calc(1.25rem + 75px) !important;
+}
+.landing-footer {
+  padding-bottom: calc(1.5rem + 90px) !important;
+}
+
 @media (max-width: 1023px) {
   /* Extra bottom padding so content clears the mobile bottom nav */
   .page-inner {
@@ -137,13 +145,9 @@ header {
   .scroll-top-btn {
     bottom: calc(64px + 1rem) !important;
   }
-  /* App footer clears the bottom nav */
+  /* App footer clears both the bottom nav and cookie banner on mobile */
   .app-footer {
-    padding-bottom: calc(1.25rem + 64px) !important;
-  }
-  /* Landing page footer clears the cookie banner (~80px on mobile) */
-  .landing-footer {
-    padding-bottom: calc(1.5rem + 90px) !important;
+    padding-bottom: calc(1.25rem + 64px + 75px) !important;
   }
 }
 
