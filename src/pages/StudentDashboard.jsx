@@ -602,11 +602,14 @@ export default function StudentDashboard({
 
                       {/* Days / Times / Distance */}
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.5rem" }}>
-                        {job.days.map(day => (
-                          <span key={day} style={{ fontSize: "0.7rem", backgroundColor: "#fce7f3", color: "#A21D54", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600 }}>
-                            {day.slice(0, 3)} · {job.times[day]?.join(", ")}
-                          </span>
-                        ))}
+                        {job.days.map(day => {
+                          const isFilled = (job.filledShifts || []).includes(day);
+                          return (
+                            <span key={day} style={{ fontSize: "0.7rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
+                              {day.slice(0, 3)} · {job.times[day]?.join(", ")}{isFilled ? " ✓" : ""}
+                            </span>
+                          );
+                        })}
                         {dist !== null && (
                           <span style={{ fontSize: "0.7rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600 }}>
                             📍 {formatDistance(dist)}

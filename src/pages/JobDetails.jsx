@@ -130,11 +130,14 @@ export default function JobDetails({
 
               {/* Availability tags */}
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "1.1rem" }}>
-                {job.days.map(day => (
-                  <span key={day} style={{ fontSize: "0.75rem", backgroundColor: "#fce7f3", color: "#A21D54", padding: "0.2rem 0.55rem", borderRadius: "999px", fontWeight: "600" }}>
-                    {day} · {job.times[day]?.join(", ")}
-                  </span>
-                ))}
+                {job.days.map(day => {
+                  const isFilled = (job.filledShifts || []).includes(day);
+                  return (
+                    <span key={day} style={{ fontSize: "0.75rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.2rem 0.55rem", borderRadius: "999px", fontWeight: "600", textDecoration: isFilled ? "line-through" : "none" }}>
+                      {day} · {job.times[day]?.join(", ")}{isFilled ? " ✓" : ""}
+                    </span>
+                  );
+                })}
               </div>
 
               {/* Action buttons */}
@@ -211,11 +214,12 @@ export default function JobDetails({
                     const t = job.times?.[day];
                     const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
                     const sel = selectedDay === day;
+                    const isFilled = (job.filledShifts || []).includes(day);
                     return (
-                      <button key={day} onClick={() => setSelectedDay(sel ? null : day)}
-                        style={{ padding: "0.6rem 0.9rem", borderRadius: "0.65rem", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, cursor: "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", border: sel ? "2px solid #A21D54" : "1.5px solid #e2e8f0", background: sel ? "#fce7f3" : "#fafafa", color: sel ? "#A21D54" : "#374151" }}>
-                        <span>{day}{timeStr ? (<span style={{ fontWeight: 500, color: sel ? "#C2185B" : "#64748b" }}> · {timeStr}</span>) : null}</span>
-                        {sel && <span style={{ fontSize: "0.72rem", fontWeight: 700 }}>✓</span>}
+                      <button key={day} onClick={() => !isFilled && setSelectedDay(sel ? null : day)}
+                        style={{ padding: "0.6rem 0.9rem", borderRadius: "0.65rem", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, cursor: isFilled ? "not-allowed" : "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", border: isFilled ? "1.5px solid #e2e8f0" : sel ? "2px solid #A21D54" : "1.5px solid #e2e8f0", background: isFilled ? "#f1f5f9" : sel ? "#fce7f3" : "#fafafa", color: isFilled ? "#94a3b8" : sel ? "#A21D54" : "#374151", textDecoration: isFilled ? "line-through" : "none", opacity: isFilled ? 0.7 : 1 }}>
+                        <span>{day}{timeStr ? (<span style={{ fontWeight: 500, color: isFilled ? "#94a3b8" : sel ? "#C2185B" : "#64748b" }}> · {timeStr}</span>) : null}</span>
+                        {isFilled ? <span style={{ fontSize: "0.72rem", fontWeight: 700, textDecoration: "none" }}>Filled</span> : sel ? <span style={{ fontSize: "0.72rem", fontWeight: 700 }}>✓</span> : null}
                       </button>
                     );
                   })}

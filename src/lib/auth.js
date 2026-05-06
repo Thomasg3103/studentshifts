@@ -37,6 +37,7 @@ function normaliseJobRow(job, companyName) {
     weekendRequired: job.weekend_required || false,
     photos:          job.photos || [],
     photoCrops:      job.photo_crops || [],
+    filledShifts:    job.filled_shifts || [],
     status:          job.status,
   };
 }
