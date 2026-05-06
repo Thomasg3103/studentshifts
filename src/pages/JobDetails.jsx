@@ -187,14 +187,7 @@ export default function JobDetails({
               <>
                 <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#f5f3ff", border: "2px solid #c4b5fd", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>🗓️</div>
                 <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Available Shifts</h3>
-                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "1rem" }}>This job has {job.days.length} shifts available.</p>
-                <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.25rem" }}>
-                  {job.days.map(day => (
-                    <div key={day} style={{ padding: "0.6rem 0.9rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", background: "#fafafa" }}>
-                      <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#1e293b" }}>{day}</span>
-                    </div>
-                  ))}
-                </div>
+                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "1.25rem" }}>This job has {job.days.length} shifts available. You can apply to all of them, or pick a specific shift you prefer.</p>
                 <div style={{ display: "flex", gap: "0.6rem", flexDirection: "column" }}>
                   <button onClick={() => setApplyModal("confirm")} style={{ width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Apply to All Shifts</button>
                   <div style={{ display: "flex", gap: "0.6rem" }}>
