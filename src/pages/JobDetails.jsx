@@ -53,7 +53,12 @@ export default function JobDetails({
     setSubmitting(true);
     setApplyError(null);
     try {
-      await createApplication(currentUser.id, job.id);
+      const preferredShift = selectedDay ? (() => {
+        const t = job.times?.[selectedDay];
+        const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
+        return timeStr ? `${selectedDay} · ${timeStr}` : selectedDay;
+      })() : null;
+      await createApplication(currentUser.id, job.id, preferredShift);
       setAppliedJobs([...appliedJobs, job]);
       if (isLiked) {
         setLikedJobs(likedJobs.filter(j => j.id !== job.id));

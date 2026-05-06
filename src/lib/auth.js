@@ -218,8 +218,10 @@ export async function fetchAppliedJobIds(userId) {
   return (data || []).map(r => r.job_id);
 }
 
-export async function createApplication(userId, jobId) {
-  const { error } = await supabase.from("applications").insert({ student_id: userId, job_id: jobId });
+export async function createApplication(userId, jobId, preferredShift = null) {
+  const payload = { student_id: userId, job_id: jobId };
+  if (preferredShift) payload.preferred_shift = preferredShift;
+  const { error } = await supabase.from("applications").insert(payload);
   if (!error) return;
   console.error("createApplication error:", error.code, error.message, error);
   if (error.code === "23505") return; // already applied, silent

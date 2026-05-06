@@ -105,7 +105,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     setActivePosting({ ...posting, applicants: [], applicantsLoading: true, applicantsError: null });
     setModal("applicants");
     const { data: appData, error: appError } = await withTimeout(
-      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time, interview_date, interview_time, interview_rounds_data").eq("job_id", posting.id).order("created_at", { ascending: true }),
+      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time, interview_date, interview_time, interview_rounds_data, preferred_shift").eq("job_id", posting.id).order("created_at", { ascending: true }),
       10000, "Loading applicants timed out."
     );
     if (appError) {
@@ -142,6 +142,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       interviewDate:  a.interview_date  || "",
       interviewTime:  a.interview_time  || "",
       interviewRoundsData: a.interview_rounds_data || [],
+      preferredShift:     a.preferred_shift       || null,
     }));
     setActivePosting(prev => ({ ...prev, applicants, applicantsLoading: false }));
   };
@@ -1563,6 +1564,12 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           {/* Application Screening — applied stage only */}
           {stage === "applied" && (
             <Section label="Application Screening">
+              {applicant.preferredShift && (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem", padding: "0.45rem 0.7rem", backgroundColor: "#fce7f3", border: "1.5px solid #f9a8d4", borderRadius: "0.5rem" }}>
+                  <span style={{ fontSize: "0.82rem" }}>🗓️</span>
+                  <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#A21D54" }}>Preferred shift: {applicant.preferredShift}</span>
+                </div>
+              )}
               <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                 <CheckItem ok={!!applicant.cvName}              label="CV uploaded" />
                 <CheckItem ok={!!applicant.coverLetterName}     label="Cover letter uploaded" />

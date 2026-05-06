@@ -789,6 +789,14 @@ BEGIN
   ) THEN
     ALTER TABLE applications ADD COLUMN interview_rounds_data jsonb NOT NULL DEFAULT '[]';
   END IF;
+
+  -- Student's preferred shift (e.g. "Monday · 09:00"), null if applied to all shifts
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'applications' AND column_name = 'preferred_shift'
+  ) THEN
+    ALTER TABLE applications ADD COLUMN preferred_shift text;
+  END IF;
 END $$;
 
 
