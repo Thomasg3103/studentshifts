@@ -25,8 +25,8 @@ StudentShifts is a job platform for students in Ireland. Students sign up, get v
 - `profiles` — id, name, role (student/company/admin)
 - `students` — id, bio, skills[], linkedin, cv_url, cover_letter_url, profile_photo_url, status (pending/verified/rejected), availability (jsonb), job_preferences[], location_*
 - `companies` — id, bio, website, cro_number, status (pending/verified/rejected)
-- `jobs` — id, title, category, company_id, pay, location, days[], times{}, description, deadline, status (Active/Closed/Expired), photos[]
-- `applications` — id, student_id, job_id, status (Pending/Accepted/Rejected), pipeline_stage (applied/shortlisted/interview/trial/decision), company_notes, interview_round, trial_date, trial_time
+- `jobs` — id, title, category, company_id, pay, location, days[], times{}, description, deadline, status (Active/Closed/Expired), photos[], filled_shifts text[]
+- `applications` — id, student_id, job_id, status (Pending/Accepted/Rejected), pipeline_stage (applied/shortlisted/interview/trial/decision), company_notes, interview_round, trial_date, trial_time, preferred_shift text
 - `liked_jobs` — student_id, job_id
 - `company_liked_students` — company_id, student_id
 - `chat_messages` — id, job_id, student_id, company_id, sender_id, text, created_at
@@ -49,8 +49,11 @@ Pipeline stages: applied → shortlisted → interview → trial → decision
 - Applied stage: shows Application Screening checklist (CV, cover letter, bio, skills, LinkedIn)
 - Interview stage: Next Round button (increments interview_round counter)
 - Trial stage: date + time pickers (saved on blur to trial_date/trial_time)
-- Decision stage: Hire / Decline buttons; Close Job modal (Found Student / Hired Elsewhere / No Longer Needed)
+- Decision stage: Hire ✓ / Decline ✕ buttons in both the list row and the detail panel; Close Job modal (Found Student / Hired Elsewhere / No Longer Needed)
 - Shortlisted tab also shows "Saved Students" (liked via Browse Students, haven't applied yet)
+- Applicant preferred shift (e.g. "Monday · 20:00") shown in list row and panel header
+- Hiring a student marks that shift day as filled on the job (jobs.filled_shifts); only same-shift applicants are auto-declined
+- Filled shifts shown as greyed-out strikethrough pills on job cards
 
 ## Roles
 - `student` — browse jobs, apply, chat with companies after acceptance
@@ -68,7 +71,6 @@ ThomasGallagher1 / thomasgallagher3103@gmail.com
 ### Company Dashboard additions
 - Drag-to-move in kanban board view
 - Interview stage: send email with company note + timeslot + optional Teams invite
-- Interview stage: multiple rounds as separate columns/sub-stages
 - "Advance to Trial" pre-fills trial time from interview timeslot
 - Applied stage: show full profile by default; other stages collapse profile behind "View Profile" button
 
@@ -79,14 +81,12 @@ ThomasGallagher1 / thomasgallagher3103@gmail.com
 - Global footer: About, Jobs, Login, Sign Up, Help Centre, Advertise a Job, social links, FAQs, Contact
 
 ### Student Dashboard revamp
-- Header: add Liked/Applied/Messages icons between account + hamburger
 - Filters sidebar (desktop) / toggle button (mobile)
 - Sort by: Best Match, Pay H→L, Pay L→H, Date Newest/Oldest, Distance Near/Far
 - Saved searches feature
 - Job card: horizontal layout, square image left, info middle, view+like right, distance shown
 - Back button below header on all inner screens
 - Time filter fix: use >= not exact match
-- Time slot selection: student picks ONE slot if job has multiple
 
 ### Later (before full launch, not yet)
 - Brevo sender email — waiting on mate with Brevo login
