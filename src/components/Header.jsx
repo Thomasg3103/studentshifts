@@ -108,7 +108,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
           <div className="header-logo-icon"><LogoIcon /></div>
           <div className="header-logo-text" style={{ lineHeight: 1.15 }}>
             <span style={{ fontSize: "1.7rem", fontWeight: "800", color: "white", letterSpacing: "-0.02em" }}>
-              StudentShifts<span style={{ opacity: 0.7 }}>.ie</span>
+              Student<span style={{ opacity: 0.7 }}>Shifts.ie</span>
             </span>
           </div>
         </div>
