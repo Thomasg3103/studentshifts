@@ -223,8 +223,13 @@ export async function createApplication(userId, jobId, preferredShift = null) {
   if (preferredShift) payload.preferred_shift = preferredShift;
   const { error } = await supabase.from("applications").insert(payload);
   if (!error) return;
-  console.error("createApplication error:", error.code, error.message, error);
-  if (error.code === "23505") return; // already applied, silent
+  // Column doesn't exist yet — retry without it so the apply still succeeds
+  if (error.code === "42703" && preferredShift) {
+    const { error: e2 } = await supabase.from("applications").insert({ student_id: userId, job_id: jobId });
+    if (!e2 || e2.code === "23505") return;
+    throw e2;
+  }
+  if (error.code === "23505") return;
   if (error.code === "42501") throw new Error("You've applied to too many jobs this hour. Please try again later.");
   throw error;
 }

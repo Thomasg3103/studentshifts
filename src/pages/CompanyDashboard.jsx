@@ -105,23 +105,33 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     setActivePosting({ ...posting, applicants: [], applicantsLoading: true, applicantsError: null });
     setModal("applicants");
     const { data: appData, error: appError } = await withTimeout(
-      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time, interview_date, interview_time, interview_rounds_data, preferred_shift").eq("job_id", posting.id).order("created_at", { ascending: true }),
+      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time, interview_date, interview_time, interview_rounds_data").eq("job_id", posting.id).order("created_at", { ascending: true }),
       10000, "Loading applicants timed out."
     );
     if (appError) {
       setActivePosting(prev => ({ ...prev, applicantsLoading: false, applicantsError: appError.message }));
       return;
     }
+    const appIds    = (appData || []).map(a => a.id);
     const studentIds = (appData || []).map(a => a.student_id);
     let profileMap = {};
     let cvMap = {};
+    let shiftMap = {};
+    const fetches = [];
     if (studentIds.length) {
-      const [{ data: profiles }, { data: students }] = await Promise.all([
+      fetches.push(
         supabase.from("profiles").select("id, name").in("id", studentIds),
         supabase.rpc("get_company_applicant_profiles", { student_ids: studentIds }),
-      ]);
-      (profiles || []).forEach(p => { profileMap[p.id] = p; });
-      (students || []).forEach(s => { cvMap[s.id] = s; });
+      );
+    }
+    const results = studentIds.length ? await Promise.all(fetches) : [];
+    if (results[0]) (results[0].data || []).forEach(p => { profileMap[p.id] = p; });
+    if (results[1]) (results[1].data || []).forEach(s => { cvMap[s.id] = s; });
+    // Fetch preferred_shift separately — silently skip if column doesn't exist yet
+    if (appIds.length) {
+      const { data: shiftData } = await supabase
+        .from("applications").select("id, preferred_shift").in("id", appIds);
+      (shiftData || []).forEach(s => { shiftMap[s.id] = s.preferred_shift || null; });
     }
     const applicants = (appData || []).map(a => ({
       id:               a.id,
@@ -142,7 +152,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       interviewDate:  a.interview_date  || "",
       interviewTime:  a.interview_time  || "",
       interviewRoundsData: a.interview_rounds_data || [],
-      preferredShift:     a.preferred_shift       || null,
+      preferredShift: shiftMap[a.id] || null,
     }));
     setActivePosting(prev => ({ ...prev, applicants, applicantsLoading: false }));
   };
@@ -1328,9 +1338,12 @@ function ApplicantRow({ applicant, onClick }) {
           : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         }
       </div>
-      {/* Name + skills */}
+      {/* Name + shift + skills */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ margin: 0, fontWeight: "700", fontSize: "0.875rem", color: "#1e293b" }}>{applicant.name}</p>
+        {applicant.preferredShift && (
+          <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", fontWeight: 700, color: "#A21D54" }}>🗓️ {applicant.preferredShift}</p>
+        )}
         {applicant.skills?.length > 0 && (
           <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.25rem", flexWrap: "wrap" }}>
             {applicant.skills.slice(0, 3).map(s => (
