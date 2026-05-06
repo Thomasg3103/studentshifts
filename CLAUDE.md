@@ -68,30 +68,49 @@ ThomasGallagher1 / thomasgallagher3103@gmail.com
 
 ## Outstanding tasks
 
-### Company Dashboard additions
-- Drag-to-move in kanban board view
-- Interview stage: send email with company note + timeslot + optional Teams invite
-- "Advance to Trial" pre-fills trial time from interview timeslot
-- Applied stage: show full profile by default; other stages collapse profile behind "View Profile" button
+### Bugs
+- Liked jobs button count styling — match the same number badge style as Applied and Account
+- "Stay Here" after applying never actually submits the application
+- When viewing a job description, Applied/Liked counts and pages stop working (show empty, wrong count) until user returns to dashboard
+- Applied count stuck at wrong number after code revamp (secondary fetch for preferred_shift may be interfering)
 
-### Landing page (brand new — doesn't exist)
-- Header: logo left, account icon + hamburger right
-- Hero: headline + job search bar
-- Sections: Companies Hiring (mock), How It Works, By The Numbers, Download App, Jobs by Location
-- Global footer: About, Jobs, Login, Sign Up, Help Centre, Advertise a Job, social links, FAQs, Contact
+### Multi-shift hiring logic
+- If a job has 2+ shifts and company hires a student for one shift, keep job Active until all shifts are filled
+- If a student applied to all shifts (no preferred_shift) and company hires them, auto-decline all others
 
-### Student Dashboard revamp
+### Security & infrastructure
+- Rate limiting, JWT sessions, encryption — verify these are in place
+- RLS audit — students can't read each other's data
+
+### Student Dashboard
+- Move distance badge to below Days & Times on job card
 - Filters sidebar (desktop) / toggle button (mobile)
 - Sort by: Best Match, Pay H→L, Pay L→H, Date Newest/Oldest, Distance Near/Far
 - Saved searches feature
-- Job card: horizontal layout, square image left, info middle, view+like right, distance shown
+- Job card: horizontal layout, square image left, info middle, view+like right
 - Back button below header on all inner screens
 - Time filter fix: use >= not exact match
 
-### Later (before full launch, not yet)
-- Brevo sender email — waiting on mate with Brevo login
-- Contact emails (privacy@/hello@) — waiting on new addresses being created
-- Third-party ID verification API
+### Company Dashboard
+- Email revamp: Interview stage sends email with company note + timeslot + optional Teams invite
+- Layout revamp / CSS update
+
+### Later (before full launch)
+- Send all emails from Brevo account (not thomasgallagher3103@gmail.com) — waiting on Brevo login
+- Update contact emails in pages (privacy@studentshifts.ie / hello@studentshifts.ie) — set up forwarding first
+- Student & Government ID verification API (third-party)
+- JWT sessions review
 - Buy studentshifts.ie domain
-- Solicitor review of Privacy Policy + Terms; register with DPC
+- Solicitor review of Privacy Policy + Terms; register with DPC at dataprotection.ie
 - Mobile app (separate project)
+
+### Future features
+- Help Centre, FAQs, Contact Us, Cookies, Ad Choices pages
+- Disability section
+- Landing page: header, hero + search, Companies Hiring, How It Works, By The Numbers, Download App, Jobs by Location, global footer
+
+### Not our job (legal/compliance — needs solicitor)
+- Privacy Policy (full GDPR Art. 13 — data table, legal bases, retention, rights, DPC contact)
+- Terms of Service (eligibility, verification rules, acceptable use, liability, Irish law)
+- Cookie banner (fixed bottom bar, dismissible, links to Privacy Policy)
+- Download My Data button (Account page — exports profile, applications, liked jobs, messages as JSON)
