@@ -106,6 +106,7 @@ export default function StudentDashboard({
         weekendRequired: j.weekend_required || false,
         photos:          j.photos || [],
         photoCrops:      j.photo_crops || [],
+        filledShifts:    j.filled_shifts || [],
         status:          j.status,
       })));
       setJobsLoading(false);
