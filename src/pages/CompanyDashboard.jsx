@@ -725,8 +725,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
 
       {/* Applicants Modal — wide overlay */}
       {modal === "applicants" && activePosting && (
-        <div onClick={closeModal} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", backdropFilter: "blur(2px)" }}>
-          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1.25rem", width: "100%", maxWidth: "860px", maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.25)", overflow: "hidden", borderTop: "4px solid #A21D54" }}>
+        <div onClick={closeModal} className="applicants-modal-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", backdropFilter: "blur(2px)", animation: "fadeInOverlay 0.18s ease" }}>
+          <div onClick={e => e.stopPropagation()} className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "1.25rem", width: "100%", maxWidth: "860px", maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.25)", overflow: "hidden", borderTop: "4px solid #A21D54" }}>
             {/* Header */}
             <div style={{ padding: "1.1rem 1.5rem", borderBottom: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, backgroundColor: "white" }}>
               <div>
@@ -1182,6 +1182,8 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showCloseJob, setShowCloseJob]           = useState(false);
   const [viewMode, setViewMode]                   = useState("list");
+  const [search, setSearch]                       = useState("");
+  const [sortBy, setSortBy]                       = useState("default"); // "default" | "name_asc" | "name_desc" | "status"
 
   if (posting.applicantsLoading) {
     return <div style={{ textAlign: "center", padding: "3rem 1rem" }}><div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div><p style={{ color: "#64748b", fontWeight: "600", margin: 0 }}>Loading applicants…</p></div>;
@@ -1196,7 +1198,19 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
   const dynamicStages = buildDynamicStages(posting.applicants);
 
   const countFor = (key) => posting.applicants.filter(a => getVirtualStageKey(a) === key).length;
-  const visible  = posting.applicants.filter(a => getVirtualStageKey(a) === activeStage);
+  const stageApplicants = posting.applicants.filter(a => getVirtualStageKey(a) === activeStage);
+  const searched = search.trim()
+    ? stageApplicants.filter(a => a.name.toLowerCase().includes(search.toLowerCase()))
+    : stageApplicants;
+  const visible = [...searched].sort((a, b) => {
+    if (sortBy === "name_asc")  return a.name.localeCompare(b.name);
+    if (sortBy === "name_desc") return b.name.localeCompare(a.name);
+    if (sortBy === "status") {
+      const order = { Pending: 0, Accepted: 1, Rejected: 2 };
+      return (order[a.status] ?? 0) - (order[b.status] ?? 0);
+    }
+    return 0;
+  });
 
   // Keep selected applicant in sync when parent state updates (stage/notes changes)
   const liveSelected = selectedApplicant
@@ -1225,6 +1239,32 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
           <button onClick={() => setViewMode("list")} style={{ padding: "0.3rem 0.9rem", fontSize: "0.78rem", fontWeight: "700", border: "none", borderRadius: "999px", cursor: "pointer", fontFamily: "inherit", backgroundColor: viewMode === "list" ? "white" : "transparent", color: viewMode === "list" ? "#A21D54" : "#64748b", boxShadow: viewMode === "list" ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition: "all 0.15s" }}>☰ List</button>
           <button onClick={() => setViewMode("kanban")} style={{ padding: "0.3rem 0.9rem", fontSize: "0.78rem", fontWeight: "700", border: "none", borderRadius: "999px", cursor: "pointer", fontFamily: "inherit", backgroundColor: viewMode === "kanban" ? "white" : "transparent", color: viewMode === "kanban" ? "#A21D54" : "#64748b", boxShadow: viewMode === "kanban" ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition: "all 0.15s" }}>⊞ Board</button>
         </div>
+      </div>
+
+      {/* Search + sort bar */}
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+        <div style={{ flex: 1, minWidth: "180px", position: "relative" }}>
+          <span style={{ position: "absolute", left: "0.65rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.85rem", pointerEvents: "none", color: "#94a3b8" }}>🔍</span>
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search applicants…"
+            style={{ width: "100%", padding: "0.45rem 0.75rem 0.45rem 2rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151", boxSizing: "border-box", outline: "none" }}
+          />
+          {search && (
+            <button onClick={() => setSearch("")} style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "0.8rem", lineHeight: 1, padding: "0.1rem" }}>✕</button>
+          )}
+        </div>
+        <select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
+          style={{ padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151", backgroundColor: "white", cursor: "pointer", outline: "none" }}
+        >
+          <option value="default">Sort: Default</option>
+          <option value="name_asc">Name A → Z</option>
+          <option value="name_desc">Name Z → A</option>
+          <option value="status">By Status</option>
+        </select>
       </div>
 
       {viewMode === "kanban" ? (
@@ -1284,7 +1324,11 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
 
       {/* Stage summary */}
       <p style={{ margin: "0 0 0.85rem", fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>
-        {visible.length === 0 ? "No applicants in this stage" : `${visible.length} applicant${visible.length !== 1 ? "s" : ""} in this stage · ${posting.applicants.length} total`}
+        {search.trim()
+          ? `${visible.length} of ${stageApplicants.length} match${visible.length !== 1 ? "" : "es"} "${search}" · ${posting.applicants.length} total`
+          : stageApplicants.length === 0 ? "No applicants in this stage"
+          : `${stageApplicants.length} applicant${stageApplicants.length !== 1 ? "s" : ""} in this stage · ${posting.applicants.length} total`
+        }
       </p>
 
       {/* Compact applicant rows for active stage */}
@@ -1474,7 +1518,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverStage(null); }}
             onDrop={e => handleDrop(e, key)}
             style={{
-              minWidth: "160px", flex: "0 0 160px",
+              minWidth: "195px", flex: "0 0 195px",
               backgroundColor: isOver ? (c.bg) : c.bg,
               border: `1.5px solid ${isOver ? c.header : c.border}`,
               borderRadius: "0.75rem", padding: "0.6rem",
@@ -1629,17 +1673,18 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
       {clOpen && clUrl && <PdfModal url={clUrl} label={`${applicant.name}'s Cover Letter`} fileName={`${applicant.name.replace(/\s+/g, "_")}_Cover_Letter.pdf`} onClose={() => setClOpen(false)} />}
 
       {/* Backdrop */}
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.45)", zIndex: 1100 }} />
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.45)", zIndex: 1100, animation: "fadeInOverlay 0.18s ease" }} />
 
       {/* Panel */}
       <div style={{
         position: "fixed", top: 0, right: 0, bottom: 0,
-        width: "min(440px, 100vw)",
+        width: "min(460px, 100vw)",
         backgroundColor: "white",
         zIndex: 1101,
         display: "flex", flexDirection: "column",
-        boxShadow: "-8px 0 32px rgba(0,0,0,0.18)",
+        boxShadow: "-8px 0 40px rgba(0,0,0,0.2)",
         overflowY: "auto",
+        animation: "slideInRight 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
       }}>
         {/* Header */}
         <div style={{ padding: "1rem 1.25rem", borderBottom: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0, background: "linear-gradient(135deg, #fdf4f7 0%, #fafafa 100%)" }}>
@@ -1669,12 +1714,15 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             const thisIdx = i;
             const isPast = thisIdx < currentIdx;
             const isCurrent = thisIdx === currentIdx;
-            const crumbLabels = { applied: "Applied", shortlisted: "Shortlisted", interview: "Interview", trial: "Trial", decision: "Decision" };
+            const interviewRound = applicant.interviewRound || 1;
+            const crumbLabel = s === "interview"
+              ? (isCurrent && interviewRound > 1 ? `Interview Rd ${interviewRound}` : "Interview")
+              : { applied: "Applied", shortlisted: "Shortlisted", trial: "Trial", decision: "Decision" }[s];
             return (
               <span key={s} style={{ display: "flex", alignItems: "center", gap: "0.15rem" }}>
                 {i > 0 && <span style={{ color: "#d1d5db", fontSize: "0.68rem", margin: "0 0.05rem" }}>›</span>}
                 <span style={{ fontSize: "0.72rem", fontWeight: isCurrent ? "800" : "500", color: isCurrent ? "#A21D54" : isPast ? "#A21D54" : "#94a3b8", whiteSpace: "nowrap", opacity: isPast ? 0.55 : 1 }}>
-                  {crumbLabels[s]}
+                  {crumbLabel}
                 </span>
               </span>
             );
@@ -1715,13 +1763,13 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
 
           {/* Bio + Skills + LinkedIn + Documents — always visible for applied, toggleable otherwise */}
           {(stage === "applied" || profileOpen) && (<>
-            <Section label="Bio">
+            <Section label="Bio" noBg>
               <p style={{ margin: 0, fontSize: "0.85rem", color: applicant.bio ? "#374151" : "#9ca3af", fontStyle: applicant.bio ? "normal" : "italic", lineHeight: 1.6 }}>
                 {applicant.bio || "Not provided"}
               </p>
             </Section>
 
-            <Section label="Skills">
+            <Section label="Skills" noBg>
               {applicant.skills?.length > 0 ? (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                   {applicant.skills.map(s => (
@@ -1731,9 +1779,9 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
               ) : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not listed</p>}
             </Section>
 
-            <Section label="LinkedIn">
+            <Section label="LinkedIn" noBg>
               {applicant.linkedin && /^https?:\/\//i.test(applicant.linkedin)
-                ? <a href={applicant.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: "0.85rem", color: "#0a66c2", fontWeight: "600", textDecoration: "underline" }}>View Profile</a>
+                ? <a href={applicant.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: "0.85rem", color: "#0a66c2", fontWeight: "600", textDecoration: "underline", display: "flex", alignItems: "center", gap: "0.3rem" }}>🔗 View LinkedIn Profile</a>
                 : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not provided</p>
               }
             </Section>
@@ -1816,7 +1864,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
 
           {/* Trial schedule — only in trial stage */}
           {stage === "trial" && (
-            <Section label="Trial Shift Schedule">
+            <Section label="Trial Shift Schedule" noBg>
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 <input
                   type="date"
