@@ -142,7 +142,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
               <>
                 <button onClick={() => setPage("studentDashboard")} style={navBtnOutline}><span className="nav-label">Browse </span>Jobs</button>
                 <button onClick={() => setPage("companyMessages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>💬 <span className="nav-label">Messages</span></button>
-                <button onClick={() => setPage("companyDashboard")} style={navBtnPrimary}><span className="nav-label">My </span>Jobs</button>
+                <button onClick={() => setPage("companyDashboard")} style={navBtnOutline}><span className="nav-label">My </span>Jobs</button>
               </>
             )}
             {currentUser?.role === "admin" && (
