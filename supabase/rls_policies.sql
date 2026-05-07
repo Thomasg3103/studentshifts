@@ -541,23 +541,28 @@ $$;
 CREATE OR REPLACE FUNCTION get_user_emails(user_ids uuid[])
 RETURNS TABLE(id uuid, email text)
 LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+DECLARE
+  caller_role text;
 BEGIN
   IF array_length(user_ids, 1) > 50 THEN
     RAISE EXCEPTION 'Too many user IDs requested (max 50)';
   END IF;
+  SELECT p.role INTO caller_role FROM profiles p WHERE p.id = auth.uid();
   RETURN QUERY
     SELECT u.id, u.email
     FROM auth.users u
     WHERE u.id = ANY(user_ids)
       AND (
+        caller_role = 'admin'
+        OR
         u.id = auth.uid()
         OR
-        EXISTS (
+        (caller_role = 'company' AND EXISTS (
           SELECT 1 FROM applications a
           JOIN jobs j ON j.id = a.job_id
           WHERE j.company_id = auth.uid()
             AND a.student_id = u.id
-        )
+        ))
       );
 END;
 $$;
