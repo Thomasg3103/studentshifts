@@ -330,7 +330,8 @@ export default function AccountPage({
 
   // ── Right column content (shared pieces) ─────────────────────────────────
   const LocationSection = () => (
-    <Collapsible title="My Location" defaultOpen={!locationCoords}>
+    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.75rem" }}>My Location</p>
       <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.85rem", lineHeight: 1.4 }}>
         Set your address so we can show job distances. Never shared publicly.
       </p>
@@ -387,7 +388,7 @@ export default function AccountPage({
       <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
         📡 Use my current GPS location
       </button>
-    </Collapsible>
+    </div>
   );
 
   const BottomActions = () => (
@@ -434,22 +435,15 @@ export default function AccountPage({
             /* ── Student two-column layout ── */
             <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "1.5rem", alignItems: "flex-start" }}>
 
-              {/* Left sidebar: Availability + Job Preferences */}
+              {/* Left sidebar: Availability only */}
               {!isMobile && (
                 <aside style={{ width: "260px", flexShrink: 0 }}>
                   <SidebarAvailability />
-                  <SidebarPrefs />
                 </aside>
               )}
 
               {/* Right column */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <Collapsible title="Account Details">
-                  <InfoRow label="Name"  value={currentUser.name} />
-                  <InfoRow label="Email" value={currentUser.email} />
-                  <InfoRow label="Role"  value="Student" />
-                </Collapsible>
-
                 {/* Only show verification docs section if not both stored */}
                 {!docsStored && (
                   <Collapsible title="Verification Documents" defaultOpen>
@@ -459,6 +453,28 @@ export default function AccountPage({
                 )}
 
                 <LocationSection />
+
+                {/* Job Preferences */}
+                <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.5rem" }}>Job Preferences</p>
+                  <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.65rem" }}>Industries you're interested in.</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+                    {Object.keys(jobCategories).map(cat => {
+                      const active = jobPreferences.includes(cat);
+                      return (
+                        <button key={cat} type="button" onClick={() => handlePrefToggle(cat)} style={{
+                          padding: "0.25rem 0.6rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600",
+                          cursor: "pointer", fontFamily: "inherit",
+                          border: `1.5px solid ${active ? "#A21D54" : "#e2e8f0"}`,
+                          backgroundColor: active ? "#fce7f3" : "#f8fafc",
+                          color: active ? "#A21D54" : "#64748b",
+                        }}>
+                          {active ? "✓ " : ""}{cat}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
                 {/* My Profile */}
                 <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1.25rem", marginBottom: "1rem" }}>
@@ -535,11 +551,10 @@ export default function AccountPage({
                 <BottomActions />
               </div>
 
-              {/* Mobile: availability + prefs below the right column */}
+              {/* Mobile: availability below the right column */}
               {isMobile && (
                 <div style={{ width: "100%" }}>
                   <SidebarAvailability />
-                  <SidebarPrefs />
                 </div>
               )}
             </div>
