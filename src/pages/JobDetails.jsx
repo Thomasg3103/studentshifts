@@ -101,103 +101,113 @@ export default function JobDetails({
     ? new Date(job.deadline).toLocaleDateString("en-IE", { month: "long", day: "numeric", year: "numeric" })
     : null;
 
-  const isNarrow = windowWidth < 700;
+  const isNarrow = windowWidth < 768;
+
+  const idx  = Math.min(photoIdx, Math.max(0, photos.length - 1));
+  const crop = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
+
+  const Sidebar = () => (
+    <div>
+      <DetailCard label="Location">{job.location}</DetailCard>
+      <DetailCard label="Pay">{job.pay}</DetailCard>
+      <DetailCard label="Shifts">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginTop: "0.15rem" }}>
+          {job.days.map(day => {
+            const isFilled = (job.filledShifts || []).includes(day);
+            const t = job.times?.[day];
+            const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
+            return (
+              <span key={day} style={{ fontSize: "0.73rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.2rem 0.5rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
+                {day}{timeStr ? ` · ${timeStr}` : ""}{isFilled ? " ✓" : ""}
+              </span>
+            );
+          })}
+        </div>
+      </DetailCard>
+      {job.category && <DetailCard label="Job Type">{job.category}</DetailCard>}
+      {job.weekendRequired && <DetailCard label="Schedule">Weekend availability required</DetailCard>}
+      {deadlineStr && <DetailCard label="Apply By">{deadlineStr}</DetailCard>}
+    </div>
+  );
 
   return (
-    <><BackButton />
-    <PageWrapper>
+    <>
+      <BackButton />
+      <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "1.5rem 1.25rem", boxSizing: "border-box" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", gap: "1.5rem", alignItems: "flex-start" }}>
 
-      {/* ── 3-column layout ── */}
-      <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start", flexWrap: isNarrow ? "wrap" : "nowrap" }}>
+          {/* LEFT: sticky details sidebar — desktop only */}
+          {!isNarrow && (
+            <aside style={{ width: "240px", flexShrink: 0, position: "sticky", top: "88px" }}>
+              <Sidebar />
+            </aside>
+          )}
 
-        {/* LEFT: details sidebar */}
-        <div style={{ width: isNarrow ? "100%" : "210px", flexShrink: 0, order: isNarrow ? 2 : 0 }}>
-          <DetailCard label="Location">{job.location}</DetailCard>
-          <DetailCard label="Pay">{job.pay}</DetailCard>
-          <DetailCard label="Shifts">
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginTop: "0.1rem" }}>
-              {job.days.map(day => {
-                const isFilled = (job.filledShifts || []).includes(day);
-                const t = job.times?.[day];
-                const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
-                return (
-                  <span key={day} style={{ fontSize: "0.73rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.2rem 0.5rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
-                    {day}{timeStr ? ` · ${timeStr}` : ""}{isFilled ? " ✓" : ""}
-                  </span>
-                );
-              })}
-            </div>
-          </DetailCard>
-          {job.category && <DetailCard label="Job Type">{job.category}</DetailCard>}
-          {job.weekendRequired && <DetailCard label="Schedule">Weekend availability required</DetailCard>}
-          {deadlineStr && <DetailCard label="Apply By">{deadlineStr}</DetailCard>}
-        </div>
+          {/* RIGHT: main white card */}
+          <div style={{ flex: 1, minWidth: 0, backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 2rem", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
 
-        {/* CENTER: image → title → company → description */}
-        {(() => {
-          const idx  = Math.min(photoIdx, Math.max(0, photos.length - 1));
-          const crop = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
-          return (
-            <div style={{ flex: 1, minWidth: 0, order: isNarrow ? 1 : 0 }}>
-              {/* Image */}
-              <div style={{ width: "100%", paddingBottom: "56%", position: "relative", borderRadius: "0.85rem", overflow: "hidden", marginBottom: "1rem", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
-                {photos.length > 0 ? (
-                  <>
-                    <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-                      <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                    </div>
-                    {photos.length > 1 && (
-                      <>
-                        <button onClick={e => { e.stopPropagation(); setPhotoIdx((idx - 1 + photos.length) % photos.length); }} style={arrowBtn("left")}>‹</button>
-                        <button onClick={e => { e.stopPropagation(); setPhotoIdx((idx + 1) % photos.length); }} style={arrowBtn("right")}>›</button>
-                        <div style={{ position: "absolute", bottom: "6px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "4px" }}>
-                          {photos.map((_, i) => <div key={i} style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: i === idx ? "white" : "rgba(255,255,255,0.4)" }} />)}
-                        </div>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
-                    <span style={{ fontSize: "3rem", opacity: 0.4 }}>🏢</span>
+            {/* Image */}
+            <div style={{ width: "100%", paddingBottom: "52%", position: "relative", borderRadius: "0.85rem", overflow: "hidden", marginBottom: "1.25rem", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
+              {photos.length > 0 ? (
+                <>
+                  <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
+                    <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                   </div>
-                )}
-              </div>
-              {/* Title + company */}
-              <h1 style={{ fontWeight: 800, fontSize: "1.5rem", margin: "0 0 0.2rem", color: "#1e293b", lineHeight: 1.2 }}>{job.title}</h1>
-              <p style={{ color: "#64748b", fontSize: "0.95rem", margin: "0 0 1.1rem", fontWeight: 500 }}>{job.company}</p>
-              {/* Description */}
-              {job.description && (
-                <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "0.85rem 1rem" }}>
-                  <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.45rem" }}>About This Role</p>
-                  <p style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0 }}>{job.description}</p>
+                  {photos.length > 1 && (
+                    <>
+                      <button onClick={e => { e.stopPropagation(); setPhotoIdx((idx - 1 + photos.length) % photos.length); }} style={arrowBtn("left")}>‹</button>
+                      <button onClick={e => { e.stopPropagation(); setPhotoIdx((idx + 1) % photos.length); }} style={arrowBtn("right")}>›</button>
+                      <div style={{ position: "absolute", bottom: "6px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "4px" }}>
+                        {photos.map((_, i) => <div key={i} style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: i === idx ? "white" : "rgba(255,255,255,0.4)" }} />)}
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
+                  <span style={{ fontSize: "3.5rem", opacity: 0.4 }}>🏢</span>
                 </div>
               )}
             </div>
-          );
-        })()}
 
-        {/* RIGHT: action buttons */}
-        <div style={{ width: isNarrow ? "100%" : "130px", flexShrink: 0, display: "flex", flexDirection: isNarrow ? "row" : "column", gap: "0.6rem", order: isNarrow ? 3 : 0 }}>
-          {!isApplied && (
-            <button onClick={toggleLike} style={{ ...btn, flex: isNarrow ? 1 : undefined, background: isLiked ? "#10b981" : "white", color: isLiked ? "white" : "#e11d48", border: isLiked ? "none" : "2px solid #e11d48", boxShadow: isLiked ? "0 3px 10px rgba(16,185,129,0.25)" : "none", textAlign: "center" }}>
-              {isLiked ? "✅ Liked" : "🤍 Like"}
+            {/* Title + company + action buttons */}
+            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
+              <div>
+                <h1 style={{ fontWeight: 800, fontSize: "1.5rem", margin: "0 0 0.2rem", color: "#1e293b", lineHeight: 1.2 }}>{job.title}</h1>
+                <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0, fontWeight: 500 }}>{job.company}</p>
+              </div>
+              <div style={{ display: "flex", gap: "0.6rem", flexShrink: 0, flexWrap: "wrap" }}>
+                {!isApplied && (
+                  <button onClick={toggleLike} style={{ ...btn, background: isLiked ? "#10b981" : "white", color: isLiked ? "white" : "#e11d48", border: isLiked ? "none" : "2px solid #e11d48", boxShadow: isLiked ? "0 3px 10px rgba(16,185,129,0.25)" : "none" }}>
+                    {isLiked ? "✅ Liked" : "🤍 Like"}
+                  </button>
+                )}
+                <button onClick={handleApply} style={{ ...btn, background: isApplied ? "#10b981" : "linear-gradient(135deg,#A21D54,#C2185B)", boxShadow: isApplied ? "none" : "0 3px 10px rgba(162,29,84,0.35)" }}>
+                  {isApplied ? "✅ Applied" : "Apply Now"}
+                </button>
+              </div>
+            </div>
+
+            {/* Mobile: sidebar details inline */}
+            {isNarrow && <div style={{ marginBottom: "1.25rem" }}><Sidebar /></div>}
+
+            {/* About This Role */}
+            {job.description && (
+              <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.1rem", marginBottom: "1.5rem" }}>
+                <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.45rem" }}>About This Role</p>
+                <p style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0 }}>{job.description}</p>
+              </div>
+            )}
+
+            {/* Report Job */}
+            <button
+              onClick={() => setReportOpen(true)}
+              style={{ width: "100%", padding: "0.85rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+            >
+              ⚑ Report this job
             </button>
-          )}
-          <button onClick={handleApply} style={{ ...btn, flex: isNarrow ? 1 : undefined, background: isApplied ? "#10b981" : "linear-gradient(135deg,#A21D54,#C2185B)", boxShadow: isApplied ? "none" : "0 3px 10px rgba(162,29,84,0.35)", textAlign: "center" }}>
-            {isApplied ? "✅ Applied" : "Apply Now"}
-          </button>
+          </div>
         </div>
-
-      </div>
-
-      {/* ── Report Job ── */}
-      <div style={{ marginTop: "1.75rem" }}>
-        <button
-          onClick={() => setReportOpen(true)}
-          style={{ width: "100%", padding: "0.85rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
-        >
-          ⚑ Report this job
-        </button>
       </div>
 
       {/* Report modal */}
@@ -332,7 +342,6 @@ export default function JobDetails({
           </div>
         </div>
       )}
-    </PageWrapper>
 
       {/* Fullscreen photo lightbox */}
       {fullscreenIdx !== null && (
