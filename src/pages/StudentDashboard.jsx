@@ -626,7 +626,12 @@ export default function StudentDashboard({
                     {/* Middle info */}
                     <div style={{ flex: 1, padding: "0.85rem 1rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       <div>
-                        <h2 style={{ fontWeight: 800, fontSize: "1rem", margin: "0 0 0.15rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
+                        <h2
+                          onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
+                          onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+                          onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}
+                          style={{ fontWeight: 800, fontSize: "1rem", margin: "0 0 0.15rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", cursor: "pointer" }}
+                        >{job.title}</h2>
                         <p style={{ margin: "0 0 0.5rem", fontSize: "0.83rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
                       </div>
 
@@ -658,22 +663,21 @@ export default function StudentDashboard({
                       </div>
                     </div>
 
-                    {/* Right: action buttons */}
-                    <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: "0.5rem", padding: "0.85rem 1rem 0.85rem 0", flexShrink: 0 }}>
-                      <button
-                        onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
-                        style={{ padding: "0.45rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#A21D54,#C2185B)", color: "white", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", boxShadow: "0 2px 8px rgba(162,29,84,0.3)" }}
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => toggleLike(job)}
-                        disabled={isApplied}
-                        style={{ padding: "0.4rem 1rem", borderRadius: "2rem", fontWeight: 700, fontSize: "0.78rem", cursor: isApplied ? "default" : "pointer", fontFamily: "inherit", whiteSpace: "nowrap", border: isApplied ? "none" : (isLiked ? "none" : "2px solid #f43f5e"), backgroundColor: isApplied ? "#10b981" : (isLiked ? "#10b981" : "white"), color: isApplied ? "white" : (isLiked ? "white" : "#f43f5e") }}
-                      >
-                        {isApplied ? "✅" : (isLiked ? "✅" : "❤️")}
-                      </button>
-                    </div>
+                    {/* Right: heart / applied icon */}
+                    <button
+                      onClick={() => toggleLike(job)}
+                      disabled={isApplied}
+                      title={isApplied ? "Applied" : isLiked ? "Unlike" : "Like"}
+                      style={{ width: "60px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, borderRadius: "0 1rem 1rem 0" }}
+                    >
+                      {isApplied ? (
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                      ) : isLiked ? (
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                      ) : (
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                      )}
+                    </button>
                   </div>
                 );
               })}
@@ -706,16 +710,15 @@ export default function StudentDashboard({
 
 function FilterSection({ title, open, onToggle, children }) {
   return (
-    <div>
+    <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.5rem 0.75rem", marginBottom: "0.4rem" }}>
       <button
         onClick={onToggle}
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", background: "none", border: "none", padding: "0.35rem 0", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", color: "#1e293b", fontFamily: "inherit", textAlign: "left", marginBottom: open ? "0.5rem" : 0 }}
+        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", background: "none", border: "none", padding: "0.2rem 0", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", color: "#1e293b", fontFamily: "inherit", textAlign: "left", marginBottom: open ? "0.5rem" : 0 }}
       >
         <span>{title}</span>
         <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{open ? "▲" : "▼"}</span>
       </button>
       {open && <div>{children}</div>}
-      <hr style={{ border: "none", borderTop: "1px solid #fafafa", margin: "0.6rem 0 0" }} />
     </div>
   );
 }

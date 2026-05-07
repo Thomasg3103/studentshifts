@@ -3,6 +3,16 @@ import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { likeJob, unlikeJob, createApplication } from "../lib/auth";
 
+function DetailRow({ icon, label, value }) {
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", padding: "0.55rem 0", borderBottom: "1px solid #e2e8f0" }}>
+      <span style={{ fontSize: "1rem", flexShrink: 0, width: "22px", textAlign: "center", marginTop: "1px" }}>{icon}</span>
+      <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "90px", flexShrink: 0, paddingTop: "2px" }}>{label}</span>
+      <span style={{ fontSize: "0.9rem", color: "#374151", fontWeight: 500, flex: 1 }}>{value}</span>
+    </div>
+  );
+}
+
 
 export default function JobDetails({
   job, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
@@ -13,7 +23,9 @@ export default function JobDetails({
   const [submitting, setSubmitting]       = useState(false);
   const [applyError, setApplyError]       = useState(null);
   const [fullscreenIdx, setFullscreenIdx] = useState(null);
-  const [selectedDay, setSelectedDay] = useState(null);
+  const [selectedDay, setSelectedDay]     = useState(null);
+  const [reportOpen, setReportOpen]       = useState(false);
+  const [reportReason, setReportReason]   = useState("");
 
   if (!job) return null;
 
@@ -87,14 +99,12 @@ export default function JobDetails({
     <><BackButton />
     <PageWrapper>
 
-      {/* ── Header: photo + key info ── */}
+      {/* ── Header: photo + title/company ── */}
       {(() => {
-        const idx    = Math.min(photoIdx, Math.max(0, photos.length - 1));
-        const crop   = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
-
+        const idx  = Math.min(photoIdx, Math.max(0, photos.length - 1));
+        const crop = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
         return (
-          <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start", marginBottom: "1.5rem", flexWrap: "wrap" }}>
-
+          <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start", marginBottom: "1.25rem", flexWrap: "wrap" }}>
             {/* Square thumbnail */}
             <div style={{ width: "180px", height: "180px", flexShrink: 0, borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
               {photos.length > 0 ? (
@@ -118,37 +128,14 @@ export default function JobDetails({
                 </div>
               )}
             </div>
-
-            {/* Info column */}
+            {/* Title + company + actions */}
             <div style={{ flex: 1, minWidth: "200px" }}>
-              <h1 style={{ fontWeight: "800", fontSize: "1.5rem", margin: "0 0 0.15rem", color: "#1e293b", lineHeight: 1.2 }}>{job.title}</h1>
-              <p style={{ color: "#64748b", fontSize: "0.9rem", margin: "0 0 0.9rem", fontWeight: "500" }}>{job.company}</p>
-
-              {/* Detail pills */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "1rem" }}>
-                <Pill>📍 {job.location}</Pill>
-                <Pill accent>💰 {job.pay}</Pill>
-                {deadlineStr && <Pill warn>📅 {deadlineStr}</Pill>}
-                {job.weekendRequired && <Pill>📆 Weekend required</Pill>}
-              </div>
-
-              {/* Availability tags */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "1.1rem" }}>
-                {job.days.map(day => {
-                  const isFilled = (job.filledShifts || []).includes(day);
-                  return (
-                    <span key={day} style={{ fontSize: "0.75rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.2rem 0.55rem", borderRadius: "999px", fontWeight: "600", textDecoration: isFilled ? "line-through" : "none" }}>
-                      {day} · {job.times[day]?.join(", ")}{isFilled ? " ✓" : ""}
-                    </span>
-                  );
-                })}
-              </div>
-
-              {/* Action buttons */}
+              <h1 style={{ fontWeight: 800, fontSize: "1.5rem", margin: "0 0 0.2rem", color: "#1e293b", lineHeight: 1.2 }}>{job.title}</h1>
+              <p style={{ color: "#64748b", fontSize: "0.95rem", margin: "0 0 1.1rem", fontWeight: 500 }}>{job.company}</p>
               <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
                 {!isApplied && (
-                  <button onClick={toggleLike} style={{ ...btn, background: isLiked ? "#10b981" : "linear-gradient(135deg,#f43f5e,#e11d48)", boxShadow: "0 3px 10px rgba(244,63,94,0.3)" }}>
-                    {isLiked ? "✅ Liked" : "❤️ Like"}
+                  <button onClick={toggleLike} style={{ ...btn, background: isLiked ? "#10b981" : "white", color: isLiked ? "white" : "#e11d48", border: isLiked ? "none" : "2px solid #e11d48", boxShadow: isLiked ? "0 3px 10px rgba(16,185,129,0.25)" : "none" }}>
+                    {isLiked ? "✅ Liked" : "🤍 Like"}
                   </button>
                 )}
                 <button onClick={handleApply} style={{ ...btn, background: isApplied ? "#10b981" : "linear-gradient(135deg,#A21D54,#C2185B)", boxShadow: isApplied ? "none" : "0 3px 10px rgba(162,29,84,0.35)" }}>
@@ -160,11 +147,71 @@ export default function JobDetails({
         );
       })()}
 
-      {/* Description */}
+      {/* ── Structured details panel ── */}
+      <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.25rem 1.25rem", marginBottom: "1.25rem" }}>
+        <DetailRow icon="📍" label="Location" value={job.location} />
+        <DetailRow icon="💰" label="Pay" value={job.pay} />
+        <DetailRow icon="🗓️" label="Shifts" value={
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+            {job.days.map(day => {
+              const isFilled = (job.filledShifts || []).includes(day);
+              const t = job.times?.[day];
+              const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
+              return (
+                <span key={day} style={{ fontSize: "0.75rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.2rem 0.55rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
+                  {day}{timeStr ? ` · ${timeStr}` : ""}{isFilled ? " ✓" : ""}
+                </span>
+              );
+            })}
+          </div>
+        } />
+        {job.category && <DetailRow icon="🏷️" label="Job Type" value={job.category} />}
+        {job.weekendRequired && <DetailRow icon="📆" label="Schedule" value="Weekend availability required" />}
+        {deadlineStr && <DetailRow icon="⏰" label="Apply By" value={deadlineStr} />}
+      </div>
+
+      {/* ── About This Role ── */}
       {job.description && (
-        <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
-          <p style={{ fontWeight: "700", fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", marginBottom: "0.45rem" }}>About This Role</p>
-          <p style={{ fontSize: "0.9rem", color: "#374151", lineHeight: "1.65", margin: 0 }}>{job.description}</p>
+        <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.25rem", marginBottom: "1.25rem" }}>
+          <p style={{ fontWeight: 700, fontSize: "0.72rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.5rem" }}>About This Role</p>
+          <p style={{ fontSize: "0.9rem", color: "#374151", lineHeight: 1.65, margin: 0 }}>{job.description}</p>
+        </div>
+      )}
+
+      {/* ── Report Job ── */}
+      <div style={{ textAlign: "center", paddingTop: "0.5rem", marginBottom: "0.5rem" }}>
+        <button onClick={() => setReportOpen(true)} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "0.78rem", fontWeight: 600, fontFamily: "inherit", padding: "0.4rem 0.75rem", borderRadius: "0.5rem" }}>
+          ⚑ Report this job
+        </button>
+      </div>
+
+      {/* Report modal */}
+      {reportOpen && (
+        <div onClick={() => setReportOpen(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", backdropFilter: "blur(2px)" }}>
+          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+            <h3 style={{ fontWeight: 800, fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Report Job</h3>
+            <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1rem", lineHeight: 1.5 }}>Let us know what's wrong with this listing and we'll look into it.</p>
+            <textarea
+              value={reportReason}
+              onChange={e => setReportReason(e.target.value)}
+              placeholder="Describe the issue…"
+              rows={4}
+              style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", marginBottom: "1.25rem", outline: "none" }}
+            />
+            <div style={{ display: "flex", gap: "0.75rem" }}>
+              <button onClick={() => setReportOpen(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+              <button
+                onClick={() => {
+                  const subject = encodeURIComponent(`Job Report: ${job.title} at ${job.company}`);
+                  const body = encodeURIComponent(`Job ID: ${job.id}\nTitle: ${job.title}\nCompany: ${job.company}\n\nReason:\n${reportReason}`);
+                  window.open(`mailto:hello@studentshifts.ie?subject=${subject}&body=${body}`);
+                  setReportOpen(false);
+                  setReportReason("");
+                }}
+                style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg,#A21D54,#C2185B)", color: "white", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+              >Send Report</button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -317,7 +364,7 @@ function Pill({ children, accent, warn }) {
   const color = accent ? "#15803d" : warn ? "#b45309" : "#475569";
   const border= accent ? "#bbf7d0" : warn ? "#fde68a" : "#e2e8f0";
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.2rem", fontSize: "0.78rem", fontWeight: "600", padding: "0.25rem 0.65rem", borderRadius: "999px", backgroundColor: bg, color, border: `1.5px solid ${border}` }}>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: "0.2rem", fontSize: "0.78rem", fontWeight: 600, padding: "0.25rem 0.65rem", borderRadius: "999px", backgroundColor: bg, color, border: `1.5px solid ${border}` }}>
       {children}
     </span>
   );

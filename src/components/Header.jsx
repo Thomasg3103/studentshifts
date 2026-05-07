@@ -156,7 +156,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
             )}
             {currentUser && (
               <div style={{ position: "relative", display: "inline-block" }}>
-                <button onClick={() => setPage("account")} style={{ ...navBtnPrimary, display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+                <button onClick={() => setPage("account")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
                   {currentUser.profilePhoto
                     ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
                     : <PersonIcon />
