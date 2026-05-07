@@ -162,8 +162,8 @@ export default function JobDetails({
               </div>
               {/* Title + company — centred */}
               <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
-                <h1 style={{ fontWeight: 800, fontSize: "1.35rem", margin: "0 0 0.15rem", color: "#1e293b", lineHeight: 1.2 }}>{job.title}</h1>
-                <p style={{ color: "#64748b", fontSize: "0.9rem", margin: 0, fontWeight: 500 }}>{job.company}</p>
+                <h1 style={{ fontWeight: 800, fontSize: "2.7rem", margin: "0 0 0.2rem", color: "#1e293b", lineHeight: 1.1 }}>{job.title}</h1>
+                <p style={{ color: "#64748b", fontSize: "1.8rem", margin: 0, fontWeight: 500 }}>{job.company}</p>
               </div>
               {/* Right: heart + apply, or single green tick when applied */}
               {isApplied ? (
