@@ -17,7 +17,8 @@
       "Bash(git checkout *)",
       "Bash(python3 -c ' *)",
       "Bash(git commit *)",
-      "Bash(awk '$1 >= 1148 && $1 <= 2801 {print; if \\(++count == 1\\) exit}')"
+      "Bash(awk '$1 >= 1148 && $1 <= 2801 {print; if \\(++count == 1\\) exit}')",
+      "Bash(node -e ' *)"
     ]
   }
 }

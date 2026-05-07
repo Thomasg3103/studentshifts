@@ -7,7 +7,7 @@ const LAST_UPDATED  = "20 April 2026";
 export default function TermsOfServicePage({ setPage }) {
   return (
     <><BackButton />
-    <PageWrapper>
+    <PageWrapper narrow>
       <div style={{ maxWidth: "680px", margin: "0 auto", color: "#1e293b", fontFamily: "inherit" }}>
 
         <h1 style={h1}>Terms of Service</h1>

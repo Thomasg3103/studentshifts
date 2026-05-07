@@ -50,7 +50,7 @@ export default function SignupPage({ setPage }) {
 
   if (done && role === "company") {
     return (
-      <PageWrapper>
+      <PageWrapper narrow>
         <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📬</div>
           <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Almost there!</h2>
@@ -85,7 +85,7 @@ export default function SignupPage({ setPage }) {
 
   if (done) {
     return (
-      <PageWrapper>
+      <PageWrapper narrow>
         <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📬</div>
           <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Check your email</h2>
@@ -104,7 +104,7 @@ export default function SignupPage({ setPage }) {
   }
 
   return (
-    <PageWrapper>
+    <PageWrapper narrow>
       <div style={{ maxWidth: "440px", margin: "0 auto" }}>
 
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>

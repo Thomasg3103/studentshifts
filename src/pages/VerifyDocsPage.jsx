@@ -29,7 +29,7 @@ export default function VerifyDocsPage({ currentUser, setCurrentUser, setPage })
 
   return (
     <>
-    <PageWrapper>
+    <PageWrapper narrow>
       <div style={{ maxWidth: "440px", margin: "0 auto" }}>
 
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>

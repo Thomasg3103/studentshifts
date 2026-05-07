@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-export default function PageWrapper({ children }) {
+export default function PageWrapper({ children, narrow }) {
 
   const [showTop, setShowTop] = useState(false);
 
@@ -18,7 +18,7 @@ export default function PageWrapper({ children }) {
       minHeight: "100vh",
       display: "flex",
       justifyContent: "center",
-      padding: "2.5rem 1rem",
+      padding: narrow ? "2.5rem 1rem" : "2rem 2rem",
       boxSizing: "border-box",
       backgroundColor: "#fafafa",
       fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -26,13 +26,13 @@ export default function PageWrapper({ children }) {
 
       <div className="page-inner" style={{
         width: "100%",
-        maxWidth: "880px",
+        maxWidth: narrow ? "520px" : "1400px",
         margin: "0 auto",
-        padding: "2rem 2.5rem",
+        padding: narrow ? "2rem 2.5rem" : "2rem 2.5rem",
         boxSizing: "border-box",
         backgroundColor: "white",
-        borderRadius: "1.25rem",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.07)",
+        borderRadius: narrow ? "1.25rem" : "0",
+        boxShadow: narrow ? "0 4px 24px rgba(0,0,0,0.07)" : "none",
       }}>
         {children}
       </div>

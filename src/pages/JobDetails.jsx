@@ -163,15 +163,32 @@ export default function JobDetails({
 
             {/* Single header row: image · title/company · buttons */}
             <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
-              {/* Square image */}
-              <div style={{ width: "144px", height: "144px", flexShrink: 0, borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
-                {photos.length > 0 ? (
-                  <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-                    <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                  </div>
-                ) : (
-                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
-                    <span style={{ fontSize: "1.5rem", opacity: 0.4 }}>🏢</span>
+              {/* Square image with dot nav when multiple photos */}
+              <div style={{ width: "144px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem" }}>
+                <div style={{ width: "144px", height: "144px", borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
+                  {photos.length > 0 ? (
+                    <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
+                      <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    </div>
+                  ) : (
+                    <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
+                      <span style={{ fontSize: "1.5rem", opacity: 0.4 }}>🏢</span>
+                    </div>
+                  )}
+                  {/* Prev / Next arrows overlaid on image */}
+                  {photos.length > 1 && (
+                    <>
+                      <button onClick={e => { e.stopPropagation(); setPhotoIdx((idx - 1 + photos.length) % photos.length); }} style={{ position: "absolute", left: "4px", top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.45)", border: "none", color: "white", borderRadius: "50%", width: "24px", height: "24px", fontSize: "0.85rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>‹</button>
+                      <button onClick={e => { e.stopPropagation(); setPhotoIdx((idx + 1) % photos.length); }} style={{ position: "absolute", right: "4px", top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.45)", border: "none", color: "white", borderRadius: "50%", width: "24px", height: "24px", fontSize: "0.85rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>›</button>
+                    </>
+                  )}
+                </div>
+                {/* Dot indicators */}
+                {photos.length > 1 && (
+                  <div style={{ display: "flex", gap: "5px" }}>
+                    {photos.map((_, i) => (
+                      <div key={i} onClick={() => setPhotoIdx(i)} style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: i === idx ? "#A21D54" : "#d1d5db", cursor: "pointer", transition: "background-color 0.15s" }} />
+                    ))}
                   </div>
                 )}
               </div>

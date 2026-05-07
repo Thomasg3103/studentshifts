@@ -4,7 +4,7 @@ import BackButton from "../components/BackButton";
 export default function AboutPage({ setPage }) {
   return (
     <><BackButton />
-    <PageWrapper>
+    <PageWrapper narrow>
 
       {/* Hero */}
       <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>

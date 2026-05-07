@@ -27,7 +27,7 @@ export default function ResetPasswordPage({ setPage }) {
   };
 
   return (
-    <PageWrapper>
+    <PageWrapper narrow>
       <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
         <div style={{ marginBottom: "1.75rem" }}>
           <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Set new password</h2>

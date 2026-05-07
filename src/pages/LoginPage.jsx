@@ -43,7 +43,7 @@ export default function LoginPage({ setPage }) {
 
   if (forgotMode) {
     return (
-      <PageWrapper>
+      <PageWrapper narrow>
         <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
           <div style={{ marginBottom: "1.75rem" }}>
             <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Reset password</h2>
@@ -90,7 +90,7 @@ export default function LoginPage({ setPage }) {
   }
 
   return (
-    <PageWrapper>
+    <PageWrapper narrow>
       <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
 
         <div style={{ marginBottom: "1.75rem" }}>

@@ -117,14 +117,12 @@ header {
   }
   /* PageWrapper — full width, no rounded card on mobile */
   .page-wrapper-outer {
-    padding: 0 !important;
-    align-items: flex-start !important;
+    padding: 0.75rem !important;
   }
   .page-inner {
     padding: 1rem 1rem 2rem !important;
     border-radius: 0 !important;
     box-shadow: none !important;
-    min-height: 100vh;
   }
 }
 

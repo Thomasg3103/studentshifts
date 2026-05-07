@@ -7,7 +7,7 @@ const LAST_UPDATED  = "15 April 2026";
 export default function PrivacyPolicyPage({ setPage }) {
   return (
     <><BackButton />
-    <PageWrapper>
+    <PageWrapper narrow>
       <div style={{ maxWidth: "680px", margin: "0 auto", color: "#1e293b", fontFamily: "inherit" }}>
 
         <h1 style={h1}>Privacy Policy</h1>
