@@ -51,6 +51,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   const [students, setStudents]   = useState([]);
   const [studentsLoading, setStudentsLoading] = useState(false);
   const [studentsFetched, setStudentsFetched] = useState(false);
+  const [studentsError, setStudentsError]     = useState(null);
   const [chatStudent, setChatStudent] = useState(null); // { id, name } for inline DM
   const [likedStudentIds, setLikedStudentIds] = useState(new Set());
   const [applicantsViewMode, setApplicantsViewMode] = useState("list");
@@ -72,9 +73,10 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   useEffect(() => {
     if (activeTab !== "students" || studentsFetched || !currentUser) return;
     setStudentsLoading(true);
+    setStudentsError(null);
     fetchAllVerifiedStudents()
       .then(data => { setStudents(data); setStudentsFetched(true); })
-      .catch(() => setStudentsFetched(true))
+      .catch(e => { setStudentsError(e.message || "Failed to load students"); setStudentsFetched(true); })
       .finally(() => setStudentsLoading(false));
   }, [activeTab]);
 
@@ -681,6 +683,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           students={students}
           loading={studentsLoading}
           fetched={studentsFetched}
+          error={studentsError}
           companyIndustries={currentUser?.industries || []}
           companyId={currentUser?.id}
           companyName={currentUser?.name}
@@ -793,7 +796,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
 
 /* ─── Sub-components ─────────────────────────────────────────────────────── */
 
-function BrowseStudents({ students, loading, fetched, companyIndustries, companyId, companyName, chatStudent, setChatStudent, setPage, likedStudentIds, onToggleLike }) {
+function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, companyName, chatStudent, setChatStudent, setPage, likedStudentIds, onToggleLike }) {
   const [filterByIndustries, setFilterByIndustries] = useState(true);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
@@ -902,6 +905,16 @@ function BrowseStudents({ students, loading, fetched, companyIndustries, company
 
   if (!fetched && loading) {
     return <p style={{ textAlign: "center", color: "#6b7280", padding: "3rem 1rem" }}>Loading students…</p>;
+  }
+
+  if (fetched && error) {
+    return (
+      <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "#fff1f2", borderRadius: "0.75rem", border: "1.5px solid #fca5a5" }}>
+        <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</p>
+        <p style={{ fontWeight: "700", fontSize: "1rem", color: "#b91c1c", marginBottom: "0.4rem" }}>Could not load students</p>
+        <p style={{ fontSize: "0.85rem", color: "#64748b" }}>{error}</p>
+      </div>
+    );
   }
 
   if (fetched && students.length === 0) {
@@ -1217,6 +1230,8 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
   const [selectedIds, setSelectedIds]             = useState(new Set());
   const [invitedIds, setInvitedIds]               = useState(new Set());
   const [bulkDeclining, setBulkDeclining]         = useState(false);
+  const [showBulkDeclineModal, setShowBulkDeclineModal] = useState(false);
+  const [pendingDeclineIds, setPendingDeclineIds] = useState([]);
 
   if (posting.applicantsLoading) {
     return <div style={{ textAlign: "center", padding: "3rem 1rem" }}><div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div><p style={{ color: "#64748b", fontWeight: "600", margin: 0 }}>Loading applicants…</p></div>;
@@ -1264,20 +1279,26 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
     setActiveStage(`interview_${currentRound + 1}`);
   };
 
-  const bulkDecline = async () => {
+  const bulkDecline = () => {
     const pendingSelected = [...selectedIds].filter(id => {
       const a = posting.applicants.find(x => x.id === id);
       return a && a.status === "Pending";
     });
     if (pendingSelected.length === 0) { setSelectedIds(new Set()); return; }
-    if (!window.confirm(`Decline ${pendingSelected.length} applicant${pendingSelected.length !== 1 ? "s" : ""}? Each will receive a rejection email.`)) return;
+    setPendingDeclineIds(pendingSelected);
+    setShowBulkDeclineModal(true);
+  };
+
+  const confirmBulkDecline = async () => {
+    setShowBulkDeclineModal(false);
     setBulkDeclining(true);
-    for (const id of pendingSelected) {
+    for (const id of pendingDeclineIds) {
       const applicant = posting.applicants.find(a => a.id === id);
       if (applicant) await onUpdateStatus(id, "Rejected", applicant);
     }
     setBulkDeclining(false);
     setSelectedIds(new Set());
+    setPendingDeclineIds([]);
   };
 
   const wrappedSendInterviewInvite = async (applicationId, ...args) => {
@@ -1298,6 +1319,39 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
 
   return (
     <div>
+      {/* Bulk Decline Confirmation Modal */}
+      {showBulkDeclineModal && (
+        <div onClick={() => setShowBulkDeclineModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem" }}>
+          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1rem", padding: "2rem", maxWidth: "400px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", border: "1px solid #e2e8f0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
+              <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <span style={{ fontSize: "1.1rem" }}>✕</span>
+              </div>
+              <h3 style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "#0f172a" }}>
+                Decline {pendingDeclineIds.length} applicant{pendingDeclineIds.length !== 1 ? "s" : ""}?
+              </h3>
+            </div>
+            <p style={{ margin: "0 0 1.5rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.6 }}>
+              Each applicant will receive a rejection email. This cannot be undone.
+            </p>
+            <div style={{ display: "flex", gap: "0.6rem", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setShowBulkDeclineModal(false)}
+                style={{ padding: "0.55rem 1.25rem", borderRadius: "0.55rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmBulkDecline}
+                style={{ padding: "0.55rem 1.25rem", borderRadius: "0.55rem", border: "none", background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(244,63,94,0.3)" }}
+              >
+                Decline {pendingDeclineIds.length}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search + sort bar */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: "180px", position: "relative" }}>
@@ -2443,7 +2497,7 @@ function PdfModal({ url, label, fileName, onClose }) {
   ];
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", backdropFilter: "blur(2px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1300, padding: "1rem", backdropFilter: "blur(2px)" }}>
       <div ref={modalRef} onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "720px", height: "85vh", display: "flex", flexDirection: "column", borderRadius: "1rem", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.4)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1e293b", padding: "0.65rem 1rem", flexShrink: 0 }}>
           <span style={{ color: "white", fontWeight: "700", fontSize: "0.9rem" }}>📄 {label}</span>
