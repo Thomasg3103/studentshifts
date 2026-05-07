@@ -549,7 +549,7 @@ BEGIN
   END IF;
   SELECT p.role INTO caller_role FROM profiles p WHERE p.id = auth.uid();
   RETURN QUERY
-    SELECT u.id, u.email
+    SELECT u.id, u.email::text
     FROM auth.users u
     WHERE u.id = ANY(user_ids)
       AND (
