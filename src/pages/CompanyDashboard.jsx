@@ -512,13 +512,19 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     } catch { /* silently ignore */ }
   };
 
+  const getStudentEmail = async (studentId) => {
+    const { data: emailRows, error } = await supabase.rpc("get_user_emails", { user_ids: [studentId] });
+    if (error) throw new Error(`Email lookup failed: ${error.message}`);
+    const email = emailRows?.[0]?.email;
+    if (!email) throw new Error(`No email found for student (id: ${studentId}). Make sure the SQL has been updated in Supabase.`);
+    return email;
+  };
+
   const handleSendInterviewInvite = async (applicationId, date, time, note, teamsLink) => {
     const applicant = activePosting?.applicants?.find(a => a.id === applicationId);
-    if (!applicant) return;
+    if (!applicant) throw new Error("Applicant not found.");
     try {
-      const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: [applicant.studentId] });
-      const studentEmail = emailRows?.[0]?.email;
-      if (!studentEmail) throw new Error("Could not find student email.");
+      const studentEmail = await getStudentEmail(applicant.studentId);
       await sendEmail({
         to: studentEmail,
         subject: `Interview Invitation from ${currentUser.name}`,
@@ -533,11 +539,9 @@ export default function CompanyDashboard({ setPage, currentUser }) {
 
   const handleSendTrialInvite = async (applicationId, date, time, note) => {
     const applicant = activePosting?.applicants?.find(a => a.id === applicationId);
-    if (!applicant) return;
+    if (!applicant) throw new Error("Applicant not found.");
     try {
-      const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: [applicant.studentId] });
-      const studentEmail = emailRows?.[0]?.email;
-      if (!studentEmail) throw new Error("Could not find student email.");
+      const studentEmail = await getStudentEmail(applicant.studentId);
       await sendEmail({
         to: studentEmail,
         subject: `Trial Shift Invitation from ${currentUser.name}`,
