@@ -53,6 +53,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   const [studentsFetched, setStudentsFetched] = useState(false);
   const [chatStudent, setChatStudent] = useState(null); // { id, name } for inline DM
   const [likedStudentIds, setLikedStudentIds] = useState(new Set());
+  const [applicantsViewMode, setApplicantsViewMode] = useState("list");
 
   // Load availability heatmap once
   useEffect(() => {
@@ -104,6 +105,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   const activeCount     = postings.filter(p => p.status === "Active").length;
 
   const openApplicants = async (posting) => {
+    setApplicantsViewMode("list");
     setActivePosting({ ...posting, applicants: [], applicantsLoading: true, applicantsError: null });
     setModal("applicants");
     const { data: appData, error: appError } = await withTimeout(
@@ -731,7 +733,12 @@ export default function CompanyDashboard({ setPage, currentUser }) {
                 <h2 style={{ margin: 0, fontWeight: "700", fontSize: "1.1rem", color: "#0f172a", letterSpacing: "-0.01em" }}>{activePosting.title}</h2>
                 <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "#64748b" }}>{activePosting.location} · {activePosting.pay}</p>
               </div>
-              <button onClick={closeModal} style={{ width: "32px", height: "32px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</button>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
+                {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (
+                  <button key={val} onClick={() => setApplicantsViewMode(val)} style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem", fontWeight: "600", border: `1px solid ${applicantsViewMode === val ? "#A21D54" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: applicantsViewMode === val ? "#fff0f6" : "white", color: applicantsViewMode === val ? "#A21D54" : "#64748b" }}>{label}</button>
+                ))}
+                <button onClick={closeModal} style={{ width: "32px", height: "32px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+              </div>
             </div>
             {/* Pipeline funnel */}
             {!activePosting.applicantsLoading && activePosting.applicants?.length > 0 && (
@@ -759,7 +766,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
             )}
             {/* Scrollable body */}
             <div style={{ overflowY: "auto", flex: 1, padding: "1.25rem 1.5rem" }}>
-              <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewRoundsData={handleSaveInterviewRoundsData} onSendInterviewInvite={handleSendInterviewInvite} onSendTrialInvite={handleSendTrialInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
+              <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewRoundsData={handleSaveInterviewRoundsData} onSendInterviewInvite={handleSendInterviewInvite} onSendTrialInvite={handleSendTrialInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} viewMode={applicantsViewMode} />
             </div>
           </div>
         </div>
@@ -1201,11 +1208,10 @@ const buildDynamicStages = (applicants) => {
   ];
 };
 
-function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, onSendTrialInvite, likedStudents }) {
+function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, onSendTrialInvite, likedStudents, viewMode }) {
   const [activeStage, setActiveStage]             = useState("applied");
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showCloseJob, setShowCloseJob]           = useState(false);
-  const [viewMode, setViewMode]                   = useState("list");
   const [search, setSearch]                       = useState("");
   const [sortBy, setSortBy]                       = useState("default"); // "default" | "name_asc" | "name_desc" | "status"
   const [selectedIds, setSelectedIds]             = useState(new Set());
@@ -1292,13 +1298,6 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
 
   return (
     <div>
-      {/* View toggle */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.75rem", gap: "0.25rem" }}>
-        {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (
-          <button key={val} onClick={() => setViewMode(val)} style={{ padding: "0.35rem 0.85rem", fontSize: "0.78rem", fontWeight: "600", border: `1px solid ${viewMode === val ? "#A21D54" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: viewMode === val ? "#fff0f6" : "white", color: viewMode === val ? "#A21D54" : "#64748b", transition: "all 0.15s" }}>{label}</button>
-        ))}
-      </div>
-
       {/* Search + sort bar */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: "180px", position: "relative" }}>
