@@ -130,7 +130,11 @@ export default function JobDetails({
         </div>
       </DetailCard>
       {job.category && <DetailCard label="🏷️ Job Type">{job.category}</DetailCard>}
-      {distanceKm !== null && <DetailCard label="📏 Distance">{formatDistance(distanceKm)} away</DetailCard>}
+      <DetailCard label="📏 Distance">
+        {distanceKm !== null
+          ? `${formatDistance(distanceKm)} away`
+          : <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Set your location in Account</span>}
+      </DetailCard>
       {job.sickPay !== undefined && <DetailCard label="🏥 Sick Pay">{job.sickPay ? "Yes" : "No"}</DetailCard>}
       {job.holidays && <DetailCard label="🏖️ Holidays">{job.holidays}</DetailCard>}
       {job.weekendRequired && <DetailCard label="📆 Schedule">Weekend availability required</DetailCard>}
