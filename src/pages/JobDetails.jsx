@@ -139,7 +139,7 @@ export default function JobDetails({
           : <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Not available for this job</span>}
       </DetailCard>
       {job.sickPay !== undefined && <DetailCard label="🏥 Sick Pay">{job.sickPay ? "Yes" : "No"}</DetailCard>}
-      {job.holidays && <DetailCard label="🏖️ Holidays">{job.holidays}</DetailCard>}
+      <DetailCard label="🏖️ Holidays">{job.holidays || <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Not specified</span>}</DetailCard>
       {job.weekendRequired && <DetailCard label="📆 Schedule">Weekend availability required</DetailCard>}
       {deadlineStr && <DetailCard label="⏰ Apply By">{deadlineStr}</DetailCard>}
     </div>
