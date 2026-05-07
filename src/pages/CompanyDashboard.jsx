@@ -375,7 +375,12 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           .rpc("get_user_emails", { user_ids: allStudentIds });
         const emailMap = Object.fromEntries((emailProfiles || []).map(p => [p.id, p.email]));
         const appUrl = window.location.origin;
-        const remainingShiftsAfterHire = activePosting.days.filter(d => !newFilledShifts.includes(d));
+        const remainingShiftsAfterHire = activePosting.days
+          .filter(d => !newFilledShifts.includes(d))
+          .map(d => {
+            const times = activePosting.times?.[d];
+            return times?.length ? `${d} · ${times.join(", ")}` : d;
+          });
 
         // Applicants who were NOT auto-declined but had this shift as an option
         // (applied to all, no preferred_shift) — notify them the shift was taken

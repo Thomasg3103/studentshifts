@@ -616,11 +616,12 @@ export function emailApplicantAccepted(studentName, jobTitle, companyName, shift
         <tr>
           <td style="padding:36px 32px 28px;">
             <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">You got the job! 🎉</p>
-            <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
+            <p style="margin:0 0 20px;font-size:15px;color:#64748b;line-height:1.6;">
               Congratulations ${sName}!<br/><br/>
-              <strong style="color:#1e293b;">${cName}</strong> has hired you for <strong style="color:#1e293b;">${jTitle}</strong>${shift ? ` (${escapeHtml(shift)} shift)` : ""}.<br/><br/>
+              <strong style="color:#1e293b;">${cName}</strong> has hired you for <strong style="color:#1e293b;">${jTitle}</strong>.<br/>
               Log in to StudentShifts to send a message to your new employer and get started.
             </p>
+            ${shift ? `<table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;"><tr><td style="background-color:#dcfce7;border:1.5px solid #86efac;border-radius:10px;padding:14px 20px;"><p style="margin:0 0 4px;font-size:12px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.05em;">Your Shift</p><p style="margin:0;font-size:15px;font-weight:700;color:#15803d;">${escapeHtml(shift)}</p></td></tr></table>` : ""}
             <table width="100%" cellpadding="0" cellspacing="0">
               <tr>
                 <td align="center" style="padding:8px 0 28px;">
