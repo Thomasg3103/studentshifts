@@ -51,6 +51,7 @@ export default function StudentDashboard({
   const [windowWidth,  setWindowWidth]  = useState(window.innerWidth);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
   const searchInputRef = useRef(null);
   const sortDropdownRef = useRef(null);
   // Saved searches: [{ name, filters }]
@@ -63,6 +64,12 @@ export default function StudentDashboard({
     const handler = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
+  }, []);
+
+  useEffect(() => {
+    const handler = () => setShowBackToTop(window.scrollY > 400);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
   }, []);
 
   useEffect(() => {
@@ -667,6 +674,25 @@ export default function StudentDashboard({
           </div>
         </div>
       </div>
+
+      {/* Back to top */}
+      {showBackToTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          style={{
+            position: "fixed", bottom: isMobile ? "80px" : "2rem", right: "1.25rem",
+            width: "44px", height: "44px", borderRadius: "50%",
+            background: "linear-gradient(135deg, #A21D54, #C2185B)",
+            border: "none", color: "white", fontSize: "1.2rem",
+            cursor: "pointer", boxShadow: "0 4px 16px rgba(162,29,84,0.4)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            zIndex: 150,
+          }}
+          title="Back to top"
+        >
+          ↑
+        </button>
+      )}
     </div>
   );
 }
