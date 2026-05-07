@@ -1045,7 +1045,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
       >✏️</button>
 
       {/* Main content */}
-      <div style={{ flex: 1, padding: "0.85rem 6rem 4.5rem 1rem", minWidth: 0 }}>
+      <div style={{ flex: 1, padding: "0.85rem 6rem 0.85rem 1rem", minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
           <h2
             onClick={onViewApplicants}
