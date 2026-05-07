@@ -133,7 +133,7 @@ export default function JobDetails({
       {job.category && <DetailCard label="🏷️ Job Type">{job.category}</DetailCard>}
       <DetailCard label="📏 Distance">
         {distanceKm !== null
-          ? `${formatDistance(distanceKm)} away`
+          ? formatDistance(distanceKm)
           : !loc
           ? <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Set your location in Account</span>
           : <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Not available for this job</span>}
