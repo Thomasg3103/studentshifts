@@ -620,28 +620,26 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       )}
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
         <div>
-          <h1 style={{ fontSize: "1.75rem", fontWeight: "800", margin: 0, color: "#1e293b" }}>Company Dashboard</h1>
-          {currentUser && (
-            <p style={{ color: "#64748b", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{currentUser.name}</p>
-          )}
+          <p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Dashboard</p>
+          <h1 style={{ fontSize: "1.65rem", fontWeight: "800", margin: 0, color: "#0f172a", letterSpacing: "-0.02em" }}>{currentUser?.name || "Company"}</h1>
         </div>
         {isVerified && activeTab === "jobs" && <button onClick={openCreate} style={btnGreen}>+ New Job</button>}
       </div>
 
       {/* Tab bar */}
-      <div style={{ display: "flex", backgroundColor: "#fafafa", borderRadius: "0.75rem", padding: "0.25rem", marginBottom: "1.5rem", gap: "0.25rem" }}>
+      <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "1.75rem", gap: "0" }}>
         {[{ val: "jobs", label: "My Jobs" }, { val: "students", label: "Browse Students" }].map(({ val, label }) => (
           <button
             key={val}
             onClick={() => setActiveTab(val)}
             style={{
-              flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: activeTab === val ? "1.5px solid #e2e8f0" : "1.5px solid transparent",
-              fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit",
-              backgroundColor: activeTab === val ? "white" : "#e2e8f0",
+              padding: "0.7rem 1.25rem", border: "none", background: "none",
+              fontWeight: activeTab === val ? "700" : "500", fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit",
               color: activeTab === val ? "#A21D54" : "#64748b",
-              boxShadow: activeTab === val ? "0 1px 6px rgba(0,0,0,0.1)" : "none",
+              borderBottom: activeTab === val ? "2px solid #A21D54" : "2px solid transparent",
+              marginBottom: "-1px", transition: "color 0.15s, border-color 0.15s",
             }}
           >
             {label}
@@ -652,10 +650,10 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       {/* Stats — jobs tab only */}
       {activeTab === "jobs" && (
       <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
-        <StatCard label="Total Postings" value={postings.length} color="#3b82f6" />
-        <StatCard label="Active" value={activeCount} color="#16a34a" />
-        <StatCard label="Closed" value={postings.length - activeCount} color="#6b7280" />
-        <StatCard label="Total Applicants" value={totalApplicants} color="#f59e0b" />
+        <StatCard label="Total Postings" value={postings.length} />
+        <StatCard label="Active" value={activeCount} />
+        <StatCard label="Closed" value={postings.length - activeCount} />
+        <StatCard label="Total Applicants" value={totalApplicants} />
       </div>
       )}
 
@@ -1036,18 +1034,16 @@ function StudentAvailabilityRow({ availability }) {
   );
 }
 
-const STAT_ICONS = { "Total Postings": "📋", "Active": "✅", "Closed": "🔒", "Total Applicants": "👥" };
-function StatCard({ label, value, color }) {
+function StatCard({ label, value }) {
   return (
     <div style={{
       flex: "1", minWidth: "110px",
-      backgroundColor: "white", border: `1.5px solid ${color}25`,
-      borderRadius: "0.85rem", padding: "0.85rem 1rem", textAlign: "center",
-      borderTop: `3px solid ${color}`,
+      backgroundColor: "white", border: "1px solid #e2e8f0",
+      borderRadius: "0.75rem", padding: "1rem 1.25rem",
+      boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
     }}>
-      <p style={{ fontSize: "1.1rem", margin: "0 0 0.15rem" }}>{STAT_ICONS[label] || "📊"}</p>
-      <p style={{ fontSize: "1.75rem", fontWeight: "800", color, margin: 0, lineHeight: 1 }}>{value}</p>
-      <p style={{ fontSize: "0.68rem", color: "#94a3b8", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0.2rem 0 0" }}>{label}</p>
+      <p style={{ fontSize: "0.65rem", color: "#94a3b8", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.4rem" }}>{label}</p>
+      <p style={{ fontSize: "1.85rem", fontWeight: "800", color: "#0f172a", margin: 0, lineHeight: 1, letterSpacing: "-0.02em" }}>{value}</p>
     </div>
   );
 }
@@ -1067,78 +1063,73 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
       onMouseLeave={() => setHovered(false)}
       style={{
         borderRadius: "0.75rem", overflow: "hidden",
-        backgroundColor: "#f9fafb", border: `1.5px solid ${isExpired ? "#fca5a5" : "#e5e7eb"}`,
-        display: "flex", alignItems: "stretch", position: "relative",
-        opacity: isActive ? 1 : 0.75, minHeight: "180px",
-        boxShadow: hovered ? "0 4px 20px rgba(0,0,0,0.09)" : "none",
+        backgroundColor: "white", border: `1px solid ${isExpired ? "#fca5a5" : "#e2e8f0"}`,
+        display: "flex", alignItems: "stretch",
+        opacity: isActive ? 1 : 0.8,
+        boxShadow: hovered ? "0 4px 20px rgba(0,0,0,0.08)" : "0 1px 4px rgba(0,0,0,0.04)",
         transition: "box-shadow 0.18s",
       }}>
       {/* Square photo */}
-      <div style={{ width: "180px", height: "180px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0", alignSelf: "flex-start" }}>
+      <div style={{ width: "160px", flexShrink: 0, position: "relative", overflow: "hidden", alignSelf: "stretch" }}>
         {photo ? (
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
             <img src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           </div>
         ) : (
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
-            <span style={{ fontSize: "2rem", opacity: 0.5 }}>🏢</span>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f1f5f9" }}>
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           </div>
         )}
       </div>
 
-      {/* Pencil — absolute top-right */}
-      <button
-        onClick={onEdit}
-        title="Edit job"
-        style={{ position: "absolute", top: "0.65rem", right: "0.75rem", background: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.4rem", padding: "0.22rem 0.55rem", cursor: "pointer", color: "#64748b", fontSize: "0.88rem", lineHeight: 1 }}
-      >✏️</button>
-
       {/* Main content */}
-      <div style={{ flex: 1, padding: "0.85rem 6rem 0.85rem 1rem", minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
-          <h2
-            onClick={onViewApplicants}
-            style={{ fontWeight: "bold", fontSize: "1.1rem", margin: 0, cursor: "pointer", color: "#1e293b", transition: "color 0.15s" }}
-            onMouseEnter={e => e.currentTarget.style.color = "#A21D54"}
-            onMouseLeave={e => e.currentTarget.style.color = "#1e293b"}
-          >
-            {posting.title}
-          </h2>
-          <span style={{
-            fontSize: "0.65rem", fontWeight: "700", padding: "0.15rem 0.55rem",
-            borderRadius: "999px", textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0,
-            backgroundColor: isActive ? "#dcfce7" : isExpired ? "#fee2e2" : "#f3f4f6",
-            color: isActive ? "#16a34a" : isExpired ? "#dc2626" : "#6b7280",
-          }}>
-            {isExpired ? "Expired" : posting.status}
-          </span>
-        </div>
-        <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.4rem" }}>
-          {posting.location} · {posting.pay}
-        </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.5rem" }}>
-          {posting.days.map(day => {
-            const isFilled = (posting.filledShifts || []).includes(day);
-            return (
-              <span key={day} style={{
-                fontSize: "0.7rem",
-                backgroundColor: isFilled ? "#f1f5f9" : "#eff6ff",
-                color: isFilled ? "#94a3b8" : "#1d4ed8",
-                padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600",
-                textDecoration: isFilled ? "line-through" : "none",
-              }}>
-                {day.slice(0, 3)}{posting.times?.[day] ? ` · ${posting.times[day]}` : ""}
-                {isFilled ? " ✓" : ""}
-              </span>
-            );
-          })}
-          {posting.weekendRequired && (
-            <span style={{ fontSize: "0.7rem", backgroundColor: "#fef3c7", color: "#d97706", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600" }}>
-              Weekend
+      <div style={{ flex: 1, padding: "1rem 1.25rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
+            <h2
+              onClick={onViewApplicants}
+              style={{ fontWeight: "700", fontSize: "1.05rem", margin: 0, cursor: "pointer", color: "#0f172a", transition: "color 0.15s" }}
+              onMouseEnter={e => e.currentTarget.style.color = "#A21D54"}
+              onMouseLeave={e => e.currentTarget.style.color = "#0f172a"}
+            >
+              {posting.title}
+            </h2>
+            <span style={{
+              fontSize: "0.6rem", fontWeight: "700", padding: "0.15rem 0.5rem",
+              borderRadius: "0.3rem", textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0,
+              backgroundColor: isActive ? "#dcfce7" : isExpired ? "#fee2e2" : "#f3f4f6",
+              color: isActive ? "#16a34a" : isExpired ? "#dc2626" : "#6b7280",
+            }}>
+              {isExpired ? "Expired" : posting.status}
             </span>
-          )}
+          </div>
+          <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "0.6rem", margin: "0 0 0.6rem" }}>
+            {posting.location} · {posting.pay}
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+            {posting.days.map(day => {
+              const isFilled = (posting.filledShifts || []).includes(day);
+              return (
+                <span key={day} style={{
+                  fontSize: "0.68rem",
+                  backgroundColor: isFilled ? "#f1f5f9" : "#f0f9ff",
+                  color: isFilled ? "#94a3b8" : "#0369a1",
+                  padding: "0.15rem 0.5rem", borderRadius: "0.3rem", fontWeight: "600",
+                  textDecoration: isFilled ? "line-through" : "none",
+                }}>
+                  {day.slice(0, 3)}{posting.times?.[day] ? ` · ${posting.times[day]}` : ""}
+                  {isFilled ? " ✓" : ""}
+                </span>
+              );
+            })}
+            {posting.weekendRequired && (
+              <span style={{ fontSize: "0.68rem", backgroundColor: "#fefce8", color: "#a16207", padding: "0.15rem 0.5rem", borderRadius: "0.3rem", fontWeight: "600" }}>
+                Weekend
+              </span>
+            )}
+          </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginTop: "0.1rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: "0.75rem" }}>
           <p style={{ fontSize: "0.8rem", color: "#374151", fontWeight: "600", margin: 0 }}>
             {posting.applicantCount} applicant{posting.applicantCount !== 1 ? "s" : ""}
           </p>
@@ -1150,14 +1141,23 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
         </div>
       </div>
 
-      {/* Close + Delete — absolute bottom-right */}
-      <div style={{ position: "absolute", bottom: "2.5rem", right: "0.75rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-        <button onClick={onToggleStatus} style={btnCardAction}>
-          {isActive ? "Close Job" : "Reopen Job"}
+      {/* Right action column */}
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "0.85rem 0.85rem 0.85rem 0", gap: "0.5rem", flexShrink: 0 }}>
+        <button
+          onClick={onEdit}
+          title="Edit job"
+          style={{ padding: "0.35rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}
+        >
+          Edit
         </button>
-        <button onClick={onDelete} style={{ ...btnCardAction, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 2px 8px rgba(244,63,94,0.3)" }}>
-          Delete
-        </button>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+          <button onClick={onToggleStatus} style={{ padding: "0.38rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#374151", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+            {isActive ? "Close Job" : "Reopen"}
+          </button>
+          <button onClick={onDelete} style={{ padding: "0.38rem 0.7rem", border: "1px solid #fca5a5", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#dc2626", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1292,12 +1292,11 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
 
   return (
     <div>
-      {/* View toggle — pill segmented control */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.75rem" }}>
-        <div style={{ display: "inline-flex", backgroundColor: "#f1f5f9", borderRadius: "999px", padding: "0.2rem", gap: "0.1rem" }}>
-          <button onClick={() => setViewMode("list")} style={{ padding: "0.3rem 0.9rem", fontSize: "0.78rem", fontWeight: "700", border: "none", borderRadius: "999px", cursor: "pointer", fontFamily: "inherit", backgroundColor: viewMode === "list" ? "white" : "transparent", color: viewMode === "list" ? "#A21D54" : "#64748b", boxShadow: viewMode === "list" ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition: "all 0.15s" }}>☰ List</button>
-          <button onClick={() => setViewMode("kanban")} style={{ padding: "0.3rem 0.9rem", fontSize: "0.78rem", fontWeight: "700", border: "none", borderRadius: "999px", cursor: "pointer", fontFamily: "inherit", backgroundColor: viewMode === "kanban" ? "white" : "transparent", color: viewMode === "kanban" ? "#A21D54" : "#64748b", boxShadow: viewMode === "kanban" ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition: "all 0.15s" }}>⊞ Board</button>
-        </div>
+      {/* View toggle */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.75rem", gap: "0.25rem" }}>
+        {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (
+          <button key={val} onClick={() => setViewMode(val)} style={{ padding: "0.35rem 0.85rem", fontSize: "0.78rem", fontWeight: "600", border: `1px solid ${viewMode === val ? "#A21D54" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: viewMode === val ? "#fff0f6" : "white", color: viewMode === val ? "#A21D54" : "#64748b", transition: "all 0.15s" }}>{label}</button>
+        ))}
       </div>
 
       {/* Search + sort bar */}
@@ -1596,15 +1595,6 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
   const [draggingId, setDraggingId]       = useState(null);
   const [dragOverStage, setDragOverStage] = useState(null);
 
-  const getColColor = (key) => {
-    if (key === "applied")              return { bg: "#f8fafc", border: "#e2e8f0", header: "#64748b" };
-    if (key === "shortlisted")          return { bg: "#f0f9ff", border: "#bae6fd", header: "#0284c7" };
-    if (key.startsWith("interview_"))   return { bg: "#faf5ff", border: "#e9d5ff", header: "#7c3aed" };
-    if (key === "trial")                return { bg: "#f0fdf4", border: "#bbf7d0", header: "#16a34a" };
-    if (key === "decision")             return { bg: "#fff7ed", border: "#fed7aa", header: "#ea580c" };
-    return { bg: "#f8fafc", border: "#e2e8f0", header: "#64748b" };
-  };
-
   const handleDrop = (e, targetKey) => {
     e.preventDefault();
     setDragOverStage(null);
@@ -1617,10 +1607,9 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
   };
 
   return (
-    <div style={{ display: "flex", gap: "0.6rem", overflowX: "auto", paddingBottom: "0.75rem", alignItems: "flex-start" }}>
+    <div style={{ display: "flex", gap: "0.75rem", overflowX: "auto", paddingBottom: "1rem", alignItems: "flex-start" }}>
       {(stages || []).map(({ key, label }) => {
         const cards  = applicants.filter(a => getVirtualStageKey(a) === key);
-        const c      = getColColor(key);
         const isOver = dragOverStage === key;
         return (
           <div
@@ -1629,22 +1618,24 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverStage(null); }}
             onDrop={e => handleDrop(e, key)}
             style={{
-              minWidth: "195px", flex: "0 0 195px",
-              backgroundColor: isOver ? (c.bg) : c.bg,
-              border: `1.5px solid ${isOver ? c.header : c.border}`,
-              borderRadius: "0.75rem", padding: "0.6rem",
-              transition: "border-color 0.15s",
-              boxShadow: isOver ? `0 0 0 3px ${c.header}22` : "none",
+              minWidth: "220px", flex: "0 0 220px",
+              backgroundColor: isOver ? "#fdf8fb" : "#f8fafc",
+              border: `1.5px solid ${isOver ? "#A21D54" : "#e2e8f0"}`,
+              borderRadius: "0.75rem", padding: "0.85rem 0.75rem",
+              transition: "border-color 0.15s, background-color 0.15s",
+              boxShadow: isOver ? "0 0 0 3px rgba(162,29,84,0.1)" : "none",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-              <span style={{ fontSize: "0.72rem", fontWeight: "800", color: c.header, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
-              <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: c.border, color: c.header, borderRadius: "999px", padding: "0.05rem 0.4rem" }}>{cards.length}</span>
+            {/* Column header */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e2e8f0" }}>
+              <span style={{ fontSize: "0.7rem", fontWeight: "800", color: "#374151", textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}</span>
+              <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: cards.length > 0 ? "#e2e8f0" : "#f1f5f9", color: cards.length > 0 ? "#374151" : "#cbd5e1", borderRadius: "999px", padding: "0.1rem 0.5rem", minWidth: "18px", textAlign: "center" }}>{cards.length}</span>
             </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", minHeight: "40px" }}>
+            {/* Cards */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", minHeight: "50px" }}>
               {cards.length === 0 && (
-                <p style={{ fontSize: "0.72rem", color: isOver ? c.header : "#94a3b8", textAlign: "center", padding: "0.75rem 0", margin: 0, fontStyle: isOver ? "normal" : "normal", fontWeight: isOver ? "700" : "400" }}>
-                  {isOver ? "Drop here" : "Empty"}
+                <p style={{ fontSize: "0.75rem", color: isOver ? "#A21D54" : "#cbd5e1", textAlign: "center", padding: "1rem 0", margin: 0, fontWeight: isOver ? "600" : "400" }}>
+                  {isOver ? "Drop here" : "No applicants"}
                 </p>
               )}
               {cards.map(applicant => (
@@ -1659,21 +1650,27 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
                   onDragEnd={() => { setDraggingId(null); setDragOverStage(null); }}
                   onClick={() => onSelectApplicant(applicant)}
                   style={{
-                    width: "100%", display: "flex", alignItems: "center", gap: "0.45rem",
-                    padding: "0.5rem 0.55rem", borderRadius: "0.5rem",
-                    border: "1.5px solid rgba(0,0,0,0.06)", backgroundColor: "white",
+                    width: "100%", display: "flex", alignItems: "center", gap: "0.6rem",
+                    padding: "0.65rem 0.7rem", borderRadius: "0.5rem",
+                    border: "1px solid #e2e8f0", backgroundColor: "white",
                     cursor: "grab", fontFamily: "inherit", textAlign: "left",
-                    opacity: draggingId === applicant.id ? 0.45 : 1,
-                    transition: "opacity 0.15s",
+                    opacity: draggingId === applicant.id ? 0.4 : 1,
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+                    transition: "opacity 0.15s, box-shadow 0.15s",
                   }}
                 >
-                  <div style={{ width: "28px", height: "28px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: "32px", height: "32px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {applicant.profilePhoto
                       ? <img src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      : <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                      : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                     }
                   </div>
-                  <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.name}</span>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.name}</p>
+                    {applicant.preferredShift && (
+                      <p style={{ margin: "0.1rem 0 0", fontSize: "0.68rem", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.preferredShift}</p>
+                    )}
+                  </div>
                 </button>
               ))}
             </div>
@@ -3111,9 +3108,9 @@ function AvailabilityHeatmap({ data }) {
 const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "#374151", marginBottom: "0.25rem" };
 const inputStyle  = { width: "100%", padding: "0.6rem 0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b" };
 
-const btnBase      = { padding: "0.6rem 1.1rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.875rem", fontFamily: "inherit" };
-const btnGreen     = { ...btnBase, background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.35)" };
-const btnGray      = { ...btnBase, backgroundColor: "#64748b", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" };
+const btnBase      = { padding: "0.6rem 1.1rem", borderRadius: "0.5rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.875rem", fontFamily: "inherit", letterSpacing: "-0.01em" };
+const btnGreen     = { ...btnBase, backgroundColor: "#059669" };
+const btnGray      = { ...btnBase, backgroundColor: "#64748b" };
 
 const zoomBtn      = { padding: "0.2rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" };
 
