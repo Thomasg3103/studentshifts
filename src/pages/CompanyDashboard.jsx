@@ -1184,13 +1184,13 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
   const [viewMode, setViewMode]                   = useState("list");
 
   if (posting.applicantsLoading) {
-    return <p style={{ color: "#6b7280", textAlign: "center", padding: "2rem 1rem" }}>Loading applicants…</p>;
+    return <div style={{ textAlign: "center", padding: "3rem 1rem" }}><div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div><p style={{ color: "#64748b", fontWeight: "600", margin: 0 }}>Loading applicants…</p></div>;
   }
   if (posting.applicantsError) {
-    return <p style={{ color: "#ef4444", textAlign: "center", padding: "2rem 1rem" }}>Error loading applicants. Please try again.</p>;
+    return <div style={{ textAlign: "center", padding: "2rem 1rem", backgroundColor: "#fff1f2", borderRadius: "0.75rem", border: "1.5px solid #fca5a5" }}><div style={{ fontSize: "1.5rem", marginBottom: "0.35rem" }}>⚠️</div><p style={{ color: "#e11d48", fontWeight: "600", margin: 0 }}>Error loading applicants. Please try again.</p></div>;
   }
   if (posting.applicants.length === 0) {
-    return <p style={{ color: "#6b7280", textAlign: "center", padding: "2rem 1rem" }}>No applicants yet for this posting.</p>;
+    return <div style={{ textAlign: "center", padding: "3.5rem 1rem" }}><div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>📭</div><p style={{ color: "#1e293b", fontWeight: "700", fontSize: "1rem", margin: "0 0 0.35rem" }}>No applicants yet</p><p style={{ color: "#94a3b8", fontSize: "0.875rem", margin: 0 }}>Share this job posting to start receiving applications.</p></div>;
   }
 
   const dynamicStages = buildDynamicStages(posting.applicants);
@@ -1219,10 +1219,12 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
 
   return (
     <div>
-      {/* View toggle */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.75rem", gap: "0.35rem" }}>
-        <button onClick={() => setViewMode("list")} style={{ padding: "0.3rem 0.8rem", fontSize: "0.78rem", fontWeight: "600", border: `1.5px solid ${viewMode === "list" ? "#A21D54" : "#e2e8f0"}`, borderRadius: "0.45rem", cursor: "pointer", fontFamily: "inherit", background: viewMode === "list" ? "#fce7f3" : "white", color: viewMode === "list" ? "#A21D54" : "#64748b" }}>☰ List</button>
-        <button onClick={() => setViewMode("kanban")} style={{ padding: "0.3rem 0.8rem", fontSize: "0.78rem", fontWeight: "600", border: `1.5px solid ${viewMode === "kanban" ? "#A21D54" : "#e2e8f0"}`, borderRadius: "0.45rem", cursor: "pointer", fontFamily: "inherit", background: viewMode === "kanban" ? "#fce7f3" : "white", color: viewMode === "kanban" ? "#A21D54" : "#64748b" }}>⊞ Board</button>
+      {/* View toggle — pill segmented control */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.75rem" }}>
+        <div style={{ display: "inline-flex", backgroundColor: "#f1f5f9", borderRadius: "999px", padding: "0.2rem", gap: "0.1rem" }}>
+          <button onClick={() => setViewMode("list")} style={{ padding: "0.3rem 0.9rem", fontSize: "0.78rem", fontWeight: "700", border: "none", borderRadius: "999px", cursor: "pointer", fontFamily: "inherit", backgroundColor: viewMode === "list" ? "white" : "transparent", color: viewMode === "list" ? "#A21D54" : "#64748b", boxShadow: viewMode === "list" ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition: "all 0.15s" }}>☰ List</button>
+          <button onClick={() => setViewMode("kanban")} style={{ padding: "0.3rem 0.9rem", fontSize: "0.78rem", fontWeight: "700", border: "none", borderRadius: "999px", cursor: "pointer", fontFamily: "inherit", backgroundColor: viewMode === "kanban" ? "white" : "transparent", color: viewMode === "kanban" ? "#A21D54" : "#64748b", boxShadow: viewMode === "kanban" ? "0 1px 4px rgba(0,0,0,0.1)" : "none", transition: "all 0.15s" }}>⊞ Board</button>
+        </div>
       </div>
 
       {viewMode === "kanban" ? (
@@ -1280,6 +1282,11 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
         })}
       </div>
 
+      {/* Stage summary */}
+      <p style={{ margin: "0 0 0.85rem", fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>
+        {visible.length === 0 ? "No applicants in this stage" : `${visible.length} applicant${visible.length !== 1 ? "s" : ""} in this stage · ${posting.applicants.length} total`}
+      </p>
+
       {/* Compact applicant rows for active stage */}
       {visible.length === 0 ? (
         <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
@@ -1307,22 +1314,22 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
         if (saved.length === 0) return null;
         return (
           <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1.5px solid #e2e8f0" }}>
-            <p style={{ margin: "0 0 0.6rem", fontSize: "0.72rem", fontWeight: "800", color: "#A21D54", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+            <p style={{ margin: "0 0 0.6rem", fontSize: "0.68rem", fontWeight: "700", color: "#A21D54", textTransform: "uppercase", letterSpacing: "0.07em", paddingLeft: "0.5rem", borderLeft: "2px solid #A21D54" }}>
               Saved Students — haven't applied yet
             </p>
             {saved.map(s => (
-              <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.6rem 0.85rem", borderRadius: "0.6rem", border: "1.5px solid #e0e7ff", backgroundColor: "#fce7f3", marginBottom: "0.4rem" }}>
-                <div style={{ width: "32px", height: "32px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.65rem 0.9rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", marginBottom: "0.4rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+                <div style={{ width: "42px", height: "42px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {s.profile_photo_url
                     ? <img src={s.profile_photo_url} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    : <span style={{ fontSize: "1rem" }}>👤</span>
+                    : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                   }
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: 0, fontWeight: "700", fontSize: "0.85rem", color: "#1e293b" }}>{s.name}</p>
-                  {s.bio && <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.bio}</p>}
+                  <p style={{ margin: 0, fontWeight: "700", fontSize: "0.88rem", color: "#1e293b" }}>{s.name}</p>
+                  {s.bio && <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.bio}</p>}
                 </div>
-                <span style={{ fontSize: "0.7rem", color: "#A21D54", fontWeight: "600", whiteSpace: "nowrap" }}>♥ Saved</span>
+                <span style={{ fontSize: "0.68rem", color: "#A21D54", fontWeight: "700", whiteSpace: "nowrap", backgroundColor: "#fce7f3", padding: "0.15rem 0.5rem", borderRadius: "999px" }}>♥ Saved</span>
               </div>
             ))}
           </div>
@@ -1339,6 +1346,9 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
           >
             Close this Job
           </button>
+          <p style={{ margin: "0.5rem 0 0", fontSize: "0.74rem", color: "#94a3b8", textAlign: "center" }}>
+            This will close the listing and notify all pending applicants.
+          </p>
         </div>
       )}
 
@@ -1372,14 +1382,17 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
   );
 }
 
+const STAGE_BORDER_COLOR = { applied: "#94a3b8", shortlisted: "#0284c7", interview: "#7c3aed", trial: "#16a34a", decision: "#ea580c" };
+
 function ApplicantRow({ applicant, onClick, onHire, onDecline }) {
   const isDecision = applicant.pipelineStage === "decision" && applicant.status === "Pending";
   const statusColors = { Accepted: { bg: "#dcfce7", color: "#16a34a" }, Rejected: { bg: "#fee2e2", color: "#dc2626" } };
   const sc = statusColors[applicant.status];
+  const stageAccent = STAGE_BORDER_COLOR[applicant.pipelineStage] || "#e2e8f0";
   return (
-    <div style={{ borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", overflow: "hidden", backgroundColor: "white", transition: "box-shadow 0.15s, border-color 0.15s" }}
-      onMouseEnter={e => e.currentTarget.style.borderColor = "#fce7f3"}
-      onMouseLeave={e => e.currentTarget.style.borderColor = "#e2e8f0"}
+    <div style={{ borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", borderLeft: `4px solid ${stageAccent}`, overflow: "hidden", backgroundColor: "white", transition: "box-shadow 0.15s, border-color 0.15s" }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = "#fce7f3"; e.currentTarget.style.borderLeftColor = stageAccent; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.borderLeftColor = stageAccent; }}
     >
       <button
         onClick={onClick}
@@ -1394,20 +1407,23 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline }) {
         </div>
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.2rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.2rem", flexWrap: "wrap" }}>
             <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#1e293b" }}>{applicant.name}</p>
             {sc && <span style={{ fontSize: "0.62rem", fontWeight: "700", padding: "0.1rem 0.45rem", borderRadius: "999px", backgroundColor: sc.bg, color: sc.color, textTransform: "uppercase", letterSpacing: "0.04em", flexShrink: 0 }}>{applicant.status}</span>}
+            {applicant.linkedin && <span title="LinkedIn provided" style={{ fontSize: "0.62rem", backgroundColor: "#e0f2fe", color: "#0369a1", borderRadius: "999px", padding: "0.08rem 0.4rem", fontWeight: "700", flexShrink: 0 }}>🔗 LinkedIn</span>}
           </div>
           {applicant.preferredShift && (
             <p style={{ margin: "0 0 0.25rem", fontSize: "0.72rem", fontWeight: "700", color: "#A21D54" }}>🗓️ {applicant.preferredShift}</p>
           )}
-          {applicant.skills?.length > 0 && (
+          {applicant.skills?.length > 0 ? (
             <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
               {applicant.skills.slice(0, 4).map(s => (
                 <span key={s} style={{ fontSize: "0.62rem", backgroundColor: "#f1f5f9", color: "#475569", borderRadius: "999px", padding: "0.05rem 0.4rem", fontWeight: "600" }}>{s}</span>
               ))}
             </div>
-          )}
+          ) : applicant.bio ? (
+            <p style={{ margin: "0.1rem 0 0", fontSize: "0.72rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.bio}</p>
+          ) : null}
         </div>
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
       </button>
@@ -1515,11 +1531,11 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
 
 function CheckItem({ ok, label, warn }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.8rem" }}>
-      <span style={{ fontWeight: "800", minWidth: "14px", color: ok ? "#16a34a" : warn ? "#d97706" : "#ef4444" }}>
-        {ok ? "✓" : warn ? "—" : "✗"}
+    <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", fontSize: "0.82rem" }}>
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "18px", height: "18px", borderRadius: "50%", flexShrink: 0, backgroundColor: ok ? "#dcfce7" : warn ? "#fef3c7" : "#fee2e2", color: ok ? "#16a34a" : warn ? "#d97706" : "#ef4444", fontSize: "0.65rem", fontWeight: "900" }}>
+        {ok ? "✓" : warn ? "–" : "✗"}
       </span>
-      <span style={{ color: ok ? "#374151" : "#6b7280" }}>{label}</span>
+      <span style={{ color: ok ? "#374151" : "#6b7280", fontWeight: ok ? "600" : "400" }}>{label}</span>
     </div>
   );
 }
@@ -1626,8 +1642,8 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
         overflowY: "auto",
       }}>
         {/* Header */}
-        <div style={{ padding: "1rem 1.25rem", borderBottom: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0 }}>
-          <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ padding: "1rem 1.25rem", borderBottom: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0, background: "linear-gradient(135deg, #fdf4f7 0%, #fafafa 100%)" }}>
+          <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fce7f3" }}>
             {applicant.profilePhoto
               ? <img src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -1642,11 +1658,31 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
               </p>
             )}
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "1.3rem", cursor: "pointer", color: "#64748b", lineHeight: 1, padding: "0.25rem" }}>✕</button>
+          <button onClick={onClose} style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1.5px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "inherit" }}>✕</button>
+        </div>
+
+        {/* Stage breadcrumb */}
+        <div style={{ padding: "0.5rem 1.25rem", borderBottom: "1.5px solid #f1f5f9", display: "flex", alignItems: "center", gap: "0.15rem", overflowX: "auto", flexShrink: 0, backgroundColor: "#fafafa" }}>
+          {["applied", "shortlisted", "interview", "trial", "decision"].map((s, i) => {
+            const order = ["applied", "shortlisted", "interview", "trial", "decision"];
+            const currentIdx = order.indexOf(stage);
+            const thisIdx = i;
+            const isPast = thisIdx < currentIdx;
+            const isCurrent = thisIdx === currentIdx;
+            const crumbLabels = { applied: "Applied", shortlisted: "Shortlisted", interview: "Interview", trial: "Trial", decision: "Decision" };
+            return (
+              <span key={s} style={{ display: "flex", alignItems: "center", gap: "0.15rem" }}>
+                {i > 0 && <span style={{ color: "#d1d5db", fontSize: "0.68rem", margin: "0 0.05rem" }}>›</span>}
+                <span style={{ fontSize: "0.72rem", fontWeight: isCurrent ? "800" : "500", color: isCurrent ? "#A21D54" : isPast ? "#A21D54" : "#94a3b8", whiteSpace: "nowrap", opacity: isPast ? 0.55 : 1 }}>
+                  {crumbLabels[s]}
+                </span>
+              </span>
+            );
+          })}
         </div>
 
         {/* Body */}
-        <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1.1rem", flex: 1 }}>
+        <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1.5rem", flex: 1 }}>
 
           {/* Application Screening — applied stage only */}
           {stage === "applied" && (
@@ -1703,18 +1739,18 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             </Section>
 
             <Section label="Documents">
-              <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: "0.5rem" }}>
                 <button
                   onClick={openCv}
                   disabled={!applicant.cvName || cvLoading}
-                  style={{ padding: "0.4rem 0.9rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: applicant.cvName ? "white" : "#f8fafc", color: applicant.cvName ? "#16a34a" : "#9ca3af", fontWeight: "600", fontSize: "0.8rem", cursor: applicant.cvName ? "pointer" : "default", fontFamily: "inherit" }}
+                  style={{ flex: 1, padding: "0.6rem 0.75rem", borderRadius: "0.6rem", border: `1.5px solid ${applicant.cvName ? "#bbf7d0" : "#e2e8f0"}`, backgroundColor: applicant.cvName ? "#f0fdf4" : "#f8fafc", color: applicant.cvName ? "#16a34a" : "#9ca3af", fontWeight: "700", fontSize: "0.82rem", cursor: applicant.cvName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
                 >
-                  {cvLoading ? "Loading…" : "📄 CV"}
+                  {cvLoading ? "Loading…" : "📄 View CV"}
                 </button>
                 <button
                   onClick={openCoverLetter}
                   disabled={!applicant.coverLetterName || clLoading}
-                  style={{ padding: "0.4rem 0.9rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: applicant.coverLetterName ? "white" : "#f8fafc", color: applicant.coverLetterName ? "#A21D54" : "#9ca3af", fontWeight: "600", fontSize: "0.8rem", cursor: applicant.coverLetterName ? "pointer" : "default", fontFamily: "inherit" }}
+                  style={{ flex: 1, padding: "0.6rem 0.75rem", borderRadius: "0.6rem", border: `1.5px solid ${applicant.coverLetterName ? "#fce7f3" : "#e2e8f0"}`, backgroundColor: applicant.coverLetterName ? "#fdf4f7" : "#f8fafc", color: applicant.coverLetterName ? "#A21D54" : "#9ca3af", fontWeight: "700", fontSize: "0.82rem", cursor: applicant.coverLetterName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
                 >
                   {clLoading ? "Loading…" : "📝 Cover Letter"}
                 </button>
@@ -1723,7 +1759,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           </>)}
 
           {/* Notes */}
-          <Section label={notesSaving ? "Notes (saving…)" : "Notes"}>
+          <Section label={notesSaving ? "📝 Notes (saving…)" : "📝 Notes"} noBg>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
@@ -1736,13 +1772,14 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
 
           {/* Interview rounds — shortlisted and interview stages */}
           {(stage === "shortlisted" || stage === "interview") && (
-            <Section label="Interview Schedule">
+            <Section label="Interview Schedule" noBg>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
                 {interviewRounds.map((round, i) => (
                   <div key={i} style={{ backgroundColor: "#faf5ff", border: "1.5px solid #e9d5ff", borderRadius: "0.6rem", padding: "0.65rem 0.75rem" }}>
-                    <p style={{ margin: "0 0 0.45rem", fontSize: "0.72rem", fontWeight: "800", color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                      Interview {i + 1}
-                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.45rem" }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#7c3aed", color: "white", fontSize: "0.65rem", fontWeight: "900", flexShrink: 0 }}>{i + 1}</span>
+                      <p style={{ margin: 0, fontSize: "0.72rem", fontWeight: "800", color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.05em" }}>Interview</p>
+                    </div>
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.45rem" }}>
                       <input
                         type="date"
@@ -1806,7 +1843,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
 
           {/* Chat — only for accepted applicants */}
           {applicant.status === "Accepted" && (
-            <Section label="Messages">
+            <Section label="Messages" noBg>
               <ChatThread jobId={postingId} studentId={applicant.studentId} companyId={companyId} senderId={companyId} />
             </Section>
           )}
@@ -1829,25 +1866,25 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
         {/* Stage action buttons */}
         <div style={{ padding: "1rem 1.25rem", borderTop: "1.5px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0 }}>
           {stage === "applied" && (
-            <button onClick={() => onStageAction(applicant.id, "shortlisted")} style={panelActionBtn("#A21D54")}>Shortlist →</button>
+            <button onClick={() => onStageAction(applicant.id, "shortlisted")} style={panelActionBtn("#A21D54")}>🎯 Shortlist</button>
           )}
           {stage === "shortlisted" && (
-            <button onClick={() => setShortlistInviteOpen(true)} style={panelActionBtn("#A21D54")}>Invite to Interview →</button>
+            <button onClick={() => setShortlistInviteOpen(true)} style={panelActionBtn("#A21D54")}>📅 Invite to Interview</button>
           )}
           {stage === "interview" && (<>
-            <button onClick={() => setNextRoundInviteOpen(true)} style={panelActionBtn("#6b7280")}>+ Next Round of Interviews</button>
-            <button onClick={() => onStageAction(applicant.id, "trial")} style={panelActionBtn("#A21D54")}>Advance to Trial →</button>
-            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#475569")}>Skip to Decision →</button>
-            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>Decline ✕</button>
+            <button onClick={() => setNextRoundInviteOpen(true)} style={panelActionBtn("#6b7280")}>🔄 Next Round of Interviews</button>
+            <button onClick={() => onStageAction(applicant.id, "trial")} style={panelActionBtn("#A21D54")}>⚡ Advance to Trial</button>
+            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#475569")}>⏭ Skip to Decision</button>
+            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>✕ Decline</button>
           </>)}
           {stage === "trial" && (<>
             <button onClick={() => setTrialInviteOpen(true)} style={panelActionBtn("#0284c7")}>✉ Send Trial Invite</button>
-            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#A21D54")}>Move to Decision →</button>
-            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>Decline ✕</button>
+            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#A21D54")}>→ Move to Decision</button>
+            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>✕ Decline</button>
           </>)}
           {stage === "decision" && applicant.status === "Pending" && (<>
-            <button onClick={() => onUpdateStatus(applicant.id, "Accepted", applicant)} style={panelActionBtn("#16a34a")}>Hire this Applicant ✓</button>
-            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>Decline ✕</button>
+            <button onClick={() => onUpdateStatus(applicant.id, "Accepted", applicant)} style={panelActionBtn("#16a34a")}>✅ Hire</button>
+            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>✕ Decline</button>
           </>)}
         </div>
       </div>
@@ -2131,11 +2168,11 @@ const closeOptBtn = (color, bg, border) => ({
   color, cursor: "pointer", fontFamily: "inherit", textAlign: "left", width: "100%",
 });
 
-function Section({ label, children }) {
+function Section({ label, children, noBg }) {
   return (
     <div>
       <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", fontWeight: "700", color: "#A21D54", textTransform: "uppercase", letterSpacing: "0.07em", paddingLeft: "0.5rem", borderLeft: "2px solid #A21D54" }}>{label}</p>
-      {children}
+      {noBg ? children : <div style={{ backgroundColor: "#f8fafc", borderRadius: "0.55rem", padding: "0.65rem 0.75rem" }}>{children}</div>}
     </div>
   );
 }
