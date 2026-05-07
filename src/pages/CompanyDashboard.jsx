@@ -722,11 +722,24 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         )
       )}
 
-      {/* Applicants Modal */}
+      {/* Applicants Modal — wide overlay */}
       {modal === "applicants" && activePosting && (
-        <Modal onClose={closeModal} title={`Applicants — ${activePosting.title}`}>
-          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewRoundsData={handleSaveInterviewRoundsData} onSendInterviewInvite={handleSendInterviewInvite} onSendTrialInvite={handleSendTrialInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
-        </Modal>
+        <div onClick={closeModal} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", backdropFilter: "blur(2px)" }}>
+          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1.25rem", width: "100%", maxWidth: "860px", maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.25)", overflow: "hidden" }}>
+            {/* Header */}
+            <div style={{ padding: "1.1rem 1.5rem", borderBottom: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, backgroundColor: "white" }}>
+              <div>
+                <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.15rem", color: "#1e293b" }}>{activePosting.title}</h2>
+                <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "#64748b" }}>{activePosting.location} · {activePosting.pay} · {activePosting.applicantCount} applicant{activePosting.applicantCount !== 1 ? "s" : ""}</p>
+              </div>
+              <button onClick={closeModal} style={{ background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer", color: "#94a3b8", lineHeight: 1, padding: "0.25rem" }}>✕</button>
+            </div>
+            {/* Scrollable body */}
+            <div style={{ overflowY: "auto", flex: 1, padding: "1.25rem 1.5rem" }}>
+              <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewRoundsData={handleSaveInterviewRoundsData} onSendInterviewInvite={handleSendInterviewInvite} onSendTrialInvite={handleSendTrialInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Create / Edit Modal */}
@@ -1341,56 +1354,44 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
 
 function ApplicantRow({ applicant, onClick, onHire, onDecline }) {
   const isDecision = applicant.pipelineStage === "decision" && applicant.status === "Pending";
+  const statusColors = { Accepted: { bg: "#dcfce7", color: "#16a34a" }, Rejected: { bg: "#fee2e2", color: "#dc2626" } };
+  const sc = statusColors[applicant.status];
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+    <div style={{ borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", overflow: "hidden", backgroundColor: "white", transition: "box-shadow 0.15s" }}>
       <button
         onClick={onClick}
-        style={{
-          width: "100%", display: "flex", alignItems: "center", gap: "0.75rem",
-          padding: "0.65rem 0.85rem", borderRadius: isDecision ? "0.6rem 0.6rem 0 0" : "0.6rem",
-          border: "1.5px solid #e2e8f0", borderBottom: isDecision ? "none" : "1.5px solid #e2e8f0",
-          backgroundColor: "white",
-          cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-        }}
+        style={{ width: "100%", display: "flex", alignItems: "center", gap: "0.9rem", padding: "0.85rem 1rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
       >
         {/* Photo */}
-        <div style={{ width: "36px", height: "36px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: "42px", height: "42px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {applicant.profilePhoto
             ? <img src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           }
         </div>
-        {/* Name + shift + skills */}
+        {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontWeight: "700", fontSize: "0.875rem", color: "#1e293b" }}>{applicant.name}</p>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.2rem" }}>
+            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#1e293b" }}>{applicant.name}</p>
+            {sc && <span style={{ fontSize: "0.62rem", fontWeight: "700", padding: "0.1rem 0.45rem", borderRadius: "999px", backgroundColor: sc.bg, color: sc.color, textTransform: "uppercase", letterSpacing: "0.04em", flexShrink: 0 }}>{applicant.status}</span>}
+          </div>
           {applicant.preferredShift && (
-            <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", fontWeight: 700, color: "#A21D54" }}>🗓️ {applicant.preferredShift}</p>
+            <p style={{ margin: "0 0 0.25rem", fontSize: "0.72rem", fontWeight: "700", color: "#A21D54" }}>🗓️ {applicant.preferredShift}</p>
           )}
           {applicant.skills?.length > 0 && (
-            <div style={{ display: "flex", gap: "0.25rem", marginTop: "0.25rem", flexWrap: "wrap" }}>
-              {applicant.skills.slice(0, 3).map(s => (
-                <span key={s} style={{ fontSize: "0.65rem", backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: "999px", padding: "0.05rem 0.4rem", fontWeight: "600" }}>{s}</span>
+            <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+              {applicant.skills.slice(0, 4).map(s => (
+                <span key={s} style={{ fontSize: "0.62rem", backgroundColor: "#f1f5f9", color: "#475569", borderRadius: "999px", padding: "0.05rem 0.4rem", fontWeight: "600" }}>{s}</span>
               ))}
             </div>
           )}
         </div>
-        {/* Chevron */}
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
       </button>
       {isDecision && (
-        <div style={{ display: "flex", gap: "0.4rem", borderRadius: "0 0 0.6rem 0.6rem", border: "1.5px solid #e2e8f0", borderTop: "none", overflow: "hidden" }}>
-          <button
-            onClick={(e) => { e.stopPropagation(); onHire?.(applicant); }}
-            style={{ flex: 1, padding: "0.5rem", backgroundColor: "#f0fdf4", border: "none", borderRight: "1px solid #e2e8f0", color: "#16a34a", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
-          >
-            Hire ✓
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onDecline?.(applicant); }}
-            style={{ flex: 1, padding: "0.5rem", backgroundColor: "#fff1f2", border: "none", color: "#e11d48", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
-          >
-            Decline ✕
-          </button>
+        <div style={{ display: "flex", borderTop: "1.5px solid #e2e8f0" }}>
+          <button onClick={(e) => { e.stopPropagation(); onHire?.(applicant); }} style={{ flex: 1, padding: "0.6rem", backgroundColor: "#f0fdf4", border: "none", borderRight: "1px solid #e2e8f0", color: "#16a34a", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Hire ✓</button>
+          <button onClick={(e) => { e.stopPropagation(); onDecline?.(applicant); }} style={{ flex: 1, padding: "0.6rem", backgroundColor: "#fff1f2", border: "none", color: "#e11d48", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Decline ✕</button>
         </div>
       )}
     </div>
