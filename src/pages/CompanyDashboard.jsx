@@ -1860,9 +1860,8 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             date={interviewRounds[inviteModalOpen]?.date || ""}
             time={interviewRounds[inviteModalOpen]?.time || ""}
             onClose={() => setInviteModalOpen(null)}
-            onSend={async (note, teamsLink) => {
-              const r = interviewRounds[inviteModalOpen] || {};
-              await onSendInterviewInvite?.(applicant.id, r.date || "", r.time || "", note, teamsLink);
+            onSend={async (note, teamsLink, date, time) => {
+              await onSendInterviewInvite?.(applicant.id, date || "", time || "", note, teamsLink);
             }}
           />
         )}
@@ -1901,11 +1900,11 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           date=""
           time=""
           onClose={() => setNextRoundInviteOpen(false)}
-          onSend={async (note, teamsLink) => {
-            const newRounds = [...interviewRounds, { date: "", time: "" }];
+          onSend={async (note, teamsLink, date, time) => {
+            const newRounds = [...interviewRounds, { date: date || "", time: time || "" }];
             setInterviewRounds(newRounds);
             await onIncrementRound?.(applicant.id, applicant.interviewRound || 1, newRounds);
-            await onSendInterviewInvite?.(applicant.id, "", "", note, teamsLink);
+            await onSendInterviewInvite?.(applicant.id, date || "", time || "", note, teamsLink);
           }}
         />
       )}
@@ -1918,8 +1917,8 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           date=""
           time=""
           onClose={() => setShortlistInviteOpen(false)}
-          onSend={async (note, teamsLink) => {
-            await onSendInterviewInvite?.(applicant.id, "", "", note, teamsLink);
+          onSend={async (note, teamsLink, date, time) => {
+            await onSendInterviewInvite?.(applicant.id, date || "", time || "", note, teamsLink);
             onStageAction(applicant.id, "interview_1");
           }}
         />
@@ -1941,7 +1940,9 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
   );
 }
 
-function InterviewInviteModal({ applicant, roundNumber, date, time, onClose, onSend }) {
+function InterviewInviteModal({ applicant, roundNumber, date: initialDate, time: initialTime, onClose, onSend }) {
+  const [date, setDate]           = useState(initialDate || "");
+  const [time, setTime]           = useState(initialTime || "");
   const [note, setNote]           = useState("");
   const [teamsLink, setTeamsLink] = useState("");
   const [sending, setSending]     = useState(false);
@@ -1951,7 +1952,7 @@ function InterviewInviteModal({ applicant, roundNumber, date, time, onClose, onS
     setSending(true);
     setError("");
     try {
-      await onSend(note, teamsLink);
+      await onSend(note, teamsLink, date, time);
       onClose();
     } catch (e) {
       setError(e?.message || "Failed to send. Please try again.");
@@ -1960,16 +1961,24 @@ function InterviewInviteModal({ applicant, roundNumber, date, time, onClose, onS
     }
   };
 
-  const whenLine = date && time ? `${date} at ${time}` : date || time || "Time not set";
-
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1300 }} />
       <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1301, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(400px,92vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
         <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Send Interview {roundNumber} Invite</h3>
-        <p style={{ margin: "0 0 1.1rem", fontSize: "0.82rem", color: "#64748b" }}>To: <strong>{applicant.name}</strong> · {whenLine}</p>
+        <p style={{ margin: "0 0 1.1rem", fontSize: "0.82rem", color: "#64748b" }}>To: <strong>{applicant.name}</strong></p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Date</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: "100%", padding: "0.5rem 0.55rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", boxSizing: "border-box", color: "#374151" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Time</label>
+              <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ width: "100%", padding: "0.5rem 0.55rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", boxSizing: "border-box", color: "#374151" }} />
+            </div>
+          </div>
           <div>
             <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Note to student <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>
             <textarea
