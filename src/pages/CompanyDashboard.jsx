@@ -728,10 +728,10 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         <div onClick={closeModal} className="applicants-modal-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "flex-start", justifyContent: "center", padding: "2rem 1rem", backdropFilter: "blur(2px)", animation: "fadeInOverlay 0.18s ease" }}>
           <div onClick={e => e.stopPropagation()} className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "0.85rem", width: "100%", maxWidth: "min(96vw, 1500px)", height: "95vh", maxHeight: "95vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid #e2e8f0" }}>
             {/* Header */}
-            <div style={{ padding: "1rem 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: "1rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}>
-                <h2 style={{ margin: 0, fontWeight: "700", fontSize: "1.1rem", color: "#0f172a", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>{activePosting.title}</h2>
-                <span style={{ fontSize: "0.8rem", color: "#94a3b8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.location} · {activePosting.pay}</span>
+            <div style={{ height: "60px", padding: "0 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: "1rem" }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: "0.65rem", flex: 1, minWidth: 0 }}>
+                <h2 style={{ margin: 0, fontWeight: "700", fontSize: "1.05rem", color: "#0f172a", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>{activePosting.title}</h2>
+                <span style={{ fontSize: "0.78rem", color: "#94a3b8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.location} · {activePosting.pay}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
                 {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (
