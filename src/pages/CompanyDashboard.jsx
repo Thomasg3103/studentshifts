@@ -396,7 +396,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           emailMap[applicant.studentId] && sendEmail({
             to: emailMap[applicant.studentId],
             subject: `You've been hired — ${activePosting.title} at ${currentUser.name}`,
-            html: emailApplicantAccepted(applicant.name, activePosting.title, currentUser.name, applicant.preferredShift || null),
+            html: emailApplicantAccepted(applicant.name, activePosting.title, currentUser.name, hiredShiftWithTime || null),
             magicLinkEmail: emailMap[applicant.studentId],
             redirectTo: appUrl,
           }),
