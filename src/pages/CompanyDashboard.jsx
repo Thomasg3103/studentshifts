@@ -378,8 +378,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         const remainingShiftsAfterHire = activePosting.days
           .filter(d => !newFilledShifts.includes(d))
           .map(d => {
-            const times = activePosting.times?.[d];
-            return times?.length ? `${d} · ${times.join(", ")}` : d;
+            const timeStr = activePosting.times?.[d];
+            return timeStr ? `${d} · ${timeStr}` : d;
           });
 
         // Applicants who were NOT auto-declined but had this shift as an option
