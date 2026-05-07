@@ -41,7 +41,7 @@ BEGIN
     RAISE EXCEPTION 'Unauthorised: admin only';
   END IF;
   RETURN QUERY
-    SELECT s.id, p.name, u.email, s.student_id_url, s.gov_id_url, s.status
+    SELECT s.id, p.name::text, u.email::text, s.student_id_url::text, s.gov_id_url::text, s.status::text
     FROM students s
     JOIN profiles p ON p.id = s.id
     JOIN auth.users u ON u.id = s.id
@@ -58,7 +58,7 @@ BEGIN
     RAISE EXCEPTION 'Unauthorised: admin only';
   END IF;
   RETURN QUERY
-    SELECT c.id, p.name, u.email, c.cro_number, c.status
+    SELECT c.id, p.name::text, u.email::text, c.cro_number::text, c.status::text
     FROM companies c
     JOIN profiles p ON p.id = c.id
     JOIN auth.users u ON u.id = c.id
