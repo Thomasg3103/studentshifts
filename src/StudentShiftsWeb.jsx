@@ -295,7 +295,7 @@ export default function StudentShiftsWeb() {
 
   const sharedStudentProps = {
     likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, currentUser,
-    setSavedLikedJobIds, setSavedAppliedJobIds,
+    setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation,
   };
 
   return (
@@ -395,7 +395,7 @@ export default function StudentShiftsWeb() {
 }
 
 // Job details route — handles in-app nav (job in state/memory) and direct URL access (fetches from DB)
-function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, setSavedLikedJobIds, setSavedAppliedJobIds }) {
+function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation }) {
   const { titleSlug, companySlug } = useParams();
   const location = useLocation();
   const navigate  = useNavigate();
@@ -442,6 +442,7 @@ function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLike
       setAppliedJobs={setAppliedJobs}
       setSavedLikedJobIds={setSavedLikedJobIds}
       setSavedAppliedJobIds={setSavedAppliedJobIds}
+      studentLocation={studentLocation}
     />
   );
 }

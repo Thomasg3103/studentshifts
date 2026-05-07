@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { likeJob, unlikeJob, createApplication } from "../lib/auth";
+import { haversineDistance, formatDistance } from "../utils/geo";
 
 function DetailCard({ label, children }) {
   return (
@@ -15,7 +16,7 @@ function DetailCard({ label, children }) {
 
 export default function JobDetails({
   job, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
-  setSavedLikedJobIds, setSavedAppliedJobIds,
+  setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation,
 }) {
   const [applyModal, setApplyModal]       = useState(null);
   const [photoIdx, setPhotoIdx]           = useState(0);
@@ -106,11 +107,15 @@ export default function JobDetails({
   const idx  = Math.min(photoIdx, Math.max(0, photos.length - 1));
   const crop = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
+  const distanceKm = (studentLocation?.lat && job.lat && job.lng)
+    ? haversineDistance(studentLocation.lat, studentLocation.lng, job.lat, job.lng)
+    : null;
+
   const Sidebar = () => (
     <div>
-      <DetailCard label="Location">{job.location}</DetailCard>
-      <DetailCard label="Pay">{job.pay}</DetailCard>
-      <DetailCard label="Shifts">
+      <DetailCard label="📍 Location">{job.location}</DetailCard>
+      <DetailCard label="💰 Pay">{job.pay}</DetailCard>
+      <DetailCard label="🗓️ Shifts">
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginTop: "0.15rem" }}>
           {job.days.map(day => {
             const isFilled = (job.filledShifts || []).includes(day);
@@ -124,9 +129,12 @@ export default function JobDetails({
           })}
         </div>
       </DetailCard>
-      {job.category && <DetailCard label="Job Type">{job.category}</DetailCard>}
-      {job.weekendRequired && <DetailCard label="Schedule">Weekend availability required</DetailCard>}
-      {deadlineStr && <DetailCard label="Apply By">{deadlineStr}</DetailCard>}
+      {job.category && <DetailCard label="🏷️ Job Type">{job.category}</DetailCard>}
+      {distanceKm !== null && <DetailCard label="📏 Distance">{formatDistance(distanceKm)} away</DetailCard>}
+      {job.sickPay !== undefined && <DetailCard label="🏥 Sick Pay">{job.sickPay ? "Yes" : "No"}</DetailCard>}
+      {job.holidays && <DetailCard label="🏖️ Holidays">{job.holidays}</DetailCard>}
+      {job.weekendRequired && <DetailCard label="📆 Schedule">Weekend availability required</DetailCard>}
+      {deadlineStr && <DetailCard label="⏰ Apply By">{deadlineStr}</DetailCard>}
     </div>
   );
 

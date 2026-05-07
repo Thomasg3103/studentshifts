@@ -27,6 +27,8 @@ function normaliseJob(j) {
     days:            j.days || [],
     times:           j.times || {},
     weekendRequired: j.weekend_required || false,
+    sickPay:         j.sick_pay || false,
+    holidays:        j.holidays || "",
     status:          j.status || "Active",
     photos:          j.photos || [],
     photoCrops:      j.photo_crops || [],
@@ -264,6 +266,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         days:            formData.days,
         times:           formData.times,
         weekend_required: formData.weekendRequired || false,
+        sick_pay:        formData.sickPay || false,
+        holidays:        formData.holidays || "",
         status:          formData.status || "Active",
         photos:          photoUrls,
         photo_crops:     photoCrops,
@@ -2585,6 +2589,31 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
           placeholder="Describe the role, responsibilities, and what you're looking for…"
           rows={3}
           style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
+        />
+      </div>
+
+      {/* Sick Pay */}
+      <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", cursor: "pointer", padding: "0.6rem 0.75rem", backgroundColor: formData.sickPay ? "#f0fdf4" : "#f9fafb", borderRadius: "0.5rem", border: `1.5px solid ${formData.sickPay ? "#86efac" : "#e5e7eb"}` }}>
+        <input
+          type="checkbox"
+          checked={formData.sickPay || false}
+          onChange={e => setFormData(prev => ({ ...prev, sickPay: e.target.checked }))}
+          style={{ width: "16px", height: "16px", cursor: "pointer" }}
+        />
+        <span style={{ fontWeight: "600", fontSize: "0.875rem", color: "#374151" }}>
+          Sick pay included
+        </span>
+      </label>
+
+      {/* Holidays */}
+      <div>
+        <label style={labelStyle}>Holiday Entitlement <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(optional)</span></label>
+        <input
+          type="text"
+          value={formData.holidays || ""}
+          onChange={e => setFormData(prev => ({ ...prev, holidays: e.target.value }))}
+          placeholder="e.g. 20 days per year"
+          style={inputStyle}
         />
       </div>
 
