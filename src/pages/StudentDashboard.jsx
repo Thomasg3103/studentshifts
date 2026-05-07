@@ -358,6 +358,28 @@ export default function StudentDashboard({
             </select>
           </div>
         ))}
+        {/* Distance slider — shown below days/times */}
+        <div style={{ marginTop: "0.6rem", paddingTop: "0.6rem", borderTop: "1px solid #f3f4f6" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
+            <span style={{ fontSize: "0.81rem", color: "#374151", fontWeight: 600 }}>Distance</span>
+            <span style={{ fontSize: "0.81rem", color: "#374151", fontWeight: 500 }}>{distanceKm === 0 ? "Any" : `Within ${distanceKm} km`}</span>
+          </div>
+          {studentLocation ? (
+            <>
+              {distanceKm > 0 && (
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.2rem" }}>
+                  <button onClick={() => setDistanceKm(0)} style={{ fontSize: "0.72rem", color: "#A21D54", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>Reset</button>
+                </div>
+              )}
+              <SmoothSlider value={distanceKm} onChange={setDistanceKm} />
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "#9ca3af" }}>
+                <span>0 km</span><span>25 km</span><span>50 km</span>
+              </div>
+            </>
+          ) : (
+            <p style={{ fontSize: "0.78rem", color: "#9ca3af", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
+          )}
+        </div>
       </FilterSection>
 
       {/* Location */}
@@ -392,24 +414,6 @@ export default function StudentDashboard({
             {label}
           </label>
         ))}
-      </FilterSection>
-
-      {/* Distance */}
-      <FilterSection title="Distance" open={openSections.distance} onToggle={() => toggleSection("distance")}>
-        {studentLocation ? (
-          <>
-            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-              <span style={{ fontSize: "0.81rem", color: "#374151", fontWeight: 500 }}>{distanceKm === 0 ? "Any distance" : `Within ${distanceKm} km`}</span>
-              {distanceKm > 0 && <button onClick={() => setDistanceKm(0)} style={{ fontSize: "0.72rem", color: "#A21D54", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>Reset</button>}
-            </div>
-            <SmoothSlider value={distanceKm} onChange={setDistanceKm} />
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "#9ca3af" }}>
-              <span>0 km</span><span>25 km</span><span>50 km</span>
-            </div>
-          </>
-        ) : (
-          <p style={{ fontSize: "0.78rem", color: "#9ca3af", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
-        )}
       </FilterSection>
 
       {/* Clear */}
@@ -623,8 +627,8 @@ export default function StudentDashboard({
                         <p style={{ margin: "0 0 0.5rem", fontSize: "0.83rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
                       </div>
 
-                      {/* Days / Times */}
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: dist !== null ? "0.25rem" : "0.5rem" }}>
+                      {/* Days / Times / Distance */}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.5rem" }}>
                         {job.days.map(day => {
                           const isFilled = (job.filledShifts || []).includes(day);
                           return (
@@ -633,15 +637,12 @@ export default function StudentDashboard({
                             </span>
                           );
                         })}
-                      </div>
-                      {/* Distance */}
-                      {dist !== null && (
-                        <div style={{ marginBottom: "0.5rem" }}>
+                        {dist !== null && (
                           <span style={{ fontSize: "0.7rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600 }}>
                             📍 {formatDistance(dist)}
                           </span>
-                        </div>
-                      )}
+                        )}
+                      </div>
 
                       {/* Pay + deadline */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
