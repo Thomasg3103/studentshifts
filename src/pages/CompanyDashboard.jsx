@@ -316,6 +316,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
 
       // 2. Mark the hired shift as filled on the job posting
       const hiredDay = applicant.preferredShift ? applicant.preferredShift.split(" · ")[0].trim() : null;
+      const hiredShiftWithTime = applicant.preferredShift
+        || (hiredDay && activePosting.times?.[hiredDay] ? `${hiredDay} · ${activePosting.times[hiredDay]}` : hiredDay);
       const currentFilledShifts = activePosting.filledShifts || [];
       const newFilledShifts = hiredDay && !currentFilledShifts.includes(hiredDay)
         ? [...currentFilledShifts, hiredDay]
@@ -409,7 +411,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
                 declinedApplicant?.name || "there",
                 activePosting.title,
                 currentUser.name,
-                applicant.preferredShift || hiredDay,
+                hiredShiftWithTime,
                 [],
               ),
             });
@@ -425,7 +427,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
                 name,
                 activePosting.title,
                 currentUser.name,
-                applicant.preferredShift || hiredDay,
+                hiredShiftWithTime,
                 remainingShiftsAfterHire,
               ),
             });
