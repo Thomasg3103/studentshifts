@@ -339,10 +339,13 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           .neq("id", applicationId),
         10000, "Timeout."
       );
+      const allShiftsFilled = newFilledShifts.length >= (activePosting.days || []).length;
       const otherIds = (others || []).filter(o => {
         if (!hiredDay) return true; // hired for all shifts → decline everyone
         const oDay = o.preferred_shift ? o.preferred_shift.split(" · ")[0].trim() : null;
-        return !oDay || oDay === hiredDay; // same shift or applied to all → decline
+        if (oDay === hiredDay) return true; // competing for the same specific shift → decline
+        if (!oDay) return allShiftsFilled; // applied to all shifts → only decline if no shifts remain
+        return false; // different specific shift → leave in pipeline
       }).map(o => o.id);
       if (otherIds.length) {
         await withTimeout(
