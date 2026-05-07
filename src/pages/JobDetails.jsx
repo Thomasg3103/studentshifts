@@ -193,13 +193,15 @@ export default function JobDetails({
               </div>
             )}
 
-            {/* Apply Now CTA */}
-            <button
-              onClick={handleApply}
-              style={{ width: "100%", padding: "0.9rem", borderRadius: "0.75rem", border: "none", background: isApplied ? "#10b981" : "linear-gradient(135deg,#A21D54,#C2185B)", color: "white", fontWeight: 700, fontSize: "1rem", cursor: isApplied ? "default" : "pointer", fontFamily: "inherit", marginBottom: "0.75rem", boxShadow: isApplied ? "none" : "0 4px 14px rgba(162,29,84,0.35)" }}
-            >
-              {isApplied ? "✅ Applied" : "Apply Now"}
-            </button>
+            {/* Apply Now CTA — hidden once applied */}
+            {!isApplied && (
+              <button
+                onClick={handleApply}
+                style={{ width: "100%", padding: "0.9rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg,#A21D54,#C2185B)", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", marginBottom: "0.75rem", boxShadow: "0 4px 14px rgba(162,29,84,0.35)" }}
+              >
+                Apply Now
+              </button>
+            )}
 
             {/* Report Job */}
             <button
