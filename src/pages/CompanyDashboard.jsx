@@ -4,7 +4,7 @@ import "../StudentShiftWeb.css";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
-import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, emailInterviewInvite, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
+import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, emailInterviewInvite, emailInterviewRejection, emailTrialInvite, emailTrialRejection, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -372,13 +372,14 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           .rpc("get_user_emails", { user_ids: allStudentIds });
         const emailMap = Object.fromEntries((emailProfiles || []).map(p => [p.id, p.email]));
         const appUrl = window.location.origin;
+        const remainingShiftsAfterHire = activePosting.days.filter(d => !newFilledShifts.includes(d));
 
         await Promise.allSettled([
           // Acceptance email to winner
           emailMap[applicant.studentId] && sendEmail({
             to: emailMap[applicant.studentId],
-            subject: `Congratulations! ${currentUser.name} has accepted your application`,
-            html: emailApplicantAccepted(applicant.name, activePosting.title, currentUser.name),
+            subject: `You've been hired — ${activePosting.title} at ${currentUser.name}`,
+            html: emailApplicantAccepted(applicant.name, activePosting.title, currentUser.name, applicant.preferredShift || null),
             magicLinkEmail: emailMap[applicant.studentId],
             redirectTo: appUrl,
           }),
@@ -386,6 +387,9 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           ...(otherIds.map(id => {
             const declinedApplicant = activePosting.applicants?.find(a => a.id === id);
             const oStudentId = others?.find(o => o.id === id)?.student_id;
+            const oPreferredShift = others?.find(o => o.id === id)?.preferred_shift;
+            // If they applied to all shifts (no preferred), mention remaining unfilled shifts
+            const remaining = !oPreferredShift ? remainingShiftsAfterHire : [];
             return oStudentId && emailMap[oStudentId] && sendEmail({
               to: emailMap[oStudentId],
               subject: `Update on your ${activePosting.title} application`,
@@ -393,6 +397,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
                 declinedApplicant?.name || "there",
                 activePosting.title,
                 currentUser.name,
+                hiredDay ? applicant.preferredShift || hiredDay : null,
+                remaining,
               ),
             });
           })).filter(Boolean),
@@ -403,7 +409,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       return;
     }
 
-    // Simple reject (no email, no auto-decline)
+    // Manual reject — stage-aware email
     const { error } = await withTimeout(
       supabase.from("applications").update({ status: newStatus }).eq("id", applicationId),
       10000, "Update timed out."
@@ -412,6 +418,27 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     const updater = (p) => ({ ...p, applicants: p.applicants.map(a => a.id === applicationId ? { ...a, status: newStatus } : a) });
     setPostings(prev => prev.map(p => p.id === activePosting.id ? updater(p) : p));
     setActivePosting(prev => updater(prev));
+
+    try {
+      const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: [applicant.studentId] });
+      const studentEmail = emailRows?.[0]?.email;
+      if (!studentEmail) return;
+      const stage = applicant.pipelineStage || "applied";
+      let html, subject;
+      if (stage === "interview") {
+        subject = `Update on your ${activePosting.title} application`;
+        html = emailInterviewRejection(applicant.name, activePosting.title, currentUser.name);
+      } else if (stage === "trial") {
+        subject = `Update on your ${activePosting.title} application`;
+        html = emailTrialRejection(applicant.name, activePosting.title, currentUser.name);
+      } else {
+        subject = `Update on your ${activePosting.title} application`;
+        html = emailApplicantDeclined(applicant.name, activePosting.title, currentUser.name);
+      }
+      await sendEmail({ to: studentEmail, subject, html });
+    } catch (e) {
+      console.warn("Rejection email failed:", e);
+    }
   };
 
   const handleStageChange = async (applicationId, newStage, round) => {
@@ -501,6 +528,25 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       });
     } catch (e) {
       throw new Error(e?.message || "Failed to send invite.");
+    }
+  };
+
+  const handleSendTrialInvite = async (applicationId, date, time, note) => {
+    const applicant = activePosting?.applicants?.find(a => a.id === applicationId);
+    if (!applicant) return;
+    try {
+      const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: [applicant.studentId] });
+      const studentEmail = emailRows?.[0]?.email;
+      if (!studentEmail) throw new Error("Could not find student email.");
+      await sendEmail({
+        to: studentEmail,
+        subject: `Trial Shift Invitation from ${currentUser.name}`,
+        html: emailTrialInvite(applicant.name, currentUser.name, activePosting.title, date, time, note),
+        magicLinkEmail: studentEmail,
+        redirectTo: window.location.origin,
+      });
+    } catch (e) {
+      throw new Error(e?.message || "Failed to send trial invite.");
     }
   };
 
@@ -666,7 +712,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       {/* Applicants Modal */}
       {modal === "applicants" && activePosting && (
         <Modal onClose={closeModal} title={`Applicants — ${activePosting.title}`}>
-          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewRoundsData={handleSaveInterviewRoundsData} onSendInterviewInvite={handleSendInterviewInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
+          <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewRoundsData={handleSaveInterviewRoundsData} onSendInterviewInvite={handleSendInterviewInvite} onSendTrialInvite={handleSendTrialInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
         </Modal>
       )}
 
@@ -1159,7 +1205,7 @@ const buildDynamicStages = (applicants) => {
   ];
 };
 
-function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, likedStudents }) {
+function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, onSendTrialInvite, likedStudents }) {
   const [activeStage, setActiveStage]             = useState("applied");
   const [selectedApplicant, setSelectedApplicant] = useState(null);
   const [showCloseJob, setShowCloseJob]           = useState(false);
@@ -1337,6 +1383,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
           onSaveTrialSchedule={onSaveTrialSchedule}
           onSaveInterviewRoundsData={onSaveInterviewRoundsData}
           onSendInterviewInvite={onSendInterviewInvite}
+          onSendTrialInvite={onSendTrialInvite}
         />
       )}
 
@@ -1513,7 +1560,7 @@ function CheckItem({ ok, label, warn }) {
   );
 }
 
-function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite }) {
+function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, onSendTrialInvite }) {
   const [cvUrl, setCvUrl]     = useState(null);
   const [clUrl, setClUrl]     = useState(null);
   const [cvLoading, setCvLoading] = useState(false);
@@ -1526,6 +1573,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
   const [trialTime, setTrialTime] = useState(applicant.trialTime || "");
   const [profileOpen, setProfileOpen] = useState((applicant.pipelineStage || "applied") === "applied");
   const [inviteModalOpen, setInviteModalOpen] = useState(null); // null = closed, number = round index
+  const [trialInviteOpen, setTrialInviteOpen] = useState(false);
 
   const buildRounds = (a) => {
     const stored = Array.isArray(a.interviewRoundsData) ? a.interviewRoundsData : [];
@@ -1552,6 +1600,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
     setInterviewRounds(buildRounds(applicant));
     setProfileOpen(s === "applied");
     setInviteModalOpen(null);
+    setTrialInviteOpen(false);
   }, [applicant.id]);
 
   const openCv = async () => {
@@ -1824,24 +1873,34 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
               setInterviewRounds(newRounds);
               onIncrementRound?.(applicant.id, applicant.interviewRound || 1, newRounds);
             }} style={panelActionBtn("#6b7280")}>+ Next Round of Interviews</button>
-            <button onClick={async () => {
-              const last = interviewRounds[interviewRounds.length - 1] || {};
-              if (last.date || last.time) {
-                await onSaveTrialSchedule?.(applicant.id, last.date || "", last.time || "");
-              }
-              onStageAction(applicant.id, "trial");
-            }} style={panelActionBtn("#A21D54")}>Advance to Trial →</button>
+            <button onClick={() => onStageAction(applicant.id, "trial")} style={panelActionBtn("#A21D54")}>Advance to Trial →</button>
             <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#475569")}>Skip to Decision →</button>
+            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>Decline ✕</button>
           </>)}
-          {stage === "trial" && (
+          {stage === "trial" && (<>
+            <button onClick={() => setTrialInviteOpen(true)} style={panelActionBtn("#0284c7")}>✉ Send Trial Invite</button>
             <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#A21D54")}>Move to Decision →</button>
-          )}
+            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>Decline ✕</button>
+          </>)}
           {stage === "decision" && applicant.status === "Pending" && (<>
             <button onClick={() => onUpdateStatus(applicant.id, "Accepted", applicant)} style={panelActionBtn("#16a34a")}>Hire this Applicant ✓</button>
             <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>Decline ✕</button>
           </>)}
         </div>
       </div>
+
+      {/* Trial invite modal */}
+      {trialInviteOpen && (
+        <TrialInviteModal
+          applicant={applicant}
+          date={trialDate}
+          time={trialTime}
+          onClose={() => setTrialInviteOpen(false)}
+          onSend={async (date, time, note) => {
+            await onSendTrialInvite?.(applicant.id, date, time, note);
+          }}
+        />
+      )}
     </>
   );
 }
@@ -1903,6 +1962,69 @@ function InterviewInviteModal({ applicant, roundNumber, date, time, onClose, onS
           <button onClick={onClose} style={{ flex: 1, padding: "0.65rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
           <button onClick={send} disabled={sending} style={{ flex: 2, padding: "0.65rem", borderRadius: "0.6rem", border: "none", background: "linear-gradient(135deg,#7c3aed,#A21D54)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: sending ? "default" : "pointer", fontFamily: "inherit", opacity: sending ? 0.7 : 1 }}>
             {sending ? "Sending…" : "Send Invite ✉"}
+          </button>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function TrialInviteModal({ applicant, date: initialDate, time: initialTime, onClose, onSend }) {
+  const [date, setDate]     = useState(initialDate || "");
+  const [time, setTime]     = useState(initialTime || "");
+  const [note, setNote]     = useState("");
+  const [sending, setSending] = useState(false);
+  const [error, setError]   = useState("");
+
+  const send = async () => {
+    setSending(true);
+    setError("");
+    try {
+      await onSend(date, time, note);
+      onClose();
+    } catch (e) {
+      setError(e?.message || "Failed to send. Please try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1300 }} />
+      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1301, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(400px,92vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
+        <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Send Trial Shift Invite</h3>
+        <p style={{ margin: "0 0 1.1rem", fontSize: "0.82rem", color: "#64748b" }}>To: <strong>{applicant.name}</strong></p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Date</label>
+              <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: "100%", padding: "0.5rem 0.55rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", boxSizing: "border-box", color: "#374151" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Time</label>
+              <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ width: "100%", padding: "0.5rem 0.55rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", boxSizing: "border-box", color: "#374151" }} />
+            </div>
+          </div>
+          <div>
+            <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Note to student <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>
+            <textarea
+              value={note}
+              onChange={e => setNote(e.target.value)}
+              placeholder="e.g. Please arrive 10 minutes early. Dress code is smart casual."
+              rows={3}
+              style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.5, color: "#374151" }}
+            />
+          </div>
+        </div>
+
+        {error && <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "#e11d48", fontWeight: "600" }}>{error}</p>}
+
+        <div style={{ display: "flex", gap: "0.6rem", marginTop: "1.25rem" }}>
+          <button onClick={onClose} style={{ flex: 1, padding: "0.65rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+          <button onClick={send} disabled={sending} style={{ flex: 2, padding: "0.65rem", borderRadius: "0.6rem", border: "none", background: "linear-gradient(135deg,#0ea5e9,#0284c7)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: sending ? "default" : "pointer", fontFamily: "inherit", opacity: sending ? 0.7 : 1 }}>
+            {sending ? "Sending…" : "Send Trial Invite ✉"}
           </button>
         </div>
       </div>

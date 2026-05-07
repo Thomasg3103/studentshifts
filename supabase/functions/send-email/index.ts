@@ -33,7 +33,7 @@ Deno.serve(async (req: Request) => {
       .select("role")
       .eq("id", user.id)
       .single();
-    if (profile?.role !== "admin") throw new Error("Unauthorised");
+    if (!["admin", "company"].includes(profile?.role)) throw new Error("Unauthorised");
 
     const { to, subject, html, magicLinkEmail, redirectTo } = await req.json();
     if (!to || !subject || !html) throw new Error("Missing required fields: to, subject, html");
