@@ -735,6 +735,29 @@ export default function CompanyDashboard({ setPage, currentUser }) {
               </div>
               <button onClick={closeModal} style={{ background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer", color: "#94a3b8", lineHeight: 1, padding: "0.25rem" }}>✕</button>
             </div>
+            {/* Pipeline funnel */}
+            {!activePosting.applicantsLoading && activePosting.applicants?.length > 0 && (
+              <div style={{ padding: "0.65rem 1.5rem", borderBottom: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", gap: "0.35rem", overflowX: "auto", flexShrink: 0, backgroundColor: "#fafafa" }}>
+                {[
+                  { key: "applied",     label: "Applied",     color: "#64748b" },
+                  { key: "shortlisted", label: "Shortlisted", color: "#0284c7" },
+                  { key: "interview",   label: "Interview",   color: "#7c3aed" },
+                  { key: "trial",       label: "Trial",       color: "#16a34a" },
+                  { key: "decision",    label: "Decision",    color: "#ea580c" },
+                ].map(({ key, label, color }, i) => {
+                  const count = activePosting.applicants.filter(a => a.pipelineStage === key).length;
+                  return (
+                    <span key={key} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
+                      {i > 0 && <span style={{ color: "#d1d5db", fontSize: "0.72rem" }}>→</span>}
+                      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "56px" }}>
+                        <span style={{ fontSize: "1.15rem", fontWeight: "800", color: count > 0 ? color : "#d1d5db", lineHeight: 1 }}>{count}</span>
+                        <span style={{ fontSize: "0.62rem", fontWeight: "600", color: count > 0 ? color : "#d1d5db", whiteSpace: "nowrap" }}>{label}</span>
+                      </span>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
             {/* Scrollable body */}
             <div style={{ overflowY: "auto", flex: 1, padding: "1.25rem 1.5rem" }}>
               <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewRoundsData={handleSaveInterviewRoundsData} onSendInterviewInvite={handleSendInterviewInvite} onSendTrialInvite={handleSendTrialInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} />
@@ -1184,6 +1207,9 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
   const [viewMode, setViewMode]                   = useState("list");
   const [search, setSearch]                       = useState("");
   const [sortBy, setSortBy]                       = useState("default"); // "default" | "name_asc" | "name_desc" | "status"
+  const [selectedIds, setSelectedIds]             = useState(new Set());
+  const [invitedIds, setInvitedIds]               = useState(new Set());
+  const [bulkDeclining, setBulkDeclining]         = useState(false);
 
   if (posting.applicantsLoading) {
     return <div style={{ textAlign: "center", padding: "3rem 1rem" }}><div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div><p style={{ color: "#64748b", fontWeight: "600", margin: 0 }}>Loading applicants…</p></div>;
@@ -1230,6 +1256,38 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
     setSelectedApplicant(null);
     setActiveStage(`interview_${currentRound + 1}`);
   };
+
+  const bulkDecline = async () => {
+    const pendingSelected = [...selectedIds].filter(id => {
+      const a = posting.applicants.find(x => x.id === id);
+      return a && a.status === "Pending";
+    });
+    if (pendingSelected.length === 0) { setSelectedIds(new Set()); return; }
+    if (!window.confirm(`Decline ${pendingSelected.length} applicant${pendingSelected.length !== 1 ? "s" : ""}? Each will receive a rejection email.`)) return;
+    setBulkDeclining(true);
+    for (const id of pendingSelected) {
+      const applicant = posting.applicants.find(a => a.id === id);
+      if (applicant) await onUpdateStatus(id, "Rejected", applicant);
+    }
+    setBulkDeclining(false);
+    setSelectedIds(new Set());
+  };
+
+  const wrappedSendInterviewInvite = async (applicationId, ...args) => {
+    await onSendInterviewInvite(applicationId, ...args);
+    setInvitedIds(prev => new Set([...prev, applicationId]));
+  };
+
+  const wrappedSendTrialInvite = async (applicationId, ...args) => {
+    await onSendTrialInvite(applicationId, ...args);
+    setInvitedIds(prev => new Set([...prev, applicationId]));
+  };
+
+  const toggleSelect = (id) => setSelectedIds(prev => {
+    const next = new Set(prev);
+    if (next.has(id)) next.delete(id); else next.add(id);
+    return next;
+  });
 
   return (
     <div>
@@ -1331,6 +1389,30 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
         }
       </p>
 
+      {/* Select-all row */}
+      {(() => {
+        const pendingInStage = stageApplicants.filter(a => a.status === "Pending");
+        if (pendingInStage.length === 0) return null;
+        const allSelected = pendingInStage.every(a => selectedIds.has(a.id));
+        return (
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem", padding: "0 0.25rem" }}>
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={e => {
+                const ids = pendingInStage.map(a => a.id);
+                if (e.target.checked) setSelectedIds(prev => new Set([...prev, ...ids]));
+                else setSelectedIds(prev => { const next = new Set(prev); ids.forEach(id => next.delete(id)); return next; });
+              }}
+              style={{ cursor: "pointer", accentColor: "#A21D54", width: "15px", height: "15px" }}
+            />
+            <span style={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>
+              {allSelected ? "Deselect all" : `Select all ${pendingInStage.length} pending`}
+            </span>
+          </div>
+        );
+      })()}
+
       {/* Compact applicant rows for active stage */}
       {visible.length === 0 ? (
         <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
@@ -1343,11 +1425,31 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
             <ApplicantRow
               key={applicant.id}
               applicant={applicant}
+              isSelected={selectedIds.has(applicant.id)}
+              onToggleSelect={() => toggleSelect(applicant.id)}
+              isInvited={invitedIds.has(applicant.id)}
               onClick={() => setSelectedApplicant(applicant)}
               onHire={(a) => onUpdateStatus(a.id, "Accepted", a)}
               onDecline={(a) => onUpdateStatus(a.id, "Rejected", a)}
             />
           ))}
+        </div>
+      )}
+
+      {/* Bulk action bar — floats above liked students when selection is active */}
+      {selectedIds.size > 0 && (
+        <div style={{ position: "sticky", bottom: 0, backgroundColor: "white", borderTop: "1.5px solid #e2e8f0", padding: "0.7rem 0", marginTop: "0.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", zIndex: 10, boxShadow: "0 -4px 16px rgba(0,0,0,0.07)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ fontSize: "0.82rem", fontWeight: "800", color: "#1e293b" }}>{selectedIds.size} selected</span>
+            <button onClick={() => setSelectedIds(new Set())} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", padding: 0 }}>Clear</button>
+          </div>
+          <button
+            onClick={bulkDecline}
+            disabled={bulkDeclining}
+            style={{ padding: "0.5rem 1.1rem", borderRadius: "0.55rem", border: "none", background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "white", fontWeight: "700", fontSize: "0.8rem", cursor: bulkDeclining ? "default" : "pointer", fontFamily: "inherit", opacity: bulkDeclining ? 0.7 : 1, boxShadow: "0 2px 8px rgba(244,63,94,0.3)" }}
+          >
+            {bulkDeclining ? "Declining…" : `✕ Decline ${selectedIds.size}`}
+          </button>
         </div>
       )}
 
@@ -1409,8 +1511,8 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
           onIncrementRound={handleRoundIncrement}
           onSaveTrialSchedule={onSaveTrialSchedule}
           onSaveInterviewRoundsData={onSaveInterviewRoundsData}
-          onSendInterviewInvite={onSendInterviewInvite}
-          onSendTrialInvite={onSendTrialInvite}
+          onSendInterviewInvite={wrappedSendInterviewInvite}
+          onSendTrialInvite={wrappedSendTrialInvite}
         />
       )}
 
@@ -1428,20 +1530,26 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
 
 const STAGE_BORDER_COLOR = { applied: "#94a3b8", shortlisted: "#0284c7", interview: "#7c3aed", trial: "#16a34a", decision: "#ea580c" };
 
-function ApplicantRow({ applicant, onClick, onHire, onDecline }) {
+function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onToggleSelect, isInvited }) {
   const isDecision = applicant.pipelineStage === "decision" && applicant.status === "Pending";
   const statusColors = { Accepted: { bg: "#dcfce7", color: "#16a34a" }, Rejected: { bg: "#fee2e2", color: "#dc2626" } };
   const sc = statusColors[applicant.status];
   const stageAccent = STAGE_BORDER_COLOR[applicant.pipelineStage] || "#e2e8f0";
   return (
-    <div style={{ borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", borderLeft: `4px solid ${stageAccent}`, overflow: "hidden", backgroundColor: "white", transition: "box-shadow 0.15s, border-color 0.15s" }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = "#fce7f3"; e.currentTarget.style.borderLeftColor = stageAccent; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.borderLeftColor = stageAccent; }}
+    <div style={{ borderRadius: "0.75rem", border: `1.5px solid ${isSelected ? "#A21D54" : "#e2e8f0"}`, borderLeft: `4px solid ${stageAccent}`, overflow: "hidden", backgroundColor: isSelected ? "#fdf8fa" : "white", transition: "background-color 0.1s, border-color 0.15s" }}
+      onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = "#fce7f3"; e.currentTarget.style.borderLeftColor = stageAccent; } }}
+      onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.borderLeftColor = stageAccent; } }}
     >
       <button
         onClick={onClick}
-        style={{ width: "100%", display: "flex", alignItems: "center", gap: "0.9rem", padding: "0.85rem 1rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
+        style={{ width: "100%", display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.85rem 1rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
       >
+        {/* Checkbox — pending only */}
+        {applicant.status === "Pending" && (
+          <div onClick={e => { e.stopPropagation(); onToggleSelect?.(); }} style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
+            <input type="checkbox" checked={isSelected || false} onChange={() => {}} onClick={e => { e.stopPropagation(); onToggleSelect?.(); }} style={{ cursor: "pointer", accentColor: "#A21D54", width: "15px", height: "15px" }} />
+          </div>
+        )}
         {/* Photo */}
         <div style={{ width: "42px", height: "42px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {applicant.profilePhoto
@@ -1454,6 +1562,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline }) {
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.2rem", flexWrap: "wrap" }}>
             <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#1e293b" }}>{applicant.name}</p>
             {sc && <span style={{ fontSize: "0.62rem", fontWeight: "700", padding: "0.1rem 0.45rem", borderRadius: "999px", backgroundColor: sc.bg, color: sc.color, textTransform: "uppercase", letterSpacing: "0.04em", flexShrink: 0 }}>{applicant.status}</span>}
+            {isInvited && <span style={{ fontSize: "0.62rem", backgroundColor: "#e0f2fe", color: "#0369a1", borderRadius: "999px", padding: "0.08rem 0.4rem", fontWeight: "700", flexShrink: 0 }}>📧 Invited</span>}
             {applicant.linkedin && <span title="LinkedIn provided" style={{ fontSize: "0.62rem", backgroundColor: "#e0f2fe", color: "#0369a1", borderRadius: "999px", padding: "0.08rem 0.4rem", fontWeight: "700", flexShrink: 0 }}>🔗 LinkedIn</span>}
           </div>
           {applicant.preferredShift && (
