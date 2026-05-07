@@ -1021,8 +1021,8 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
     <div className="job-posting-card" style={{
       borderRadius: "0.75rem", overflow: "hidden",
       backgroundColor: "#f9fafb", border: `1.5px solid ${isExpired ? "#fca5a5" : "#e5e7eb"}`,
-      display: "flex", alignItems: "stretch",
-      opacity: isActive ? 1 : 0.75,
+      display: "flex", alignItems: "stretch", position: "relative",
+      opacity: isActive ? 1 : 0.75, minHeight: "180px",
     }}>
       {/* Square photo */}
       <div style={{ width: "180px", height: "180px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0", alignSelf: "flex-start" }}>
@@ -1037,8 +1037,15 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
         )}
       </div>
 
+      {/* Pencil — absolute top-right */}
+      <button
+        onClick={onEdit}
+        title="Edit job"
+        style={{ position: "absolute", top: "0.65rem", right: "0.75rem", background: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.4rem", padding: "0.22rem 0.55rem", cursor: "pointer", color: "#64748b", fontSize: "0.88rem", lineHeight: 1 }}
+      >✏️</button>
+
       {/* Main content */}
-      <div style={{ flex: 1, padding: "0.85rem 0.85rem 0.85rem 1rem", minWidth: 0 }}>
+      <div style={{ flex: 1, padding: "0.85rem 6rem 4.5rem 1rem", minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
           <h2
             onClick={onViewApplicants}
@@ -1056,11 +1063,6 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
           }}>
             {isExpired ? "Expired" : posting.status}
           </span>
-          <button
-            onClick={onEdit}
-            title="Edit job"
-            style={{ marginLeft: "auto", background: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.4rem", padding: "0.22rem 0.55rem", cursor: "pointer", color: "#64748b", fontSize: "0.88rem", lineHeight: 1, flexShrink: 0 }}
-          >✏️</button>
         </div>
         <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.4rem" }}>
           {posting.location} · {posting.pay}
@@ -1092,8 +1094,8 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
         </p>
       </div>
 
-      {/* Right: Close + Delete stacked */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0, padding: "0.85rem 1rem 0.85rem 0", justifyContent: "center" }}>
+      {/* Close + Delete — absolute bottom-right */}
+      <div style={{ position: "absolute", bottom: "0.75rem", right: "0.75rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
         <button onClick={onToggleStatus} style={btnCardAction}>
           {isActive ? "Close Job" : "Reopen Job"}
         </button>
