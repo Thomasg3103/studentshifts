@@ -622,7 +622,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   const isVerified = verificationStatus === "verified";
 
   return (
-    <PageWrapper>
+    <div style={{ minHeight: "100vh", backgroundColor: "#fafafa", padding: "1.5rem 1rem" }}>
+      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
       {/* Verification banner */}
       {verificationStatus === "pending_review" && (
         <div style={{ backgroundColor: "#fef3c7", border: "1.5px solid #fcd34d", borderRadius: "0.75rem", padding: "1rem 1.25rem", marginBottom: "1.5rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
@@ -651,7 +652,10 @@ export default function CompanyDashboard({ setPage, currentUser }) {
             <p style={{ color: "#64748b", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{currentUser.name}</p>
           )}
         </div>
-        {isVerified && activeTab === "jobs" && <button onClick={openCreate} style={btnGreen}>+ New Job</button>}
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          {isVerified && activeTab === "jobs" && <button onClick={openCreate} style={btnGreen}>+ New Job</button>}
+          <button onClick={() => setPage("account")} style={btnGray}>My Account</button>
+        </div>
       </div>
 
       {/* Tab bar */}
@@ -663,7 +667,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
             style={{
               flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none",
               fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit",
-              backgroundColor: activeTab === val ? "white" : "transparent",
+              backgroundColor: activeTab === val ? "white" : "#e2e8f0",
               color: activeTab === val ? "#A21D54" : "#64748b",
               boxShadow: activeTab === val ? "0 1px 6px rgba(0,0,0,0.1)" : "none",
             }}
@@ -747,11 +751,6 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         )
       )}
 
-      {/* Footer nav */}
-      <div style={{ marginTop: "2rem" }}>
-        <button onClick={() => setPage("account")} style={btnGray}>My Account</button>
-      </div>
-
       {/* Applicants Modal */}
       {modal === "applicants" && activePosting && (
         <Modal onClose={closeModal} title={`Applicants — ${activePosting.title}`}>
@@ -779,7 +778,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           <ExtendForm data={extendData} setData={setExtendData} onSave={saveExtend} onCancel={closeModal} />
         </Modal>
       )}
-    </PageWrapper>
+      </div>
+    </div>
   );
 }
 
@@ -1060,7 +1060,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
       opacity: isActive ? 1 : 0.75,
     }}>
       {/* Square photo */}
-      <div style={{ width: "120px", height: "120px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
+      <div style={{ width: "180px", height: "180px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
         {photo ? (
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
             <img src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -2993,7 +2993,7 @@ const inputStyle  = { width: "100%", padding: "0.6rem 0.75rem", borderRadius: "0
 
 const btnBase      = { padding: "0.6rem 1.1rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.875rem", fontFamily: "inherit" };
 const btnGreen     = { ...btnBase, background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 4px 14px rgba(16,185,129,0.35)" };
-const btnGray      = { ...btnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 14px rgba(244,63,94,0.3)" };
+const btnGray      = { ...btnBase, backgroundColor: "#64748b", boxShadow: "0 2px 8px rgba(0,0,0,0.12)" };
 
 const zoomBtn      = { padding: "0.2rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" };
 
