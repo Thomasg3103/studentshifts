@@ -160,31 +160,26 @@ export default function JobDetails({
                   </div>
                 )}
               </div>
-              {/* Title + company */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <h1 style={{ fontWeight: 800, fontSize: "1.35rem", margin: "0 0 0.15rem", color: "#1e293b", lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h1>
+              {/* Title + company — centred */}
+              <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+                <h1 style={{ fontWeight: 800, fontSize: "1.35rem", margin: "0 0 0.15rem", color: "#1e293b", lineHeight: 1.2 }}>{job.title}</h1>
                 <p style={{ color: "#64748b", fontSize: "0.9rem", margin: 0, fontWeight: 500 }}>{job.company}</p>
               </div>
-              {/* Action buttons */}
-              <div style={{ display: "flex", gap: "0.75rem", flexShrink: 0, alignItems: "center" }}>
-                <button
-                  onClick={toggleLike}
-                  disabled={isApplied}
-                  title={isApplied ? "Applied" : isLiked ? "Unlike" : "Like"}
-                  style={{ width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", cursor: isApplied ? "default" : "pointer", padding: 0, flexShrink: 0 }}
-                >
-                  {isApplied ? (
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                  ) : isLiked ? (
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                  ) : (
-                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                  )}
-                </button>
-                <button onClick={handleApply} style={{ ...btn, background: isApplied ? "#10b981" : "linear-gradient(135deg,#A21D54,#C2185B)", boxShadow: isApplied ? "none" : "0 3px 10px rgba(162,29,84,0.35)" }}>
-                  {isApplied ? "✅ Applied" : "Apply Now"}
-                </button>
-              </div>
+              {/* Heart / applied icon */}
+              <button
+                onClick={toggleLike}
+                disabled={isApplied}
+                title={isApplied ? "Applied" : isLiked ? "Unlike" : "Like"}
+                style={{ width: "48px", height: "48px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", cursor: isApplied ? "default" : "pointer", padding: 0 }}
+              >
+                {isApplied ? (
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                ) : isLiked ? (
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                ) : (
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                )}
+              </button>
             </div>
 
             {/* Mobile: sidebar details inline */}
@@ -197,6 +192,14 @@ export default function JobDetails({
                 <p style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0 }}>{job.description}</p>
               </div>
             )}
+
+            {/* Apply Now CTA */}
+            <button
+              onClick={handleApply}
+              style={{ width: "100%", padding: "0.9rem", borderRadius: "0.75rem", border: "none", background: isApplied ? "#10b981" : "linear-gradient(135deg,#A21D54,#C2185B)", color: "white", fontWeight: 700, fontSize: "1rem", cursor: isApplied ? "default" : "pointer", fontFamily: "inherit", marginBottom: "0.75rem", boxShadow: isApplied ? "none" : "0 4px 14px rgba(162,29,84,0.35)" }}
+            >
+              {isApplied ? "✅ Applied" : "Apply Now"}
+            </button>
 
             {/* Report Job */}
             <button
