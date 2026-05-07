@@ -411,8 +411,6 @@ export default function AccountPage({
   return (
     <>
       <BackButton />
-      {/* Brand accent bar */}
-      <div style={{ height: "4px", background: "linear-gradient(90deg, #A21D54, #C2185B, #e11d48)" }} />
       <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "1.5rem 1.25rem", boxSizing: "border-box" }}>
         <div style={{ maxWidth: isStudent ? "1100px" : "560px", margin: "0 auto" }}>
 
