@@ -3,12 +3,11 @@ import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { likeJob, unlikeJob, createApplication } from "../lib/auth";
 
-function DetailRow({ icon, label, value }) {
+function DetailCard({ label, children }) {
   return (
-    <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem", padding: "0.55rem 0", borderBottom: "1px solid #e2e8f0" }}>
-      <span style={{ fontSize: "1rem", flexShrink: 0, width: "22px", textAlign: "center", marginTop: "1px" }}>{icon}</span>
-      <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", minWidth: "90px", flexShrink: 0, paddingTop: "2px" }}>{label}</span>
-      <span style={{ fontSize: "0.9rem", color: "#374151", fontWeight: 500, flex: 1 }}>{value}</span>
+    <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.55rem 0.75rem", marginBottom: "0.4rem" }}>
+      <p style={{ margin: "0 0 0.25rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8" }}>{label}</p>
+      <div style={{ fontSize: "0.88rem", color: "#1e293b", fontWeight: 600 }}>{children}</div>
     </div>
   );
 }
@@ -112,11 +111,11 @@ export default function JobDetails({
       <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start", flexWrap: isNarrow ? "wrap" : "nowrap" }}>
 
         {/* LEFT: details sidebar */}
-        <div style={{ width: isNarrow ? "100%" : "210px", flexShrink: 0, backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.25rem 1rem", order: isNarrow ? 2 : 0 }}>
-          <DetailRow icon="📍" label="Location" value={job.location} />
-          <DetailRow icon="💰" label="Pay" value={job.pay} />
-          <DetailRow icon="🗓️" label="Shifts" value={
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+        <div style={{ width: isNarrow ? "100%" : "210px", flexShrink: 0, order: isNarrow ? 2 : 0 }}>
+          <DetailCard label="Location">{job.location}</DetailCard>
+          <DetailCard label="Pay">{job.pay}</DetailCard>
+          <DetailCard label="Shifts">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginTop: "0.1rem" }}>
               {job.days.map(day => {
                 const isFilled = (job.filledShifts || []).includes(day);
                 const t = job.times?.[day];
@@ -128,10 +127,10 @@ export default function JobDetails({
                 );
               })}
             </div>
-          } />
-          {job.category && <DetailRow icon="🏷️" label="Job Type" value={job.category} />}
-          {job.weekendRequired && <DetailRow icon="📆" label="Schedule" value="Weekend availability required" />}
-          {deadlineStr && <DetailRow icon="⏰" label="Apply By" value={deadlineStr} />}
+          </DetailCard>
+          {job.category && <DetailCard label="Job Type">{job.category}</DetailCard>}
+          {job.weekendRequired && <DetailCard label="Schedule">Weekend availability required</DetailCard>}
+          {deadlineStr && <DetailCard label="Apply By">{deadlineStr}</DetailCard>}
         </div>
 
         {/* CENTER: image → title → company → description */}
