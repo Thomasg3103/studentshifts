@@ -146,37 +146,27 @@ export default function JobDetails({
           {/* RIGHT: main white card */}
           <div style={{ flex: 1, minWidth: 0, backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 2rem", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
 
-            {/* Image */}
-            <div style={{ width: "100%", paddingBottom: "52%", position: "relative", borderRadius: "0.85rem", overflow: "hidden", marginBottom: "1.25rem", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
-              {photos.length > 0 ? (
-                <>
+            {/* Single header row: image · title/company · buttons */}
+            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+              {/* Square image */}
+              <div style={{ width: "72px", height: "72px", flexShrink: 0, borderRadius: "0.65rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
+                {photos.length > 0 ? (
                   <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                     <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                   </div>
-                  {photos.length > 1 && (
-                    <>
-                      <button onClick={e => { e.stopPropagation(); setPhotoIdx((idx - 1 + photos.length) % photos.length); }} style={arrowBtn("left")}>‹</button>
-                      <button onClick={e => { e.stopPropagation(); setPhotoIdx((idx + 1) % photos.length); }} style={arrowBtn("right")}>›</button>
-                      <div style={{ position: "absolute", bottom: "6px", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "4px" }}>
-                        {photos.map((_, i) => <div key={i} style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: i === idx ? "white" : "rgba(255,255,255,0.4)" }} />)}
-                      </div>
-                    </>
-                  )}
-                </>
-              ) : (
-                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
-                  <span style={{ fontSize: "3.5rem", opacity: 0.4 }}>🏢</span>
-                </div>
-              )}
-            </div>
-
-            {/* Title + company + action buttons */}
-            <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "1rem", marginBottom: "1.25rem", flexWrap: "wrap" }}>
-              <div>
-                <h1 style={{ fontWeight: 800, fontSize: "1.5rem", margin: "0 0 0.2rem", color: "#1e293b", lineHeight: 1.2 }}>{job.title}</h1>
-                <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0, fontWeight: 500 }}>{job.company}</p>
+                ) : (
+                  <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
+                    <span style={{ fontSize: "1.5rem", opacity: 0.4 }}>🏢</span>
+                  </div>
+                )}
               </div>
-              <div style={{ display: "flex", gap: "0.6rem", flexShrink: 0, flexWrap: "wrap" }}>
+              {/* Title + company */}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <h1 style={{ fontWeight: 800, fontSize: "1.35rem", margin: "0 0 0.15rem", color: "#1e293b", lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h1>
+                <p style={{ color: "#64748b", fontSize: "0.9rem", margin: 0, fontWeight: 500 }}>{job.company}</p>
+              </div>
+              {/* Action buttons */}
+              <div style={{ display: "flex", gap: "0.6rem", flexShrink: 0 }}>
                 {!isApplied && (
                   <button onClick={toggleLike} style={{ ...btn, background: isLiked ? "#10b981" : "white", color: isLiked ? "white" : "#e11d48", border: isLiked ? "none" : "2px solid #e11d48", boxShadow: isLiked ? "0 3px 10px rgba(16,185,129,0.25)" : "none" }}>
                     {isLiked ? "✅ Liked" : "🤍 Like"}
