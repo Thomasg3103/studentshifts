@@ -366,15 +366,15 @@ export default function StudentDashboard({
           </div>
           {studentLocation ? (
             <>
+              <SmoothSlider value={distanceKm} onChange={setDistanceKm} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.68rem", color: "#9ca3af" }}>
+                <span>0 km</span><span>25 km</span><span>50 km</span>
+              </div>
               {distanceKm > 0 && (
-                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "0.2rem" }}>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.3rem" }}>
                   <button onClick={() => setDistanceKm(0)} style={{ fontSize: "0.72rem", color: "#A21D54", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>Reset</button>
                 </div>
               )}
-              <SmoothSlider value={distanceKm} onChange={setDistanceKm} />
-              <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.68rem", color: "#9ca3af" }}>
-                <span>0 km</span><span>25 km</span><span>50 km</span>
-              </div>
             </>
           ) : (
             <p style={{ fontSize: "0.78rem", color: "#9ca3af", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
