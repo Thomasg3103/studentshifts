@@ -652,10 +652,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
             <p style={{ color: "#64748b", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>{currentUser.name}</p>
           )}
         </div>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
-          {isVerified && activeTab === "jobs" && <button onClick={openCreate} style={btnGreen}>+ New Job</button>}
-          <button onClick={() => setPage("account")} style={btnGray}>My Account</button>
-        </div>
+        {isVerified && activeTab === "jobs" && <button onClick={openCreate} style={btnGreen}>+ New Job</button>}
       </div>
 
       {/* Tab bar */}
