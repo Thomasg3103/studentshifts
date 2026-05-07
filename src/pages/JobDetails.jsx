@@ -6,8 +6,8 @@ import { haversineDistance, formatDistance } from "../utils/geo";
 
 function DetailCard({ label, children }) {
   return (
-    <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.55rem 0.75rem", marginBottom: "0.4rem" }}>
-      <p style={{ margin: "0 0 0.25rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8" }}>{label}</p>
+    <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderLeft: "3px solid #A21D54", borderRadius: "0.65rem", padding: "0.55rem 0.75rem", marginBottom: "0.4rem" }}>
+      <p style={{ margin: "0 0 0.25rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#A21D54" }}>{label}</p>
       <div style={{ fontSize: "0.88rem", color: "#1e293b", fontWeight: 600 }}>{children}</div>
     </div>
   );

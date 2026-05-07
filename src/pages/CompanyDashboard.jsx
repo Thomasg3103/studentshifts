@@ -700,8 +700,9 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           </div>
         ) : postings.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280" }}>
-            <p style={{ fontSize: "1.25rem", fontWeight: "600", marginBottom: "0.5rem" }}>No job postings yet</p>
-            <p style={{ marginBottom: "1.5rem" }}>
+            <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>📋</div>
+            <p style={{ fontSize: "1.15rem", fontWeight: "700", color: "#1e293b", marginBottom: "0.4rem" }}>No job postings yet</p>
+            <p style={{ marginBottom: "1.75rem", fontSize: "0.9rem", color: "#94a3b8" }}>
               {isVerified ? "Create your first posting to start receiving applicants." : "Your account must be verified before you can post jobs."}
             </p>
             {isVerified && <button onClick={openCreate} style={btnGreen}>+ Create Job Posting</button>}
@@ -725,7 +726,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       {/* Applicants Modal — wide overlay */}
       {modal === "applicants" && activePosting && (
         <div onClick={closeModal} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", backdropFilter: "blur(2px)" }}>
-          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1.25rem", width: "100%", maxWidth: "860px", maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.25)", overflow: "hidden" }}>
+          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1.25rem", width: "100%", maxWidth: "860px", maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.25)", overflow: "hidden", borderTop: "4px solid #A21D54" }}>
             {/* Header */}
             <div style={{ padding: "1.1rem 1.5rem", borderBottom: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, backgroundColor: "white" }}>
               <div>
@@ -1011,15 +1012,18 @@ function StudentAvailabilityRow({ availability }) {
   );
 }
 
+const STAT_ICONS = { "Total Postings": "📋", "Active": "✅", "Closed": "🔒", "Total Applicants": "👥" };
 function StatCard({ label, value, color }) {
   return (
     <div style={{
       flex: "1", minWidth: "110px",
-      backgroundColor: "white", border: `2px solid ${color}30`,
-      borderRadius: "0.75rem", padding: "0.75rem 1rem", textAlign: "center",
+      backgroundColor: "white", border: `1.5px solid ${color}25`,
+      borderRadius: "0.85rem", padding: "0.85rem 1rem", textAlign: "center",
+      borderTop: `3px solid ${color}`,
     }}>
-      <p style={{ fontSize: "1.75rem", fontWeight: "700", color, margin: 0 }}>{value}</p>
-      <p style={{ fontSize: "0.7rem", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", margin: 0 }}>{label}</p>
+      <p style={{ fontSize: "1.1rem", margin: "0 0 0.15rem" }}>{STAT_ICONS[label] || "📊"}</p>
+      <p style={{ fontSize: "1.75rem", fontWeight: "800", color, margin: 0, lineHeight: 1 }}>{value}</p>
+      <p style={{ fontSize: "0.68rem", color: "#94a3b8", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", margin: "0.2rem 0 0" }}>{label}</p>
     </div>
   );
 }
@@ -1030,13 +1034,21 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
   const isExpired = posting.status === "Closed" && posting.deadline && posting.deadline < today;
   const photo = posting.photos?.[0] || null;
   const crop  = posting.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
+  const [hovered, setHovered] = useState(false);
+  const deadlineClose = posting.deadline && posting.deadline > today && (new Date(posting.deadline) - new Date(today)) / 86400000 <= 3;
   return (
-    <div className="job-posting-card" style={{
-      borderRadius: "0.75rem", overflow: "hidden",
-      backgroundColor: "#f9fafb", border: `1.5px solid ${isExpired ? "#fca5a5" : "#e5e7eb"}`,
-      display: "flex", alignItems: "stretch", position: "relative",
-      opacity: isActive ? 1 : 0.75, minHeight: "180px",
-    }}>
+    <div
+      className="job-posting-card"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        borderRadius: "0.75rem", overflow: "hidden",
+        backgroundColor: "#f9fafb", border: `1.5px solid ${isExpired ? "#fca5a5" : "#e5e7eb"}`,
+        display: "flex", alignItems: "stretch", position: "relative",
+        opacity: isActive ? 1 : 0.75, minHeight: "180px",
+        boxShadow: hovered ? "0 4px 20px rgba(0,0,0,0.09)" : "none",
+        transition: "box-shadow 0.18s",
+      }}>
       {/* Square photo */}
       <div style={{ width: "180px", height: "180px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0", alignSelf: "flex-start" }}>
         {photo ? (
@@ -1102,9 +1114,16 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
             </span>
           )}
         </div>
-        <p style={{ fontSize: "0.8rem", color: "#374151", fontWeight: "600", margin: 0 }}>
-          {posting.applicantCount} applicant{posting.applicantCount !== 1 ? "s" : ""}
-        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginTop: "0.1rem" }}>
+          <p style={{ fontSize: "0.8rem", color: "#374151", fontWeight: "600", margin: 0 }}>
+            {posting.applicantCount} applicant{posting.applicantCount !== 1 ? "s" : ""}
+          </p>
+          {posting.deadline && (
+            <p style={{ fontSize: "0.72rem", fontWeight: "600", margin: 0, color: deadlineClose ? "#d97706" : "#94a3b8" }}>
+              {deadlineClose ? "⚠ " : ""}Closes {posting.deadline}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Close + Delete — absolute bottom-right */}
@@ -1229,7 +1248,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
               onClick={() => setActiveStage(key)}
               style={{
                 flexShrink: 0,
-                padding: "0.5rem 0.9rem",
+                padding: "0.55rem 1.1rem",
                 border: "none",
                 borderBottom: active ? "2px solid #A21D54" : "2px solid transparent",
                 marginBottom: "-2px",
@@ -1263,9 +1282,10 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
 
       {/* Compact applicant rows for active stage */}
       {visible.length === 0 ? (
-        <p style={{ color: "#94a3b8", textAlign: "center", padding: "2rem 1rem", fontSize: "0.875rem" }}>
-          No applicants in this stage yet.
-        </p>
+        <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>👤</div>
+          <p style={{ color: "#94a3b8", fontSize: "0.875rem", margin: 0, fontWeight: "500" }}>No applicants in this stage yet.</p>
+        </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
           {visible.map(applicant => (
@@ -1315,7 +1335,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
         <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1.5px solid #e2e8f0" }}>
           <button
             onClick={() => setShowCloseJob(true)}
-            style={{ width: "100%", padding: "0.7rem", borderRadius: "0.6rem", border: "1.5px solid #fca5a5", backgroundColor: "#fff1f2", color: "#e11d48", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
+            style={{ width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 12px rgba(244,63,94,0.3)" }}
           >
             Close this Job
           </button>
@@ -1357,7 +1377,10 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline }) {
   const statusColors = { Accepted: { bg: "#dcfce7", color: "#16a34a" }, Rejected: { bg: "#fee2e2", color: "#dc2626" } };
   const sc = statusColors[applicant.status];
   return (
-    <div style={{ borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", overflow: "hidden", backgroundColor: "white", transition: "box-shadow 0.15s" }}>
+    <div style={{ borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", overflow: "hidden", backgroundColor: "white", transition: "box-shadow 0.15s, border-color 0.15s" }}
+      onMouseEnter={e => e.currentTarget.style.borderColor = "#fce7f3"}
+      onMouseLeave={e => e.currentTarget.style.borderColor = "#e2e8f0"}
+    >
       <button
         onClick={onClick}
         style={{ width: "100%", display: "flex", alignItems: "center", gap: "0.9rem", padding: "0.85rem 1rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
@@ -2111,14 +2134,14 @@ const closeOptBtn = (color, bg, border) => ({
 function Section({ label, children }) {
   return (
     <div>
-      <p style={{ margin: "0 0 0.35rem", fontSize: "0.68rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
+      <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", fontWeight: "700", color: "#A21D54", textTransform: "uppercase", letterSpacing: "0.07em", paddingLeft: "0.5rem", borderLeft: "2px solid #A21D54" }}>{label}</p>
       {children}
     </div>
   );
 }
 
 const panelActionBtn = (color) => ({
-  width: "100%", padding: "0.65rem", borderRadius: "0.6rem", border: "none",
+  width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none",
   backgroundColor: color, color: "white", fontWeight: "700", fontSize: "0.875rem",
   cursor: "pointer", fontFamily: "inherit",
 });

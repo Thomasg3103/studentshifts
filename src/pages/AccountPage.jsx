@@ -294,9 +294,9 @@ export default function AccountPage({
 
   // ── Sidebar cards (students) ──────────────────────────────────────────────
   const SidebarAvailability = () => (
-    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.85rem 0.9rem", marginBottom: "0.75rem" }}>
+    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.85rem 0.9rem", marginBottom: "0.75rem", borderTop: "3px solid #A21D54" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-        <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8" }}>My Availability</p>
+        <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#A21D54" }}>My Availability</p>
         {saving && <span style={{ fontSize: "0.65rem", color: "#94a3b8" }}>Saving…</span>}
         {saved && <span style={{ fontSize: "0.65rem", color: "#16a34a", fontWeight: 600 }}>✓ Saved</span>}
       </div>
@@ -393,6 +393,7 @@ export default function AccountPage({
 
   const BottomActions = () => (
     <>
+      <div style={{ borderTop: "1.5px solid #e2e8f0", marginBottom: "1rem", marginTop: "0.25rem" }} />
       <div style={{ display: "flex", gap: "0.75rem", marginBottom: "0.5rem" }}>
         <button onClick={() => setShowLogoutModal(true)} style={{ ...btnBase, flex: 1, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 14px rgba(244,63,94,0.3)" }}>Logout</button>
         <button onClick={() => { setDeleteConfirm(""); setDeletePassword(""); setDeleteError(""); setShowDeleteModal(true); }} style={{ ...btnBase, flex: 1, backgroundColor: "transparent", border: "1.5px solid #fca5a5", color: "#dc2626", boxShadow: "none" }}>Delete Account</button>
@@ -405,16 +406,20 @@ export default function AccountPage({
     </>
   );
 
+  const firstName = currentUser.name?.split(" ")[0] || currentUser.name;
+
   return (
     <>
       <BackButton />
+      {/* Brand accent bar */}
+      <div style={{ height: "4px", background: "linear-gradient(90deg, #A21D54, #C2185B, #e11d48)" }} />
       <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "1.5rem 1.25rem", boxSizing: "border-box" }}>
         <div style={{ maxWidth: isStudent ? "1100px" : "560px", margin: "0 auto" }}>
 
           {/* Profile photo + name header */}
           <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
             <div style={{ position: "relative", display: "inline-block" }}>
-              <div style={{ width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: "3px solid #e2e8f0", backgroundColor: "#fafafa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto" }}>
+              <div style={{ width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: "3px solid #fce7f3", backgroundColor: "#fafafa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", boxShadow: "0 0 0 3px #A21D5422" }}>
                 {profilePhoto
                   ? <img src={profilePhoto} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   : <PersonIcon />}
@@ -424,8 +429,9 @@ export default function AccountPage({
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={handlePhotoChange} />
               </label>
             </div>
-            <p style={{ margin: "0.6rem 0 0.1rem", fontWeight: "700", fontSize: "1rem", color: "#1e293b" }}>{currentUser.name}</p>
-            <p style={{ margin: 0, fontSize: "0.8rem", color: "#64748b" }}>{currentUser.email}</p>
+            <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "#94a3b8", fontWeight: "500" }}>Welcome back,</p>
+            <p style={{ margin: "0.1rem 0 0.1rem", fontWeight: "800", fontSize: "1.15rem", color: "#1e293b" }}>{firstName} 👋</p>
+            <p style={{ margin: 0, fontSize: "0.78rem", color: "#94a3b8" }}>{currentUser.email}</p>
             {saving && <p style={{ margin: "0.3rem 0 0", fontSize: "0.7rem", color: "#94a3b8" }}>Saving…</p>}
             {saved  && <p style={{ margin: "0.3rem 0 0", fontSize: "0.7rem", color: "#16a34a", fontWeight: 600 }}>✓ Saved</p>}
             {saveError && <p style={{ margin: "0.3rem 0 0", fontSize: "0.7rem", color: "#ef4444" }}>{saveError}</p>}

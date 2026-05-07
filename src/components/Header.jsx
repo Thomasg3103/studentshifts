@@ -103,7 +103,9 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
         <div
           className="header-logo"
           onClick={() => setPage(homeRoute)}
-          style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.85rem", flexShrink: 0 }}
+          style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.85rem", flexShrink: 0, transition: "transform 0.15s" }}
+          onMouseEnter={e => e.currentTarget.style.transform = "scale(1.03)"}
+          onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
         >
           <div className="header-logo-icon"><LogoIcon /></div>
           <div className="header-logo-text" style={{ lineHeight: 1.15 }}>
@@ -140,9 +142,9 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
             )}
             {currentUser?.role === "company" && (
               <>
-                <button onClick={() => setPage("studentDashboard")} style={navBtnOutline}><span className="nav-label">Browse </span>Jobs</button>
-                <button onClick={() => setPage("companyMessages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>💬 <span className="nav-label">Messages</span></button>
-                <button onClick={() => setPage("companyDashboard")} style={navBtnOutline}><span className="nav-label">My </span>Jobs</button>
+                <button onClick={() => setPage("studentDashboard")} style={navBtnOutline} onMouseEnter={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.28)"} onMouseLeave={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.15)"}><span className="nav-label">Browse </span>Jobs</button>
+                <button onClick={() => setPage("companyMessages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }} onMouseEnter={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.28)"} onMouseLeave={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.15)"}>💬 <span className="nav-label">Messages</span></button>
+                <button onClick={() => setPage("companyDashboard")} style={navBtnOutline} onMouseEnter={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.28)"} onMouseLeave={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.15)"}><span className="nav-label">My </span>Jobs</button>
               </>
             )}
             {currentUser?.role === "admin" && (
@@ -325,6 +327,7 @@ const navBtnOutline = {
   backgroundColor: "rgba(255,255,255,0.15)", color: "white",
   border: "1.5px solid rgba(255,255,255,0.5)",
   cursor: "pointer", fontWeight: "600", fontSize: "0.82rem", fontFamily: "inherit",
+  transition: "background-color 0.15s",
 };
 const notifDot = {
   position: "absolute", top: "-4px", right: "-4px",
