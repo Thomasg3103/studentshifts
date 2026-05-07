@@ -45,7 +45,6 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   const [modal, setModal]         = useState(null);
   const [activePosting, setActivePosting] = useState(null);
   const [formData, setFormData]   = useState(null);
-  const [extendData, setExtendData] = useState(null);
   const [heatmap, setHeatmap]     = useState(null);
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [activeTab, setActiveTab] = useState("jobs"); // "jobs" | "students"
@@ -174,32 +173,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     setModal(null);
     setActivePosting(null);
     setFormData(null);
-    setExtendData(null);
   };
 
-  const openExtend = (posting) => {
-    setExtendData({ id: posting.id, deadline: posting.deadline || "", days: [...posting.days], times: { ...posting.times }, status: posting.status });
-    setModal("extend");
-  };
-
-  const saveExtend = async () => {
-    if (!extendData.days.length) { alert("Select at least one day."); return; }
-    const today = new Date().toISOString().split("T")[0];
-    const wasExpired = extendData.status !== "Active" && extendData.deadline && extendData.deadline < today;
-    const updates = {
-      deadline: extendData.deadline || null,
-      days:     extendData.days,
-      times:    extendData.times,
-      ...(wasExpired && extendData.deadline >= today ? { status: "Active" } : {}),
-    };
-    const { error } = await withTimeout(
-      supabase.from("jobs").update(updates).eq("id", extendData.id),
-      10000, "Update timed out."
-    );
-    if (error) { alert("Failed to save. Please try again."); return; }
-    setPostings(prev => prev.map(p => p.id === extendData.id ? { ...p, ...updates } : p));
-    closeModal();
-  };
 
   const toggleStatus = async (id) => {
     const posting = postings.find(p => p.id === id);
@@ -741,7 +716,6 @@ export default function CompanyDashboard({ setPage, currentUser }) {
                 onEdit={() => openEdit(posting)}
                 onDelete={() => deletePosting(posting.id)}
                 onToggleStatus={() => toggleStatus(posting.id)}
-                onExtend={() => openExtend(posting)}
               />
             ))}
           </div>
@@ -769,12 +743,6 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         </Modal>
       )}
 
-      {/* Extend Modal */}
-      {modal === "extend" && extendData && (
-        <Modal onClose={closeModal} title="Extend Job">
-          <ExtendForm data={extendData} setData={setExtendData} onSave={saveExtend} onCancel={closeModal} />
-        </Modal>
-      )}
       </div>
     </div>
   );
@@ -1043,7 +1011,7 @@ function StatCard({ label, value, color }) {
   );
 }
 
-function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onExtend }) {
+function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus }) {
   const isActive = posting.status === "Active";
   const today = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Closed" && posting.deadline && posting.deadline < today;
@@ -1053,11 +1021,11 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
     <div className="job-posting-card" style={{
       borderRadius: "0.75rem", overflow: "hidden",
       backgroundColor: "#f9fafb", border: `1.5px solid ${isExpired ? "#fca5a5" : "#e5e7eb"}`,
-      display: "flex", alignItems: "flex-start",
+      display: "flex", alignItems: "stretch",
       opacity: isActive ? 1 : 0.75,
     }}>
       {/* Square photo */}
-      <div style={{ width: "180px", height: "180px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
+      <div style={{ width: "180px", height: "180px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0", alignSelf: "flex-start" }}>
         {photo ? (
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
             <img src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -1069,17 +1037,30 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
         )}
       </div>
 
+      {/* Main content */}
       <div style={{ flex: 1, padding: "0.85rem 0.85rem 0.85rem 1rem", minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
-          <h2 style={{ fontWeight: "bold", fontSize: "1.1rem", margin: 0 }}>{posting.title}</h2>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem" }}>
+          <h2
+            onClick={onViewApplicants}
+            style={{ fontWeight: "bold", fontSize: "1.1rem", margin: 0, cursor: "pointer", color: "#1e293b", transition: "color 0.15s" }}
+            onMouseEnter={e => e.currentTarget.style.color = "#A21D54"}
+            onMouseLeave={e => e.currentTarget.style.color = "#1e293b"}
+          >
+            {posting.title}
+          </h2>
           <span style={{
             fontSize: "0.65rem", fontWeight: "700", padding: "0.15rem 0.55rem",
-            borderRadius: "999px", textTransform: "uppercase", letterSpacing: "0.05em",
+            borderRadius: "999px", textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0,
             backgroundColor: isActive ? "#dcfce7" : isExpired ? "#fee2e2" : "#f3f4f6",
             color: isActive ? "#16a34a" : isExpired ? "#dc2626" : "#6b7280",
           }}>
             {isExpired ? "Expired" : posting.status}
           </span>
+          <button
+            onClick={onEdit}
+            title="Edit job"
+            style={{ marginLeft: "auto", background: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.4rem", padding: "0.22rem 0.55rem", cursor: "pointer", color: "#64748b", fontSize: "0.88rem", lineHeight: 1, flexShrink: 0 }}
+          >✏️</button>
         </div>
         <p style={{ fontSize: "0.875rem", color: "#6b7280", marginBottom: "0.4rem" }}>
           {posting.location} · {posting.pay}
@@ -1111,102 +1092,19 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
         </p>
       </div>
 
-      <div className="job-posting-btns" style={{ display: "flex", flexDirection: "column", gap: "0.4rem", flexShrink: 0, padding: "0.85rem 1rem 0.85rem 0" }}>
-        <button onClick={onViewApplicants} style={btnSmallGreen}>View Applicants</button>
-        <button onClick={onEdit} style={btnSmallBlue}>Edit</button>
-        <button onClick={onExtend} style={btnSmallPurple}>Extend</button>
-        <button onClick={onToggleStatus} style={btnSmallGray}>
+      {/* Right: Close + Delete stacked */}
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0, padding: "0.85rem 1rem 0.85rem 0", justifyContent: "center" }}>
+        <button onClick={onToggleStatus} style={btnCardAction}>
           {isActive ? "Close Job" : "Reopen Job"}
         </button>
-        <button onClick={onDelete} style={btnSmallRed}>Delete</button>
+        <button onClick={onDelete} style={{ ...btnCardAction, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 2px 8px rgba(244,63,94,0.3)" }}>
+          Delete
+        </button>
       </div>
     </div>
   );
 }
 
-function ExtendForm({ data, setData, onSave, onCancel }) {
-  const today = new Date().toISOString().split("T")[0];
-
-  const toggleDay = (day) => {
-    setData(prev => {
-      const removing = prev.days.includes(day);
-      const days  = removing ? prev.days.filter(d => d !== day) : [...prev.days, day];
-      const times = { ...prev.times };
-      if (removing) delete times[day];
-      return { ...prev, days, times };
-    });
-  };
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-      <div>
-        <label style={labelStyle}>New Deadline <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(optional)</span></label>
-        <input
-          type="date"
-          value={data.deadline || ""}
-          min={today}
-          onChange={e => setData(prev => ({ ...prev, deadline: e.target.value }))}
-          style={inputStyle}
-        />
-        {data.deadline && data.deadline < today && (
-          <p style={{ fontSize: "0.78rem", color: "#ef4444", margin: "-0.5rem 0 0" }}>
-            This date is in the past — the job will remain closed.
-          </p>
-        )}
-      </div>
-
-      <div>
-        <label style={labelStyle}>Days Available *</label>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.35rem" }}>
-          {weekdays.map(day => {
-            const active = data.days.includes(day);
-            const isWeekend = day === "Saturday" || day === "Sunday";
-            return (
-              <button key={day} type="button" onClick={() => toggleDay(day)} style={{
-                padding: "0.3rem 0.75rem", borderRadius: "0.4rem", cursor: "pointer",
-                border: `1.5px solid ${active ? (isWeekend ? "#f59e0b" : "#3b82f6") : "#d1d5db"}`,
-                backgroundColor: active ? (isWeekend ? "#fef3c7" : "#eff6ff") : "white",
-                color: active ? (isWeekend ? "#d97706" : "#1d4ed8") : "#374151",
-                fontWeight: "600", fontSize: "0.8rem",
-              }}>
-                {day.slice(0, 3)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {data.days.length > 0 && (
-        <div>
-          <label style={labelStyle}>Shift Start Times</label>
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginTop: "0.25rem" }}>
-            {data.days.map(day => {
-              const isWeekend = day === "Saturday" || day === "Sunday";
-              return (
-                <div key={day} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                  <span style={{ minWidth: "88px", fontSize: "0.875rem", fontWeight: "600", color: isWeekend ? "#d97706" : "#374151" }}>{day}</span>
-                  <select
-                    value={data.times?.[day] || ""}
-                    onChange={e => setData(prev => ({ ...prev, times: { ...prev.times, [day]: e.target.value } }))}
-                    style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
-                  >
-                    <option value="">Any time</option>
-                    {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      <div style={{ display: "flex", gap: "0.75rem", paddingTop: "0.5rem" }}>
-        <button onClick={onCancel} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-        <button onClick={onSave} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, #a855f7, #7c3aed)", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(168,85,247,0.35)" }}>Save Changes</button>
-      </div>
-    </div>
-  );
-}
 
 const PIPELINE_STAGES = [
   { key: "applied",     label: "Applied" },
@@ -2999,6 +2897,6 @@ const cvHeaderBtn   = { background: "none", border: "1.5px solid rgba(255,255,25
 const btnSmallBase  = { padding: "0.32rem 0.75rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" };
 const btnSmallGreen = { ...btnSmallBase, background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 2px 6px rgba(16,185,129,0.3)" };
 const btnSmallBlue  = { ...btnSmallBase, background: "linear-gradient(135deg, #A21D54, #C2185B)", boxShadow: "0 2px 6px rgba(162,29,84,0.3)" };
-const btnSmallGray   = { ...btnSmallBase, backgroundColor: "#64748b" };
-const btnSmallPurple = { ...btnSmallBase, background: "linear-gradient(135deg, #a855f7, #7c3aed)", boxShadow: "0 2px 6px rgba(168,85,247,0.3)" };
-const btnSmallRed    = { ...btnSmallBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 2px 6px rgba(244,63,94,0.3)" };
+const btnSmallGray  = { ...btnSmallBase, backgroundColor: "#64748b" };
+const btnSmallRed   = { ...btnSmallBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 2px 6px rgba(244,63,94,0.3)" };
+const btnCardAction = { padding: "0.55rem 1.25rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.82rem", fontFamily: "inherit", backgroundColor: "#64748b", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", whiteSpace: "nowrap" };
