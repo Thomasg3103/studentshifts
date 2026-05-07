@@ -34,6 +34,12 @@ button {
   to { transform: rotate(360deg); }
 }
 
+/* Hide browser-native password reveal button (Edge/IE) */
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+
 @media (max-width: 540px) {
   .page-wrapper-outer {
     padding: 0.75rem 0.4rem !important;
