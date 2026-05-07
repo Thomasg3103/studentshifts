@@ -623,8 +623,8 @@ export default function StudentDashboard({
                         <p style={{ margin: "0 0 0.5rem", fontSize: "0.83rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
                       </div>
 
-                      {/* Days / Times / Distance */}
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.5rem" }}>
+                      {/* Days / Times */}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: dist !== null ? "0.25rem" : "0.5rem" }}>
                         {job.days.map(day => {
                           const isFilled = (job.filledShifts || []).includes(day);
                           return (
@@ -633,12 +633,15 @@ export default function StudentDashboard({
                             </span>
                           );
                         })}
-                        {dist !== null && (
+                      </div>
+                      {/* Distance */}
+                      {dist !== null && (
+                        <div style={{ marginBottom: "0.5rem" }}>
                           <span style={{ fontSize: "0.7rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600 }}>
                             📍 {formatDistance(dist)}
                           </span>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
                       {/* Pay + deadline */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
