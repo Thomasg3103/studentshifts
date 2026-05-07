@@ -1574,6 +1574,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
   const [profileOpen, setProfileOpen] = useState((applicant.pipelineStage || "applied") === "applied");
   const [inviteModalOpen, setInviteModalOpen] = useState(null); // null = closed, number = round index
   const [trialInviteOpen, setTrialInviteOpen] = useState(false);
+  const [shortlistInviteOpen, setShortlistInviteOpen] = useState(false);
 
   const buildRounds = (a) => {
     const stored = Array.isArray(a.interviewRoundsData) ? a.interviewRoundsData : [];
@@ -1601,6 +1602,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
     setProfileOpen(s === "applied");
     setInviteModalOpen(null);
     setTrialInviteOpen(false);
+    setShortlistInviteOpen(false);
   }, [applicant.id]);
 
   const openCv = async () => {
@@ -1865,7 +1867,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             <button onClick={() => onStageAction(applicant.id, "shortlisted")} style={panelActionBtn("#A21D54")}>Shortlist →</button>
           )}
           {stage === "shortlisted" && (
-            <button onClick={() => onStageAction(applicant.id, "interview_1")} style={panelActionBtn("#A21D54")}>Invite to Interview →</button>
+            <button onClick={() => setShortlistInviteOpen(true)} style={panelActionBtn("#A21D54")}>Invite to Interview →</button>
           )}
           {stage === "interview" && (<>
             <button onClick={() => {
@@ -1888,6 +1890,21 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           </>)}
         </div>
       </div>
+
+      {/* Interview invite from shortlist — moves stage + sends email */}
+      {shortlistInviteOpen && (
+        <InterviewInviteModal
+          applicant={applicant}
+          roundNumber={1}
+          date=""
+          time=""
+          onClose={() => setShortlistInviteOpen(false)}
+          onSend={async (note, teamsLink) => {
+            await onSendInterviewInvite?.(applicant.id, "", "", note, teamsLink);
+            onStageAction(applicant.id, "interview_1");
+          }}
+        />
+      )}
 
       {/* Trial invite modal */}
       {trialInviteOpen && (
