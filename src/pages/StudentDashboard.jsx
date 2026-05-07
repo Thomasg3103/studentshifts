@@ -341,7 +341,14 @@ export default function StudentDashboard({
   const FilterPanel = () => (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
 
-      <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "#1e293b" }}>Filter</h3>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "#1e293b" }}>Filter</h3>
+        {(hasActiveFilters || sortBy !== "") && (
+          <button onClick={clearAll} style={{ fontSize: "0.75rem", color: "#e11d48", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>
+            Clear All
+          </button>
+        )}
+      </div>
 
       {/* Days & Times */}
       <FilterSection title={<>Days &amp; Times {selectedDays.length > 0 && <Pip n={selectedDays.length} />}</>} open={openSections.days} onToggle={() => toggleSection("days")}>
@@ -418,12 +425,6 @@ export default function StudentDashboard({
         ))}
       </FilterSection>
 
-      {/* Clear */}
-      {(hasActiveFilters || sortBy !== "") && (
-        <button onClick={clearAll} style={{ padding: "0.55rem", borderRadius: "0.6rem", border: "1.5px solid #fda4af", backgroundColor: "#fff1f2", color: "#e11d48", fontWeight: 700, fontSize: "0.83rem", cursor: "pointer", fontFamily: "inherit", width: "100%" }}>
-          Clear All Filters
-        </button>
-      )}
     </div>
   );
 
