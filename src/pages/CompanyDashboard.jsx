@@ -377,6 +377,13 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         const appUrl = window.location.origin;
         const remainingShiftsAfterHire = activePosting.days.filter(d => !newFilledShifts.includes(d));
 
+        // Applicants who were NOT auto-declined but had this shift as an option
+        // (applied to all, no preferred_shift) — notify them the shift was taken
+        const notifyOnly = hiredDay ? (others || []).filter(o => {
+          if (otherIds.includes(o.id)) return false; // already declined
+          return !o.preferred_shift; // applied to all shifts, stays in pipeline
+        }) : [];
+
         await Promise.allSettled([
           // Acceptance email to winner
           emailMap[applicant.studentId] && sendEmail({
@@ -390,9 +397,6 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           ...(otherIds.map(id => {
             const declinedApplicant = activePosting.applicants?.find(a => a.id === id);
             const oStudentId = others?.find(o => o.id === id)?.student_id;
-            const oPreferredShift = others?.find(o => o.id === id)?.preferred_shift;
-            // If they applied to all shifts (no preferred), mention remaining unfilled shifts
-            const remaining = !oPreferredShift ? remainingShiftsAfterHire : [];
             return oStudentId && emailMap[oStudentId] && sendEmail({
               to: emailMap[oStudentId],
               subject: `Update on your ${activePosting.title} application`,
@@ -400,11 +404,27 @@ export default function CompanyDashboard({ setPage, currentUser }) {
                 declinedApplicant?.name || "there",
                 activePosting.title,
                 currentUser.name,
-                hiredDay ? applicant.preferredShift || hiredDay : null,
-                remaining,
+                applicant.preferredShift || hiredDay,
+                [],
               ),
             });
           })).filter(Boolean),
+          // Notification to all-shift applicants still in pipeline — shift taken, others remain
+          ...notifyOnly.map(o => {
+            const notifyApplicant = activePosting.applicants?.find(a => a.student_id === o.student_id || a.id === o.id);
+            const name = notifyApplicant?.name || "there";
+            return emailMap[o.student_id] && sendEmail({
+              to: emailMap[o.student_id],
+              subject: `Update on your ${activePosting.title} application`,
+              html: emailApplicantDeclined(
+                name,
+                activePosting.title,
+                currentUser.name,
+                applicant.preferredShift || hiredDay,
+                remainingShiftsAfterHire,
+              ),
+            });
+          }).filter(Boolean),
         ]);
       } catch (e) {
         console.warn("Email sending failed:", e);

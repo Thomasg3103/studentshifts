@@ -676,11 +676,8 @@ CREATE POLICY "jobs: company update" ON jobs
   );
 
 
--- ================================================================
--- FIX #17: Only one accepted application per job (unique partial index)
--- ================================================================
-CREATE UNIQUE INDEX IF NOT EXISTS applications_one_accepted_per_job
-  ON applications (job_id) WHERE status = 'Accepted';
+-- FIX #17 removed: multi-shift jobs allow multiple Accepted applications (one per shift)
+DROP INDEX IF EXISTS applications_one_accepted_per_job;
 
 
 -- ================================================================
