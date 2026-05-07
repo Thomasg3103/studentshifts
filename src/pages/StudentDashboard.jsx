@@ -341,6 +341,8 @@ export default function StudentDashboard({
   const FilterPanel = () => (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
 
+      <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "#1e293b" }}>Filter</h3>
+
       {/* Days & Times */}
       <FilterSection title={<>Days &amp; Times {selectedDays.length > 0 && <Pip n={selectedDays.length} />}</>} open={openSections.days} onToggle={() => toggleSection("days")}>
         {warning && <p style={{ color: "#ef4444", fontSize: "0.76rem", marginBottom: "0.4rem" }}>{warning}</p>}
