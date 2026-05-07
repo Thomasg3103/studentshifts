@@ -1095,7 +1095,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
       </div>
 
       {/* Close + Delete — absolute bottom-right */}
-      <div style={{ position: "absolute", bottom: "0.75rem", right: "0.75rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+      <div style={{ position: "absolute", bottom: "1.5rem", right: "0.75rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
         <button onClick={onToggleStatus} style={btnCardAction}>
           {isActive ? "Close Job" : "Reopen Job"}
         </button>
