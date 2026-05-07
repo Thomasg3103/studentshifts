@@ -128,8 +128,8 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
                   <button onClick={() => setPage("appliedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                     📄 <span className="nav-label">Applied</span>
                   </button>
-                  {appliedJobs.length > 0 && <span style={notifDot}>{appliedJobs.length}</span>}
-                  {notifCount > 0 && <span style={{ ...notifDot, top: "-4px", right: "-18px", backgroundColor: "#16a34a", border: "2px solid #15803d" }}>{notifCount}</span>}
+                  {appliedJobs.length > 0 && <span style={{ ...notifDot, right: "auto", left: "-4px" }}>{appliedJobs.length}</span>}
+                  {notifCount > 0 && <span style={notifDot}>{notifCount}</span>}
                 </div>
                 <button onClick={() => setPage("messages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                   💬 <span className="nav-label">Messages</span>
@@ -237,7 +237,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
           <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "6px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{appliedJobs.length}</span>
         )}
         {notifCount > 0 && (
-          <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "20px", backgroundColor: "#16a34a", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{notifCount}</span>
+          <span style={{ position: "absolute", top: "6px", right: "4px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{notifCount}</span>
         )}
       </div>
 
