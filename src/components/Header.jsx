@@ -108,7 +108,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
           <div className="header-logo-icon"><LogoIcon /></div>
           <div className="header-logo-text" style={{ lineHeight: 1.15 }}>
             <span style={{ fontSize: "1.7rem", fontWeight: "800", color: "white", letterSpacing: "-0.02em" }}>
-              Student<span style={{ opacity: 0.7 }}>Shifts.ie</span>
+              Student<span style={{ opacity: 0.7 }}>Shifts</span>
             </span>
           </div>
         </div>
@@ -118,14 +118,18 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
           <div className="header-right" style={{ display: "flex", alignItems: "center", gap: "0.5rem", position: "relative" }} ref={menuRef}>
             {currentUser?.role === "student" && (
               <>
-                <button onClick={() => setPage("likedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                  ❤️ <span className="nav-label">Liked</span> <CountBadge n={likedJobs.length} />
-                </button>
+                <div style={{ position: "relative", display: "inline-block" }}>
+                  <button onClick={() => setPage("likedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                    ❤️ <span className="nav-label">Liked</span>
+                  </button>
+                  {likedJobs.length > 0 && <span style={notifDot}>{likedJobs.length}</span>}
+                </div>
                 <div style={{ position: "relative", display: "inline-block" }}>
                   <button onClick={() => setPage("appliedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                     📄 <span className="nav-label">Applied</span>
                   </button>
-                  {notifCount > 0 && <span style={notifDot}>{notifCount}</span>}
+                  {appliedJobs.length > 0 && <span style={notifDot}>{appliedJobs.length}</span>}
+                  {notifCount > 0 && <span style={{ ...notifDot, top: "-4px", right: "-18px", backgroundColor: "#16a34a", border: "2px solid #15803d" }}>{notifCount}</span>}
                 </div>
                 <button onClick={() => setPage("messages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                   💬 <span className="nav-label">Messages</span>
@@ -229,8 +233,11 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
           <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>📄</span>
           Applied
         </button>
+        {appliedJobs.length > 0 && (
+          <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "6px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{appliedJobs.length}</span>
+        )}
         {notifCount > 0 && (
-          <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "6px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{notifCount}</span>
+          <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "20px", backgroundColor: "#16a34a", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{notifCount}</span>
         )}
       </div>
 
