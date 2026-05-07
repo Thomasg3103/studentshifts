@@ -316,12 +316,17 @@ export default function CompanyDashboard({ setPage, currentUser }) {
 
       // 2. Mark the hired shift as filled on the job posting
       const hiredDay = applicant.preferredShift ? applicant.preferredShift.split(" · ")[0].trim() : null;
-      const hiredShiftWithTime = applicant.preferredShift
-        || (hiredDay && activePosting.times?.[hiredDay] ? `${hiredDay} · ${activePosting.times[hiredDay]}` : hiredDay);
       const currentFilledShifts = activePosting.filledShifts || [];
-      const newFilledShifts = hiredDay && !currentFilledShifts.includes(hiredDay)
-        ? [...currentFilledShifts, hiredDay]
-        : currentFilledShifts;
+      const remainingUnfilledDays = (activePosting.days || []).filter(d => !currentFilledShifts.includes(d));
+      // If student applied for all shifts (no preferred), they fill every remaining shift
+      const newFilledShifts = hiredDay
+        ? (!currentFilledShifts.includes(hiredDay) ? [...currentFilledShifts, hiredDay] : currentFilledShifts)
+        : [...(activePosting.days || [])];
+      // Build a human-readable shift string for emails
+      const hiredShiftWithTime = applicant.preferredShift
+        || (hiredDay && activePosting.times?.[hiredDay] ? `${hiredDay} · ${activePosting.times[hiredDay]}` : hiredDay)
+        || remainingUnfilledDays.map(d => activePosting.times?.[d] ? `${d} · ${activePosting.times[d]}` : d).join(", ")
+        || null;
       if (newFilledShifts !== currentFilledShifts) {
         await withTimeout(
           supabase.from("jobs").update({ filled_shifts: newFilledShifts }).eq("id", activePosting.id),
