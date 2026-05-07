@@ -201,9 +201,8 @@ export default function CompanyMessages({ currentUser, setPage }) {
 }
 
 const btnPrimary = {
-  padding: "0.75rem 1.75rem", borderRadius: "2rem", border: "none",
-  background: "linear-gradient(135deg, #A21D54, #C2185B)",
-  boxShadow: "0 4px 14px rgba(162,29,84,0.3)",
-  color: "white", fontWeight: "700", fontSize: "0.9rem",
+  padding: "0.75rem 1.75rem", borderRadius: "2rem", border: "1.5px solid #A21D54",
+  background: "transparent",
+  color: "#A21D54", fontWeight: "700", fontSize: "0.9rem",
   cursor: "pointer", fontFamily: "inherit",
 };
