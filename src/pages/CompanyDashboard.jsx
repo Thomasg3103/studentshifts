@@ -662,7 +662,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
             key={val}
             onClick={() => setActiveTab(val)}
             style={{
-              flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none",
+              flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: activeTab === val ? "1.5px solid #e2e8f0" : "1.5px solid transparent",
               fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit",
               backgroundColor: activeTab === val ? "white" : "#e2e8f0",
               color: activeTab === val ? "#A21D54" : "#64748b",
