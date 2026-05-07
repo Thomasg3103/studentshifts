@@ -149,7 +149,7 @@ export default function JobDetails({
             {/* Single header row: image · title/company · buttons */}
             <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
               {/* Square image */}
-              <div style={{ width: "72px", height: "72px", flexShrink: 0, borderRadius: "0.65rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
+              <div style={{ width: "144px", height: "144px", flexShrink: 0, borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
                 {photos.length > 0 ? (
                   <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                     <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -166,12 +166,21 @@ export default function JobDetails({
                 <p style={{ color: "#64748b", fontSize: "0.9rem", margin: 0, fontWeight: 500 }}>{job.company}</p>
               </div>
               {/* Action buttons */}
-              <div style={{ display: "flex", gap: "0.6rem", flexShrink: 0 }}>
-                {!isApplied && (
-                  <button onClick={toggleLike} style={{ ...btn, background: isLiked ? "#10b981" : "white", color: isLiked ? "white" : "#e11d48", border: isLiked ? "none" : "2px solid #e11d48", boxShadow: isLiked ? "0 3px 10px rgba(16,185,129,0.25)" : "none" }}>
-                    {isLiked ? "✅ Liked" : "🤍 Like"}
-                  </button>
-                )}
+              <div style={{ display: "flex", gap: "0.75rem", flexShrink: 0, alignItems: "center" }}>
+                <button
+                  onClick={toggleLike}
+                  disabled={isApplied}
+                  title={isApplied ? "Applied" : isLiked ? "Unlike" : "Like"}
+                  style={{ width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", cursor: isApplied ? "default" : "pointer", padding: 0, flexShrink: 0 }}
+                >
+                  {isApplied ? (
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                  ) : isLiked ? (
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  ) : (
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                  )}
+                </button>
                 <button onClick={handleApply} style={{ ...btn, background: isApplied ? "#10b981" : "linear-gradient(135deg,#A21D54,#C2185B)", boxShadow: isApplied ? "none" : "0 3px 10px rgba(162,29,84,0.35)" }}>
                   {isApplied ? "✅ Applied" : "Apply Now"}
                 </button>
