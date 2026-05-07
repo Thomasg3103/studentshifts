@@ -726,7 +726,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       {/* Applicants Modal — wide overlay */}
       {modal === "applicants" && activePosting && (
         <div onClick={closeModal} className="applicants-modal-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", backdropFilter: "blur(2px)", animation: "fadeInOverlay 0.18s ease" }}>
-          <div onClick={e => e.stopPropagation()} className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "0.85rem", width: "100%", maxWidth: "900px", maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid #e2e8f0" }}>
+          <div onClick={e => e.stopPropagation()} className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "0.85rem", width: "100%", maxWidth: applicantsViewMode === "kanban" ? "min(96vw, 1500px)" : "900px", maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid #e2e8f0", transition: "max-width 0.2s ease" }}>
             {/* Header */}
             <div style={{ padding: "1.25rem 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
               <div>
@@ -1594,21 +1594,35 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
   const [draggingId, setDraggingId]       = useState(null);
   const [dragOverStage, setDragOverStage] = useState(null);
 
+  const stageColor = (key) => {
+    if (key === "applied")            return "#475569";
+    if (key === "shortlisted")        return "#0369a1";
+    if (key.startsWith("interview_")) return "#6d28d9";
+    if (key === "trial")              return "#15803d";
+    if (key === "decision")           return "#b45309";
+    return "#475569";
+  };
+
   const handleDrop = (e, targetKey) => {
     e.preventDefault();
     setDragOverStage(null);
     if (!draggingId) return;
     const a = applicants.find(x => x.id === draggingId);
-    if (a && getVirtualStageKey(a) !== targetKey) {
-      onMoveToStage?.(draggingId, targetKey);
-    }
+    if (a && getVirtualStageKey(a) !== targetKey) onMoveToStage?.(draggingId, targetKey);
     setDraggingId(null);
   };
 
+  const statusChip = {
+    Pending:  { bg: "#f1f5f9", text: "#475569", label: "Under Review" },
+    Accepted: { bg: "#dcfce7", text: "#15803d", label: "Hired" },
+    Rejected: { bg: "#fee2e2", text: "#b91c1c", label: "Declined" },
+  };
+
   return (
-    <div style={{ display: "flex", gap: "0.75rem", overflowX: "auto", paddingBottom: "1rem", alignItems: "flex-start" }}>
+    <div style={{ display: "flex", gap: "0.85rem", overflowX: "auto", paddingBottom: "1rem", alignItems: "flex-start" }}>
       {(stages || []).map(({ key, label }) => {
         const cards  = applicants.filter(a => getVirtualStageKey(a) === key);
+        const color  = stageColor(key);
         const isOver = dragOverStage === key;
         return (
           <div
@@ -1617,61 +1631,90 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverStage(null); }}
             onDrop={e => handleDrop(e, key)}
             style={{
-              minWidth: "220px", flex: "0 0 220px",
-              backgroundColor: isOver ? "#fdf8fb" : "#f8fafc",
-              border: `1.5px solid ${isOver ? "#A21D54" : "#e2e8f0"}`,
-              borderRadius: "0.75rem", padding: "0.85rem 0.75rem",
-              transition: "border-color 0.15s, background-color 0.15s",
-              boxShadow: isOver ? "0 0 0 3px rgba(162,29,84,0.1)" : "none",
+              minWidth: "270px", flex: "0 0 270px",
+              backgroundColor: "#f8fafc",
+              border: `1.5px solid ${isOver ? color : "#e2e8f0"}`,
+              borderRadius: "0.75rem",
+              overflow: "hidden",
+              boxShadow: isOver ? `0 0 0 3px ${color}30` : "0 1px 4px rgba(0,0,0,0.05)",
+              transition: "border-color 0.15s, box-shadow 0.15s",
             }}
           >
-            {/* Column header */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", paddingBottom: "0.6rem", borderBottom: "1px solid #e2e8f0" }}>
-              <span style={{ fontSize: "0.7rem", fontWeight: "800", color: "#374151", textTransform: "uppercase", letterSpacing: "0.07em" }}>{label}</span>
-              <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: cards.length > 0 ? "#e2e8f0" : "#f1f5f9", color: cards.length > 0 ? "#374151" : "#cbd5e1", borderRadius: "999px", padding: "0.1rem 0.5rem", minWidth: "18px", textAlign: "center" }}>{cards.length}</span>
+            {/* Coloured header bar */}
+            <div style={{ backgroundColor: color, padding: "0.75rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: "0.72rem", fontWeight: "800", color: "white", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</span>
+              <span style={{ fontSize: "0.72rem", fontWeight: "700", backgroundColor: "rgba(255,255,255,0.22)", color: "white", borderRadius: "999px", padding: "0.1rem 0.55rem", minWidth: "20px", textAlign: "center" }}>{cards.length}</span>
             </div>
+
             {/* Cards */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", minHeight: "50px" }}>
+            <div style={{ padding: "0.6rem", display: "flex", flexDirection: "column", gap: "0.55rem", minHeight: "80px" }}>
               {cards.length === 0 && (
-                <p style={{ fontSize: "0.75rem", color: isOver ? "#A21D54" : "#cbd5e1", textAlign: "center", padding: "1rem 0", margin: 0, fontWeight: isOver ? "600" : "400" }}>
+                <div style={{ textAlign: "center", padding: "2rem 0", color: isOver ? color : "#cbd5e1", fontSize: "0.78rem", fontWeight: isOver ? "600" : "400" }}>
                   {isOver ? "Drop here" : "No applicants"}
-                </p>
+                </div>
               )}
-              {cards.map(applicant => (
-                <button
-                  key={applicant.id}
-                  draggable
-                  onDragStart={e => {
-                    setDraggingId(applicant.id);
-                    e.dataTransfer.effectAllowed = "move";
-                    e.dataTransfer.setData("text/plain", applicant.id);
-                  }}
-                  onDragEnd={() => { setDraggingId(null); setDragOverStage(null); }}
-                  onClick={() => onSelectApplicant(applicant)}
-                  style={{
-                    width: "100%", display: "flex", alignItems: "center", gap: "0.6rem",
-                    padding: "0.65rem 0.7rem", borderRadius: "0.5rem",
-                    border: "1px solid #e2e8f0", backgroundColor: "white",
-                    cursor: "grab", fontFamily: "inherit", textAlign: "left",
-                    opacity: draggingId === applicant.id ? 0.4 : 1,
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
-                    transition: "opacity 0.15s, box-shadow 0.15s",
-                  }}
-                >
-                  <div style={{ width: "32px", height: "32px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    {applicant.profilePhoto
-                      ? <img src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      : <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                    }
-                  </div>
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.name}</p>
+              {cards.map(applicant => {
+                const sc = statusChip[applicant.status] || statusChip.Pending;
+                return (
+                  <button
+                    key={applicant.id}
+                    draggable
+                    onDragStart={e => {
+                      setDraggingId(applicant.id);
+                      e.dataTransfer.effectAllowed = "move";
+                      e.dataTransfer.setData("text/plain", applicant.id);
+                    }}
+                    onDragEnd={() => { setDraggingId(null); setDragOverStage(null); }}
+                    onClick={() => onSelectApplicant(applicant)}
+                    style={{
+                      width: "100%", display: "block",
+                      padding: "0.9rem 0.95rem",
+                      borderRadius: "0.5rem",
+                      border: "1px solid #e2e8f0",
+                      backgroundColor: "white",
+                      cursor: "grab", fontFamily: "inherit", textAlign: "left",
+                      opacity: draggingId === applicant.id ? 0.4 : 1,
+                      boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+                      transition: "opacity 0.15s",
+                    }}
+                  >
+                    {/* Avatar + name row */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", marginBottom: "0.65rem" }}>
+                      <div style={{ width: "38px", height: "38px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {applicant.profilePhoto
+                          ? <img src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                        }
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: "0 0 0.2rem", fontSize: "0.875rem", fontWeight: "700", color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.name}</p>
+                        <span style={{ fontSize: "0.62rem", fontWeight: "600", padding: "0.1rem 0.45rem", borderRadius: "0.25rem", backgroundColor: sc.bg, color: sc.text }}>{sc.label}</span>
+                      </div>
+                    </div>
+
+                    {/* Preferred shift chip */}
                     {applicant.preferredShift && (
-                      <p style={{ margin: "0.1rem 0 0", fontSize: "0.68rem", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.preferredShift}</p>
+                      <div style={{ marginBottom: "0.55rem" }}>
+                        <span style={{ fontSize: "0.7rem", color: "#64748b", backgroundColor: "#f1f5f9", padding: "0.2rem 0.55rem", borderRadius: "0.3rem", fontWeight: "500" }}>{applicant.preferredShift}</span>
+                      </div>
                     )}
-                  </div>
-                </button>
-              ))}
+
+                    {/* Skills */}
+                    {applicant.skills?.length > 0 && (
+                      <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+                        {applicant.skills.slice(0, 3).map(s => (
+                          <span key={s} style={{ fontSize: "0.63rem", backgroundColor: "#f8fafc", color: "#475569", borderRadius: "0.25rem", padding: "0.1rem 0.4rem", fontWeight: "500", border: "1px solid #e2e8f0" }}>{s}</span>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Bio fallback if no skills */}
+                    {!applicant.skills?.length && applicant.bio && (
+                      <p style={{ margin: 0, fontSize: "0.72rem", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.bio}</p>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
         );
