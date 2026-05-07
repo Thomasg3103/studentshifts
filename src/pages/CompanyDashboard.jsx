@@ -1575,6 +1575,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
   const [inviteModalOpen, setInviteModalOpen] = useState(null); // null = closed, number = round index
   const [trialInviteOpen, setTrialInviteOpen] = useState(false);
   const [shortlistInviteOpen, setShortlistInviteOpen] = useState(false);
+  const [nextRoundInviteOpen, setNextRoundInviteOpen] = useState(false);
 
   const buildRounds = (a) => {
     const stored = Array.isArray(a.interviewRoundsData) ? a.interviewRoundsData : [];
@@ -1603,6 +1604,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
     setInviteModalOpen(null);
     setTrialInviteOpen(false);
     setShortlistInviteOpen(false);
+    setNextRoundInviteOpen(false);
   }, [applicant.id]);
 
   const openCv = async () => {
@@ -1870,11 +1872,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
             <button onClick={() => setShortlistInviteOpen(true)} style={panelActionBtn("#A21D54")}>Invite to Interview →</button>
           )}
           {stage === "interview" && (<>
-            <button onClick={() => {
-              const newRounds = [...interviewRounds, { date: "", time: "" }];
-              setInterviewRounds(newRounds);
-              onIncrementRound?.(applicant.id, applicant.interviewRound || 1, newRounds);
-            }} style={panelActionBtn("#6b7280")}>+ Next Round of Interviews</button>
+            <button onClick={() => setNextRoundInviteOpen(true)} style={panelActionBtn("#6b7280")}>+ Next Round of Interviews</button>
             <button onClick={() => onStageAction(applicant.id, "trial")} style={panelActionBtn("#A21D54")}>Advance to Trial →</button>
             <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#475569")}>Skip to Decision →</button>
             <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>Decline ✕</button>
@@ -1890,6 +1888,23 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           </>)}
         </div>
       </div>
+
+      {/* Next round interview invite — increments round + sends email */}
+      {nextRoundInviteOpen && (
+        <InterviewInviteModal
+          applicant={applicant}
+          roundNumber={(applicant.interviewRound || 1) + 1}
+          date=""
+          time=""
+          onClose={() => setNextRoundInviteOpen(false)}
+          onSend={async (note, teamsLink) => {
+            const newRounds = [...interviewRounds, { date: "", time: "" }];
+            setInterviewRounds(newRounds);
+            await onIncrementRound?.(applicant.id, applicant.interviewRound || 1, newRounds);
+            await onSendInterviewInvite?.(applicant.id, "", "", note, teamsLink);
+          }}
+        />
+      )}
 
       {/* Interview invite from shortlist — moves stage + sends email */}
       {shortlistInviteOpen && (
