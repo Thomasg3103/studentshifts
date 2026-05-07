@@ -107,8 +107,9 @@ export default function JobDetails({
   const idx  = Math.min(photoIdx, Math.max(0, photos.length - 1));
   const crop = job.photoCrops?.[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
-  const distanceKm = (studentLocation?.lat && job.lat && job.lng)
-    ? haversineDistance(studentLocation.lat, studentLocation.lng, job.lat, job.lng)
+  const loc = studentLocation || currentUser?.savedLocation || null;
+  const distanceKm = (loc?.lat && job.lat && job.lng)
+    ? haversineDistance(loc.lat, loc.lng, job.lat, job.lng)
     : null;
 
   const Sidebar = () => (
@@ -133,7 +134,9 @@ export default function JobDetails({
       <DetailCard label="📏 Distance">
         {distanceKm !== null
           ? `${formatDistance(distanceKm)} away`
-          : <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Set your location in Account</span>}
+          : !loc
+          ? <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Set your location in Account</span>
+          : <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Not available for this job</span>}
       </DetailCard>
       {job.sickPay !== undefined && <DetailCard label="🏥 Sick Pay">{job.sickPay ? "Yes" : "No"}</DetailCard>}
       {job.holidays && <DetailCard label="🏖️ Holidays">{job.holidays}</DetailCard>}
