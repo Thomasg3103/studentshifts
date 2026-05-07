@@ -726,32 +726,33 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       {/* Applicants Modal — wide overlay */}
       {modal === "applicants" && activePosting && (
         <div onClick={closeModal} className="applicants-modal-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem", backdropFilter: "blur(2px)", animation: "fadeInOverlay 0.18s ease" }}>
-          <div onClick={e => e.stopPropagation()} className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "1.25rem", width: "100%", maxWidth: "860px", maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 24px 64px rgba(0,0,0,0.25)", overflow: "hidden", borderTop: "4px solid #A21D54" }}>
+          <div onClick={e => e.stopPropagation()} className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "0.85rem", width: "100%", maxWidth: "900px", maxHeight: "92vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid #e2e8f0" }}>
             {/* Header */}
-            <div style={{ padding: "1.1rem 1.5rem", borderBottom: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, backgroundColor: "white" }}>
+            <div style={{ padding: "1.25rem 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0 }}>
               <div>
-                <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.15rem", color: "#1e293b" }}>{activePosting.title}</h2>
-                <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "#64748b" }}>{activePosting.location} · {activePosting.pay} · {activePosting.applicantCount} applicant{activePosting.applicantCount !== 1 ? "s" : ""}</p>
+                <h2 style={{ margin: 0, fontWeight: "700", fontSize: "1.1rem", color: "#0f172a", letterSpacing: "-0.01em" }}>{activePosting.title}</h2>
+                <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "#64748b" }}>{activePosting.location} · {activePosting.pay}</p>
               </div>
-              <button onClick={closeModal} style={{ background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer", color: "#94a3b8", lineHeight: 1, padding: "0.25rem" }}>✕</button>
+              <button onClick={closeModal} style={{ width: "32px", height: "32px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>✕</button>
             </div>
             {/* Pipeline funnel */}
             {!activePosting.applicantsLoading && activePosting.applicants?.length > 0 && (
-              <div style={{ padding: "0.65rem 1.5rem", borderBottom: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", gap: "0.35rem", overflowX: "auto", flexShrink: 0, backgroundColor: "#fafafa" }}>
+              <div style={{ padding: "0.85rem 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", flexShrink: 0, backgroundColor: "#f8fafc", gap: 0 }}>
                 {[
-                  { key: "applied",     label: "Applied",     color: "#64748b" },
-                  { key: "shortlisted", label: "Shortlisted", color: "#0284c7" },
-                  { key: "interview",   label: "Interview",   color: "#7c3aed" },
-                  { key: "trial",       label: "Trial",       color: "#16a34a" },
-                  { key: "decision",    label: "Decision",    color: "#ea580c" },
-                ].map(({ key, label, color }, i) => {
+                  { key: "applied",     label: "Applied"     },
+                  { key: "shortlisted", label: "Shortlisted" },
+                  { key: "interview",   label: "Interview"   },
+                  { key: "trial",       label: "Trial"       },
+                  { key: "decision",    label: "Decision"    },
+                ].map(({ key, label }, i) => {
                   const count = activePosting.applicants.filter(a => a.pipelineStage === key).length;
+                  const hasAny = count > 0;
                   return (
-                    <span key={key} style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
-                      {i > 0 && <span style={{ color: "#d1d5db", fontSize: "0.72rem" }}>→</span>}
-                      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", minWidth: "56px" }}>
-                        <span style={{ fontSize: "1.15rem", fontWeight: "800", color: count > 0 ? color : "#d1d5db", lineHeight: 1 }}>{count}</span>
-                        <span style={{ fontSize: "0.62rem", fontWeight: "600", color: count > 0 ? color : "#d1d5db", whiteSpace: "nowrap" }}>{label}</span>
+                    <span key={key} style={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}>
+                      {i > 0 && <span style={{ flex: "0 0 1px", height: "1px", backgroundColor: "#e2e8f0", margin: "0 0.5rem" }} />}
+                      <span style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
+                        <span style={{ fontSize: "1.25rem", fontWeight: "700", color: hasAny ? "#0f172a" : "#d1d5db", lineHeight: 1 }}>{count}</span>
+                        <span style={{ fontSize: "0.65rem", fontWeight: "500", color: hasAny ? "#64748b" : "#d1d5db", marginTop: "0.2rem", whiteSpace: "nowrap" }}>{label}</span>
                       </span>
                     </span>
                   );
@@ -1488,7 +1489,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
         <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1.5px solid #e2e8f0" }}>
           <button
             onClick={() => setShowCloseJob(true)}
-            style={{ width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 12px rgba(244,63,94,0.3)" }}
+            style={{ width: "100%", padding: "0.65rem", borderRadius: "0.4rem", border: "1px solid #fca5a5", backgroundColor: "white", color: "#b91c1c", fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
           >
             Close this Job
           </button>
@@ -1528,17 +1529,18 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
   );
 }
 
-const STAGE_BORDER_COLOR = { applied: "#94a3b8", shortlisted: "#0284c7", interview: "#7c3aed", trial: "#16a34a", decision: "#ea580c" };
-
 function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onToggleSelect, isInvited }) {
   const isDecision = applicant.pipelineStage === "decision" && applicant.status === "Pending";
-  const statusColors = { Accepted: { bg: "#dcfce7", color: "#16a34a" }, Rejected: { bg: "#fee2e2", color: "#dc2626" } };
+  const statusColors = {
+    Accepted: { bg: "#dcfce7", color: "#15803d", label: "Hired" },
+    Rejected: { bg: "#fee2e2", color: "#b91c1c", label: "Declined" },
+  };
   const sc = statusColors[applicant.status];
-  const stageAccent = STAGE_BORDER_COLOR[applicant.pipelineStage] || "#e2e8f0";
   return (
-    <div style={{ borderRadius: "0.75rem", border: `1.5px solid ${isSelected ? "#A21D54" : "#e2e8f0"}`, borderLeft: `4px solid ${stageAccent}`, overflow: "hidden", backgroundColor: isSelected ? "#fdf8fa" : "white", transition: "background-color 0.1s, border-color 0.15s" }}
-      onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = "#fce7f3"; e.currentTarget.style.borderLeftColor = stageAccent; } }}
-      onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.borderLeftColor = stageAccent; } }}
+    <div
+      style={{ borderRadius: "0.5rem", border: `1px solid ${isSelected ? "#A21D54" : "#e2e8f0"}`, overflow: "hidden", backgroundColor: isSelected ? "#fdf8fb" : "white", transition: "all 0.12s", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
+      onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = "#cbd5e1"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)"; } }}
+      onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)"; } }}
     >
       <button
         onClick={onClick}
@@ -1551,39 +1553,39 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
           </div>
         )}
         {/* Photo */}
-        <div style={{ width: "42px", height: "42px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: "40px", height: "40px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {applicant.profilePhoto
             ? <img src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           }
         </div>
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.2rem", flexWrap: "wrap" }}>
-            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#1e293b" }}>{applicant.name}</p>
-            {sc && <span style={{ fontSize: "0.62rem", fontWeight: "700", padding: "0.1rem 0.45rem", borderRadius: "999px", backgroundColor: sc.bg, color: sc.color, textTransform: "uppercase", letterSpacing: "0.04em", flexShrink: 0 }}>{applicant.status}</span>}
-            {isInvited && <span style={{ fontSize: "0.62rem", backgroundColor: "#e0f2fe", color: "#0369a1", borderRadius: "999px", padding: "0.08rem 0.4rem", fontWeight: "700", flexShrink: 0 }}>📧 Invited</span>}
-            {applicant.linkedin && <span title="LinkedIn provided" style={{ fontSize: "0.62rem", backgroundColor: "#e0f2fe", color: "#0369a1", borderRadius: "999px", padding: "0.08rem 0.4rem", fontWeight: "700", flexShrink: 0 }}>🔗 LinkedIn</span>}
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.2rem", flexWrap: "wrap" }}>
+            <p style={{ margin: 0, fontWeight: "600", fontSize: "0.875rem", color: "#0f172a" }}>{applicant.name}</p>
+            {sc && <span style={{ fontSize: "0.65rem", fontWeight: "600", padding: "0.15rem 0.5rem", borderRadius: "0.3rem", backgroundColor: sc.bg, color: sc.color, flexShrink: 0 }}>{sc.label}</span>}
+            {isInvited && <span style={{ fontSize: "0.65rem", fontWeight: "600", padding: "0.15rem 0.5rem", borderRadius: "0.3rem", backgroundColor: "#f0f9ff", color: "#0369a1", flexShrink: 0 }}>Invite sent</span>}
+            {applicant.linkedin && <span style={{ fontSize: "0.65rem", fontWeight: "600", padding: "0.15rem 0.5rem", borderRadius: "0.3rem", backgroundColor: "#f0f9ff", color: "#0369a1", flexShrink: 0 }}>LinkedIn</span>}
           </div>
           {applicant.preferredShift && (
-            <p style={{ margin: "0 0 0.25rem", fontSize: "0.72rem", fontWeight: "700", color: "#A21D54" }}>🗓️ {applicant.preferredShift}</p>
+            <p style={{ margin: "0 0 0.2rem", fontSize: "0.72rem", color: "#64748b" }}>{applicant.preferredShift}</p>
           )}
           {applicant.skills?.length > 0 ? (
             <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
               {applicant.skills.slice(0, 4).map(s => (
-                <span key={s} style={{ fontSize: "0.62rem", backgroundColor: "#f1f5f9", color: "#475569", borderRadius: "999px", padding: "0.05rem 0.4rem", fontWeight: "600" }}>{s}</span>
+                <span key={s} style={{ fontSize: "0.65rem", backgroundColor: "#f1f5f9", color: "#475569", borderRadius: "0.3rem", padding: "0.1rem 0.45rem", fontWeight: "500" }}>{s}</span>
               ))}
             </div>
           ) : applicant.bio ? (
             <p style={{ margin: "0.1rem 0 0", fontSize: "0.72rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.bio}</p>
           ) : null}
         </div>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
       </button>
       {isDecision && (
-        <div style={{ display: "flex", borderTop: "1.5px solid #e2e8f0" }}>
-          <button onClick={(e) => { e.stopPropagation(); onHire?.(applicant); }} style={{ flex: 1, padding: "0.6rem", backgroundColor: "#f0fdf4", border: "none", borderRight: "1px solid #e2e8f0", color: "#16a34a", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Hire ✓</button>
-          <button onClick={(e) => { e.stopPropagation(); onDecline?.(applicant); }} style={{ flex: 1, padding: "0.6rem", backgroundColor: "#fff1f2", border: "none", color: "#e11d48", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Decline ✕</button>
+        <div style={{ display: "flex", borderTop: "1px solid #e2e8f0" }}>
+          <button onClick={(e) => { e.stopPropagation(); onHire?.(applicant); }} style={{ flex: 1, padding: "0.6rem", backgroundColor: "white", border: "none", borderRight: "1px solid #e2e8f0", color: "#15803d", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Hire Applicant</button>
+          <button onClick={(e) => { e.stopPropagation(); onDecline?.(applicant); }} style={{ flex: 1, padding: "0.6rem", backgroundColor: "white", border: "none", color: "#b91c1c", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Decline</button>
         </div>
       )}
     </div>
@@ -1796,41 +1798,40 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
         animation: "slideInRight 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
       }}>
         {/* Header */}
-        <div style={{ padding: "1rem 1.25rem", borderBottom: "1.5px solid #e2e8f0", display: "flex", alignItems: "center", gap: "0.75rem", flexShrink: 0, background: "linear-gradient(135deg, #fdf4f7 0%, #fafafa 100%)" }}>
-          <div style={{ width: "48px", height: "48px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid #fce7f3" }}>
+        <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "flex-start", gap: "0.85rem", flexShrink: 0 }}>
+          <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {applicant.profilePhoto
               ? <img src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             }
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "#1e293b" }}>{applicant.name}</p>
-            <StatusBadge status={applicant.status} />
-            {applicant.preferredShift && (
-              <p style={{ margin: "0.25rem 0 0", fontSize: "0.75rem", fontWeight: 700, color: "#A21D54", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                🗓️ {applicant.preferredShift}
-              </p>
-            )}
+            <p style={{ margin: "0 0 0.3rem", fontWeight: "700", fontSize: "0.975rem", color: "#0f172a", letterSpacing: "-0.01em" }}>{applicant.name}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+              <StatusBadge status={applicant.status} />
+              {applicant.preferredShift && (
+                <span style={{ fontSize: "0.72rem", color: "#64748b" }}>{applicant.preferredShift}</span>
+              )}
+            </div>
           </div>
-          <button onClick={onClose} style={{ width: "32px", height: "32px", borderRadius: "50%", border: "1.5px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.9rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "inherit" }}>✕</button>
+          <button onClick={onClose} style={{ width: "30px", height: "30px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "inherit" }}>✕</button>
         </div>
 
-        {/* Stage breadcrumb */}
-        <div style={{ padding: "0.5rem 1.25rem", borderBottom: "1.5px solid #f1f5f9", display: "flex", alignItems: "center", gap: "0.15rem", overflowX: "auto", flexShrink: 0, backgroundColor: "#fafafa" }}>
+        {/* Stage progress strip */}
+        <div style={{ padding: "0.6rem 1.5rem", borderBottom: "1px solid #f1f5f9", display: "flex", alignItems: "center", gap: 0, flexShrink: 0, backgroundColor: "#f8fafc" }}>
           {["applied", "shortlisted", "interview", "trial", "decision"].map((s, i) => {
             const order = ["applied", "shortlisted", "interview", "trial", "decision"];
             const currentIdx = order.indexOf(stage);
-            const thisIdx = i;
-            const isPast = thisIdx < currentIdx;
-            const isCurrent = thisIdx === currentIdx;
+            const isPast = i < currentIdx;
+            const isCurrent = i === currentIdx;
             const interviewRound = applicant.interviewRound || 1;
             const crumbLabel = s === "interview"
               ? (isCurrent && interviewRound > 1 ? `Interview Rd ${interviewRound}` : "Interview")
               : { applied: "Applied", shortlisted: "Shortlisted", trial: "Trial", decision: "Decision" }[s];
             return (
-              <span key={s} style={{ display: "flex", alignItems: "center", gap: "0.15rem" }}>
-                {i > 0 && <span style={{ color: "#d1d5db", fontSize: "0.68rem", margin: "0 0.05rem" }}>›</span>}
-                <span style={{ fontSize: "0.72rem", fontWeight: isCurrent ? "800" : "500", color: isCurrent ? "#A21D54" : isPast ? "#A21D54" : "#94a3b8", whiteSpace: "nowrap", opacity: isPast ? 0.55 : 1 }}>
+              <span key={s} style={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}>
+                {i > 0 && <span style={{ flex: "0 0 1px", height: "1px", backgroundColor: isPast ? "#A21D54" : "#e2e8f0", margin: "0 0.2rem" }} />}
+                <span style={{ fontSize: "0.68rem", fontWeight: isCurrent ? "700" : "500", color: isCurrent ? "#A21D54" : isPast ? "#A21D54" : "#cbd5e1", whiteSpace: "nowrap", opacity: isPast ? 0.6 : 1, flex: 1, textAlign: "center" }}>
                   {crumbLabel}
                 </span>
               </span>
@@ -1839,7 +1840,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
         </div>
 
         {/* Body */}
-        <div style={{ padding: "1.25rem", display: "flex", flexDirection: "column", gap: "1.5rem", flex: 1 }}>
+        <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "1.5rem", flex: 1 }}>
 
           {/* Application Screening — applied stage only */}
           {stage === "applied" && (
@@ -1872,13 +1873,13 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
 
           {/* Bio + Skills + LinkedIn + Documents — always visible for applied, toggleable otherwise */}
           {(stage === "applied" || profileOpen) && (<>
-            <Section label="Bio" noBg>
+            <Section label="Bio">
               <p style={{ margin: 0, fontSize: "0.85rem", color: applicant.bio ? "#374151" : "#9ca3af", fontStyle: applicant.bio ? "normal" : "italic", lineHeight: 1.6 }}>
                 {applicant.bio || "Not provided"}
               </p>
             </Section>
 
-            <Section label="Skills" noBg>
+            <Section label="Skills">
               {applicant.skills?.length > 0 ? (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                   {applicant.skills.map(s => (
@@ -1888,7 +1889,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
               ) : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not listed</p>}
             </Section>
 
-            <Section label="LinkedIn" noBg>
+            <Section label="LinkedIn">
               {applicant.linkedin && /^https?:\/\//i.test(applicant.linkedin)
                 ? <a href={applicant.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: "0.85rem", color: "#0a66c2", fontWeight: "600", textDecoration: "underline", display: "flex", alignItems: "center", gap: "0.3rem" }}>🔗 View LinkedIn Profile</a>
                 : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not provided</p>
@@ -1900,23 +1901,23 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
                 <button
                   onClick={openCv}
                   disabled={!applicant.cvName || cvLoading}
-                  style={{ flex: 1, padding: "0.6rem 0.75rem", borderRadius: "0.6rem", border: `1.5px solid ${applicant.cvName ? "#bbf7d0" : "#e2e8f0"}`, backgroundColor: applicant.cvName ? "#f0fdf4" : "#f8fafc", color: applicant.cvName ? "#16a34a" : "#9ca3af", fontWeight: "700", fontSize: "0.82rem", cursor: applicant.cvName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
+                  style={{ flex: 1, padding: "0.55rem 0.75rem", borderRadius: "0.4rem", border: `1px solid ${applicant.cvName ? "#d1d5db" : "#e2e8f0"}`, backgroundColor: "white", color: applicant.cvName ? "#374151" : "#9ca3af", fontWeight: "600", fontSize: "0.82rem", cursor: applicant.cvName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
                 >
-                  {cvLoading ? "Loading…" : "📄 View CV"}
+                  {cvLoading ? "Loading…" : "View CV"}
                 </button>
                 <button
                   onClick={openCoverLetter}
                   disabled={!applicant.coverLetterName || clLoading}
-                  style={{ flex: 1, padding: "0.6rem 0.75rem", borderRadius: "0.6rem", border: `1.5px solid ${applicant.coverLetterName ? "#fce7f3" : "#e2e8f0"}`, backgroundColor: applicant.coverLetterName ? "#fdf4f7" : "#f8fafc", color: applicant.coverLetterName ? "#A21D54" : "#9ca3af", fontWeight: "700", fontSize: "0.82rem", cursor: applicant.coverLetterName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
+                  style={{ flex: 1, padding: "0.55rem 0.75rem", borderRadius: "0.4rem", border: `1px solid ${applicant.coverLetterName ? "#d1d5db" : "#e2e8f0"}`, backgroundColor: "white", color: applicant.coverLetterName ? "#374151" : "#9ca3af", fontWeight: "600", fontSize: "0.82rem", cursor: applicant.coverLetterName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
                 >
-                  {clLoading ? "Loading…" : "📝 Cover Letter"}
+                  {clLoading ? "Loading…" : "Cover Letter"}
                 </button>
               </div>
             </Section>
           </>)}
 
           {/* Notes */}
-          <Section label={notesSaving ? "📝 Notes (saving…)" : "📝 Notes"} noBg>
+          <Section label={notesSaving ? "Notes — saving…" : "Notes"}>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}
@@ -1929,7 +1930,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
 
           {/* Interview rounds — shortlisted and interview stages */}
           {(stage === "shortlisted" || stage === "interview") && (
-            <Section label="Interview Schedule" noBg>
+            <Section label="Interview Schedule">
               <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
                 {interviewRounds.map((round, i) => (
                   <div key={i} style={{ backgroundColor: "#faf5ff", border: "1.5px solid #e9d5ff", borderRadius: "0.6rem", padding: "0.65rem 0.75rem" }}>
@@ -1961,9 +1962,9 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
                     </div>
                     <button
                       onClick={() => setInviteModalOpen(i)}
-                      style={{ width: "100%", padding: "0.4rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", backgroundColor: "white", color: "#7c3aed", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
+                      style={{ width: "100%", padding: "0.4rem", borderRadius: "0.4rem", border: "1px solid #e9d5ff", backgroundColor: "white", color: "#7c3aed", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
                     >
-                      ✉ Send Invite
+                      Send Invite
                     </button>
                   </div>
                 ))}
@@ -1973,7 +1974,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
 
           {/* Trial schedule — only in trial stage */}
           {stage === "trial" && (
-            <Section label="Trial Shift Schedule" noBg>
+            <Section label="Trial Shift Schedule">
               <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                 <input
                   type="date"
@@ -2000,7 +2001,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
 
           {/* Chat — only for accepted applicants */}
           {applicant.status === "Accepted" && (
-            <Section label="Messages" noBg>
+            <Section label="Messages">
               <ChatThread jobId={postingId} studentId={applicant.studentId} companyId={companyId} senderId={companyId} />
             </Section>
           )}
@@ -2021,27 +2022,27 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
         )}
 
         {/* Stage action buttons */}
-        <div style={{ padding: "1rem 1.25rem", borderTop: "1.5px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0 }}>
+        <div style={{ padding: "1rem 1.5rem", borderTop: "1px solid #e2e8f0", display: "flex", flexDirection: "column", gap: "0.5rem", flexShrink: 0 }}>
           {stage === "applied" && (
-            <button onClick={() => onStageAction(applicant.id, "shortlisted")} style={panelActionBtn("#A21D54")}>🎯 Shortlist</button>
+            <button onClick={() => onStageAction(applicant.id, "shortlisted")} style={panelActionBtn("primary")}>Move to Shortlist</button>
           )}
           {stage === "shortlisted" && (
-            <button onClick={() => setShortlistInviteOpen(true)} style={panelActionBtn("#A21D54")}>📅 Invite to Interview</button>
+            <button onClick={() => setShortlistInviteOpen(true)} style={panelActionBtn("primary")}>Send Interview Invite</button>
           )}
           {stage === "interview" && (<>
-            <button onClick={() => setNextRoundInviteOpen(true)} style={panelActionBtn("#6b7280")}>🔄 Next Round of Interviews</button>
-            <button onClick={() => onStageAction(applicant.id, "trial")} style={panelActionBtn("#A21D54")}>⚡ Advance to Trial</button>
-            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#475569")}>⏭ Skip to Decision</button>
-            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>✕ Decline</button>
+            <button onClick={() => setNextRoundInviteOpen(true)} style={panelActionBtn("secondary")}>Schedule Next Round</button>
+            <button onClick={() => onStageAction(applicant.id, "trial")} style={panelActionBtn("primary")}>Advance to Trial</button>
+            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("secondary")}>Move to Decision</button>
+            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("danger")}>Decline Applicant</button>
           </>)}
           {stage === "trial" && (<>
-            <button onClick={() => setTrialInviteOpen(true)} style={panelActionBtn("#0284c7")}>✉ Send Trial Invite</button>
-            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("#A21D54")}>→ Move to Decision</button>
-            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>✕ Decline</button>
+            <button onClick={() => setTrialInviteOpen(true)} style={panelActionBtn("secondary")}>Send Trial Invite</button>
+            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("primary")}>Move to Decision</button>
+            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("danger")}>Decline Applicant</button>
           </>)}
           {stage === "decision" && applicant.status === "Pending" && (<>
-            <button onClick={() => onUpdateStatus(applicant.id, "Accepted", applicant)} style={panelActionBtn("#16a34a")}>✅ Hire</button>
-            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("#e11d48")}>✕ Decline</button>
+            <button onClick={() => onUpdateStatus(applicant.id, "Accepted", applicant)} style={panelActionBtn("accept")}>Hire Applicant</button>
+            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("danger")}>Decline Applicant</button>
           </>)}
         </div>
       </div>
@@ -2325,20 +2326,25 @@ const closeOptBtn = (color, bg, border) => ({
   color, cursor: "pointer", fontFamily: "inherit", textAlign: "left", width: "100%",
 });
 
-function Section({ label, children, noBg }) {
+function Section({ label, children }) {
   return (
     <div>
-      <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", fontWeight: "700", color: "#A21D54", textTransform: "uppercase", letterSpacing: "0.07em", paddingLeft: "0.5rem", borderLeft: "2px solid #A21D54" }}>{label}</p>
-      {noBg ? children : <div style={{ backgroundColor: "#f8fafc", borderRadius: "0.55rem", padding: "0.65rem 0.75rem" }}>{children}</div>}
+      <p style={{ margin: "0 0 0.5rem", fontSize: "0.65rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</p>
+      {children}
     </div>
   );
 }
 
-const panelActionBtn = (color) => ({
-  width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none",
-  backgroundColor: color, color: "white", fontWeight: "700", fontSize: "0.875rem",
-  cursor: "pointer", fontFamily: "inherit",
-});
+const panelActionBtn = (variant) => {
+  const styles = {
+    primary:   { backgroundColor: "#A21D54", color: "white",    border: "none" },
+    secondary: { backgroundColor: "white",   color: "#374151",  border: "1px solid #d1d5db" },
+    danger:    { backgroundColor: "white",   color: "#b91c1c",  border: "1px solid #fca5a5" },
+    accept:    { backgroundColor: "#15803d", color: "white",    border: "none" },
+  };
+  const s = styles[variant] || styles.primary;
+  return { width: "100%", padding: "0.65rem 1rem", borderRadius: "0.4rem", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em", ...s };
+};
 
 function PdfModal({ url, label, fileName, onClose }) {
   const modalRef  = useRef(null);
@@ -2428,18 +2434,17 @@ function PdfModal({ url, label, fileName, onClose }) {
 
 function StatusBadge({ status }) {
   const colors = {
-    Pending:  { bg: "#fef3c7", text: "#d97706" },
-    Accepted: { bg: "#dcfce7", text: "#16a34a" },
-    Rejected: { bg: "#fee2e2", text: "#dc2626" },
+    Pending:  { bg: "#f1f5f9", text: "#64748b", label: "Under Review" },
+    Accepted: { bg: "#dcfce7", text: "#15803d", label: "Hired" },
+    Rejected: { bg: "#fee2e2", text: "#b91c1c", label: "Declined" },
   };
   const c = colors[status] || colors.Pending;
   return (
     <span style={{
-      fontSize: "0.65rem", fontWeight: "700", padding: "0.2rem 0.6rem",
-      borderRadius: "999px", backgroundColor: c.bg, color: c.text,
-      textTransform: "uppercase", letterSpacing: "0.05em",
+      fontSize: "0.65rem", fontWeight: "600", padding: "0.2rem 0.55rem",
+      borderRadius: "0.3rem", backgroundColor: c.bg, color: c.text,
     }}>
-      {status}
+      {c.label}
     </span>
   );
 }
