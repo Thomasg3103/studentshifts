@@ -625,7 +625,7 @@ RETURNS TABLE (
 LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
 BEGIN
   IF NOT is_admin() AND NOT EXISTS (
-    SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified'
+    SELECT 1 FROM companies WHERE companies.id = auth.uid() AND status = 'verified'
   ) THEN
     RAISE EXCEPTION 'Unauthorised: verified company or admin required';
   END IF;
