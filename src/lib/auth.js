@@ -977,8 +977,17 @@ export async function rejectStudent(studentId) {
 }
 
 export async function getSignedDocumentUrl(bucket, path) {
-  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, 60);
-  if (error) throw error;
+  // If a full URL was stored (older accounts), extract just the storage path
+  let cleanPath = path;
+  if (path && path.startsWith("http")) {
+    const marker = `/object/public/${bucket}/`;
+    const idx = path.indexOf(marker);
+    if (idx !== -1) {
+      cleanPath = decodeURIComponent(path.slice(idx + marker.length).split("?")[0]);
+    }
+  }
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(cleanPath, 300);
+  if (error) throw new Error(`Could not load document: ${error.message}`);
   return data.signedUrl;
 }
 

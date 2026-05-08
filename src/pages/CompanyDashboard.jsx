@@ -1833,6 +1833,10 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
     setTrialInviteOpen(false);
     setShortlistInviteOpen(false);
     setNextRoundInviteOpen(false);
+    setCvUrl(null);
+    setClUrl(null);
+    setCvOpen(false);
+    setClOpen(false);
   }, [applicant.id]);
 
   const openCv = async () => {
@@ -1840,8 +1844,9 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
       setCvLoading(true);
       try {
         const { getSignedDocumentUrl } = await import("../lib/auth");
-        setCvUrl(await getSignedDocumentUrl("documents", applicant.cvName));
-      } catch { alert("Could not load CV. Please try again."); setCvLoading(false); return; }
+        const url = await getSignedDocumentUrl("documents", applicant.cvName);
+        setCvUrl(url);
+      } catch (e) { alert(`Could not load CV: ${e.message}`); setCvLoading(false); return; }
       setCvLoading(false);
     }
     setCvOpen(true);
@@ -1852,8 +1857,9 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
       setClLoading(true);
       try {
         const { getSignedDocumentUrl } = await import("../lib/auth");
-        setClUrl(await getSignedDocumentUrl("documents", applicant.coverLetterName));
-      } catch { alert("Could not load cover letter. Please try again."); setClLoading(false); return; }
+        const url = await getSignedDocumentUrl("documents", applicant.coverLetterName);
+        setClUrl(url);
+      } catch (e) { alert(`Could not load cover letter: ${e.message}`); setClLoading(false); return; }
       setClLoading(false);
     }
     setClOpen(true);

@@ -344,7 +344,10 @@ CREATE POLICY "chat_messages: admin all" ON chat_messages
 -- ================================================================
 -- STORAGE: avatars bucket
 -- Public profile photos — readable by everyone, writable by owner
+-- Bucket must be marked public so <img> tags load without auth headers
 -- ================================================================
+UPDATE storage.buckets SET public = true WHERE id = 'avatars';
+
 DROP POLICY IF EXISTS "avatars: public read"  ON storage.objects;
 DROP POLICY IF EXISTS "avatars: own upload"   ON storage.objects;
 DROP POLICY IF EXISTS "avatars: own update"   ON storage.objects;
