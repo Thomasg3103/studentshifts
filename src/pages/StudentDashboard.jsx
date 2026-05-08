@@ -627,7 +627,7 @@ export default function StudentDashboard({
                     </div>
 
                     {/* Middle info */}
-                    <div style={{ flex: 1, padding: "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div style={{ flex: 1, padding: "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column" }}>
                       {/* Top: title + company + pills */}
                       <div>
                         <h2
