@@ -947,16 +947,21 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
     ? students.filter(s => s.job_preferences?.some(p => companyIndustries.includes(p)))
     : students;
 
-  const avSlots    = avail => Object.values(avail || {}).filter(Array.isArray).flat().filter(t => typeof t === "string");
+  const toMins     = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
   const dayCount   = avail => Object.values(avail || {}).filter(v => Array.isArray(v) && v.length > 0).length;
   const hasWeekend = avail => (Array.isArray(avail?.Saturday) && avail.Saturday.length > 0) || (Array.isArray(avail?.Sunday) && avail.Sunday.length > 0);
-  const earliest   = avail => { const t = avSlots(avail); return t.length ? t.reduce((a, b) => a < b ? a : b) : "99:99"; };
+  const avgStart   = avail => {
+    const starts = Object.values(avail || {})
+      .filter(v => Array.isArray(v) && v.length > 0)
+      .map(slots => Math.min(...slots.filter(t => typeof t === "string").map(toMins)));
+    return starts.length ? starts.reduce((a, b) => a + b, 0) / starts.length : Infinity;
+  };
 
   const displayStudents = [...filtered].sort((a, b) => {
     switch (sortBy) {
       case "most_available": return dayCount(b.availability) - dayCount(a.availability);
       case "weekends_first": return (hasWeekend(b.availability) ? 1 : 0) - (hasWeekend(a.availability) ? 1 : 0);
-      case "earliest":       return earliest(a.availability).localeCompare(earliest(b.availability));
+      case "earliest":       return avgStart(a.availability) - avgStart(b.availability);
       default:               return 0;
     }
   });
@@ -991,7 +996,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
           >
             <option value="default">Sort: Default</option>
             <option value="most_available">Most Days Available</option>
-            <option value="weekends_first">Weekends First</option>
+            <option value="weekends_first">Weekend Work</option>
             <option value="earliest">Earliest Starts</option>
           </select>
         </div>
