@@ -643,6 +643,20 @@ $$;
 
 
 -- ================================================================
+-- get_profile_photos — returns id + profile_photo_url for any list of user IDs.
+-- Profile photos are stored as public URLs (avatars bucket is public),
+-- so exposing them to any authenticated caller is safe.
+-- Used by the messaging pages to show student/company avatars in conversation lists.
+-- ================================================================
+DROP FUNCTION IF EXISTS get_profile_photos(uuid[]);
+CREATE OR REPLACE FUNCTION get_profile_photos(user_ids uuid[])
+RETURNS TABLE (id uuid, profile_photo_url text)
+LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT s.id, s.profile_photo_url FROM students s WHERE s.id = ANY(user_ids);
+$$;
+
+
+-- ================================================================
 -- FIX #14: Prevent cv_url/cover_letter_url path injection
 -- Students cannot set their document URL to another student's storage path.
 -- ================================================================

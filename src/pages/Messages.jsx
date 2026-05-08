@@ -4,6 +4,56 @@ import BackButton from "../components/BackButton";
 import { fetchAcceptedConversations, fetchStudentDirectConversations, fetchMessages, sendMessage } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 
+function formatConvTime(isoStr) {
+  if (!isoStr) return "";
+  const d = new Date(isoStr);
+  const now = new Date();
+  if (d.toDateString() === now.toDateString())
+    return d.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" });
+  const diff = Math.floor((now - d) / 86400000);
+  if (diff < 7) return d.toLocaleDateString("en-IE", { weekday: "short" });
+  return d.toLocaleDateString("en-IE", { day: "numeric", month: "short" });
+}
+
+function Avatar({ url, name, size = 44 }) {
+  const initials = (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
+  if (url) {
+    return <img src={url} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />;
+  }
+  return (
+    <div style={{ width: size, height: size, borderRadius: "50%", background: "linear-gradient(135deg, #A21D54, #C2185B)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "white", fontWeight: "700", fontSize: Math.round(size * 0.38) + "px" }}>
+      {initials}
+    </div>
+  );
+}
+
+function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMessageAt, isUnread, onClick }) {
+  const timeStr = formatConvTime(lastMessageAt);
+  return (
+    <button onClick={onClick} style={{
+      display: "flex", alignItems: "center", gap: "0.85rem",
+      padding: "0.85rem 1rem", borderRadius: "0.75rem",
+      backgroundColor: isUnread ? "#fdf2f8" : "white",
+      border: `1.5px solid ${isUnread ? "#fce7f3" : "#e5e7eb"}`,
+      cursor: "pointer", textAlign: "left", width: "100%", fontFamily: "inherit",
+    }}>
+      <Avatar url={avatarUrl} name={avatarName || name} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.4rem" }}>
+          <p style={{ margin: 0, fontWeight: isUnread ? "800" : "700", fontSize: "0.92rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+          {timeStr && <p style={{ margin: 0, fontSize: "0.7rem", color: isUnread ? "#A21D54" : "#9ca3af", flexShrink: 0 }}>{timeStr}</p>}
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <p style={{ margin: "0.1rem 0 0", fontSize: "0.8rem", color: isUnread ? "#374151" : "#6b7280", fontWeight: isUnread ? "600" : "400", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
+            {lastMessage != null ? (lastMessage.length > 45 ? lastMessage.slice(0, 45) + "…" : lastMessage) : subtitle}
+          </p>
+          {isUnread && <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#A21D54", flexShrink: 0, marginTop: "0.1rem" }} />}
+        </div>
+      </div>
+    </button>
+  );
+}
+
 function ChatThread({ jobId, studentId, companyId, senderId, companyName }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState("");
@@ -41,11 +91,8 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName }) {
     const text = input.trim();
     if (!text) return;
     setInput("");
-    try {
-      await sendMessage(jobId, studentId, companyId, senderId, text);
-    } catch (e) {
-      console.error("Send failed:", e);
-    }
+    try { await sendMessage(jobId, studentId, companyId, senderId, text); }
+    catch (e) { console.error("Send failed:", e); }
   };
 
   return (
@@ -61,9 +108,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName }) {
                   backgroundColor: m.sender_id === senderId ? "#A21D54" : "#e5e7eb",
                   color: m.sender_id === senderId ? "white" : "#111827",
                   padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45,
-                }}>
-                  {m.text}
-                </div>
+                }}>{m.text}</div>
                 <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
                   {new Date(m.created_at).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
                 </p>
@@ -74,16 +119,12 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName }) {
       </div>
       <div style={{ padding: "0.75rem 1rem", borderTop: "1.5px solid #e5e7eb", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
         <input
-          value={input}
-          onChange={e => setInput(e.target.value)}
+          value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
           placeholder={`Message ${companyName}…`}
           style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
         />
-        <button
-          onClick={send}
-          style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
-        >
+        <button onClick={send} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
           Send
         </button>
       </div>
@@ -95,7 +136,8 @@ export default function Messages({ currentUser, setPage }) {
   const [conversations, setConversations] = useState([]);
   const [directConvs, setDirectConvs]     = useState([]);
   const [loading, setLoading]             = useState(true);
-  const [active, setActive]               = useState(null); // { jobId, title, companyId, companyName }
+  const [tab, setTab]                     = useState("direct");
+  const [active, setActive]               = useState(null);
 
   useEffect(() => {
     if (!currentUser) { setLoading(false); return; }
@@ -105,43 +147,36 @@ export default function Messages({ currentUser, setPage }) {
     ]).then(([convs, directs]) => {
       setConversations(convs);
       setDirectConvs(directs);
+      if (directs.length === 0 && convs.length > 0) setTab("jobs");
       setLoading(false);
     });
   }, [currentUser?.id]);
 
   if (active) {
+    const isDirect = active.jobId === null;
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 80px)" }}>
-        {/* Thread header */}
         <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "white", flexShrink: 0 }}>
-          <button
-            onClick={() => setActive(null)}
-            style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "#6b7280" }}
-          >
-            ←
-          </button>
+          <button onClick={() => setActive(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "#6b7280" }}>←</button>
           <div>
-            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{active.title}</p>
-            <p style={{ margin: 0, fontSize: "0.78rem", color: "#6b7280" }}>{active.companyName}</p>
+            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{isDirect ? active.companyName : active.title}</p>
+            <p style={{ margin: 0, fontSize: "0.78rem", color: "#6b7280" }}>{isDirect ? "Direct message" : active.companyName}</p>
           </div>
         </div>
-        <ChatThread
-          jobId={active.jobId}
-          studentId={currentUser.id}
-          companyId={active.companyId}
-          senderId={currentUser.id}
-          companyName={active.companyName}
-        />
+        <ChatThread jobId={active.jobId} studentId={currentUser.id} companyId={active.companyId} senderId={currentUser.id} companyName={active.companyName} />
       </div>
     );
   }
 
+  const directUnread = directConvs.filter(c => c.lastSenderId && c.lastSenderId !== currentUser?.id).length;
+  const jobsUnread   = conversations.filter(c => c.lastSenderId && c.lastSenderId !== currentUser?.id).length;
+
   return (
     <><BackButton />
     <PageWrapper>
-      <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
+      <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>💬 Messages</h1>
-        <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Chat with employers who accepted your application</p>
+        <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Chat with employers</p>
       </div>
 
       {loading ? (
@@ -154,50 +189,68 @@ export default function Messages({ currentUser, setPage }) {
           <button onClick={() => setPage("appliedJobs")} style={btnPrimary}>View Applications</button>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-          {directConvs.length > 0 && (
-            <>
-              <p style={{ fontWeight: "700", fontSize: "0.75rem", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0.25rem 0" }}>Direct Messages</p>
-              {directConvs.map(conv => (
-                <button
-                  key={`direct_${conv.companyId}`}
-                  onClick={() => setActive(conv)}
-                  style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.9rem 1.1rem", borderRadius: "0.75rem", backgroundColor: "white", border: "1.5px solid #fce7f3", cursor: "pointer", textAlign: "left", width: "100%", fontFamily: "inherit" }}
-                >
-                  <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "linear-gradient(135deg, #A21D54, #C2185B)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ fontSize: "1.1rem" }}>🏢</span>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontWeight: "700", fontSize: "0.92rem", color: "#1e293b" }}>{conv.companyName}</p>
-                    <p style={{ margin: 0, fontSize: "0.78rem", color: "#A21D54", fontWeight: "600" }}>Direct message</p>
-                  </div>
-                  <span style={{ fontSize: "1rem", color: "#9ca3af" }}>›</span>
-                </button>
-              ))}
-            </>
+        <>
+          <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#f1f5f9", borderRadius: "0.65rem", padding: "0.2rem", marginBottom: "1rem" }}>
+            {[
+              { key: "direct", label: "Direct Messages", unread: directUnread },
+              { key: "jobs",   label: "Job Chats",       unread: jobsUnread },
+            ].map(t => (
+              <button key={t.key} onClick={() => setTab(t.key)} style={{
+                flex: 1, padding: "0.55rem 0.5rem", borderRadius: "0.45rem", border: "none",
+                background: tab === t.key ? "white" : "transparent",
+                boxShadow: tab === t.key ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+                color: tab === t.key ? "#1e293b" : "#64748b",
+                fontWeight: tab === t.key ? "700" : "500",
+                fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit",
+              }}>
+                {t.label}
+                {t.unread > 0 && <span style={{ marginLeft: "0.35rem", backgroundColor: "#A21D54", color: "white", borderRadius: "10px", padding: "0 0.35rem", fontSize: "0.68rem", fontWeight: "700" }}>{t.unread}</span>}
+              </button>
+            ))}
+          </div>
+
+          {tab === "direct" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+              {directConvs.length === 0
+                ? <p style={{ textAlign: "center", color: "#9ca3af", padding: "2rem 1rem", fontSize: "0.875rem" }}>No direct messages yet.</p>
+                : directConvs.map(conv => (
+                  <ConvCard
+                    key={`direct_${conv.companyId}`}
+                    avatarUrl={null}
+                    avatarName={conv.companyName}
+                    name={conv.companyName}
+                    subtitle="Direct message"
+                    lastMessage={conv.lastMessage}
+                    lastMessageAt={conv.lastMessageAt}
+                    isUnread={!!(conv.lastSenderId && conv.lastSenderId !== currentUser?.id)}
+                    onClick={() => setActive(conv)}
+                  />
+                ))
+              }
+            </div>
           )}
-          {conversations.length > 0 && (
-            <>
-              {directConvs.length > 0 && <p style={{ fontWeight: "700", fontSize: "0.75rem", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0.5rem 0 0.25rem" }}>Job Chats</p>}
-              {conversations.map(conv => (
-                <button
-                  key={conv.jobId}
-                  onClick={() => setActive(conv)}
-                  style={{ display: "flex", alignItems: "center", gap: "1rem", padding: "0.9rem 1.1rem", borderRadius: "0.75rem", backgroundColor: "white", border: "1.5px solid #e5e7eb", cursor: "pointer", textAlign: "left", width: "100%", fontFamily: "inherit" }}
-                >
-                  <div style={{ width: "42px", height: "42px", borderRadius: "50%", background: "linear-gradient(135deg, #A21D54, #C2185B)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ fontSize: "1.1rem" }}>🏢</span>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontWeight: "700", fontSize: "0.92rem", color: "#1e293b" }}>{conv.title}</p>
-                    <p style={{ margin: 0, fontSize: "0.78rem", color: "#6b7280" }}>{conv.companyName}</p>
-                  </div>
-                  <span style={{ fontSize: "1rem", color: "#9ca3af" }}>›</span>
-                </button>
-              ))}
-            </>
+
+          {tab === "jobs" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+              {conversations.length === 0
+                ? <p style={{ textAlign: "center", color: "#9ca3af", padding: "2rem 1rem", fontSize: "0.875rem" }}>No job chats yet. Get accepted to start chatting!</p>
+                : conversations.map(conv => (
+                  <ConvCard
+                    key={conv.jobId}
+                    avatarUrl={null}
+                    avatarName={conv.companyName}
+                    name={conv.title}
+                    subtitle={conv.companyName}
+                    lastMessage={conv.lastMessage}
+                    lastMessageAt={conv.lastMessageAt}
+                    isUnread={!!(conv.lastSenderId && conv.lastSenderId !== currentUser?.id)}
+                    onClick={() => setActive(conv)}
+                  />
+                ))
+              }
+            </div>
           )}
-        </div>
+        </>
       )}
     </PageWrapper></>
   );
