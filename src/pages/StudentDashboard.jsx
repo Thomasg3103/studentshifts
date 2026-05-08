@@ -614,40 +614,40 @@ export default function StudentDashboard({
                   <div key={job.id} className="job-card" style={{ display: "flex", alignItems: "flex-start", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "default" }}>
 
                     {/* Square photo */}
-                    <div style={{ width: "120px", height: "120px", flexShrink: 0, alignSelf: "flex-start", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
+                    <div style={{ width: "180px", height: "180px", flexShrink: 0, alignSelf: "flex-start", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                           <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         </div>
                       ) : (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
-                          <span style={{ fontSize: "2rem", opacity: 0.5 }}>🏢</span>
+                          <span style={{ fontSize: "3rem", opacity: 0.5 }}>🏢</span>
                         </div>
                       )}
                     </div>
 
                     {/* Middle info */}
-                    <div style={{ flex: 1, padding: "0.75rem 1rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div style={{ flex: 1, padding: "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       {/* Top: title + company + pills */}
                       <div>
                         <h2
                           onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
                           onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
                           onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}
-                          style={{ fontWeight: 800, fontSize: "1rem", margin: "0 0 0.15rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", cursor: "pointer" }}
+                          style={{ fontWeight: 800, fontSize: "1.5rem", margin: "0 0 0.2rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", cursor: "pointer" }}
                         >{job.title}</h2>
-                        <p style={{ margin: "0 0 0.4rem", fontSize: "0.83rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                        <p style={{ margin: "0 0 0.6rem", fontSize: "1.1rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.45rem" }}>
                           {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
                             return (
-                              <span key={day} style={{ fontSize: "0.7rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
+                              <span key={day} style={{ fontSize: "1rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.25rem 0.75rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
                                 {day.slice(0, 3)} · {job.times[day]?.join(", ")}{isFilled ? " ✓" : ""}
                               </span>
                             );
                           })}
                           {dist !== null && (
-                            <span style={{ fontSize: "0.7rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600 }}>
+                            <span style={{ fontSize: "1rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: "0.25rem 0.75rem", borderRadius: "999px", fontWeight: 600 }}>
                               📍 {formatDistance(dist)}
                             </span>
                           )}
@@ -655,10 +655,10 @@ export default function StudentDashboard({
                       </div>
 
                       {/* Bottom: pay + deadline */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
-                        <span style={{ fontWeight: 700, color: "#111827", fontSize: "0.92rem" }}>{job.pay}</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", marginTop: "0.6rem" }}>
+                        <span style={{ fontWeight: 700, color: "#111827", fontSize: "1.35rem" }}>{job.pay}</span>
                         {dl && (
-                          <span style={{ fontSize: "0.68rem", padding: "0.1rem 0.45rem", borderRadius: "999px", fontWeight: 600, backgroundColor: dlSoon ? "#fef3c7" : "#f3f4f6", color: dlSoon ? "#d97706" : "#6b7280", border: `1px solid ${dlSoon ? "#fde68a" : "#e5e7eb"}` }}>
+                          <span style={{ fontSize: "0.95rem", padding: "0.15rem 0.6rem", borderRadius: "999px", fontWeight: 600, backgroundColor: dlSoon ? "#fef3c7" : "#f3f4f6", color: dlSoon ? "#d97706" : "#6b7280", border: `1px solid ${dlSoon ? "#fde68a" : "#e5e7eb"}` }}>
                             Closes {deadlineLabel(dl)}
                           </span>
                         )}
@@ -670,14 +670,14 @@ export default function StudentDashboard({
                       onClick={() => toggleLike(job)}
                       disabled={isApplied}
                       title={isApplied ? "Applied" : isLiked ? "Unlike" : "Like"}
-                      style={{ width: "60px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, borderRadius: "0 1rem 1rem 0" }}
+                      style={{ width: "90px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, borderRadius: "0 1rem 1rem 0" }}
                     >
                       {isApplied ? (
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                       ) : isLiked ? (
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                       ) : (
-                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                       )}
                     </button>
                   </div>
