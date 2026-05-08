@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
-import BackButton from "../components/BackButton";
 import { fetchCompanyConversations, fetchCompanyDirectConversations, fetchMessages, sendMessage } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 
@@ -132,6 +132,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName }) {
 }
 
 export default function CompanyMessages({ currentUser, setPage }) {
+  const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
   const [directConvs, setDirectConvs]     = useState([]);
   const [loading, setLoading]             = useState(true);
@@ -177,9 +178,16 @@ export default function CompanyMessages({ currentUser, setPage }) {
   const jobsUnread   = conversations.filter(c => c.lastSenderId && c.lastSenderId !== currentUser?.id).length;
 
   return (
-    <><BackButton />
     <PageWrapper>
-      <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
+      <div style={{ position: "relative", textAlign: "center", marginBottom: "1.5rem" }}>
+        <button
+          onClick={() => navigate(-1)}
+          style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#64748b", fontWeight: 700, fontSize: "0.88rem", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.3rem 0" }}
+          onMouseEnter={e => e.currentTarget.style.color = "#A21D54"}
+          onMouseLeave={e => e.currentTarget.style.color = "#64748b"}
+        >
+          ← Back
+        </button>
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>💬 Messages</h1>
         <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Chat with students</p>
       </div>
@@ -257,7 +265,7 @@ export default function CompanyMessages({ currentUser, setPage }) {
           )}
         </>
       )}
-    </PageWrapper></>
+    </PageWrapper>
   );
 }
 
