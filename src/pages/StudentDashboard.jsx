@@ -611,10 +611,10 @@ export default function StudentDashboard({
                 const crop      = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
                 return (
-                  <div key={job.id} className="job-card" style={{ display: "flex", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "default" }}>
+                  <div key={job.id} className="job-card" style={{ display: "flex", alignItems: "flex-start", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "default" }}>
 
                     {/* Square photo */}
-                    <div style={{ width: "110px", height: "110px", flexShrink: 0, alignSelf: "flex-start", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
+                    <div style={{ width: "120px", height: "120px", flexShrink: 0, alignSelf: "flex-start", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                           <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -627,7 +627,7 @@ export default function StudentDashboard({
                     </div>
 
                     {/* Middle info */}
-                    <div style={{ flex: 1, padding: "0.7rem 1rem 0.55rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div style={{ flex: 1, padding: "0.7rem 1rem 0.6rem", minWidth: 0, display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                       <div>
                         <h2
                           onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
@@ -635,11 +635,11 @@ export default function StudentDashboard({
                           onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}
                           style={{ fontWeight: 800, fontSize: "1rem", margin: "0 0 0.15rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", cursor: "pointer" }}
                         >{job.title}</h2>
-                        <p style={{ margin: "0 0 0.5rem", fontSize: "0.83rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
+                        <p style={{ margin: 0, fontSize: "0.83rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
                       </div>
 
                       {/* Days / Times / Distance */}
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.5rem" }}>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                         {job.days.map(day => {
                           const isFilled = (job.filledShifts || []).includes(day);
                           return (
