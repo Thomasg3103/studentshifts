@@ -2542,6 +2542,11 @@ function PdfModal({ url, label, fileName, onClose }) {
           </div>
         </div>
         <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", backgroundColor: isDocx ? "white" : "#525659", display: "flex", flexDirection: "column", alignItems: isDocx ? "stretch" : "center", gap: "1rem", padding: "1rem" }}>
+          {isDocx && !docxLoading && !docxError && (
+            <div style={{ maxWidth: "680px", margin: "0 auto", width: "100%", padding: "0.45rem 0.75rem", backgroundColor: "#fef9c3", border: "1px solid #fde047", borderRadius: "0.4rem", fontSize: "0.78rem", color: "#854d0e", fontWeight: "500" }}>
+              ⚠ Formatting may differ from the original — download the file to view it exactly as written.
+            </div>
+          )}
           {isDocx ? (
             docxLoading ? (
               <p style={{ color: "#64748b", textAlign: "center", marginTop: "2rem" }}>Loading document…</p>
