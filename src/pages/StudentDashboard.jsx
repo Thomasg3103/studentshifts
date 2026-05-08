@@ -611,10 +611,10 @@ export default function StudentDashboard({
                 const crop      = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
                 return (
-                  <div key={job.id} className="job-card" style={{ display: "flex", alignItems: "flex-start", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "default" }}>
+                  <div key={job.id} className="job-card" style={{ display: "flex", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "default" }}>
 
                     {/* Square photo */}
-                    <div style={{ width: "180px", height: "180px", flexShrink: 0, alignSelf: "flex-start", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
+                    <div style={{ width: "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                           <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -627,7 +627,7 @@ export default function StudentDashboard({
                     </div>
 
                     {/* Middle info */}
-                    <div style={{ flex: 1, padding: "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column" }}>
+                    <div style={{ flex: 1, padding: "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       {/* Top: title + company + pills */}
                       <div>
                         <h2
@@ -655,7 +655,7 @@ export default function StudentDashboard({
                       </div>
 
                       {/* Bottom: pay + deadline */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", marginTop: "0.6rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
                         <span style={{ fontWeight: 700, color: "#111827", fontSize: "1.35rem" }}>{job.pay}</span>
                         {dl && (
                           <span style={{ fontSize: "0.95rem", padding: "0.15rem 0.6rem", borderRadius: "999px", fontWeight: 600, backgroundColor: dlSoon ? "#fef3c7" : "#f3f4f6", color: dlSoon ? "#d97706" : "#6b7280", border: `1px solid ${dlSoon ? "#fde68a" : "#e5e7eb"}` }}>
