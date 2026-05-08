@@ -1839,36 +1839,28 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
     setClOpen(false);
   }, [applicant.id]);
 
-  const isPdf = (name) => (name || "").split(".").pop().toLowerCase() === "pdf";
-
   const openCv = async () => {
-    setCvLoading(true);
-    try {
-      const { getSignedDocumentUrl } = await import("../lib/auth");
-      const url = cvUrl || await getSignedDocumentUrl("documents", applicant.cvName);
-      if (!cvUrl) setCvUrl(url);
-      if (isPdf(applicant.cvName)) {
-        setCvOpen(true);
-      } else {
-        window.open(url, "_blank", "noreferrer");
-      }
-    } catch (e) { alert(`Could not load CV: ${e.message}`); }
-    setCvLoading(false);
+    if (!cvUrl) {
+      setCvLoading(true);
+      try {
+        const { getSignedDocumentUrl } = await import("../lib/auth");
+        setCvUrl(await getSignedDocumentUrl("documents", applicant.cvName));
+      } catch (e) { alert(`Could not load CV: ${e.message}`); setCvLoading(false); return; }
+      setCvLoading(false);
+    }
+    setCvOpen(true);
   };
 
   const openCoverLetter = async () => {
-    setClLoading(true);
-    try {
-      const { getSignedDocumentUrl } = await import("../lib/auth");
-      const url = clUrl || await getSignedDocumentUrl("documents", applicant.coverLetterName);
-      if (!clUrl) setClUrl(url);
-      if (isPdf(applicant.coverLetterName)) {
-        setClOpen(true);
-      } else {
-        window.open(url, "_blank", "noreferrer");
-      }
-    } catch (e) { alert(`Could not load cover letter: ${e.message}`); }
-    setClLoading(false);
+    if (!clUrl) {
+      setClLoading(true);
+      try {
+        const { getSignedDocumentUrl } = await import("../lib/auth");
+        setClUrl(await getSignedDocumentUrl("documents", applicant.coverLetterName));
+      } catch (e) { alert(`Could not load cover letter: ${e.message}`); setClLoading(false); return; }
+      setClLoading(false);
+    }
+    setClOpen(true);
   };
 
   const handleNotesBlur = async () => {
@@ -2456,6 +2448,32 @@ function PdfModal({ url, label, fileName, onClose }) {
   const scrollRef = useRef(null);
   const [numPages, setNumPages] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [docxHtml, setDocxHtml] = useState(null);
+  const [docxLoading, setDocxLoading] = useState(false);
+  const [docxError, setDocxError] = useState(null);
+
+  const ext = (fileName || "").split(".").pop().toLowerCase();
+  const isDocx = ext === "docx" || ext === "doc";
+
+  // Load and convert docx → HTML
+  useEffect(() => {
+    if (!isDocx || !url) return;
+    setDocxLoading(true);
+    setDocxError(null);
+    (async () => {
+      try {
+        const res = await fetch(url);
+        const buf = await res.arrayBuffer();
+        const mammoth = (await import("mammoth")).default;
+        const { value } = await mammoth.convertToHtml({ arrayBuffer: buf });
+        setDocxHtml(value);
+      } catch (e) {
+        setDocxError("Could not render document.");
+      } finally {
+        setDocxLoading(false);
+      }
+    })();
+  }, [url]);
 
   useEffect(() => {
     const handler = () => setIsFullScreen(!!document.fullscreenElement);
@@ -2492,7 +2510,8 @@ function PdfModal({ url, label, fileName, onClose }) {
       try {
         const res = await fetch(url);
         const blob = await res.blob();
-        const file = new File([blob], fileName, { type: "application/pdf" });
+        const mime = isDocx ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "application/pdf";
+        const file = new File([blob], fileName, { type: mime });
         await navigator.share({ files: [file], title: label });
       } catch (e) { if (e.name !== "AbortError") alert("Could not share. Please try again."); }
     } else {
@@ -2522,14 +2541,27 @@ function PdfModal({ url, label, fileName, onClose }) {
             ))}
           </div>
         </div>
-        <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", backgroundColor: "#525659", display: "flex", flexDirection: "column", alignItems: "center", gap: "1rem", padding: "1rem" }}>
-          <Document file={url} onLoadSuccess={({ numPages }) => setNumPages(numPages)} loading={<p style={{ color: "white", marginTop: "2rem" }}>Loading PDF…</p>} error={<p style={{ color: "#fca5a5", marginTop: "2rem" }}>Failed to load PDF.</p>}>
-            {Array.from({ length: numPages || 0 }, (_, i) => (
-              <div key={i + 1} data-page={i + 1}>
-                <Page pageNumber={i + 1} width={Math.min(window.innerWidth - 64, 680)} renderTextLayer={false} />
-              </div>
-            ))}
-          </Document>
+        <div ref={scrollRef} style={{ flex: 1, overflowY: "auto", backgroundColor: isDocx ? "white" : "#525659", display: "flex", flexDirection: "column", alignItems: isDocx ? "stretch" : "center", gap: "1rem", padding: "1rem" }}>
+          {isDocx ? (
+            docxLoading ? (
+              <p style={{ color: "#64748b", textAlign: "center", marginTop: "2rem" }}>Loading document…</p>
+            ) : docxError ? (
+              <p style={{ color: "#e11d48", textAlign: "center", marginTop: "2rem" }}>{docxError}</p>
+            ) : (
+              <div
+                dangerouslySetInnerHTML={{ __html: docxHtml || "" }}
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "0.9rem", lineHeight: 1.7, color: "#1e293b", maxWidth: "680px", margin: "0 auto", padding: "1rem" }}
+              />
+            )
+          ) : (
+            <Document file={url} onLoadSuccess={({ numPages }) => setNumPages(numPages)} loading={<p style={{ color: "white", marginTop: "2rem" }}>Loading PDF…</p>} error={<p style={{ color: "#fca5a5", marginTop: "2rem" }}>Failed to load PDF.</p>}>
+              {Array.from({ length: numPages || 0 }, (_, i) => (
+                <div key={i + 1} data-page={i + 1}>
+                  <Page pageNumber={i + 1} width={Math.min(window.innerWidth - 64, 680)} renderTextLayer={false} />
+                </div>
+              ))}
+            </Document>
+          )}
         </div>
       </div>
     </div>
