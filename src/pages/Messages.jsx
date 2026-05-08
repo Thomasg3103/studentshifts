@@ -58,7 +58,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState("");
   const [loading, setLoading]   = useState(true);
-  const bottomRef = useRef(null);
+  const msgListRef = useRef(null);
 
   useEffect(() => {
     fetchMessages(jobId, studentId, companyId)
@@ -84,7 +84,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName }) {
   }, [jobId, studentId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (msgListRef.current) msgListRef.current.scrollTop = msgListRef.current.scrollHeight;
   }, [messages]);
 
   const send = async () => {
@@ -97,7 +97,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      <div style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+      <div ref={msgListRef} style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
         {loading
           ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
           : messages.length === 0
@@ -115,7 +115,6 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName }) {
               </div>
             ))
         }
-        <div ref={bottomRef} />
       </div>
       <div style={{ padding: "0.75rem 1rem", borderTop: "1.5px solid #e5e7eb", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
         <input
@@ -136,7 +135,7 @@ export default function Messages({ currentUser, setPage }) {
   const [conversations, setConversations] = useState([]);
   const [directConvs, setDirectConvs]     = useState([]);
   const [loading, setLoading]             = useState(true);
-  const [tab, setTab]                     = useState("direct");
+  const [tab, setTab]                     = useState("jobs");
   const [active, setActive]               = useState(null);
   const [refreshKey, setRefreshKey]       = useState(0);
 
@@ -150,7 +149,7 @@ export default function Messages({ currentUser, setPage }) {
     ]).then(([convs, directs]) => {
       setConversations(convs);
       setDirectConvs(directs);
-      if (isInitial && directs.length === 0 && convs.length > 0) setTab("jobs");
+      if (isInitial && convs.length === 0 && directs.length > 0) setTab("direct");
       if (isInitial) setLoading(false);
     });
   }, [currentUser?.id, refreshKey]);
