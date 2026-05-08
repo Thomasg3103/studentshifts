@@ -54,6 +54,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   const [studentsError, setStudentsError]     = useState(null);
   const [chatStudent, setChatStudent] = useState(null); // { id, name } for inline DM
   const [likedStudentIds, setLikedStudentIds] = useState(new Set());
+  const [applicantStudentIds, setApplicantStudentIds] = useState(new Set());
   const [applicantsViewMode, setApplicantsViewMode] = useState("list");
 
   // Load availability heatmap once
@@ -68,6 +69,19 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       .then(ids => setLikedStudentIds(new Set(ids)))
       .catch(() => {});
   }, [currentUser?.id]);
+
+  // Load applicant student IDs whenever Browse Students tab is open and jobs are loaded
+  useEffect(() => {
+    if (activeTab !== "students" || !currentUser || loading) return;
+    const jobIds = postings.map(p => p.id);
+    if (!jobIds.length) return;
+    withTimeout(
+      supabase.from("applications").select("student_id").in("job_id", jobIds),
+      10000
+    ).then(({ data }) => {
+      setApplicantStudentIds(new Set((data || []).map(a => a.student_id)));
+    }).catch(() => {});
+  }, [activeTab, loading]);
 
   // Load all verified students when Browse Students tab is first opened
   useEffect(() => {
@@ -691,6 +705,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
           setChatStudent={setChatStudent}
           setPage={setPage}
           likedStudentIds={likedStudentIds}
+          applicantStudentIds={applicantStudentIds}
           onToggleLike={toggleLike}
         />
       )}
@@ -796,8 +811,9 @@ export default function CompanyDashboard({ setPage, currentUser }) {
 
 /* ─── Sub-components ─────────────────────────────────────────────────────── */
 
-function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, companyName, chatStudent, setChatStudent, setPage, likedStudentIds, onToggleLike }) {
+function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, companyName, chatStudent, setChatStudent, setPage, likedStudentIds, applicantStudentIds, onToggleLike }) {
   const [filterByIndustries, setFilterByIndustries] = useState(true);
+  const [sortBy, setSortBy] = useState("default");
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
@@ -927,9 +943,25 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
     );
   }
 
-  const displayStudents = filterByIndustries && companyIndustries.length > 0
+  const filtered = filterByIndustries && companyIndustries.length > 0
     ? students.filter(s => s.job_preferences?.some(p => companyIndustries.includes(p)))
     : students;
+
+  const getSlots   = avail => Object.values(avail || {}).flat();
+  const dayCount   = avail => Object.values(avail || {}).filter(s => s?.length > 0).length;
+  const hasWeekend = avail => !!(avail?.Saturday?.length || avail?.Sunday?.length);
+  const earliest   = avail => { const t = getSlots(avail); return t.length ? t.reduce((a, b) => a < b ? a : b) : "99:99"; };
+  const latest     = avail => { const t = getSlots(avail); return t.length ? t.reduce((a, b) => a > b ? a : b) : "00:00"; };
+
+  const displayStudents = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case "most_available": return dayCount(b.availability) - dayCount(a.availability);
+      case "weekends_first": return (hasWeekend(b.availability) ? 1 : 0) - (hasWeekend(a.availability) ? 1 : 0);
+      case "earliest":       return earliest(a.availability).localeCompare(earliest(b.availability));
+      case "latest":         return latest(b.availability).localeCompare(latest(a.availability));
+      default:               return 0;
+    }
+  });
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
@@ -939,7 +971,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
           {displayStudents.length} of {students.length} verified student{students.length !== 1 ? "s" : ""}
           {filterByIndustries && companyIndustries.length > 0 ? " matching your industries" : ""}
         </p>
-        <div style={{ display: "flex", gap: "0.4rem" }}>
+        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
           <button
             onClick={() => setFilterByIndustries(true)}
             disabled={companyIndustries.length === 0}
@@ -954,6 +986,17 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
           >
             All Students
           </button>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid #e2e8f0", backgroundColor: sortBy !== "default" ? "#fce7f3" : "white", color: sortBy !== "default" ? "#A21D54" : "#64748b", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
+          >
+            <option value="default">Sort: Default</option>
+            <option value="most_available">Most Days Available</option>
+            <option value="weekends_first">Weekends First</option>
+            <option value="earliest">Earliest Starts</option>
+            <option value="latest">Latest Finishes</option>
+          </select>
         </div>
       </div>
       {displayStudents.length === 0 && (
@@ -962,7 +1005,8 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
         </p>
       )}
       {displayStudents.map(s => {
-        const isLiked = likedStudentIds?.has(s.id);
+        const isLiked   = likedStudentIds?.has(s.id);
+        const hasApplied = applicantStudentIds?.has(s.id);
         return (
         <div key={s.id} style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -973,7 +1017,14 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.2rem" }}>
-              <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{s.name}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
+                <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{s.name}</p>
+                {hasApplied && (
+                  <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: "#dcfce7", color: "#15803d", border: "1.5px solid #86efac", borderRadius: "999px", padding: "0.1rem 0.5rem", whiteSpace: "nowrap", flexShrink: 0 }}>
+                    Applied ✓
+                  </span>
+                )}
+              </div>
               <button
                 onClick={() => onToggleLike?.(s.id)}
                 title={isLiked ? "Remove from liked" : "Save student"}
