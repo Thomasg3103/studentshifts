@@ -1844,11 +1844,9 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
       setCvLoading(true);
       try {
         const { getSignedDocumentUrl } = await import("../lib/auth");
-        console.log("[CV] cvName raw value:", applicant.cvName);
         const url = await getSignedDocumentUrl("documents", applicant.cvName);
-        console.log("[CV] signed URL:", url);
         setCvUrl(url);
-      } catch (e) { console.error("[CV] error:", e); alert(`Could not load CV: ${e.message}`); setCvLoading(false); return; }
+      } catch (e) { alert(`Could not load CV: ${e.message}`); setCvLoading(false); return; }
       setCvLoading(false);
     }
     setCvOpen(true);
