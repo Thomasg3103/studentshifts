@@ -137,26 +137,31 @@ export default function CompanyMessages({ currentUser, setPage }) {
   const [loading, setLoading]             = useState(true);
   const [tab, setTab]                     = useState("direct");
   const [active, setActive]               = useState(null);
+  const [refreshKey, setRefreshKey]       = useState(0);
 
   useEffect(() => {
     if (!currentUser) { setLoading(false); return; }
+    const isInitial = refreshKey === 0;
+    if (isInitial) setLoading(true);
     Promise.all([
       fetchCompanyConversations(currentUser.id).catch(() => []),
       fetchCompanyDirectConversations(currentUser.id).catch(() => []),
     ]).then(([convs, directs]) => {
       setConversations(convs);
       setDirectConvs(directs);
-      if (directs.length === 0 && convs.length > 0) setTab("jobs");
-      setLoading(false);
+      if (isInitial && directs.length === 0 && convs.length > 0) setTab("jobs");
+      if (isInitial) setLoading(false);
     });
-  }, [currentUser?.id]);
+  }, [currentUser?.id, refreshKey]);
+
+  const goBack = () => { setActive(null); setRefreshKey(k => k + 1); };
 
   if (active) {
     const isDirect = active.jobId === null;
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 80px)" }}>
         <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "white", flexShrink: 0 }}>
-          <button onClick={() => setActive(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "#6b7280" }}>←</button>
+          <button onClick={goBack} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "#6b7280" }}>←</button>
           <Avatar url={active.profilePhotoUrl} name={active.studentName} size={38} />
           <div>
             <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{active.studentName}</p>
