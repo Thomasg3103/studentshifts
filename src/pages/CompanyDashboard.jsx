@@ -1839,30 +1839,36 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
     setClOpen(false);
   }, [applicant.id]);
 
+  const isPdf = (name) => (name || "").split(".").pop().toLowerCase() === "pdf";
+
   const openCv = async () => {
-    if (!cvUrl) {
-      setCvLoading(true);
-      try {
-        const { getSignedDocumentUrl } = await import("../lib/auth");
-        const url = await getSignedDocumentUrl("documents", applicant.cvName);
-        setCvUrl(url);
-      } catch (e) { alert(`Could not load CV: ${e.message}`); setCvLoading(false); return; }
-      setCvLoading(false);
-    }
-    setCvOpen(true);
+    setCvLoading(true);
+    try {
+      const { getSignedDocumentUrl } = await import("../lib/auth");
+      const url = cvUrl || await getSignedDocumentUrl("documents", applicant.cvName);
+      if (!cvUrl) setCvUrl(url);
+      if (isPdf(applicant.cvName)) {
+        setCvOpen(true);
+      } else {
+        window.open(url, "_blank", "noreferrer");
+      }
+    } catch (e) { alert(`Could not load CV: ${e.message}`); }
+    setCvLoading(false);
   };
 
   const openCoverLetter = async () => {
-    if (!clUrl) {
-      setClLoading(true);
-      try {
-        const { getSignedDocumentUrl } = await import("../lib/auth");
-        const url = await getSignedDocumentUrl("documents", applicant.coverLetterName);
-        setClUrl(url);
-      } catch (e) { alert(`Could not load cover letter: ${e.message}`); setClLoading(false); return; }
-      setClLoading(false);
-    }
-    setClOpen(true);
+    setClLoading(true);
+    try {
+      const { getSignedDocumentUrl } = await import("../lib/auth");
+      const url = clUrl || await getSignedDocumentUrl("documents", applicant.coverLetterName);
+      if (!clUrl) setClUrl(url);
+      if (isPdf(applicant.coverLetterName)) {
+        setClOpen(true);
+      } else {
+        window.open(url, "_blank", "noreferrer");
+      }
+    } catch (e) { alert(`Could not load cover letter: ${e.message}`); }
+    setClLoading(false);
   };
 
   const handleNotesBlur = async () => {
