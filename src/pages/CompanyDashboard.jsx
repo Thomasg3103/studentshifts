@@ -947,18 +947,16 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
     ? students.filter(s => s.job_preferences?.some(p => companyIndustries.includes(p)))
     : students;
 
-  const getSlots   = avail => Object.values(avail || {}).flat();
-  const dayCount   = avail => Object.values(avail || {}).filter(s => s?.length > 0).length;
-  const hasWeekend = avail => !!(avail?.Saturday?.length || avail?.Sunday?.length);
-  const earliest   = avail => { const t = getSlots(avail); return t.length ? t.reduce((a, b) => a < b ? a : b) : "99:99"; };
-  const latest     = avail => { const t = getSlots(avail); return t.length ? t.reduce((a, b) => a > b ? a : b) : "00:00"; };
+  const avSlots    = avail => Object.values(avail || {}).filter(Array.isArray).flat().filter(t => typeof t === "string");
+  const dayCount   = avail => Object.values(avail || {}).filter(v => Array.isArray(v) && v.length > 0).length;
+  const hasWeekend = avail => (Array.isArray(avail?.Saturday) && avail.Saturday.length > 0) || (Array.isArray(avail?.Sunday) && avail.Sunday.length > 0);
+  const earliest   = avail => { const t = avSlots(avail); return t.length ? t.reduce((a, b) => a < b ? a : b) : "99:99"; };
 
   const displayStudents = [...filtered].sort((a, b) => {
     switch (sortBy) {
       case "most_available": return dayCount(b.availability) - dayCount(a.availability);
       case "weekends_first": return (hasWeekend(b.availability) ? 1 : 0) - (hasWeekend(a.availability) ? 1 : 0);
       case "earliest":       return earliest(a.availability).localeCompare(earliest(b.availability));
-      case "latest":         return latest(b.availability).localeCompare(latest(a.availability));
       default:               return 0;
     }
   });
@@ -995,7 +993,6 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
             <option value="most_available">Most Days Available</option>
             <option value="weekends_first">Weekends First</option>
             <option value="earliest">Earliest Starts</option>
-            <option value="latest">Latest Finishes</option>
           </select>
         </div>
       </div>
