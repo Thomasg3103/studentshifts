@@ -627,7 +627,8 @@ export default function StudentDashboard({
                     </div>
 
                     {/* Middle info */}
-                    <div style={{ flex: 1, padding: "0.7rem 1rem 0.6rem", minWidth: 0, display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                    <div style={{ flex: 1, padding: "0.75rem 1rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                      {/* Top: title + company + pills */}
                       <div>
                         <h2
                           onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
@@ -635,28 +636,26 @@ export default function StudentDashboard({
                           onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}
                           style={{ fontWeight: 800, fontSize: "1rem", margin: "0 0 0.15rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", cursor: "pointer" }}
                         >{job.title}</h2>
-                        <p style={{ margin: 0, fontSize: "0.83rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
-                      </div>
-
-                      {/* Days / Times / Distance */}
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                        {job.days.map(day => {
-                          const isFilled = (job.filledShifts || []).includes(day);
-                          return (
-                            <span key={day} style={{ fontSize: "0.7rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
-                              {day.slice(0, 3)} · {job.times[day]?.join(", ")}{isFilled ? " ✓" : ""}
+                        <p style={{ margin: "0 0 0.4rem", fontSize: "0.83rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                          {job.days.map(day => {
+                            const isFilled = (job.filledShifts || []).includes(day);
+                            return (
+                              <span key={day} style={{ fontSize: "0.7rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
+                                {day.slice(0, 3)} · {job.times[day]?.join(", ")}{isFilled ? " ✓" : ""}
+                              </span>
+                            );
+                          })}
+                          {dist !== null && (
+                            <span style={{ fontSize: "0.7rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600 }}>
+                              📍 {formatDistance(dist)}
                             </span>
-                          );
-                        })}
-                        {dist !== null && (
-                          <span style={{ fontSize: "0.7rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600 }}>
-                            📍 {formatDistance(dist)}
-                          </span>
-                        )}
+                          )}
+                        </div>
                       </div>
 
-                      {/* Pay + deadline */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                      {/* Bottom: pay + deadline */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
                         <span style={{ fontWeight: 700, color: "#111827", fontSize: "0.92rem" }}>{job.pay}</span>
                         {dl && (
                           <span style={{ fontSize: "0.68rem", padding: "0.1rem 0.45rem", borderRadius: "999px", fontWeight: 600, backgroundColor: dlSoon ? "#fef3c7" : "#f3f4f6", color: dlSoon ? "#d97706" : "#6b7280", border: `1px solid ${dlSoon ? "#fde68a" : "#e5e7eb"}` }}>
