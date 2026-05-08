@@ -614,7 +614,7 @@ export default function StudentDashboard({
                   <div key={job.id} className="job-card" style={{ display: "flex", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "default" }}>
 
                     {/* Square photo */}
-                    <div style={{ width: "120px", height: "120px", flexShrink: 0, alignSelf: "flex-start", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
+                    <div style={{ width: "110px", height: "110px", flexShrink: 0, alignSelf: "flex-start", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                           <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -627,7 +627,7 @@ export default function StudentDashboard({
                     </div>
 
                     {/* Middle info */}
-                    <div style={{ flex: 1, padding: "0.85rem 1rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div style={{ flex: 1, padding: "0.7rem 1rem 0.55rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       <div>
                         <h2
                           onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
