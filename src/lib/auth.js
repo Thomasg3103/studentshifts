@@ -148,12 +148,20 @@ export async function signOut() {
 }
 
 export async function getProfile(userId) {
-  const { data, error } = await withTimeout(
+  const run = () => withTimeout(
     supabase.from("profiles").select("*, students(*), companies(*)").eq("id", userId).single(),
-    10000, "Failed to load profile — please refresh."
+    20000, "Failed to load profile — please refresh."
   );
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await run();
+    if (error) throw error;
+    return data;
+  } catch (firstErr) {
+    // One auto-retry on timeout — Supabase cold starts can exceed 10 s
+    const { data, error } = await run();
+    if (error) throw error;
+    return data;
+  }
 }
 
 export async function updateStudentProfile(userId, updates) {
