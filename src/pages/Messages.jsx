@@ -196,8 +196,8 @@ export default function Messages({ currentUser, setPage }) {
         <>
           <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#f1f5f9", borderRadius: "0.65rem", padding: "0.2rem", marginBottom: "1rem" }}>
             {[
-              { key: "direct", label: "Direct Messages", unread: directUnread },
               { key: "jobs",   label: "Job Chats",       unread: jobsUnread },
+              { key: "direct", label: "Direct Messages", unread: directUnread },
             ].map(t => (
               <button key={t.key} onClick={() => setTab(t.key)} style={{
                 flex: 1, padding: "0.55rem 0.5rem", borderRadius: "0.45rem", border: "none",
