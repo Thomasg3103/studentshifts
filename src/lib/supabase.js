@@ -24,3 +24,24 @@ export function withTimeout(promise, ms = 10000, msg = "Request timed out — pl
   );
   return Promise.race([promise, timeout]);
 }
+
+// Deduplicated session check — only ONE getSession() goes through the lock per 30-second
+// window. Parallel callers share the same in-flight promise instead of queuing 28 separate
+// lock acquisitions, which was the cause of slow/failed page loads.
+let _sessionCheckedAt = 0;
+let _sessionCheckInFlight = null;
+
+export function ensureValidSession() {
+  if (Date.now() - _sessionCheckedAt < 30_000) return Promise.resolve();
+  if (!_sessionCheckInFlight) {
+    _sessionCheckInFlight = supabase.auth.getSession()
+      .then(() => { _sessionCheckedAt = Date.now(); })
+      .catch(() => {})
+      .finally(() => { _sessionCheckInFlight = null; });
+  }
+  return _sessionCheckInFlight;
+}
+
+export function invalidateSessionCache() {
+  _sessionCheckedAt = 0;
+}
