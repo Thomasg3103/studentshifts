@@ -43,7 +43,7 @@ export default function AppFooter({ currentUser }) {
             <FLink onClick={() => {}}>TikTok</FLink>
             <FLink onClick={() => {}}>LinkedIn</FLink>
             <FLink onClick={() => {}}>Twitter / X</FLink>
-            <button style={{ marginTop: "0.9rem", padding: "0.5rem 1.2rem", borderRadius: "2rem", background: "linear-gradient(135deg,#A21D54,#C2185B)", color: "white", border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: "0.78rem" }}>
+            <button style={{ marginTop: "0.9rem", padding: "0.5rem 1.2rem", borderRadius: "2rem", background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: "white", border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: "0.78rem" }}>
               Download App
             </button>
           </div>

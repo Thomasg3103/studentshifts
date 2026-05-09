@@ -32,7 +32,7 @@ export default class ErrorBoundary extends Component {
             </p>
             <button
               onClick={() => window.location.reload()}
-              style={{ padding: "0.7rem 1.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(162,29,84,0.35)" }}
+              style={{ padding: "0.7rem 1.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(162,29,84,0.35)" }}
             >
               Refresh
             </button>

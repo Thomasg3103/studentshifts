@@ -11,7 +11,7 @@ export default function BackButton() {
       <button
         onClick={() => navigate(-1)}
         style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontWeight: 700, fontSize: "0.88rem", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.3rem 0" }}
-        onMouseEnter={e => e.currentTarget.style.color = "#A21D54"}
+        onMouseEnter={e => e.currentTarget.style.color = "var(--color-brand)"}
         onMouseLeave={e => e.currentTarget.style.color = "#64748b"}
       >
         ← Back

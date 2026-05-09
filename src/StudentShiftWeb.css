@@ -25,7 +25,7 @@ html, body, #root {
 
 header {
   width: 100%;
-  background: linear-gradient(135deg, #A21D54 0%, #C2185B 100%);
+  background: linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 100%);
   color: white;
   display: flex;
   justify-content: space-between;
@@ -79,7 +79,7 @@ header {
   color: #1e293b;
 }
 
-.view-btn  { background-color: #A21D54; color: white; }
+.view-btn  { background-color: var(--color-brand); color: white; }
 .apply-btn { background-color: #10b981; color: white; }
 .back-btn  { background-color: #64748b; color: white; }
 
@@ -195,7 +195,7 @@ header {
   height: 20px;
   border-radius: 50%;
   background: white;
-  border: 2.5px solid #A21D54;
+  border: 2.5px solid var(--color-brand);
   box-shadow: 0 1px 6px rgba(162,29,84,0.4);
   cursor: pointer;
 }
@@ -204,12 +204,12 @@ header {
   height: 20px;
   border-radius: 50%;
   background: white;
-  border: 2.5px solid #A21D54;
+  border: 2.5px solid var(--color-brand);
   box-shadow: 0 1px 6px rgba(162,29,84,0.4);
   cursor: pointer;
-  border: 2.5px solid #A21D54;
+  border: 2.5px solid var(--color-brand);
 }
-.dist-slider::-moz-range-progress { background: #A21D54; border-radius: 3px; }
+.dist-slider::-moz-range-progress { background: var(--color-brand); border-radius: 3px; }
 
 /* Detail panel slide-in */
 @keyframes slideInRight {

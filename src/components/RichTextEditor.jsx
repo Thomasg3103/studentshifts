@@ -75,7 +75,7 @@ function ToolBtn({ cmd, children, title, active, onExec, style = {} }) {
         border: `1.5px solid ${active ? "#f9a8d4" : "#e2e8f0"}`,
         borderRadius: "0.4rem",
         backgroundColor: active ? "#fdf2f8" : "white",
-        color: active ? "#A21D54" : "#374151",
+        color: active ? "var(--color-brand)" : "#374151",
         cursor: "pointer",
         fontFamily: "inherit",
         display: "flex", alignItems: "center", justifyContent: "center",

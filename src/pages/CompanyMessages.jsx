@@ -21,7 +21,7 @@ function Avatar({ url, name, size = 44 }) {
     return <img src={url} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />;
   }
   return (
-    <div style={{ width: size, height: size, borderRadius: "50%", background: "linear-gradient(135deg, #A21D54, #C2185B)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "white", fontWeight: "700", fontSize: Math.round(size * 0.38) + "px" }}>
+    <div style={{ width: size, height: size, borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "white", fontWeight: "700", fontSize: Math.round(size * 0.38) + "px" }}>
       {initials}
     </div>
   );
@@ -41,13 +41,13 @@ function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMess
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.4rem" }}>
           <p style={{ margin: 0, fontWeight: isUnread ? "800" : "700", fontSize: "0.92rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-          {timeStr && <p style={{ margin: 0, fontSize: "0.7rem", color: isUnread ? "#A21D54" : "#9ca3af", flexShrink: 0 }}>{timeStr}</p>}
+          {timeStr && <p style={{ margin: 0, fontSize: "0.7rem", color: isUnread ? "var(--color-brand)" : "#9ca3af", flexShrink: 0 }}>{timeStr}</p>}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
           <p style={{ margin: "0.1rem 0 0", fontSize: "0.8rem", color: isUnread ? "#374151" : "#6b7280", fontWeight: isUnread ? "600" : "400", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
             {lastMessage != null ? (lastMessage.length > 45 ? lastMessage.slice(0, 45) + "…" : lastMessage) : subtitle}
           </p>
-          {isUnread && <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: "#A21D54", flexShrink: 0, marginTop: "0.1rem" }} />}
+          {isUnread && <span style={{ width: "9px", height: "9px", borderRadius: "50%", background: "var(--color-brand)", flexShrink: 0, marginTop: "0.1rem" }} />}
         </div>
       </div>
     </button>
@@ -117,7 +117,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
             : messages.map(m => (
               <div key={m.id} style={{ alignSelf: m.sender_id === senderId ? "flex-end" : "flex-start", maxWidth: "80%" }}>
                 <div style={{
-                  backgroundColor: m.sender_id === senderId ? "#A21D54" : "#e5e7eb",
+                  backgroundColor: m.sender_id === senderId ? "var(--color-brand)" : "#e5e7eb",
                   color: m.sender_id === senderId ? "white" : "#111827",
                   padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45,
                 }}>{m.text}</div>
@@ -136,7 +136,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
               <button
                 key={qr.label}
                 onClick={() => { setInput(qr.text); setTimeout(() => inputRef.current?.focus(), 0); }}
-                style={{ flexShrink: 0, padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "#A21D54", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                style={{ flexShrink: 0, padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "var(--color-brand)", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
               >{qr.label}</button>
             ))}
           </div>
@@ -150,7 +150,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
           placeholder={`Message ${studentName}…`}
           style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
         />
-        <button onClick={send} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
+        <button onClick={send} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
           Send
         </button>
       </div>
@@ -220,7 +220,7 @@ export default function CompanyMessages({ currentUser, setPage, setMsgCount }) {
         <button
           onClick={() => navigate(-1)}
           style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#64748b", fontWeight: 700, fontSize: "0.88rem", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.3rem 0" }}
-          onMouseEnter={e => e.currentTarget.style.color = "#A21D54"}
+          onMouseEnter={e => e.currentTarget.style.color = "var(--color-brand)"}
           onMouseLeave={e => e.currentTarget.style.color = "#64748b"}
         >
           ← Back
@@ -261,7 +261,7 @@ export default function CompanyMessages({ currentUser, setPage, setMsgCount }) {
                 fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit",
               }}>
                 {t.label}
-                {t.unread > 0 && <span style={{ marginLeft: "0.35rem", backgroundColor: "#A21D54", color: "white", borderRadius: "10px", padding: "0 0.35rem", fontSize: "0.68rem", fontWeight: "700" }}>{t.unread}</span>}
+                {t.unread > 0 && <span style={{ marginLeft: "0.35rem", backgroundColor: "var(--color-brand)", color: "white", borderRadius: "10px", padding: "0 0.35rem", fontSize: "0.68rem", fontWeight: "700" }}>{t.unread}</span>}
               </button>
             ))}
           </div>
@@ -315,7 +315,7 @@ export default function CompanyMessages({ currentUser, setPage, setMsgCount }) {
 
 const btnPrimary = {
   padding: "0.75rem 1.75rem", borderRadius: "2rem", border: "none",
-  background: "linear-gradient(135deg, #A21D54, #C2185B)",
+  background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))",
   boxShadow: "0 4px 14px rgba(162,29,84,0.3)",
   color: "white", fontWeight: "700", fontSize: "0.9rem",
   cursor: "pointer", fontFamily: "inherit",

@@ -334,9 +334,9 @@ export default function AccountPage({
 
   // ── Sidebar cards (students) ──────────────────────────────────────────────
   const SidebarAvailability = () => (
-    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.85rem 0.9rem", marginBottom: "0.75rem", borderTop: "3px solid #A21D54" }}>
+    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.85rem 0.9rem", marginBottom: "0.75rem", borderTop: "3px solid var(--color-brand)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-        <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#A21D54" }}>My Availability</p>
+        <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-brand)" }}>My Availability</p>
       </div>
       <p style={{ fontSize: "0.73rem", color: "#6b7280", marginBottom: "0.65rem", lineHeight: 1.4 }}>Tap the slots you're free each week.</p>
       <AvailabilityPicker value={availability} onChange={handleAvailabilityChange} />
@@ -354,9 +354,9 @@ export default function AccountPage({
             <button key={cat} type="button" onClick={() => handlePrefToggle(cat)} style={{
               padding: "0.25rem 0.6rem", borderRadius: "999px", fontSize: "0.72rem", fontWeight: "600",
               cursor: "pointer", fontFamily: "inherit",
-              border: `1.5px solid ${active ? "#A21D54" : "#e2e8f0"}`,
+              border: `1.5px solid ${active ? "var(--color-brand)" : "#e2e8f0"}`,
               backgroundColor: active ? "#fce7f3" : "#f8fafc",
-              color: active ? "#A21D54" : "#64748b",
+              color: active ? "var(--color-brand)" : "#64748b",
             }}>
               {active ? "✓ " : ""}{cat}
             </button>
@@ -455,12 +455,12 @@ export default function AccountPage({
           {/* Profile photo + name header */}
           <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
             <div style={{ position: "relative", display: "inline-block" }}>
-              <div style={{ width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: "3px solid #fce7f3", backgroundColor: "#fafafa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", boxShadow: "0 0 0 3px #A21D5422" }}>
+              <div style={{ width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: "3px solid #fce7f3", backgroundColor: "#fafafa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", boxShadow: "0 0 0 3px var(--color-brand)22" }}>
                 {profilePhoto
                   ? <img src={profilePhoto} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   : <PersonIcon />}
               </div>
-              <label style={{ position: "absolute", bottom: "2px", right: "2px", width: "26px", height: "26px", borderRadius: "50%", background: "linear-gradient(135deg, #A21D54, #C2185B)", border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "0.7rem" }}>
+              <label style={{ position: "absolute", bottom: "2px", right: "2px", width: "26px", height: "26px", borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "0.7rem" }}>
                 📷
                 <input type="file" accept="image/*" style={{ display: "none" }} onChange={handlePhotoChange} />
               </label>
@@ -501,9 +501,9 @@ export default function AccountPage({
                         <button key={cat} type="button" onClick={() => handlePrefToggle(cat)} style={{
                           padding: "0.25rem 0.6rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600",
                           cursor: "pointer", fontFamily: "inherit",
-                          border: `1.5px solid ${active ? "#A21D54" : "#e2e8f0"}`,
+                          border: `1.5px solid ${active ? "var(--color-brand)" : "#e2e8f0"}`,
                           backgroundColor: active ? "#fce7f3" : "#f8fafc",
-                          color: active ? "#A21D54" : "#64748b",
+                          color: active ? "var(--color-brand)" : "#64748b",
                         }}>
                           {active ? "✓ " : ""}{cat}
                         </button>
@@ -633,14 +633,14 @@ export default function AccountPage({
                         style={{
                           padding: "0.3rem 0.75rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600",
                           cursor: "pointer", fontFamily: "inherit",
-                          border: `1.5px solid ${active ? "#A21D54" : "#e2e8f0"}`,
+                          border: `1.5px solid ${active ? "var(--color-brand)" : "#e2e8f0"}`,
                           backgroundColor: active ? "#fce7f3" : "white",
-                          color: active ? "#A21D54" : "#64748b",
+                          color: active ? "var(--color-brand)" : "#64748b",
                         }}>{active ? "✓ " : ""}{cat}</button>
                     );
                   })}
                 </div>
-                <button onClick={handleSaveIndustries} disabled={industrySaving} style={{ ...btnBase, background: "linear-gradient(135deg, #A21D54, #C2185B)", boxShadow: "0 4px 14px rgba(162,29,84,0.35)", opacity: industrySaving ? 0.7 : 1 }}>
+                <button onClick={handleSaveIndustries} disabled={industrySaving} style={{ ...btnBase, background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 14px rgba(162,29,84,0.35)", opacity: industrySaving ? 0.7 : 1 }}>
                   {industrySaved ? "✓ Saved!" : industrySaving ? "Saving…" : "Save Industries"}
                 </button>
               </Section>
@@ -800,9 +800,9 @@ function AvailabilityPicker({ value, onChange }) {
                 return (
                   <button key={slot} type="button" onClick={() => toggle(day, slot)} style={{
                     padding: "0.18rem 0.4rem", borderRadius: "0.3rem", fontSize: "0.65rem", fontWeight: "600", cursor: "pointer",
-                    border: `1.5px solid ${active ? (isWeekend ? "#f59e0b" : "#A21D54") : "#e2e8f0"}`,
+                    border: `1.5px solid ${active ? (isWeekend ? "#f59e0b" : "var(--color-brand)") : "#e2e8f0"}`,
                     backgroundColor: active ? (isWeekend ? "#fef3c7" : "#fce7f3") : "white",
-                    color: active ? (isWeekend ? "#d97706" : "#A21D54") : "#94a3b8",
+                    color: active ? (isWeekend ? "#d97706" : "var(--color-brand)") : "#94a3b8",
                     fontFamily: "inherit",
                   }}>
                     {slot}

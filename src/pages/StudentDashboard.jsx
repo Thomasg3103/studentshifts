@@ -357,7 +357,7 @@ export default function StudentDashboard({
         {warning && <p style={{ color: "#ef4444", fontSize: "0.76rem", marginBottom: "0.4rem" }}>{warning}</p>}
         {weekdays.map(day => (
           <div key={day} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
-            <input type="checkbox" id={`sd-${day}`} checked={selectedDays.includes(day)} onChange={() => toggleDay(day)} style={{ cursor: "pointer", width: "14px", height: "14px", accentColor: "#A21D54" }} />
+            <input type="checkbox" id={`sd-${day}`} checked={selectedDays.includes(day)} onChange={() => toggleDay(day)} style={{ cursor: "pointer", width: "14px", height: "14px", accentColor: "var(--color-brand)" }} />
             <label htmlFor={`sd-${day}`} style={{ fontWeight: 500, minWidth: "85px", cursor: "pointer", fontSize: "0.83rem" }}>{day}</label>
             <select
               value={dayTimes[day] || ""} onChange={e => updateTime(day, e.target.value)}
@@ -383,7 +383,7 @@ export default function StudentDashboard({
               </div>
               {distanceKm > 0 && (
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.3rem" }}>
-                  <button onClick={() => setDistanceKm(0)} style={{ fontSize: "0.72rem", color: "#A21D54", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>Reset</button>
+                  <button onClick={() => setDistanceKm(0)} style={{ fontSize: "0.72rem", color: "var(--color-brand)", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>Reset</button>
                 </div>
               )}
             </>
@@ -397,7 +397,7 @@ export default function StudentDashboard({
       <FilterSection title={<>Location {selectedLocations.length > 0 && <Pip n={selectedLocations.length} />}</>} open={openSections.location} onToggle={() => toggleSection("location")}>
         {allLocations.map(loc => (
           <label key={loc} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: 500 }}>
-            <input type="checkbox" checked={selectedLocations.includes(loc)} onChange={() => toggleLocation(loc)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "#A21D54" }} />
+            <input type="checkbox" checked={selectedLocations.includes(loc)} onChange={() => toggleLocation(loc)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
             {loc}
           </label>
         ))}
@@ -407,7 +407,7 @@ export default function StudentDashboard({
       <FilterSection title={<>Job Type {selectedJobTypes.length > 0 && <Pip n={selectedJobTypes.length} />}</>} open={openSections.jobType} onToggle={() => toggleSection("jobType")}>
         {Object.keys(jobCategories).map(type => (
           <label key={type} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: 500 }}>
-            <input type="checkbox" checked={selectedJobTypes.includes(type)} onChange={() => toggleJobType(type)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "#A21D54" }} />
+            <input type="checkbox" checked={selectedJobTypes.includes(type)} onChange={() => toggleJobType(type)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
             {type}
           </label>
         ))}
@@ -420,8 +420,8 @@ export default function StudentDashboard({
           { label: "All Week",     active: allWeekOnly, toggle: () => setAllWeekOnly(p => !p) },
           { label: "No Weekends",  active: noWeekends,  toggle: () => setNoWeekends(p => !p) },
         ].map(({ label, active, toggle }) => (
-          <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: active ? 700 : 500, color: active ? "#A21D54" : "#374151" }}>
-            <input type="checkbox" checked={active} onChange={toggle} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "#A21D54" }} />
+          <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: active ? 700 : 500, color: active ? "var(--color-brand)" : "#374151" }}>
+            <input type="checkbox" checked={active} onChange={toggle} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
             {label}
           </label>
         ))}
@@ -454,7 +454,7 @@ export default function StudentDashboard({
         {currentUser?.role === "student" && userPrefs.length > 0 && (
           <div style={{ display: "flex", backgroundColor: "#e8edf5", borderRadius: "0.75rem", padding: "0.25rem", marginBottom: "1rem", gap: "0.25rem" }}>
             {[{ val: false, label: "All Jobs" }, { val: true, label: "My Preferences" }].map(({ val, label }) => (
-              <button key={String(val)} onClick={() => setPrefOnly(val)} style={{ flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: prefOnly === val ? "white" : "transparent", color: prefOnly === val ? "#A21D54" : "#64748b", boxShadow: prefOnly === val ? "0 1px 6px rgba(0,0,0,0.1)" : "none" }}>
+              <button key={String(val)} onClick={() => setPrefOnly(val)} style={{ flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: prefOnly === val ? "white" : "transparent", color: prefOnly === val ? "var(--color-brand)" : "#64748b", boxShadow: prefOnly === val ? "0 1px 6px rgba(0,0,0,0.1)" : "none" }}>
                 {label}
               </button>
             ))}
@@ -483,7 +483,7 @@ export default function StudentDashboard({
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{ width: "100%", padding: "0.7rem 2.5rem 0.7rem 1rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white", outline: "none" }}
-                onFocus={e => e.target.style.borderColor = "#A21D54"}
+                onFocus={e => e.target.style.borderColor = "var(--color-brand)"}
                 onBlur={e => e.target.style.borderColor = "#e2e8f0"}
               />
               {searchQuery && (
@@ -500,7 +500,7 @@ export default function StudentDashboard({
             {savedSearches.length > 0 && (
               <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.6rem" }}>
                 {savedSearches.map((s, i) => (
-                  <button key={i} onClick={() => applyFilters(s.filters)} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.25rem 0.5rem 0.25rem 0.7rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fce7f3", color: "#A21D54", fontSize: "0.77rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                  <button key={i} onClick={() => applyFilters(s.filters)} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.25rem 0.5rem 0.25rem 0.7rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fce7f3", color: "var(--color-brand)", fontSize: "0.77rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                     ⭐ {s.name}
                     <span role="button" onClick={e => { e.stopPropagation(); deleteSearch(i); }} style={{ marginLeft: "0.1rem", color: "#f48fb1", fontWeight: 700, fontSize: "0.9rem", lineHeight: 1, cursor: "pointer", padding: "0 0.1rem" }}>×</span>
                   </button>
@@ -511,25 +511,25 @@ export default function StudentDashboard({
             {/* Job count + grid toggle + Sort By */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "#A21D54", backgroundColor: "#fce7f3", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
+                <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
                   {displayJobs.length} job{displayJobs.length !== 1 ? "s" : ""}
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", backgroundColor: "#fafafa", borderRadius: "0.6rem", padding: "0.2rem" }}>
-                  <button onClick={() => setGridCols(1)} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "#A21D54" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
-                  <button onClick={() => setGridCols(2)} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "#A21D54" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
+                  <button onClick={() => setGridCols(1)} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
+                  <button onClick={() => setGridCols(2)} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
                 </div>
                 {/* Save search button — auto-saves using search bar text as name */}
                 <button
                   onClick={saveSearch}
                   title="Save current search"
-                  style={{ padding: "0.28rem 0.55rem", border: `1.5px solid ${justSaved ? "#A21D54" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", backgroundColor: justSaved ? "#fce7f3" : "white", color: justSaved ? "#A21D54" : "#94a3b8", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, fontFamily: "inherit" }}
+                  style={{ padding: "0.28rem 0.55rem", border: `1.5px solid ${justSaved ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", backgroundColor: justSaved ? "#fce7f3" : "white", color: justSaved ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, fontFamily: "inherit" }}
                 >⭐</button>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               {isMobile && (
                 <button
                   onClick={() => setMobileFiltersOpen(o => !o)}
-                  style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${activeFilterCount > 0 ? "#A21D54" : "#e2e8f0"}`, backgroundColor: activeFilterCount > 0 ? "#fce7f3" : "white", color: activeFilterCount > 0 ? "#A21D54" : "#64748b", fontWeight: activeFilterCount > 0 ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "0.35rem", whiteSpace: "nowrap" }}
+                  style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${activeFilterCount > 0 ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: activeFilterCount > 0 ? "#fce7f3" : "white", color: activeFilterCount > 0 ? "var(--color-brand)" : "#64748b", fontWeight: activeFilterCount > 0 ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "0.35rem", whiteSpace: "nowrap" }}
                 >
                   Filters {activeFilterCount > 0 && <Pip n={activeFilterCount} />} {mobileFiltersOpen ? "▲" : "▼"}
                 </button>
@@ -537,7 +537,7 @@ export default function StudentDashboard({
               <div style={{ position: "relative" }} ref={sortDropdownRef}>
                 <button
                   onClick={() => setSortDropdownOpen(o => !o)}
-                  style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${sortBy ? "#A21D54" : "#e2e8f0"}`, backgroundColor: sortBy ? "#fce7f3" : "white", color: sortBy ? "#A21D54" : "#64748b", fontWeight: sortBy ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                  style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${sortBy ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: sortBy ? "#fce7f3" : "white", color: sortBy ? "var(--color-brand)" : "#64748b", fontWeight: sortBy ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
                 >
                   {sortLabel[sortBy] || "Sort by"} ▾
                 </button>
@@ -554,8 +554,8 @@ export default function StudentDashboard({
                         { value: "distanceFar",  label: "Distance: Furthest → Closest" },
                       ] : []),
                     ].map(({ value, label }) => (
-                      <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0", cursor: "pointer", fontSize: "0.85rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "#A21D54" : "#374151" }}>
-                        <input type="radio" name="sortByAbove" checked={sortBy === value} onChange={() => { setSortBy(value); setSortDropdownOpen(false); }} style={{ cursor: "pointer", accentColor: "#A21D54" }} />
+                      <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0", cursor: "pointer", fontSize: "0.85rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "var(--color-brand)" : "#374151" }}>
+                        <input type="radio" name="sortByAbove" checked={sortBy === value} onChange={() => { setSortBy(value); setSortDropdownOpen(false); }} style={{ cursor: "pointer", accentColor: "var(--color-brand)" }} />
                         {label}
                       </label>
                     ))}
@@ -581,7 +581,7 @@ export default function StudentDashboard({
             )}
             {jobsLoading && (
               <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
-                <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "#A21D54", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
+                <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
                 <p style={{ fontWeight: 600 }}>Loading jobs…</p>
               </div>
             )}
@@ -591,7 +591,7 @@ export default function StudentDashboard({
                 <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>
                   {searchQuery.trim() ? `No results for "${searchQuery}"` : "Try removing some filters."}
                 </p>
-                <button onClick={clearAll} style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg,#A21D54,#C2185B)", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                <button onClick={clearAll} style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                   Clear All Filters
                 </button>
               </div>
@@ -640,7 +640,7 @@ export default function StudentDashboard({
                           {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
                             return (
-                              <span key={day} style={{ fontSize: isPhone ? "0.7rem" : "1rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: isPhone ? "0.15rem 0.5rem" : "0.25rem 0.75rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
+                              <span key={day} style={{ fontSize: isPhone ? "0.7rem" : "1rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "var(--color-brand)", padding: isPhone ? "0.15rem 0.5rem" : "0.25rem 0.75rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
                                 {day.slice(0, 3)} · {job.times[day]?.join(", ")}{isFilled ? " ✓" : ""}
                               </span>
                             );
@@ -694,7 +694,7 @@ export default function StudentDashboard({
           style={{
             position: "fixed", bottom: isMobile ? "80px" : "2rem", right: "1.25rem",
             width: "44px", height: "44px", borderRadius: "50%",
-            background: "linear-gradient(135deg, #A21D54, #C2185B)",
+            background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))",
             border: "none", color: "white", fontSize: "1.2rem",
             cursor: "pointer", boxShadow: "0 4px 16px rgba(162,29,84,0.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -726,7 +726,7 @@ function FilterSection({ title, open, onToggle, children }) {
 
 function Pip({ n }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "#A21D54", color: "white", borderRadius: "999px", fontSize: "0.62rem", fontWeight: 700, minWidth: "16px", height: "16px", padding: "0 0.25rem", marginLeft: "0.3rem" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--color-brand)", color: "white", borderRadius: "999px", fontSize: "0.62rem", fontWeight: 700, minWidth: "16px", height: "16px", padding: "0 0.25rem", marginLeft: "0.3rem" }}>
       {n}
     </span>
   );
@@ -765,9 +765,9 @@ function SmoothSlider({ value, onChange, max = 50 }) {
     <div
       ref={trackRef}
       onPointerDown={(e) => { e.preventDefault(); dragging.current = true; valueFromClientX(e.clientX); }}
-      style={{ position: "relative", height: "6px", borderRadius: "999px", background: `linear-gradient(to right, #A21D54 ${pct}%, #e2e8f0 ${pct}%)`, cursor: "pointer", margin: "0.75rem 0", userSelect: "none", touchAction: "none" }}
+      style={{ position: "relative", height: "6px", borderRadius: "999px", background: `linear-gradient(to right, var(--color-brand) ${pct}%, #e2e8f0 ${pct}%)`, cursor: "pointer", margin: "0.75rem 0", userSelect: "none", touchAction: "none" }}
     >
-      <div style={{ position: "absolute", top: "50%", left: `${pct}%`, transform: "translate(-50%, -50%)", width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "#A21D54", boxShadow: "0 1px 4px rgba(0,0,0,0.25)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: "50%", left: `${pct}%`, transform: "translate(-50%, -50%)", width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "var(--color-brand)", boxShadow: "0 1px 4px rgba(0,0,0,0.25)", pointerEvents: "none" }} />
     </div>
   );
 }

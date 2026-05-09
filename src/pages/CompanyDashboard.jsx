@@ -659,15 +659,15 @@ export default function CompanyDashboard({ setPage, currentUser }) {
             style={{
               padding: "0.7rem 1.25rem", border: "none", background: "none",
               fontWeight: activeTab === val ? "700" : "500", fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit",
-              color: activeTab === val ? "#A21D54" : "#64748b",
-              borderBottom: activeTab === val ? "2px solid #A21D54" : "2px solid transparent",
+              color: activeTab === val ? "var(--color-brand)" : "#64748b",
+              borderBottom: activeTab === val ? "2px solid var(--color-brand)" : "2px solid transparent",
               marginBottom: "-1px", transition: "color 0.15s, border-color 0.15s",
               display: "inline-flex", alignItems: "center", gap: "0.4rem",
             }}
           >
             {label}
             {count > 0 && (
-              <span style={{ backgroundColor: activeTab === val ? "#A21D54" : "#e2e8f0", color: activeTab === val ? "white" : "#64748b", fontSize: "0.65rem", fontWeight: "700", borderRadius: "999px", padding: "0.05rem 0.45rem", minWidth: "18px", textAlign: "center" }}>
+              <span style={{ backgroundColor: activeTab === val ? "var(--color-brand)" : "#e2e8f0", color: activeTab === val ? "white" : "#64748b", fontSize: "0.65rem", fontWeight: "700", borderRadius: "999px", padding: "0.05rem 0.45rem", minWidth: "18px", textAlign: "center" }}>
                 {count}
               </span>
             )}
@@ -693,7 +693,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
               <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#1e293b" }}>Student Availability</p>
               <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>When verified students are free — use this to plan your job times</p>
             </div>
-            <button onClick={() => setShowHeatmap(p => !p)} style={{ padding: "0.35rem 0.85rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#A21D54", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
+            <button onClick={() => setShowHeatmap(p => !p)} style={{ padding: "0.35rem 0.85rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
               {showHeatmap ? "Hide" : "Show"}
             </button>
           </div>
@@ -778,7 +778,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
                 {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (
-                  <button key={val} onClick={() => setApplicantsViewMode(val)} style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem", fontWeight: "600", border: `1px solid ${applicantsViewMode === val ? "#A21D54" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: applicantsViewMode === val ? "#fff0f6" : "white", color: applicantsViewMode === val ? "#A21D54" : "#64748b" }}>{label}</button>
+                  <button key={val} onClick={() => setApplicantsViewMode(val)} style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem", fontWeight: "600", border: `1px solid ${applicantsViewMode === val ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: applicantsViewMode === val ? "#fff0f6" : "white", color: applicantsViewMode === val ? "var(--color-brand)" : "#64748b" }}>{label}</button>
                 ))}
                 <button onClick={closeModal} style={{ width: "32px", height: "32px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
               </div>
@@ -923,7 +923,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
               ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Introduce yourself!</p>
               : chatMessages.map(m => (
                 <div key={m.id} style={{ alignSelf: m.sender_id === companyId ? "flex-end" : "flex-start", maxWidth: "80%" }}>
-                  <div style={{ backgroundColor: m.sender_id === companyId ? "#A21D54" : "#e5e7eb", color: m.sender_id === companyId ? "white" : "#111827", padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45 }}>
+                  <div style={{ backgroundColor: m.sender_id === companyId ? "var(--color-brand)" : "#e5e7eb", color: m.sender_id === companyId ? "white" : "#111827", padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45 }}>
                     {m.text}
                   </div>
                   <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: "0.1rem 0 0", textAlign: m.sender_id === companyId ? "right" : "left" }}>
@@ -942,7 +942,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
             <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
               {browseQuickReplies.map(qr => (
                 <button key={qr.label} onMouseDown={e => { e.preventDefault(); setChatInput(qr.text); setTimeout(() => chatInputRef.current?.focus(), 0); }}
-                  style={{ flexShrink: 0, padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "#A21D54", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                  style={{ flexShrink: 0, padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "var(--color-brand)", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
                 >{qr.label}</button>
               ))}
             </div>
@@ -957,7 +957,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
             placeholder={`Message ${chatStudent.name}…`}
             style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
           />
-          <button onClick={sendDM} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
+          <button onClick={sendDM} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
             Send
           </button>
         </div>
@@ -1025,20 +1025,20 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
             onClick={() => setFilterByIndustries(true)}
             disabled={companyIndustries.length === 0}
             title={companyIndustries.length === 0 ? "Set your industries in My Account first" : ""}
-            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: companyIndustries.length === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", border: `1.5px solid ${filterByIndustries ? "#A21D54" : "#e2e8f0"}`, backgroundColor: filterByIndustries ? "#fce7f3" : "white", color: filterByIndustries ? "#A21D54" : "#64748b", opacity: companyIndustries.length === 0 ? 0.5 : 1 }}
+            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: companyIndustries.length === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", border: `1.5px solid ${filterByIndustries ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: filterByIndustries ? "#fce7f3" : "white", color: filterByIndustries ? "var(--color-brand)" : "#64748b", opacity: companyIndustries.length === 0 ? 0.5 : 1 }}
           >
             My Industries
           </button>
           <button
             onClick={() => setFilterByIndustries(false)}
-            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${!filterByIndustries ? "#A21D54" : "#e2e8f0"}`, backgroundColor: !filterByIndustries ? "#fce7f3" : "white", color: !filterByIndustries ? "#A21D54" : "#64748b" }}
+            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${!filterByIndustries ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: !filterByIndustries ? "#fce7f3" : "white", color: !filterByIndustries ? "var(--color-brand)" : "#64748b" }}
           >
             All Students
           </button>
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value)}
-            style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid #e2e8f0", backgroundColor: sortBy !== "default" ? "#fce7f3" : "white", color: sortBy !== "default" ? "#A21D54" : "#64748b", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
+            style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid #e2e8f0", backgroundColor: sortBy !== "default" ? "#fce7f3" : "white", color: sortBy !== "default" ? "var(--color-brand)" : "#64748b", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
           >
             <option value="default">Sort: Default</option>
             <option value="most_available">Most Days Available</option>
@@ -1099,7 +1099,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
             <StudentAvailabilityRow availability={s.availability} />
             <button
               onClick={() => { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); }}
-              style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
+              style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
             >
               Message
             </button>
@@ -1193,7 +1193,7 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
               ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Introduce yourself!</p>
               : chatMessages.map(m => (
                 <div key={m.id} style={{ alignSelf: m.sender_id === companyId ? "flex-end" : "flex-start", maxWidth: "80%" }}>
-                  <div style={{ backgroundColor: m.sender_id === companyId ? "#A21D54" : "#e5e7eb", color: m.sender_id === companyId ? "white" : "#111827", padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45 }}>
+                  <div style={{ backgroundColor: m.sender_id === companyId ? "var(--color-brand)" : "#e5e7eb", color: m.sender_id === companyId ? "white" : "#111827", padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45 }}>
                     {m.text}
                   </div>
                   <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: "0.1rem 0 0", textAlign: m.sender_id === companyId ? "right" : "left" }}>
@@ -1212,7 +1212,7 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
             <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
               {savedQuickReplies.map(qr => (
                 <button key={qr.label} onMouseDown={e => { e.preventDefault(); setChatInput(qr.text); setTimeout(() => chatInputRef.current?.focus(), 0); }}
-                  style={{ flexShrink: 0, padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "#A21D54", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                  style={{ flexShrink: 0, padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "var(--color-brand)", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
                 >{qr.label}</button>
               ))}
             </div>
@@ -1227,7 +1227,7 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
             placeholder={`Message ${chatStudent.name}…`}
             style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
           />
-          <button onClick={sendDM} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
+          <button onClick={sendDM} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
             Send
           </button>
         </div>
@@ -1293,7 +1293,7 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
             <StudentAvailabilityRow availability={s.availability} />
             <button
               onClick={() => { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); }}
-              style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
+              style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
             >
               Message
             </button>
@@ -1335,8 +1335,8 @@ function StudentAvailabilityRow({ availability }) {
                 borderRadius: "0.45rem", padding: "0.2rem 0.4rem", minWidth: "34px",
               }}
             >
-              <span style={{ fontSize: "0.65rem", fontWeight: "800", color: isWeekend ? "#d97706" : "#A21D54" }}>{DAY_ABBR[day]}</span>
-              <span style={{ fontSize: "0.6rem", color: isWeekend ? "#b45309" : "#A21D54", fontWeight: "600", whiteSpace: "nowrap" }}>
+              <span style={{ fontSize: "0.65rem", fontWeight: "800", color: isWeekend ? "#d97706" : "var(--color-brand)" }}>{DAY_ABBR[day]}</span>
+              <span style={{ fontSize: "0.6rem", color: isWeekend ? "#b45309" : "var(--color-brand)", fontWeight: "600", whiteSpace: "nowrap" }}>
                 {earliest === latest ? fmt(earliest) : `${fmt(earliest)}–${fmt(latest)}`}
               </span>
             </div>
@@ -1404,7 +1404,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
             <h2
               onClick={onViewApplicants}
               style={{ fontWeight: "700", fontSize: "1.05rem", margin: 0, cursor: "pointer", color: "#0f172a", transition: "color 0.15s" }}
-              onMouseEnter={e => e.currentTarget.style.color = "#A21D54"}
+              onMouseEnter={e => e.currentTarget.style.color = "var(--color-brand)"}
               onMouseLeave={e => e.currentTarget.style.color = "#0f172a"}
             >
               {posting.title}
@@ -1739,12 +1739,12 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
                 flexShrink: 0,
                 padding: "0.55rem 1.1rem",
                 border: "none",
-                borderBottom: active ? "2px solid #A21D54" : "2px solid transparent",
+                borderBottom: active ? "2px solid var(--color-brand)" : "2px solid transparent",
                 marginBottom: "-2px",
                 background: "transparent",
                 fontWeight: active ? "700" : "600",
                 fontSize: "0.82rem",
-                color: active ? "#A21D54" : "#64748b",
+                color: active ? "var(--color-brand)" : "#64748b",
                 cursor: "pointer",
                 fontFamily: "inherit",
                 display: "flex",
@@ -1757,7 +1757,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
               {count > 0 && (
                 <span style={{
                   fontSize: "0.68rem", fontWeight: "700",
-                  backgroundColor: active ? "#A21D54" : "#94a3b8",
+                  backgroundColor: active ? "var(--color-brand)" : "#94a3b8",
                   color: "white", borderRadius: "999px",
                   padding: "0.05rem 0.4rem", minWidth: "16px", textAlign: "center",
                 }}>
@@ -1793,7 +1793,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
                 if (e.target.checked) setSelectedIds(prev => new Set([...prev, ...ids]));
                 else setSelectedIds(prev => { const next = new Set(prev); ids.forEach(id => next.delete(id)); return next; });
               }}
-              style={{ cursor: "pointer", accentColor: "#A21D54", width: "15px", height: "15px" }}
+              style={{ cursor: "pointer", accentColor: "var(--color-brand)", width: "15px", height: "15px" }}
             />
             <span style={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>
               {allSelected ? "Deselect all" : `Select all ${pendingInStage.length} pending`}
@@ -1849,7 +1849,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
         if (saved.length === 0) return null;
         return (
           <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1.5px solid #e2e8f0" }}>
-            <p style={{ margin: "0 0 0.6rem", fontSize: "0.68rem", fontWeight: "700", color: "#A21D54", textTransform: "uppercase", letterSpacing: "0.07em", paddingLeft: "0.5rem", borderLeft: "2px solid #A21D54" }}>
+            <p style={{ margin: "0 0 0.6rem", fontSize: "0.68rem", fontWeight: "700", color: "var(--color-brand)", textTransform: "uppercase", letterSpacing: "0.07em", paddingLeft: "0.5rem", borderLeft: "2px solid var(--color-brand)" }}>
               Saved Students — haven't applied yet
             </p>
             {saved.map(s => (
@@ -1864,7 +1864,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
                   <p style={{ margin: 0, fontWeight: "700", fontSize: "0.88rem", color: "#1e293b" }}>{s.name}</p>
                   {s.bio && <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.bio}</p>}
                 </div>
-                <span style={{ fontSize: "0.68rem", color: "#A21D54", fontWeight: "700", whiteSpace: "nowrap", backgroundColor: "#fce7f3", padding: "0.15rem 0.5rem", borderRadius: "999px" }}>♥ Saved</span>
+                <span style={{ fontSize: "0.68rem", color: "var(--color-brand)", fontWeight: "700", whiteSpace: "nowrap", backgroundColor: "#fce7f3", padding: "0.15rem 0.5rem", borderRadius: "999px" }}>♥ Saved</span>
               </div>
             ))}
           </div>
@@ -1927,7 +1927,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
   const sc = statusColors[applicant.status];
   return (
     <div
-      style={{ borderRadius: "0.5rem", border: `1px solid ${isSelected ? "#A21D54" : "#e2e8f0"}`, overflow: "hidden", backgroundColor: isSelected ? "#fdf8fb" : "white", transition: "all 0.12s", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
+      style={{ borderRadius: "0.5rem", border: `1px solid ${isSelected ? "var(--color-brand)" : "#e2e8f0"}`, overflow: "hidden", backgroundColor: isSelected ? "#fdf8fb" : "white", transition: "all 0.12s", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
       onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = "#cbd5e1"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)"; } }}
       onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)"; } }}
     >
@@ -1938,7 +1938,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
         {/* Checkbox — pending only */}
         {applicant.status === "Pending" && (
           <div onClick={e => { e.stopPropagation(); onToggleSelect?.(); }} style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
-            <input type="checkbox" checked={isSelected || false} onChange={() => {}} onClick={e => { e.stopPropagation(); onToggleSelect?.(); }} style={{ cursor: "pointer", accentColor: "#A21D54", width: "15px", height: "15px" }} />
+            <input type="checkbox" checked={isSelected || false} onChange={() => {}} onClick={e => { e.stopPropagation(); onToggleSelect?.(); }} style={{ cursor: "pointer", accentColor: "var(--color-brand)", width: "15px", height: "15px" }} />
           </div>
         )}
         {/* Photo */}
@@ -2264,8 +2264,8 @@ function DetailPanel({ applicant, postingId, postingTitle, companyId, onClose, o
               : { applied: "Applied", shortlisted: "Shortlisted", trial: "Trial", decision: "Decision" }[s];
             return (
               <span key={s} style={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}>
-                {i > 0 && <span style={{ flex: "0 0 1px", height: "1px", backgroundColor: isPast ? "#A21D54" : "#e2e8f0", margin: "0 0.2rem" }} />}
-                <span style={{ fontSize: "0.68rem", fontWeight: isCurrent ? "700" : "500", color: isCurrent ? "#A21D54" : isPast ? "#A21D54" : "#cbd5e1", whiteSpace: "nowrap", opacity: isPast ? 0.6 : 1, flex: 1, textAlign: "center" }}>
+                {i > 0 && <span style={{ flex: "0 0 1px", height: "1px", backgroundColor: isPast ? "var(--color-brand)" : "#e2e8f0", margin: "0 0.2rem" }} />}
+                <span style={{ fontSize: "0.68rem", fontWeight: isCurrent ? "700" : "500", color: isCurrent ? "var(--color-brand)" : isPast ? "var(--color-brand)" : "#cbd5e1", whiteSpace: "nowrap", opacity: isPast ? 0.6 : 1, flex: 1, textAlign: "center" }}>
                   {crumbLabel}
                 </span>
               </span>
@@ -2594,7 +2594,7 @@ function InterviewInviteModal({ applicant, roundNumber, date: initialDate, time:
 
         <div style={{ display: "flex", gap: "0.6rem", marginTop: "1.25rem" }}>
           <button onClick={onClose} style={{ flex: 1, padding: "0.65rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-          <button onClick={send} disabled={sending} style={{ flex: 2, padding: "0.65rem", borderRadius: "0.6rem", border: "none", background: "linear-gradient(135deg,#7c3aed,#A21D54)", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: sending ? "default" : "pointer", fontFamily: "inherit", opacity: sending ? 0.7 : 1 }}>
+          <button onClick={send} disabled={sending} style={{ flex: 2, padding: "0.65rem", borderRadius: "0.6rem", border: "none", background: "linear-gradient(135deg,#7c3aed,var(--color-brand))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: sending ? "default" : "pointer", fontFamily: "inherit", opacity: sending ? 0.7 : 1 }}>
             {sending ? "Sending…" : "Send Invite ✉"}
           </button>
         </div>
@@ -2691,9 +2691,9 @@ function CloseJobModal({ posting, onClose, onCloseJob }) {
           <h3 style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.1rem", color: "#1e293b" }}>Close this Job</h3>
           <p style={{ margin: "0 0 1.25rem", fontSize: "0.85rem", color: "#64748b" }}>How did this hiring process end?</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            <button onClick={() => setMode("found")} style={closeOptBtn("#A21D54", "#fce7f3", "#fce7f3")}>
+            <button onClick={() => setMode("found")} style={closeOptBtn("var(--color-brand)", "#fce7f3", "#fce7f3")}>
               <span style={{ fontWeight: "700" }}>Found a Student</span>
-              <span style={{ fontSize: "0.75rem", color: "#A21D54" }}>Select which student you hired</span>
+              <span style={{ fontSize: "0.75rem", color: "var(--color-brand)" }}>Select which student you hired</span>
             </button>
             <button onClick={() => confirm({ foundStudent: false })} disabled={confirming} style={closeOptBtn("#0369a1", "#f0f9ff", "#bae6fd")}>
               <span style={{ fontWeight: "700" }}>Hired Elsewhere</span>
@@ -2708,7 +2708,7 @@ function CloseJobModal({ posting, onClose, onCloseJob }) {
         </>)}
 
         {mode === "found" && (<>
-          <button onClick={() => setMode(null)} style={{ background: "none", border: "none", color: "#A21D54", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", padding: 0, marginBottom: "0.75rem" }}>← Back</button>
+          <button onClick={() => setMode(null)} style={{ background: "none", border: "none", color: "var(--color-brand)", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", padding: 0, marginBottom: "0.75rem" }}>← Back</button>
           <h3 style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Who did you hire?</h3>
           <p style={{ margin: "0 0 1rem", fontSize: "0.82rem", color: "#64748b" }}>They'll get an acceptance email. Everyone else will be declined.</p>
           {decisionApplicants.length === 0 ? (
@@ -2722,7 +2722,7 @@ function CloseJobModal({ posting, onClose, onCloseJob }) {
                   style={{
                     display: "flex", alignItems: "center", gap: "0.65rem",
                     padding: "0.6rem 0.85rem", borderRadius: "0.55rem",
-                    border: `1.5px solid ${winner?.id === a.id ? "#A21D54" : "#e2e8f0"}`,
+                    border: `1.5px solid ${winner?.id === a.id ? "var(--color-brand)" : "#e2e8f0"}`,
                     backgroundColor: winner?.id === a.id ? "#fce7f3" : "white",
                     cursor: "pointer", fontFamily: "inherit", textAlign: "left",
                   }}
@@ -2734,7 +2734,7 @@ function CloseJobModal({ posting, onClose, onCloseJob }) {
                     }
                   </div>
                   <span style={{ fontWeight: "600", fontSize: "0.875rem", color: "#1e293b" }}>{a.name}</span>
-                  {winner?.id === a.id && <span style={{ marginLeft: "auto", color: "#A21D54", fontSize: "0.9rem" }}>✓</span>}
+                  {winner?.id === a.id && <span style={{ marginLeft: "auto", color: "var(--color-brand)", fontSize: "0.9rem" }}>✓</span>}
                 </button>
               ))}
             </div>
@@ -2742,7 +2742,7 @@ function CloseJobModal({ posting, onClose, onCloseJob }) {
           <button
             disabled={!winner || confirming}
             onClick={() => confirm({ foundStudent: true, winnerId: winner.id, winnerApplicant: winner })}
-            style={{ width: "100%", padding: "0.7rem", borderRadius: "0.6rem", border: "none", backgroundColor: winner ? "#A21D54" : "#e2e8f0", color: winner ? "white" : "#94a3b8", fontWeight: "700", fontSize: "0.875rem", cursor: winner ? "pointer" : "default", fontFamily: "inherit", opacity: confirming ? 0.7 : 1 }}
+            style={{ width: "100%", padding: "0.7rem", borderRadius: "0.6rem", border: "none", backgroundColor: winner ? "var(--color-brand)" : "#e2e8f0", color: winner ? "white" : "#94a3b8", fontWeight: "700", fontSize: "0.875rem", cursor: winner ? "pointer" : "default", fontFamily: "inherit", opacity: confirming ? 0.7 : 1 }}
           >
             {confirming ? "Processing…" : "Confirm Hire & Close Job"}
           </button>
@@ -2771,7 +2771,7 @@ function Section({ label, children }) {
 
 const panelActionBtn = (variant) => {
   const styles = {
-    primary:   { backgroundColor: "#A21D54", color: "white",    border: "none" },
+    primary:   { backgroundColor: "var(--color-brand)", color: "white",    border: "none" },
     secondary: { backgroundColor: "white",   color: "#374151",  border: "1px solid #d1d5db" },
     danger:    { backgroundColor: "white",   color: "#b91c1c",  border: "1px solid #fca5a5" },
     accept:    { backgroundColor: "#15803d", color: "white",    border: "none" },
@@ -3322,7 +3322,7 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
                 <p style={{ fontSize: "0.75rem", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.04em", margin: 0 }}>Preview · drag to reposition</p>
                 <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
-                  <button type="button" onClick={() => { setCrop(safeIdx, { zoom: 1, offsetX: 0, offsetY: 0 }); }} style={{ ...zoomBtn, color: "#A21D54" }}>Reset</button>
+                  <button type="button" onClick={() => { setCrop(safeIdx, { zoom: 1, offsetX: 0, offsetY: 0 }); }} style={{ ...zoomBtn, color: "var(--color-brand)" }}>Reset</button>
                   <button type="button" onClick={() => { const nz = Math.max(1, getCrop(safeIdx).zoom - 0.25); setCrop(safeIdx, { zoom: nz }); }} style={zoomBtn}>−</button>
                   <span style={{ fontSize: "0.72rem", color: "#6b7280", minWidth: "32px", textAlign: "center" }}>{Math.round(crop.zoom * 100)}%</span>
                   <button type="button" onClick={() => { const nz = Math.min(4, getCrop(safeIdx).zoom + 0.25); setCrop(safeIdx, { zoom: nz }); }} style={zoomBtn}>+</button>
@@ -3348,7 +3348,7 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
             {existingPhotos.map((url, i) => {
               const isActive = Math.min(previewIndex, existingPhotos.length + photoFiles.length - 1) === i;
               return (
-                <div key={url} onClick={() => setPreviewIndex(i)} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: `2px solid ${isActive ? "#A21D54" : "#d1d5db"}`, cursor: "pointer", boxShadow: isActive ? "0 0 0 2px #f48fb1" : "none" }}>
+                <div key={url} onClick={() => setPreviewIndex(i)} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: `2px solid ${isActive ? "var(--color-brand)" : "#d1d5db"}`, cursor: "pointer", boxShadow: isActive ? "0 0 0 2px #f48fb1" : "none" }}>
                   <img src={url} alt="job photo" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   <button type="button" onClick={e => { e.stopPropagation(); removeExistingPhoto(url); }} style={{ position: "absolute", top: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", color: "white", width: "18px", height: "18px", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
                 </div>
@@ -3358,7 +3358,7 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
               const globalIdx = existingPhotos.length + i;
               const isActive = Math.min(previewIndex, existingPhotos.length + photoFiles.length - 1) === globalIdx;
               return (
-                <div key={i} onClick={() => setPreviewIndex(globalIdx)} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: `2px solid ${isActive ? "#A21D54" : "#d1d5db"}`, cursor: "pointer", boxShadow: isActive ? "0 0 0 2px #f48fb1" : "none" }}>
+                <div key={i} onClick={() => setPreviewIndex(globalIdx)} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: `2px solid ${isActive ? "var(--color-brand)" : "#d1d5db"}`, cursor: "pointer", boxShadow: isActive ? "0 0 0 2px #f48fb1" : "none" }}>
                   <img src={URL.createObjectURL(file)} alt={file.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   <button type="button" onClick={e => { e.stopPropagation(); removeNewPhoto(i); }} style={{ position: "absolute", top: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", color: "white", width: "18px", height: "18px", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
                 </div>
@@ -3486,7 +3486,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
           <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", scrollbarWidth: "none" }}>
             {quickReplies.map(qr => (
               <button key={qr.label} onMouseDown={e => { e.preventDefault(); setInput(qr.text); setTimeout(() => inputRef.current?.focus(), 0); }}
-                style={{ flexShrink: 0, padding: "0.28rem 0.6rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "#A21D54", fontSize: "0.72rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                style={{ flexShrink: 0, padding: "0.28rem 0.6rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "var(--color-brand)", fontSize: "0.72rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
               >{qr.label}</button>
             ))}
           </div>
@@ -3610,7 +3610,7 @@ const navBtn        = { background: "none", border: "1.5px solid rgba(255,255,25
 const cvHeaderBtn   = { background: "none", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.4rem", color: "white", fontSize: "0.75rem", fontWeight: "600", padding: "0.25rem 0.6rem", cursor: "pointer", fontFamily: "inherit" };
 const btnSmallBase  = { padding: "0.32rem 0.75rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" };
 const btnSmallGreen = { ...btnSmallBase, background: "linear-gradient(135deg, #10b981, #059669)", boxShadow: "0 2px 6px rgba(16,185,129,0.3)" };
-const btnSmallBlue  = { ...btnSmallBase, background: "linear-gradient(135deg, #A21D54, #C2185B)", boxShadow: "0 2px 6px rgba(162,29,84,0.3)" };
+const btnSmallBlue  = { ...btnSmallBase, background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 2px 6px rgba(162,29,84,0.3)" };
 const btnSmallGray  = { ...btnSmallBase, backgroundColor: "#64748b" };
 const btnSmallRed   = { ...btnSmallBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 2px 6px rgba(244,63,94,0.3)" };
 const btnCardAction = { padding: "0.55rem 1.25rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.82rem", fontFamily: "inherit", backgroundColor: "#64748b", boxShadow: "0 2px 8px rgba(0,0,0,0.12)", whiteSpace: "nowrap" };

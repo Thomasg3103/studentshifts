@@ -48,7 +48,7 @@ export default function PageWrapper({ children, narrow }) {
             width: "44px",
             height: "44px",
             borderRadius: "50%",
-            background: "linear-gradient(135deg, #A21D54, #C2185B)",
+            background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))",
             color: "white",
             border: "none",
             fontSize: "1.1rem",

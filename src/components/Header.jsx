@@ -92,7 +92,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
         display: "flex", alignItems: "center",
         justifyContent: isMobile ? "center" : "space-between",
         padding: isMobile ? "0.6rem 1rem" : "0.85rem 2.5rem",
-        background: "linear-gradient(135deg, #A21D54 0%, #C2185B 100%)",
+        background: "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 100%)",
         color: "white",
         boxShadow: "0 4px 20px rgba(162,29,84,0.35)",
         position: "sticky", top: 0, zIndex: 100,
@@ -150,8 +150,8 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("account")} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
                           {currentUser.profilePhoto
-                            ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid #A21D54" : "none" }} />
-                            : <PersonIcon color={isAccount ? "#A21D54" : "white"} />
+                            ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid var(--color-brand)" : "none" }} />
+                            : <PersonIcon color={isAccount ? "var(--color-brand)" : "white"} />
                           }
                           <span className="nav-label">Account</span>
                         </button>
@@ -181,8 +181,8 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("account")} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
                           {currentUser.profilePhoto
-                            ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid #A21D54" : "none" }} />
-                            : <PersonIcon color={isAccount ? "#A21D54" : "white"} />
+                            ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid var(--color-brand)" : "none" }} />
+                            : <PersonIcon color={isAccount ? "var(--color-brand)" : "white"} />
                           }
                           <span className="nav-label">Account</span>
                         </button>
@@ -252,7 +252,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
     gap: "2px", flex: 1, padding: "0.35rem 0",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-    color: active ? "#A21D54" : "#94a3b8",
+    color: active ? "var(--color-brand)" : "#94a3b8",
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
   });
 
@@ -307,8 +307,8 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
       <div style={{ flex: 1, position: "relative" }}>
         <button onClick={() => setPage("account")} style={{ ...tab(isAccount), width: "100%", height: "100%" }}>
           {currentUser?.profilePhoto
-            ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "#A21D54" : "#e2e8f0"}` }} />
-            : <PersonIcon color={isAccount ? "#A21D54" : "#94a3b8"} />
+            ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
+            : <PersonIcon color={isAccount ? "var(--color-brand)" : "#94a3b8"} />
           }
           Account
         </button>
@@ -330,7 +330,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount }) {
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
     gap: "2px", flex: 1, padding: "0.35rem 0",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-    color: active ? "#A21D54" : "#94a3b8",
+    color: active ? "var(--color-brand)" : "#94a3b8",
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
   });
 
@@ -359,7 +359,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount }) {
         My Jobs
       </button>
       <button onClick={() => setPage("account")} style={tab(isAccount)}>
-        <PersonIcon color={isAccount ? "#A21D54" : "#94a3b8"} />
+        <PersonIcon color={isAccount ? "var(--color-brand)" : "#94a3b8"} />
         Account
       </button>
     </nav>
@@ -370,10 +370,10 @@ function LogoIcon() {
   return (
     <div style={{ width: "44px", height: "44px", borderRadius: "12px", backgroundColor: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <polygon points="12,3 22,8 12,13 2,8" fill="#A21D54" />
-        <path d="M6 10.5v4.5c0 1.93 2.69 3.5 6 3.5s6-1.57 6-3.5v-4.5" stroke="#A21D54" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
-        <line x1="20" y1="8" x2="20" y2="14" stroke="#A21D54" strokeWidth="1.5" strokeLinecap="round" />
-        <circle cx="20" cy="15.5" r="1.5" fill="#A21D54" />
+        <polygon points="12,3 22,8 12,13 2,8" fill="var(--color-brand)" />
+        <path d="M6 10.5v4.5c0 1.93 2.69 3.5 6 3.5s6-1.57 6-3.5v-4.5" stroke="var(--color-brand)" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
+        <line x1="20" y1="8" x2="20" y2="14" stroke="var(--color-brand)" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="20" cy="15.5" r="1.5" fill="var(--color-brand)" />
       </svg>
     </div>
   );
@@ -381,7 +381,7 @@ function LogoIcon() {
 
 function HomeIcon({ active }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "#A21D54" : "none"} stroke={active ? "#A21D54" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "var(--color-brand)" : "none"} stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
@@ -399,7 +399,7 @@ function PersonIcon({ color = "white" }) {
 
 function BrowseIcon({ active }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#A21D54" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
     </svg>
   );
@@ -407,7 +407,7 @@ function BrowseIcon({ active }) {
 
 function BriefcaseIcon({ active }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#A21D54" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
     </svg>
   );
@@ -423,7 +423,7 @@ function CountBadge({ n }) {
 
 const navBtnPrimary = {
   padding: "0.48rem 1.1rem", borderRadius: "2rem",
-  background: "linear-gradient(135deg, #A21D54, #C2185B)",
+  background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))",
   color: "white", border: "none", cursor: "pointer",
   fontWeight: "700", fontSize: "0.82rem",
   boxShadow: "0 4px 14px rgba(162,29,84,0.45)", fontFamily: "inherit",
@@ -436,7 +436,7 @@ const navBtnOutline = {
 };
 const navBtnActive = {
   padding: "0.45rem 1.1rem", borderRadius: "2rem",
-  backgroundColor: "white", color: "#A21D54",
+  backgroundColor: "white", color: "var(--color-brand)",
   border: "1.5px solid white",
   cursor: "default", fontWeight: "800", fontSize: "0.82rem", fontFamily: "inherit",
   boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
@@ -448,7 +448,7 @@ const notifDot = {
   fontSize: "0.62rem", fontWeight: "700",
   width: "16px", height: "16px", borderRadius: "50%",
   display: "flex", alignItems: "center", justifyContent: "center",
-  pointerEvents: "none", border: "2px solid #C2185B",
+  pointerEvents: "none", border: "2px solid var(--color-brand-dark)",
 };
 const notifDotActive = {
   ...notifDot,

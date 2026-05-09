@@ -1,4 +1,6 @@
 :root {
+  --color-brand: #A21D54;
+  --color-brand-dark: #C2185B;
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;

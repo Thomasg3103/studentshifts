@@ -72,7 +72,7 @@ export default function LandingPage({ currentUser }) {
       <header style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "0.85rem 2.5rem",
-        background: "linear-gradient(135deg, #A21D54 0%, #C2185B 100%)",
+        background: "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 100%)",
         boxShadow: "0 4px 20px rgba(162,29,84,0.35)",
         position: "sticky", top: 0, zIndex: 200,
       }}>
@@ -137,7 +137,7 @@ export default function LandingPage({ currentUser }) {
       }}>
         <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.6rem)", fontWeight: 900, lineHeight: 1.12, margin: "0 0 1rem", letterSpacing: "-0.03em" }}>
           Find Flexible Shifts That<br />
-          <span style={{ background: "linear-gradient(90deg,#A21D54,#C2185B,#E57399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
+          <span style={{ background: "linear-gradient(90deg,var(--color-brand),var(--color-brand-dark),#E57399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             Fit Your Student Life
           </span>
         </h1>
@@ -214,7 +214,7 @@ export default function LandingPage({ currentUser }) {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", marginBottom: "3.5rem" }}>
           {STATS.map(({ n, label }) => (
             <div key={label} style={{ backgroundColor: "#fce7f3", borderRadius: "1rem", padding: "1.75rem 1rem", textAlign: "center" }}>
-              <p style={{ fontWeight: 800, fontSize: "2rem", color: "#A21D54", margin: 0 }}>{n}</p>
+              <p style={{ fontWeight: 800, fontSize: "2rem", color: "var(--color-brand)", margin: 0 }}>{n}</p>
               <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "0.3rem 0 0", fontWeight: 600 }}>{label}</p>
             </div>
           ))}
@@ -289,10 +289,10 @@ function LogoIcon() {
   return (
     <div style={{ width: "44px", height: "44px", borderRadius: "12px", backgroundColor: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
-        <polygon points="12,3 22,8 12,13 2,8" fill="#A21D54" />
-        <path d="M6 10.5v4.5c0 1.93 2.69 3.5 6 3.5s6-1.57 6-3.5v-4.5" stroke="#A21D54" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
-        <line x1="20" y1="8" x2="20" y2="14" stroke="#A21D54" strokeWidth="1.5" strokeLinecap="round" />
-        <circle cx="20" cy="15.5" r="1.5" fill="#A21D54" />
+        <polygon points="12,3 22,8 12,13 2,8" fill="var(--color-brand)" />
+        <path d="M6 10.5v4.5c0 1.93 2.69 3.5 6 3.5s6-1.57 6-3.5v-4.5" stroke="var(--color-brand)" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
+        <line x1="20" y1="8" x2="20" y2="14" stroke="var(--color-brand)" strokeWidth="1.5" strokeLinecap="round" />
+        <circle cx="20" cy="15.5" r="1.5" fill="var(--color-brand)" />
       </svg>
     </div>
   );

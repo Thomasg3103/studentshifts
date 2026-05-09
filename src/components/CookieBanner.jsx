@@ -47,7 +47,7 @@ export default function CookieBanner({ setPage, hasBottomNav }) {
           padding: "0.5rem 1.25rem",
           borderRadius: "2rem",
           border: "none",
-          background: "linear-gradient(135deg, #A21D54, #C2185B)",
+          background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))",
           color: "white",
           fontWeight: "700",
           fontSize: "0.85rem",

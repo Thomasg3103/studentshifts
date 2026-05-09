@@ -7,8 +7,8 @@ import { haversineDistance, formatDistance } from "../utils/geo";
 
 function DetailCard({ label, children }) {
   return (
-    <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderLeft: "3px solid #A21D54", borderRadius: "0.65rem", padding: "0.55rem 0.75rem", marginBottom: "0.4rem" }}>
-      <p style={{ margin: "0 0 0.25rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#A21D54" }}>{label}</p>
+    <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderLeft: "3px solid var(--color-brand)", borderRadius: "0.65rem", padding: "0.55rem 0.75rem", marginBottom: "0.4rem" }}>
+      <p style={{ margin: "0 0 0.25rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-brand)" }}>{label}</p>
       <div style={{ fontSize: "0.88rem", color: "#1e293b", fontWeight: 600 }}>{children}</div>
     </div>
   );
@@ -124,7 +124,7 @@ export default function JobDetails({
             const t = job.times?.[day];
             const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
             return (
-              <span key={day} style={{ fontSize: "0.73rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "#A21D54", padding: "0.2rem 0.5rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
+              <span key={day} style={{ fontSize: "0.73rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "var(--color-brand)", padding: "0.2rem 0.5rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
                 {day}{timeStr ? ` · ${timeStr}` : ""}{isFilled ? " ✓" : ""}
               </span>
             );
@@ -188,7 +188,7 @@ export default function JobDetails({
                 {photos.length > 1 && (
                   <div style={{ display: "flex", gap: "5px" }}>
                     {photos.map((_, i) => (
-                      <div key={i} onClick={() => setPhotoIdx(i)} style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: i === idx ? "#A21D54" : "#d1d5db", cursor: "pointer", transition: "background-color 0.15s" }} />
+                      <div key={i} onClick={() => setPhotoIdx(i)} style={{ width: "6px", height: "6px", borderRadius: "50%", backgroundColor: i === idx ? "var(--color-brand)" : "#d1d5db", cursor: "pointer", transition: "background-color 0.15s" }} />
                     ))}
                   </div>
                 )}
@@ -216,7 +216,7 @@ export default function JobDetails({
                       <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                     )}
                   </button>
-                  <button onClick={handleApply} style={{ ...btn, background: "linear-gradient(135deg,#A21D54,#C2185B)", boxShadow: "0 3px 10px rgba(162,29,84,0.35)" }}>
+                  <button onClick={handleApply} style={{ ...btn, background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", boxShadow: "0 3px 10px rgba(162,29,84,0.35)" }}>
                     Apply Now
                   </button>
                 </div>
@@ -271,7 +271,7 @@ export default function JobDetails({
                   setReportOpen(false);
                   setReportReason("");
                 }}
-                style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg,#A21D54,#C2185B)", color: "white", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: "white", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
               >Send Report</button>
             </div>
           </div>
@@ -291,7 +291,7 @@ export default function JobDetails({
           </p>
           <div style={{ display: "flex", gap: "0.75rem" }}>
             <button onClick={() => setApplyModal(null)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-            <button onClick={() => { setApplyModal(null); setPage("account"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Upload CV →</button>
+            <button onClick={() => { setApplyModal(null); setPage("account"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Upload CV →</button>
           </div>
         </>
       ) : applyModal === "notVerified" ? (
@@ -303,7 +303,7 @@ export default function JobDetails({
               ? "Your documents are under review. You'll be able to apply once your account is verified."
               : "You need to upload your verification documents before applying for jobs."}
           </p>
-          <button onClick={() => setApplyModal(null)} style={{ width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Got it</button>
+          <button onClick={() => setApplyModal(null)} style={{ width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Got it</button>
         </>
       ) : applyModal === "shifts" ? (
               <>
@@ -311,10 +311,10 @@ export default function JobDetails({
                 <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Available Shifts</h3>
                 <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "1.25rem" }}>This job has {job.days.length} shifts available. You can apply to all of them, or pick a specific shift you prefer.</p>
                 <div style={{ display: "flex", gap: "0.6rem", flexDirection: "column" }}>
-                  <button onClick={() => setApplyModal("confirm")} style={{ width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Apply to All Shifts</button>
+                  <button onClick={() => setApplyModal("confirm")} style={{ width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Apply to All Shifts</button>
                   <div style={{ display: "flex", gap: "0.6rem" }}>
                     <button onClick={() => setApplyModal(null)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-                    <button onClick={() => { setSelectedDay(null); setApplyModal("pickShift"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #A21D54", backgroundColor: "white", color: "#A21D54", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Pick a Shift</button>
+                    <button onClick={() => { setSelectedDay(null); setApplyModal("pickShift"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-brand)", backgroundColor: "white", color: "var(--color-brand)", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Pick a Shift</button>
                   </div>
                 </div>
               </>
@@ -331,8 +331,8 @@ export default function JobDetails({
                     const isFilled = (job.filledShifts || []).includes(day);
                     return (
                       <button key={day} onClick={() => !isFilled && setSelectedDay(sel ? null : day)}
-                        style={{ padding: "0.6rem 0.9rem", borderRadius: "0.65rem", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, cursor: isFilled ? "not-allowed" : "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", border: isFilled ? "1.5px solid #e2e8f0" : sel ? "2px solid #A21D54" : "1.5px solid #e2e8f0", background: isFilled ? "#f1f5f9" : sel ? "#fce7f3" : "#fafafa", color: isFilled ? "#94a3b8" : sel ? "#A21D54" : "#374151", textDecoration: isFilled ? "line-through" : "none", opacity: isFilled ? 0.7 : 1 }}>
-                        <span>{day}{timeStr ? (<span style={{ fontWeight: 500, color: isFilled ? "#94a3b8" : sel ? "#C2185B" : "#64748b" }}> · {timeStr}</span>) : null}</span>
+                        style={{ padding: "0.6rem 0.9rem", borderRadius: "0.65rem", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, cursor: isFilled ? "not-allowed" : "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", border: isFilled ? "1.5px solid #e2e8f0" : sel ? "2px solid var(--color-brand)" : "1.5px solid #e2e8f0", background: isFilled ? "#f1f5f9" : sel ? "#fce7f3" : "#fafafa", color: isFilled ? "#94a3b8" : sel ? "var(--color-brand)" : "#374151", textDecoration: isFilled ? "line-through" : "none", opacity: isFilled ? 0.7 : 1 }}>
+                        <span>{day}{timeStr ? (<span style={{ fontWeight: 500, color: isFilled ? "#94a3b8" : sel ? "var(--color-brand-dark)" : "#64748b" }}> · {timeStr}</span>) : null}</span>
                         {isFilled ? <span style={{ fontSize: "0.72rem", fontWeight: 700, textDecoration: "none" }}>Filled</span> : sel ? <span style={{ fontSize: "0.72rem", fontWeight: 700 }}>✓</span> : null}
                       </button>
                     );
@@ -340,12 +340,12 @@ export default function JobDetails({
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <button onClick={() => setApplyModal("shifts")} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
-                  <button onClick={() => { if (selectedDay) setApplyModal("confirm"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: selectedDay ? "linear-gradient(135deg, #A21D54, #C2185B)" : "#e2e8f0", color: selectedDay ? "white" : "#94a3b8", fontWeight: "700", cursor: selectedDay ? "pointer" : "default", fontFamily: "inherit" }}>Apply →</button>
+                  <button onClick={() => { if (selectedDay) setApplyModal("confirm"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: selectedDay ? "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))" : "#e2e8f0", color: selectedDay ? "white" : "#94a3b8", fontWeight: "700", cursor: selectedDay ? "pointer" : "default", fontFamily: "inherit" }}>Apply →</button>
                 </div>
               </>
             ) : applyModal === "confirm" ? (
               <>
-                <div style={{ width: "56px", height: "56px", borderRadius: "1rem", background: "linear-gradient(135deg, #A21D54, #C2185B)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem", boxShadow: "0 8px 20px rgba(162,29,84,0.35)" }}>📋</div>
+                <div style={{ width: "56px", height: "56px", borderRadius: "1rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem", boxShadow: "0 8px 20px rgba(162,29,84,0.35)" }}>📋</div>
                 <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "#1e293b" }}>Apply for {job.title}?</h3>
                 <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: selectedDay ? "0.6rem" : "1.5rem" }}>{job.company} — your CV will be shared with the employer.</p>
                 {selectedDay && (
@@ -361,7 +361,7 @@ export default function JobDetails({
                 )}
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <button onClick={() => setApplyModal(null)} disabled={submitting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit" }}>Cancel</button>
-                  <button onClick={confirmApply} disabled={submitting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: submitting ? "#f48fb1" : "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: submitting ? "none" : "0 4px 14px rgba(162,29,84,0.35)" }}>{submitting ? "Applying…" : "Apply Now"}</button>
+                  <button onClick={confirmApply} disabled={submitting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: submitting ? "#f48fb1" : "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: submitting ? "none" : "0 4px 14px rgba(162,29,84,0.35)" }}>{submitting ? "Applying…" : "Apply Now"}</button>
                 </div>
               </>
             ) : (

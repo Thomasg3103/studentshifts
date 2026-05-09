@@ -52,7 +52,7 @@ export default function AboutPage({ setPage }) {
             { n: "4.8★", label: "Average Rating" },
           ].map(({ n, label }) => (
             <div key={label} style={{ backgroundColor: "#fce7f3", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
-              <p style={{ fontWeight: "800", fontSize: "1.6rem", color: "#A21D54", margin: 0 }}>{n}</p>
+              <p style={{ fontWeight: "800", fontSize: "1.6rem", color: "var(--color-brand)", margin: 0 }}>{n}</p>
               <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "0.3rem 0 0", fontWeight: "600" }}>{label}</p>
             </div>
           ))}
@@ -72,7 +72,7 @@ export default function AboutPage({ setPage }) {
             <div key={name} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
               <img src={photo} alt={name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", objectPosition: pos, marginBottom: "0.65rem", border: "3px solid #e2e8f0" }} />
               <p style={{ fontWeight: "700", fontSize: "0.9rem", color: "#1e293b", margin: 0 }}>{name}</p>
-              <p style={{ fontSize: "0.78rem", color: "#A21D54", fontWeight: "600", margin: "0.2rem 0 0" }}>{role}</p>
+              <p style={{ fontSize: "0.78rem", color: "var(--color-brand)", fontWeight: "600", margin: "0.2rem 0 0" }}>{role}</p>
             </div>
           ))}
         </div>
@@ -88,7 +88,7 @@ export default function AboutPage({ setPage }) {
         </button>
         <button
           onClick={() => setPage("signup")}
-          style={{ padding: "0.85rem 2.5rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #A21D54, #C2185B)", color: "white", fontWeight: "700", fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" }}
+          style={{ padding: "0.85rem 2.5rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" }}
         >
           Get Started Free →
         </button>
