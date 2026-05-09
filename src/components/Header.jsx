@@ -120,31 +120,74 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
           <div className="header-right" style={{ display: "flex", alignItems: "center", gap: "0.5rem", position: "relative" }} ref={menuRef}>
             {currentUser?.role === "student" && (
               <>
-                <div style={{ position: "relative", display: "inline-block" }}>
-                  <button onClick={() => setPage("likedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                    ❤️ <span className="nav-label">Liked</span>
-                  </button>
-                  {likedJobs.length > 0 && <span style={notifDot}>{likedJobs.length}</span>}
-                </div>
-                <div style={{ position: "relative", display: "inline-block" }}>
-                  <button onClick={() => setPage("appliedJobs")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                    📄 <span className="nav-label">Applied</span>
-                  </button>
-                  {appliedJobs.length > 0 && <span style={notifDot}>{appliedJobs.length}</span>}
-                </div>
-                <div style={{ position: "relative", display: "inline-block" }}>
-                  <button onClick={() => setPage("messages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                    💬 <span className="nav-label">Messages</span>
-                  </button>
-                  {notifCount > 0 && <span style={notifDot}>{notifCount}</span>}
-                </div>
+                {/* Active page detection */}
+                {(() => {
+                  const p = location.pathname;
+                  const isLiked    = p === "/liked";
+                  const isApplied  = p === "/applied";
+                  const isMessages = p === "/messages";
+                  const isAccount  = p === "/account";
+                  return (
+                    <>
+                      <div style={{ position: "relative", display: "inline-block" }}>
+                        <button onClick={() => setPage("likedJobs")} style={{ ...navBtn(isLiked), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                          ❤️ <span className="nav-label">Liked</span>
+                        </button>
+                        {likedJobs.length > 0 && <span style={isLiked ? notifDotActive : notifDot}>{likedJobs.length}</span>}
+                      </div>
+                      <div style={{ position: "relative", display: "inline-block" }}>
+                        <button onClick={() => setPage("appliedJobs")} style={{ ...navBtn(isApplied), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                          📄 <span className="nav-label">Applied</span>
+                        </button>
+                        {appliedJobs.length > 0 && <span style={isApplied ? notifDotActive : notifDot}>{appliedJobs.length}</span>}
+                      </div>
+                      <div style={{ position: "relative", display: "inline-block" }}>
+                        <button onClick={() => setPage("messages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                          💬 <span className="nav-label">Messages</span>
+                        </button>
+                        {notifCount > 0 && <span style={isMessages ? notifDotActive : notifDot}>{notifCount}</span>}
+                      </div>
+                      <div style={{ position: "relative", display: "inline-block" }}>
+                        <button onClick={() => setPage("account")} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+                          {currentUser.profilePhoto
+                            ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid #A21D54" : "none" }} />
+                            : <PersonIcon color={isAccount ? "#A21D54" : "white"} />
+                          }
+                          <span className="nav-label">Account</span>
+                        </button>
+                        {optionalBadge > 0 && <span style={isAccount ? notifDotActive : notifDot}>{optionalBadge}</span>}
+                      </div>
+                    </>
+                  );
+                })()}
               </>
             )}
             {currentUser?.role === "company" && (
               <>
-                <button onClick={() => setPage("studentDashboard")} style={navBtnOutline} onMouseEnter={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.28)"} onMouseLeave={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.15)"}><span className="nav-label">Browse </span>Home</button>
-                <button onClick={() => setPage("companyMessages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }} onMouseEnter={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.28)"} onMouseLeave={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.15)"}>💬 <span className="nav-label">Messages</span></button>
-                <button onClick={() => setPage("companyDashboard")} style={navBtnOutline} onMouseEnter={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.28)"} onMouseLeave={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.15)"}><span className="nav-label">My </span>Jobs</button>
+                {(() => {
+                  const p = location.pathname;
+                  const isBrowse   = p === "/";
+                  const isMessages = p === "/company/messages";
+                  const isMyJobs   = p === "/company";
+                  const isAccount  = p === "/account";
+                  return (
+                    <>
+                      <button onClick={() => setPage("studentDashboard")} style={navBtn(isBrowse)}><span className="nav-label">Browse </span>Home</button>
+                      <button onClick={() => setPage("companyMessages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>💬 <span className="nav-label">Messages</span></button>
+                      <button onClick={() => setPage("companyDashboard")} style={navBtn(isMyJobs)}><span className="nav-label">My </span>Jobs</button>
+                      <div style={{ position: "relative", display: "inline-block" }}>
+                        <button onClick={() => setPage("account")} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+                          {currentUser.profilePhoto
+                            ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid #A21D54" : "none" }} />
+                            : <PersonIcon color={isAccount ? "#A21D54" : "white"} />
+                          }
+                          <span className="nav-label">Account</span>
+                        </button>
+                        {optionalBadge > 0 && <span style={isAccount ? notifDotActive : notifDot}>{optionalBadge}</span>}
+                      </div>
+                    </>
+                  );
+                })()}
               </>
             )}
             {currentUser?.role === "admin" && (
@@ -155,17 +198,6 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
                 <button onClick={() => setPage("login")} style={navBtnOutline}>Login</button>
                 <button onClick={() => setPage("signup")} style={navBtnPrimary}>Sign Up</button>
               </>
-            )}
-            {currentUser && (
-              <div style={{ position: "relative", display: "inline-block" }}>
-                <button onClick={() => setPage("account")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
-                  {currentUser.profilePhoto
-                    ? <img src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />
-                    : <PersonIcon />
-                  }
-                </button>
-                {optionalBadge > 0 && <span style={notifDot}>{optionalBadge}</span>}
-              </div>
             )}
             <Hamburger />
             <Dropdown />
@@ -347,7 +379,7 @@ function HomeIcon({ active }) {
   );
 }
 
-function PersonIcon({ color = "currentColor" }) {
+function PersonIcon({ color = "white" }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" />
@@ -390,10 +422,17 @@ const navBtnPrimary = {
 const navBtnOutline = {
   padding: "0.45rem 1.1rem", borderRadius: "2rem",
   backgroundColor: "rgba(255,255,255,0.15)", color: "white",
-  border: "1.5px solid rgba(255,255,255,0.5)",
+  border: "1.5px solid rgba(255,255,255,0.45)",
   cursor: "pointer", fontWeight: "600", fontSize: "0.82rem", fontFamily: "inherit",
-  transition: "background-color 0.15s",
 };
+const navBtnActive = {
+  padding: "0.45rem 1.1rem", borderRadius: "2rem",
+  backgroundColor: "white", color: "#A21D54",
+  border: "1.5px solid white",
+  cursor: "default", fontWeight: "800", fontSize: "0.82rem", fontFamily: "inherit",
+  boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+};
+const navBtn = (active) => active ? navBtnActive : navBtnOutline;
 const notifDot = {
   position: "absolute", top: "-4px", right: "-4px",
   backgroundColor: "#f43f5e", color: "white",
@@ -401,4 +440,8 @@ const notifDot = {
   width: "16px", height: "16px", borderRadius: "50%",
   display: "flex", alignItems: "center", justifyContent: "center",
   pointerEvents: "none", border: "2px solid #C2185B",
+};
+const notifDotActive = {
+  ...notifDot,
+  border: "2px solid white",
 };
