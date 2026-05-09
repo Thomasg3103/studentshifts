@@ -3,10 +3,17 @@ import { createClient } from "@supabase/supabase-js";
 const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey  = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Bypass the Web Locks API to prevent auth deadlocks in Chrome/Edge
+// Serialise auth lock operations without using Web Locks (which deadlock in Chrome/Edge).
+// Each call waits for the previous one to finish before running, preventing concurrent
+// token refreshes from corrupting the session.
+let _lockChain = Promise.resolve();
 export const supabase = createClient(supabaseUrl, supabaseKey, {
   auth: {
-    lock: async (_name, _acquireTimeout, fn) => fn(),
+    lock: async (_name, _acquireTimeout, fn) => {
+      const result = _lockChain.then(() => fn(), () => fn());
+      _lockChain = result.then(() => {}, () => {});
+      return result;
+    },
   },
 });
 

@@ -110,6 +110,7 @@ export async function saveCompanyIndustries(userId, industries) {
 }
 
 export async function updateCompanyProfile(userId, updates) {
+  await supabase.auth.getSession();
   const { error } = await withTimeout(
     supabase.from("companies").update(updates).eq("id", userId),
     10000, "Save timed out — please try again."
@@ -165,6 +166,7 @@ export async function getProfile(userId) {
 }
 
 export async function updateStudentProfile(userId, updates) {
+  await supabase.auth.getSession();
   const { error } = await withTimeout(
     supabase.from("students").update(updates).eq("id", userId),
     10000, "Save timed out — please try again."
@@ -1050,6 +1052,7 @@ export async function getProfilePhotos(userIds) {
 }
 
 export async function fetchCompanyDirectConversations(companyId) {
+  await supabase.auth.getSession();
   const { data, error } = await withTimeout(
     supabase.from("chat_messages")
       .select("student_id, sender_id, text, created_at")
@@ -1089,6 +1092,7 @@ export async function fetchCompanyDirectConversations(companyId) {
 }
 
 export async function fetchStudentDirectConversations(studentId) {
+  await supabase.auth.getSession();
   const { data, error } = await withTimeout(
     supabase.from("chat_messages")
       .select("company_id, sender_id, text, created_at")
@@ -1126,6 +1130,7 @@ export async function fetchStudentDirectConversations(studentId) {
 }
 
 export async function fetchCompanyConversations(companyId) {
+  await supabase.auth.getSession();
   const { data: jobs, error: jobsErr } = await withTimeout(
     supabase.from("jobs").select("id, title").eq("company_id", companyId),
     10000
@@ -1180,6 +1185,7 @@ export async function fetchCompanyConversations(companyId) {
 }
 
 export async function fetchAcceptedConversations(userId) {
+  await supabase.auth.getSession();
   const { data: apps, error: appsErr } = await withTimeout(
     supabase.from("applications").select("job_id").eq("student_id", userId).eq("status", "Accepted"),
     10000

@@ -136,6 +136,7 @@ export default function CompanyMessages({ currentUser, setPage }) {
   const [conversations, setConversations] = useState([]);
   const [directConvs, setDirectConvs]     = useState([]);
   const [loading, setLoading]             = useState(true);
+  const [fetchError, setFetchError]       = useState(false);
   const [tab, setTab]                     = useState("jobs");
   const [active, setActive]               = useState(null);
   const [refreshKey, setRefreshKey]       = useState(0);
@@ -144,10 +145,13 @@ export default function CompanyMessages({ currentUser, setPage }) {
     if (!currentUser) { setLoading(false); return; }
     const isInitial = refreshKey === 0;
     if (isInitial) setLoading(true);
+    setFetchError(false);
+    let failed = false;
     Promise.all([
-      fetchCompanyConversations(currentUser.id).catch(() => []),
-      fetchCompanyDirectConversations(currentUser.id).catch(() => []),
+      fetchCompanyConversations(currentUser.id).catch(() => { failed = true; return []; }),
+      fetchCompanyDirectConversations(currentUser.id).catch(() => { failed = true; return []; }),
     ]).then(([convs, directs]) => {
+      if (failed) { setFetchError(true); }
       setConversations(convs);
       setDirectConvs(directs);
       if (isInitial && convs.length === 0 && directs.length > 0) setTab("direct");
@@ -194,6 +198,13 @@ export default function CompanyMessages({ currentUser, setPage }) {
 
       {loading ? (
         <p style={{ textAlign: "center", color: "#6b7280", padding: "3rem 1rem" }}>Loading conversations…</p>
+      ) : fetchError ? (
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+          <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</p>
+          <p style={{ fontSize: "1rem", fontWeight: "600", color: "#1e293b", marginBottom: "0.4rem" }}>Couldn't load conversations</p>
+          <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>This usually fixes itself — tap retry.</p>
+          <button onClick={() => setRefreshKey(k => k + 1)} style={btnPrimary}>Retry</button>
+        </div>
       ) : conversations.length === 0 && directConvs.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
           <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💬</p>
