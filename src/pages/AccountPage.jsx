@@ -406,7 +406,7 @@ export default function AccountPage({
     </>
   );
 
-  const firstName = currentUser.name?.split(" ")[0] || currentUser.name;
+  const firstName = currentUser.name || "";
 
   return (
     <>
