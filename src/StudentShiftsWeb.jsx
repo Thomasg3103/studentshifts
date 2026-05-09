@@ -21,7 +21,7 @@ import LandingPage from "./pages/LandingPage";
 import CookieBanner from "./components/CookieBanner";
 import AppFooter from "./components/AppFooter";
 import { supabase } from "./lib/supabase";
-import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug, fetchJobsByIds } from "./lib/auth";
+import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug, fetchJobsByIds, fetchMessageCount } from "./lib/auth";
 
 // Map page-name strings to URL paths (for backwards-compat with setPage calls)
 const PAGE_PATH = {
@@ -127,6 +127,7 @@ export default function StudentShiftsWeb() {
   const [studentLocation, setStudentLocation] = useState(null);
   const [appStatuses, setAppStatuses]       = useState({});
   const [notifCount, setNotifCount]         = useState(0);
+  const [msgCount, setMsgCount]             = useState(0);
   const [authLoading, setAuthLoading]       = useState(true);
 
   // Restore session on page load + listen for auth changes
@@ -280,6 +281,28 @@ export default function StudentShiftsWeb() {
     setNotifCount(count);
   }, [appStatuses, appliedJobs, currentUser?.id]);
 
+  // Message count badge — count distinct conversation threads with received messages
+  useEffect(() => {
+    if (!currentUser || currentUser.role === "admin") { setMsgCount(0); return; }
+    fetchMessageCount(currentUser.id, currentUser.role).then(setMsgCount).catch(() => {});
+
+    const filter = currentUser.role === "student"
+      ? `student_id=eq.${currentUser.id}`
+      : `company_id=eq.${currentUser.id}`;
+
+    const channel = supabase
+      .channel(`msg_count_${currentUser.id}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter },
+        payload => {
+          if (payload.new.sender_id !== currentUser.id) {
+            setMsgCount(c => c + 1);
+          }
+        })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [currentUser?.id]);
+
   const isLanding = !currentUser && location.pathname === "/";
 
   if (authLoading) {
@@ -307,6 +330,7 @@ export default function StudentShiftsWeb() {
           likedJobs={likedJobs}
           appliedJobs={appliedJobs}
           notifCount={notifCount}
+          msgCount={msgCount}
         />
       )}
       <Routes>

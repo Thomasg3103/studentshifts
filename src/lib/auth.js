@@ -999,6 +999,24 @@ export async function getSignedDocumentUrl(bucket, path) {
   return data.signedUrl;
 }
 
+export async function fetchMessageCount(userId, role) {
+  if (role === "student") {
+    const { data } = await withTimeout(
+      supabase.from("chat_messages").select("job_id").eq("student_id", userId).neq("sender_id", userId),
+      8000
+    ).catch(() => ({ data: [] }));
+    return new Set((data || []).map(m => String(m.job_id))).size;
+  }
+  if (role === "company") {
+    const { data } = await withTimeout(
+      supabase.from("chat_messages").select("job_id, student_id").eq("company_id", userId).neq("sender_id", userId),
+      8000
+    ).catch(() => ({ data: [] }));
+    return new Set((data || []).map(m => `${m.job_id}_${m.student_id}`)).size;
+  }
+  return 0;
+}
+
 export async function fetchMessages(jobId, studentId, companyId = null) {
   let query = supabase.from("chat_messages")
     .select("id, sender_id, text, created_at");

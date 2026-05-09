@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 
-export default function Header({ currentUser, setPage, likedJobs, appliedJobs, notifCount }) {
+export default function Header({ currentUser, setPage, likedJobs, appliedJobs, notifCount, msgCount }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const menuRef = useRef(null);
@@ -145,7 +145,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
                         <button onClick={() => setPage("messages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                           💬 <span className="nav-label">Messages</span>
                         </button>
-                        {notifCount > 0 && <span style={isMessages ? notifDotActive : notifDot}>{notifCount}</span>}
+                        {msgCount > 0 && <span style={isMessages ? notifDotActive : notifDot}>{msgCount}</span>}
                       </div>
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("account")} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
@@ -173,7 +173,10 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
                   return (
                     <>
                       <button onClick={() => setPage("studentDashboard")} style={navBtn(isBrowse)}><span className="nav-label">Browse </span>Home</button>
-                      <button onClick={() => setPage("companyMessages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>💬 <span className="nav-label">Messages</span></button>
+                      <div style={{ position: "relative", display: "inline-block" }}>
+                        <button onClick={() => setPage("companyMessages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>💬 <span className="nav-label">Messages</span></button>
+                        {msgCount > 0 && <span style={isMessages ? notifDotActive : notifDot}>{msgCount}</span>}
+                      </div>
                       <button onClick={() => setPage("companyDashboard")} style={navBtn(isMyJobs)}><span className="nav-label">My </span>Jobs</button>
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("account")} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
@@ -219,7 +222,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
           setPage={setPage}
           likedJobs={likedJobs}
           appliedJobs={appliedJobs}
-          notifCount={notifCount}
+          msgCount={msgCount}
           currentUser={currentUser}
           optionalBadge={optionalBadge}
           pathname={location.pathname}
@@ -231,13 +234,14 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
         <CompanyMobileBottomNav
           setPage={setPage}
           pathname={location.pathname}
+          msgCount={msgCount}
         />
       )}
     </>
   );
 }
 
-function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentUser, optionalBadge, pathname }) {
+function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUser, optionalBadge, pathname }) {
   const isHome     = pathname === "/" || pathname.startsWith("/jobs/");
   const isLiked    = pathname === "/liked";
   const isApplied  = pathname === "/applied";
@@ -294,8 +298,8 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
           <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>💬</span>
           Messages
         </button>
-        {notifCount > 0 && (
-          <span style={{ position: "absolute", top: "6px", right: "4px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{notifCount}</span>
+        {msgCount > 0 && (
+          <span style={{ position: "absolute", top: "6px", right: "4px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{msgCount}</span>
         )}
       </div>
 
@@ -316,7 +320,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
   );
 }
 
-function CompanyMobileBottomNav({ setPage, pathname }) {
+function CompanyMobileBottomNav({ setPage, pathname, msgCount }) {
   const isBrowse   = pathname === "/";
   const isMessages = pathname === "/company/messages";
   const isMyJobs   = pathname === "/company";
@@ -341,10 +345,15 @@ function CompanyMobileBottomNav({ setPage, pathname }) {
         <BrowseIcon active={isBrowse} />
         Browse Home
       </button>
-      <button onClick={() => setPage("companyMessages")} style={tab(isMessages)}>
-        <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>💬</span>
-        Messages
-      </button>
+      <div style={{ flex: 1, position: "relative" }}>
+        <button onClick={() => setPage("companyMessages")} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
+          <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>💬</span>
+          Messages
+        </button>
+        {msgCount > 0 && (
+          <span style={{ position: "absolute", top: "6px", right: "4px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{msgCount}</span>
+        )}
+      </div>
       <button onClick={() => setPage("companyDashboard")} style={tab(isMyJobs)}>
         <BriefcaseIcon active={isMyJobs} />
         My Jobs
