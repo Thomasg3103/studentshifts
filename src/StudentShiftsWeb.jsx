@@ -389,7 +389,7 @@ export default function StudentShiftsWeb() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       {!isLanding && <AppFooter currentUser={currentUser} />}
-      <CookieBanner setPage={setPage} hasBottomNav={!!(currentUser?.role === "student")} />
+      <CookieBanner setPage={setPage} hasBottomNav={!!(currentUser?.role === "student" || currentUser?.role === "company")} />
     </>
   );
 }

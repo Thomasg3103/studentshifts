@@ -142,7 +142,7 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
             )}
             {currentUser?.role === "company" && (
               <>
-                <button onClick={() => setPage("studentDashboard")} style={navBtnOutline} onMouseEnter={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.28)"} onMouseLeave={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.15)"}><span className="nav-label">Browse </span>Jobs</button>
+                <button onClick={() => setPage("studentDashboard")} style={navBtnOutline} onMouseEnter={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.28)"} onMouseLeave={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.15)"}><span className="nav-label">Browse </span>Home</button>
                 <button onClick={() => setPage("companyMessages")} style={{ ...navBtnOutline, display: "inline-flex", alignItems: "center", gap: "0.4rem" }} onMouseEnter={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.28)"} onMouseLeave={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.15)"}>💬 <span className="nav-label">Messages</span></button>
                 <button onClick={() => setPage("companyDashboard")} style={navBtnOutline} onMouseEnter={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.28)"} onMouseLeave={e=>e.currentTarget.style.backgroundColor="rgba(255,255,255,0.15)"}><span className="nav-label">My </span>Jobs</button>
               </>
@@ -190,6 +190,14 @@ export default function Header({ currentUser, setPage, likedJobs, appliedJobs, n
           notifCount={notifCount}
           currentUser={currentUser}
           optionalBadge={optionalBadge}
+          pathname={location.pathname}
+        />
+      )}
+
+      {/* Mobile bottom nav — companies */}
+      {isMobile && currentUser?.role === "company" && (
+        <CompanyMobileBottomNav
+          setPage={setPage}
           pathname={location.pathname}
         />
       )}
@@ -276,6 +284,47 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, notifCount, currentU
   );
 }
 
+function CompanyMobileBottomNav({ setPage, pathname }) {
+  const isBrowse   = pathname === "/";
+  const isMessages = pathname === "/company/messages";
+  const isMyJobs   = pathname === "/company";
+  const isAccount  = pathname === "/account";
+
+  const tab = (active) => ({
+    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+    gap: "2px", flex: 1, padding: "0.35rem 0",
+    background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+    color: active ? "#A21D54" : "#94a3b8",
+    fontSize: "0.6rem", fontWeight: active ? 700 : 500,
+  });
+
+  return (
+    <nav style={{
+      position: "fixed", bottom: 0, left: 0, right: 0, height: "64px",
+      backgroundColor: "white", borderTop: "1.5px solid #e2e8f0",
+      display: "flex", alignItems: "stretch", zIndex: 200,
+      boxShadow: "0 -4px 16px rgba(0,0,0,0.07)",
+    }}>
+      <button onClick={() => setPage("studentDashboard")} style={tab(isBrowse)}>
+        <BrowseIcon active={isBrowse} />
+        Browse Home
+      </button>
+      <button onClick={() => setPage("companyMessages")} style={tab(isMessages)}>
+        <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>💬</span>
+        Messages
+      </button>
+      <button onClick={() => setPage("companyDashboard")} style={tab(isMyJobs)}>
+        <BriefcaseIcon active={isMyJobs} />
+        My Jobs
+      </button>
+      <button onClick={() => setPage("account")} style={tab(isAccount)}>
+        <PersonIcon color={isAccount ? "#A21D54" : "#94a3b8"} />
+        Account
+      </button>
+    </nav>
+  );
+}
+
 function LogoIcon() {
   return (
     <div style={{ width: "44px", height: "44px", borderRadius: "12px", backgroundColor: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -303,6 +352,22 @@ function PersonIcon({ color = "currentColor" }) {
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+    </svg>
+  );
+}
+
+function BrowseIcon({ active }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#A21D54" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+    </svg>
+  );
+}
+
+function BriefcaseIcon({ active }) {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "#A21D54" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
     </svg>
   );
 }
