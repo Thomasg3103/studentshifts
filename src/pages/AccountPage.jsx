@@ -436,29 +436,26 @@ export default function AccountPage({
           </div>
 
           {isStudent ? (
-            /* ── Student two-column layout ── */
-            <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "1.5rem", alignItems: "flex-start" }}>
+            /* ── Student single-column layout ── */
+            <div>
 
-              {/* Left sidebar: Availability only */}
-              {!isMobile && (
-                <aside style={{ width: "260px", flexShrink: 0 }}>
-                  <SidebarAvailability />
-                </aside>
+              {/* Only show verification docs section if not both stored */}
+              {!docsStored && (
+                <Collapsible title="Verification Documents" defaultOpen>
+                  <DocRow label="Student ID Card" filename={currentUser.studentIdCardName} />
+                  <DocRow label="Government ID"   filename={currentUser.governmentIdName} />
+                </Collapsible>
               )}
 
-              {/* Right column */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                {/* Only show verification docs section if not both stored */}
-                {!docsStored && (
-                  <Collapsible title="Verification Documents" defaultOpen>
-                    <DocRow label="Student ID Card" filename={currentUser.studentIdCardName} />
-                    <DocRow label="Government ID"   filename={currentUser.governmentIdName} />
-                  </Collapsible>
-                )}
+              <LocationSection />
 
-                <LocationSection />
+              {/* My Availability — collapsible, below location */}
+              <Collapsible title="My Availability">
+                <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.75rem", lineHeight: 1.4 }}>Tap the slots you're free each week.</p>
+                <AvailabilityPicker value={availability} onChange={handleAvailabilityChange} />
+              </Collapsible>
 
-                {/* Job Preferences */}
+              {/* Job Preferences */}
                 <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                   <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.5rem" }}>Job Preferences</p>
                   <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.65rem" }}>Industries you're interested in.</p>
@@ -552,15 +549,7 @@ export default function AccountPage({
                   )}
                 </div>
 
-                <BottomActions />
-              </div>
-
-              {/* Mobile: availability below the right column */}
-              {isMobile && (
-                <div style={{ width: "100%" }}>
-                  <SidebarAvailability />
-                </div>
-              )}
+              <BottomActions />
             </div>
           ) : (
             /* ── Company single-column layout ── */
