@@ -861,3 +861,38 @@ CREATE POLICY "company_liked: own delete" ON company_liked_students
 
 CREATE POLICY "company_liked: admin all" ON company_liked_students
   FOR ALL USING (is_admin());
+
+
+-- ================================================================
+-- SECURITY: Lock application identity fields (student_id, job_id)
+--
+-- The "applications: company update status" policy cannot use a
+-- self-referencing WITH CHECK subquery to freeze student_id/job_id
+-- because PostgreSQL evaluates it with RLS active, making the
+-- subquery return NULL and silently failing (see FIX #16 comment).
+--
+-- Without this trigger a verified company could reassign student_id
+-- on one of their application rows to a student who never applied,
+-- which would satisfy the "documents: company read applicant docs"
+-- storage policy and grant access to that student's CV / cover letter.
+--
+-- A BEFORE UPDATE trigger has no such restriction and is the correct
+-- layer for immutable-column enforcement.
+-- ================================================================
+CREATE OR REPLACE FUNCTION lock_application_identity()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.student_id <> OLD.student_id THEN
+    RAISE EXCEPTION 'application.student_id is immutable';
+  END IF;
+  IF NEW.job_id <> OLD.job_id THEN
+    RAISE EXCEPTION 'application.job_id is immutable';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS applications_identity_lock ON applications;
+CREATE TRIGGER applications_identity_lock
+  BEFORE UPDATE ON applications
+  FOR EACH ROW EXECUTE FUNCTION lock_application_identity();
