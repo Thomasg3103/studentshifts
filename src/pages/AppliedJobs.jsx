@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
@@ -74,6 +75,7 @@ export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppli
       setAppliedJobs(prev => prev.filter(j => j.id !== jobId));
       setSavedAppliedJobIds(prev => prev.filter(id => id !== jobId));
     } catch (e) {
+      Sentry.captureException(e);
       console.error("Failed to remove application:", e);
       setRemoveError(e.message || "Failed to remove application.");
     }

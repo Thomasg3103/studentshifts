@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import * as Sentry from "@sentry/react";
 import DOMPurify from "dompurify";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
@@ -90,6 +91,7 @@ export default function JobDetails({
       }
       setApplyModal("success");
     } catch (e) {
+      Sentry.captureException(e);
       console.error("Apply error:", e);
       setApplyError("Something went wrong. Please try again.");
     } finally {

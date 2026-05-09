@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { uploadVerificationDocs } from "../lib/auth";
 
@@ -21,6 +22,7 @@ export default function VerifyDocsPage({ currentUser, setCurrentUser, setPage })
       setCurrentUser(prev => ({ ...prev, studentIdPath: "uploaded", verificationStatus: "pending_review" }));
       setShowAvailabilityPrompt(true);
     } catch (e) {
+      Sentry.captureException(e);
       setError(e.message || "Upload failed — please try again.");
     } finally {
       setLoading(false);

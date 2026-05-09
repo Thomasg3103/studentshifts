@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { updatePassword } from "../lib/auth";
 
@@ -20,6 +21,7 @@ export default function ResetPasswordPage({ setPage }) {
       setSuccess(true);
       setTimeout(() => setPage("login"), 2500);
     } catch (e) {
+      Sentry.captureException(e);
       setError(e.message || "Failed to update password — please try again.");
     } finally {
       setLoading(false);

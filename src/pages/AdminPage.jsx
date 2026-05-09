@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import {
   fetchPendingStudents, approveStudent, rejectStudent, getSignedDocumentUrl,
@@ -29,6 +30,7 @@ export default function AdminPage() {
       const url = await getSignedDocumentUrl("verification-docs", path);
       window.open(url, "_blank", "noopener");
     } catch (e) {
+      Sentry.captureException(e);
       alert("Could not open document. Please try again.");
     }
   };
@@ -52,6 +54,7 @@ export default function AdminPage() {
         }
       }
     } catch (e) {
+      Sentry.captureException(e);
       alert("Failed to approve. Please try again.");
     } finally {
       setActionLoading(null);
@@ -65,6 +68,7 @@ export default function AdminPage() {
       await rejectStudent(studentId);
       setStudents(prev => prev.filter(s => s.id !== studentId));
     } catch (e) {
+      Sentry.captureException(e);
       alert("Failed to reject. Please try again.");
     } finally {
       setActionLoading(null);
@@ -88,6 +92,7 @@ export default function AdminPage() {
         }
       }
     } catch (e) {
+      Sentry.captureException(e);
       alert("Failed to approve. Please try again.");
     } finally {
       setActionLoading(null);
@@ -101,6 +106,7 @@ export default function AdminPage() {
       await rejectCompany(companyId);
       setCompanies(prev => prev.filter(c => c.id !== companyId));
     } catch (e) {
+      Sentry.captureException(e);
       alert("Failed to reject. Please try again.");
     } finally {
       setActionLoading(null);

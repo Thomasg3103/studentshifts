@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import * as Sentry from "@sentry/react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -161,6 +162,7 @@ export default function StudentShiftsWeb() {
               }
             }
           } catch (e) {
+            Sentry.captureException(e);
             console.error("Failed to load profile", e);
           }
         }
@@ -201,6 +203,7 @@ export default function StudentShiftsWeb() {
             }
           }
         } catch (e) {
+          Sentry.captureException(e);
           console.error("Failed to load profile", e);
         }
       }

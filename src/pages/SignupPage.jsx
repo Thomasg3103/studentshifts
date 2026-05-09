@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { signUp } from "../lib/auth";
 import { jobCategories } from "../data/jobCategories";
@@ -42,6 +43,7 @@ export default function SignupPage({ setPage }) {
       await signUp({ email, password, name, role, croNumber, industries });
       setDone(true);
     } catch (e) {
+      Sentry.captureException(e);
       setError(e.message || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);

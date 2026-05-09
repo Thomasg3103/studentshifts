@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import RichTextEditor from "../components/RichTextEditor";
 import "../StudentShiftWeb.css";
@@ -286,6 +287,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       }
       closeModal();
     } catch (e) {
+      Sentry.captureException(e);
       alert("Error saving job. Please try again.");
     } finally {
       setFormSaving(false);
@@ -489,6 +491,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
       setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
       setActivePosting(prev => prev ? updater(prev) : prev);
     } catch (e) {
+      Sentry.captureException(e);
       alert(`Failed to update stage: ${e?.message || "Unknown error"}`);
     }
   };
@@ -901,6 +904,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
         }
       }
     } catch (e) {
+      Sentry.captureException(e);
       console.error("Send failed:", e);
       setChatError(e.message || "Failed to send — please try again.");
     }
@@ -1172,6 +1176,7 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
         }
       }
     } catch (e) {
+      Sentry.captureException(e);
       setChatError(e.message || "Failed to send — please try again.");
     }
   };
@@ -2182,7 +2187,7 @@ function DetailPanel({ applicant, postingId, postingTitle, companyId, onClose, o
       try {
         const { getSignedDocumentUrl } = await import("../lib/auth");
         setCvUrl(await getSignedDocumentUrl("documents", applicant.cvName));
-      } catch (e) { alert(`Could not load CV: ${e.message}`); setCvLoading(false); return; }
+      } catch (e) { Sentry.captureException(e); alert(`Could not load CV: ${e.message}`); setCvLoading(false); return; }
       setCvLoading(false);
     }
     setCvOpen(true);
@@ -2194,7 +2199,7 @@ function DetailPanel({ applicant, postingId, postingTitle, companyId, onClose, o
       try {
         const { getSignedDocumentUrl } = await import("../lib/auth");
         setClUrl(await getSignedDocumentUrl("documents", applicant.coverLetterName));
-      } catch (e) { alert(`Could not load cover letter: ${e.message}`); setClLoading(false); return; }
+      } catch (e) { Sentry.captureException(e); alert(`Could not load cover letter: ${e.message}`); setClLoading(false); return; }
       setClLoading(false);
     }
     setClOpen(true);
@@ -2544,6 +2549,7 @@ function InterviewInviteModal({ applicant, roundNumber, date: initialDate, time:
       await onSend(note, teamsLink, date, time);
       onClose();
     } catch (e) {
+      Sentry.captureException(e);
       setError(e?.message || "Failed to send. Please try again.");
     } finally {
       setSending(false);
@@ -2617,6 +2623,7 @@ function TrialInviteModal({ applicant, date: initialDate, time: initialTime, onC
       await onSend(date, time, note);
       onClose();
     } catch (e) {
+      Sentry.captureException(e);
       setError(e?.message || "Failed to send. Please try again.");
     } finally {
       setSending(false);
@@ -2805,6 +2812,7 @@ function PdfModal({ url, label, fileName, onClose }) {
         const { value } = await mammoth.convertToHtml({ arrayBuffer: buf });
         setDocxHtml(value);
       } catch (e) {
+        Sentry.captureException(e);
         setDocxError("Could not render document.");
       } finally {
         setDocxLoading(false);
@@ -2839,7 +2847,7 @@ function PdfModal({ url, label, fileName, onClose }) {
       a.download = fileName;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
-    } catch (e) { alert("Could not save. Please try again."); }
+    } catch (e) { Sentry.captureException(e); alert("Could not save. Please try again."); }
   };
 
   const openWith = async () => {
@@ -2850,7 +2858,7 @@ function PdfModal({ url, label, fileName, onClose }) {
         const mime = isDocx ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "application/pdf";
         const file = new File([blob], fileName, { type: mime });
         await navigator.share({ files: [file], title: label });
-      } catch (e) { if (e.name !== "AbortError") alert("Could not share. Please try again."); }
+      } catch (e) { if (e.name !== "AbortError") { Sentry.captureException(e); alert("Could not share. Please try again."); } }
     } else {
       window.open(url, "_blank", "noreferrer");
     }
@@ -3455,6 +3463,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
       const { sendMessage } = await import("../lib/auth");
       await sendMessage(jobId, studentId, companyId, senderId, text);
     } catch (e) {
+      Sentry.captureException(e);
       console.error("Send failed:", e);
     }
   };

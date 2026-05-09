@@ -1,4 +1,5 @@
 import { useState } from "react";
+import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { signIn, sendPasswordReset } from "../lib/auth";
 
@@ -21,6 +22,7 @@ export default function LoginPage({ setPage }) {
     try {
       await signIn({ email, password });
     } catch (e) {
+      Sentry.captureException(e);
       setError(e.message || "Invalid email or password.");
     } finally {
       setLoading(false);
@@ -35,6 +37,7 @@ export default function LoginPage({ setPage }) {
       await sendPasswordReset(resetEmail);
       setResetSent(true);
     } catch (e) {
+      Sentry.captureException(e);
       setResetError(e.message || "Failed to send reset email — please try again.");
     } finally {
       setResetLoading(false);

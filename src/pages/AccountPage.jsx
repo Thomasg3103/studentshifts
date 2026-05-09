@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import * as Sentry from "@sentry/react";
 import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
 import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData } from "../lib/auth";
@@ -79,6 +80,7 @@ export default function AccountPage({
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
+      Sentry.captureException(e);
       setSaveError("Failed to save.");
     } finally {
       setSaving(false);
@@ -145,6 +147,7 @@ export default function AccountPage({
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
+      Sentry.captureException(e);
       console.warn("Photo upload skipped:", e);
     } finally {
       setSaving(false);
@@ -162,6 +165,7 @@ export default function AccountPage({
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
+      Sentry.captureException(e);
       setSaveError("CV upload failed.");
     } finally {
       setSaving(false);
@@ -179,6 +183,7 @@ export default function AccountPage({
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
+      Sentry.captureException(e);
       setSaveError("Cover letter upload failed.");
     } finally {
       setSaving(false);
@@ -215,6 +220,7 @@ export default function AccountPage({
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
+      Sentry.captureException(e);
       setSaveError("Failed to save location.");
     }
   };
@@ -262,6 +268,7 @@ export default function AccountPage({
       setIndustrySaved(true);
       setTimeout(() => setIndustrySaved(false), 2500);
     } catch (e) {
+      Sentry.captureException(e);
       alert("Failed to save. Please try again.");
     } finally {
       setIndustrySaving(false);
@@ -281,6 +288,7 @@ export default function AccountPage({
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
+      Sentry.captureException(e);
       alert("Export failed. Please try again.");
     } finally {
       setExporting(false);
@@ -303,6 +311,7 @@ export default function AccountPage({
       setAppliedJobs([]);
       setPage("studentDashboard");
     } catch (e) {
+      Sentry.captureException(e);
       setDeleteError(e.message || "Failed to delete account.");
       setDeleting(false);
     }
