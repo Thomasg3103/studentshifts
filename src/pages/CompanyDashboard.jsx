@@ -842,7 +842,14 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
   const [chatError, setChatError]       = useState("");
-  const bottomRef = useRef(null);
+  const bottomRef    = useRef(null);
+  const chatInputRef = useRef(null);
+
+  const browseQuickReplies = chatStudent ? [
+    { label: "Hiring Opportunity", text: `Hi ${chatStudent.name}! We came across your profile and think you could be a great fit for our team. We have a part-time opportunity coming up — would you be interested in hearing more?` },
+    { label: "We'd Love to Have You", text: `Hi ${chatStudent.name}! We've been impressed by your profile and would love to have you on our team. Please reply here and we'll be in touch with all the details!` },
+    { label: "Tell Us About You", text: `Hi ${chatStudent.name}! We're very interested in your profile. Could you tell us a bit more about your availability and what kind of work you're looking for?` },
+  ] : [];
 
   useEffect(() => {
     if (!chatStudent) return;
@@ -927,8 +934,21 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
         {chatError && (
           <p style={{ margin: 0, padding: "0.4rem 1rem", fontSize: "0.78rem", color: "#e11d48", backgroundColor: "#fff1f2", borderTop: "1px solid #fecdd3" }}>{chatError}</p>
         )}
-        <div style={{ padding: "0.75rem 1rem", borderTop: "1.5px solid #e5e7eb", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
+        {!chatInput && !chatLoading && chatMessages.length === 0 && (
+          <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
+            <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+            <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
+              {browseQuickReplies.map(qr => (
+                <button key={qr.label} onMouseDown={e => { e.preventDefault(); setChatInput(qr.text); setTimeout(() => chatInputRef.current?.focus(), 0); }}
+                  style={{ flexShrink: 0, padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "#A21D54", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                >{qr.label}</button>
+              ))}
+            </div>
+          </div>
+        )}
+        <div style={{ padding: "0.75rem 1rem", borderTop: chatInput ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
           <input
+            ref={chatInputRef}
             value={chatInput}
             onChange={e => setChatInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && sendDM()}
@@ -1093,7 +1113,14 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
   const [chatError, setChatError]       = useState("");
-  const bottomRef = useRef(null);
+  const bottomRef    = useRef(null);
+  const chatInputRef = useRef(null);
+
+  const savedQuickReplies = chatStudent ? [
+    { label: "Hiring Opportunity", text: `Hi ${chatStudent.name}! We came across your profile and think you could be a great fit for our team. We have a part-time opportunity coming up — would you be interested in hearing more?` },
+    { label: "We'd Love to Have You", text: `Hi ${chatStudent.name}! We've been impressed by your profile and would love to have you on our team. Please reply here and we'll be in touch with all the details!` },
+    { label: "Tell Us About You", text: `Hi ${chatStudent.name}! We're very interested in your profile. Could you tell us a bit more about your availability and what kind of work you're looking for?` },
+  ] : [];
 
   useEffect(() => {
     if (!chatStudent) return;
@@ -1176,8 +1203,21 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
         {chatError && (
           <p style={{ margin: 0, padding: "0.4rem 1rem", fontSize: "0.78rem", color: "#e11d48", backgroundColor: "#fff1f2", borderTop: "1px solid #fecdd3" }}>{chatError}</p>
         )}
-        <div style={{ padding: "0.75rem 1rem", borderTop: "1.5px solid #e5e7eb", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
+        {!chatInput && !chatLoading && chatMessages.length === 0 && (
+          <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
+            <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+            <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
+              {savedQuickReplies.map(qr => (
+                <button key={qr.label} onMouseDown={e => { e.preventDefault(); setChatInput(qr.text); setTimeout(() => chatInputRef.current?.focus(), 0); }}
+                  style={{ flexShrink: 0, padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "#A21D54", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                >{qr.label}</button>
+              ))}
+            </div>
+          </div>
+        )}
+        <div style={{ padding: "0.75rem 1rem", borderTop: chatInput ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
           <input
+            ref={chatInputRef}
             value={chatInput}
             onChange={e => setChatInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && sendDM()}
@@ -2392,7 +2432,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           {/* Chat — only for accepted applicants */}
           {applicant.status === "Accepted" && (
             <Section label="Messages">
-              <ChatThread jobId={postingId} studentId={applicant.studentId} companyId={companyId} senderId={companyId} />
+              <ChatThread jobId={postingId} studentId={applicant.studentId} companyId={companyId} senderId={companyId} studentName={applicant.name} jobTitle={activePosting?.title} />
             </Section>
           )}
         </div>
@@ -3367,11 +3407,18 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
   );
 }
 
-function ChatThread({ jobId, studentId, companyId, senderId }) {
+function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTitle }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState("");
   const [loading, setLoading]   = useState(true);
-  const bottomRef = useRef(null);
+  const bottomRef  = useRef(null);
+  const inputRef   = useRef(null);
+
+  const quickReplies = [
+    { label: "You're a Great Fit", text: `Hi ${studentName || "there"}! We've reviewed your CV and think you'd be a perfect candidate for the ${jobTitle || "role"}. We'd love to hear from you — please message us back!` },
+    { label: "We'd Love to Hire You", text: `Hi ${studentName || "there"}! Great news — we'd love to have you join our team for the ${jobTitle || "position"}. Please reply here and we'll be in touch with all the details to get you started!` },
+    { label: "Tell Us More", text: `Hi ${studentName || "there"}! We're very interested in your application. Could you tell us a bit more about your availability and any relevant experience you have?` },
+  ];
 
   useEffect(() => {
     let channel;
@@ -3431,8 +3478,21 @@ function ChatThread({ jobId, studentId, companyId, senderId }) {
         }
         <div ref={bottomRef} />
       </div>
+      {!input && !loading && messages.length === 0 && (
+        <div style={{ marginBottom: "0.4rem" }}>
+          <p style={{ margin: "0 0 0.3rem", fontSize: "0.65rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+          <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", scrollbarWidth: "none" }}>
+            {quickReplies.map(qr => (
+              <button key={qr.label} onMouseDown={e => { e.preventDefault(); setInput(qr.text); setTimeout(() => inputRef.current?.focus(), 0); }}
+                style={{ flexShrink: 0, padding: "0.28rem 0.6rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "#A21D54", fontSize: "0.72rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+              >{qr.label}</button>
+            ))}
+          </div>
+        </div>
+      )}
       <div style={{ display: "flex", gap: "0.4rem" }}>
         <input
+          ref={inputRef}
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
