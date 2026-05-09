@@ -907,7 +907,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
 
   if (chatStudent) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: "55vh", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 280px)", minHeight: "400px", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", overflow: "hidden" }}>
         <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "#f8fafc", flexShrink: 0 }}>
           <button onClick={() => setChatStudent(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "#6b7280", padding: "0.2rem 0.5rem" }}>←</button>
           <div>
@@ -1178,7 +1178,7 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
 
   if (chatStudent) {
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: "55vh", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", overflow: "hidden" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 280px)", minHeight: "400px", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", overflow: "hidden" }}>
         <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "#f8fafc", flexShrink: 0 }}>
           <button onClick={() => setChatStudent(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "#6b7280", padding: "0.2rem 0.5rem" }}>←</button>
           <div>
