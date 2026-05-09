@@ -1058,6 +1058,22 @@ export async function fetchMessages(jobId, studentId, companyId = null) {
   return data || [];
 }
 
+// Fetch ALL messages between a company and a student (any job or direct).
+// Used by the Browse/Saved Students inline chat so the company sees full history.
+export async function fetchAllMessagesWithStudent(studentId, companyId) {
+  await ensureValidSession();
+  const { data, error } = await withTimeout(
+    supabase.from("chat_messages")
+      .select("id, sender_id, text, created_at")
+      .eq("student_id", studentId)
+      .eq("company_id", companyId)
+      .order("created_at", { ascending: true }),
+    10000
+  );
+  if (error) throw error;
+  return data || [];
+}
+
 export async function sendMessage(jobId, studentId, companyId, senderId, text) {
   await ensureValidSession();
   const { error } = await supabase.from("chat_messages").insert({

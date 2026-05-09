@@ -4,7 +4,7 @@ import "../StudentShiftWeb.css";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
-import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, emailInterviewInvite, emailInterviewRejection, emailTrialInvite, emailTrialRejection, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
+import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailCompanyInterested, emailInterviewInvite, emailInterviewRejection, emailTrialInvite, emailTrialRejection, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchMessages, fetchAllMessagesWithStudent, sendMessage, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -654,7 +654,7 @@ export default function CompanyDashboard({ setPage, currentUser }) {
         ].map(({ val, label, count }) => (
           <button
             key={val}
-            onClick={() => setActiveTab(val)}
+            onClick={() => { setActiveTab(val); setChatStudent(null); }}
             style={{
               padding: "0.7rem 1.25rem", border: "none", background: "none",
               fontWeight: activeTab === val ? "700" : "500", fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit",
@@ -853,16 +853,18 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
 
   useEffect(() => {
     if (!chatStudent) return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setChatLoading(true);
-    fetchMessages(null, chatStudent.id, companyId)
+    setChatError("");
+    fetchAllMessagesWithStudent(chatStudent.id, companyId)
       .then(msgs => { setChatMessages(msgs); setChatLoading(false); })
-      .catch(() => setChatLoading(false));
+      .catch(e => { setChatLoading(false); setChatError(e?.message || "Failed to load messages — please try again."); });
 
     const channel = supabase
       .channel(`direct_${companyId}_${chatStudent.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `company_id=eq.${companyId}` },
         payload => {
-          if (payload.new.student_id === chatStudent.id && payload.new.job_id === null) {
+          if (payload.new.student_id === chatStudent.id) {
             setChatMessages(prev => [...prev, payload.new]);
           }
         })
@@ -1124,16 +1126,18 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
 
   useEffect(() => {
     if (!chatStudent) return;
+    window.scrollTo({ top: 0, behavior: "smooth" });
     setChatLoading(true);
-    fetchMessages(null, chatStudent.id, companyId)
+    setChatError("");
+    fetchAllMessagesWithStudent(chatStudent.id, companyId)
       .then(msgs => { setChatMessages(msgs); setChatLoading(false); })
-      .catch(() => setChatLoading(false));
+      .catch(e => { setChatLoading(false); setChatError(e?.message || "Failed to load messages — please try again."); });
 
     const channel = supabase
       .channel(`saved_direct_${companyId}_${chatStudent.id}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `company_id=eq.${companyId}` },
         payload => {
-          if (payload.new.student_id === chatStudent.id && payload.new.job_id === null) {
+          if (payload.new.student_id === chatStudent.id) {
             setChatMessages(prev => [...prev, payload.new]);
           }
         })
