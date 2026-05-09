@@ -35,8 +35,10 @@ export default function SignupPage({ setPage }) {
 
   const handleSignup = async () => {
     if (!name || !email || !password) { setError("Please fill in all required fields."); return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Please enter a valid email address."); return; }
     if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
     if (role === "company" && !croNumber.trim()) { setError("Please enter your CRO number."); return; }
+    if (role === "company" && !/^\d{1,6}$/.test(croNumber.trim())) { setError("CRO number must be 1–6 digits."); return; }
     setLoading(true);
     setError("");
     try {

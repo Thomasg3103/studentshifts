@@ -221,6 +221,8 @@ export default function CompanyDashboard({ setPage, currentUser }) {
     }
     if (formData.days.length === 0) { alert("Please select at least one day."); return; }
     if (keptUrls.length === 0 && newFiles.length === 0) { alert("Please upload at least 1 photo."); return; }
+    const descPlain = (formData.description || "").replace(/<[^>]*>/g, "");
+    if (descPlain.length > 5000) { alert(`Description is too long (${descPlain.length} characters). Maximum is 5,000.`); return; }
     setFormSaving(true);
     try {
       // Build ordered photo URL array — existing first (already URLs), then upload new files in order

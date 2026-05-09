@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { signIn, sendPasswordReset } from "../lib/auth";
@@ -14,6 +14,7 @@ export default function LoginPage({ setPage }) {
   const [resetEmail, setResetEmail] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError]     = useState("");
+  const [resetCooldown, setResetCooldown] = useState(0);
 
   const handleLogin = async () => {
     if (!email || !password) { setError("Please enter your email and password."); return; }
@@ -29,13 +30,21 @@ export default function LoginPage({ setPage }) {
     }
   };
 
+  useEffect(() => {
+    if (resetCooldown <= 0) return;
+    const id = setInterval(() => setResetCooldown(c => c - 1), 1000);
+    return () => clearInterval(id);
+  }, [resetCooldown]);
+
   const handleReset = async () => {
+    if (resetCooldown > 0) return;
     if (!resetEmail) { setResetError("Please enter your email address."); return; }
     setResetLoading(true);
     setResetError("");
     try {
       await sendPasswordReset(resetEmail);
       setResetSent(true);
+      setResetCooldown(60);
     } catch (e) {
       Sentry.captureException(e);
       setResetError(e.message || "Failed to send reset email — please try again.");
@@ -79,8 +88,8 @@ export default function LoginPage({ setPage }) {
                 onKeyDown={e => e.key === "Enter" && handleReset()}
                 style={fieldStyle}
               />
-              <button onClick={handleReset} disabled={resetLoading} style={{ ...btnPrimary, opacity: resetLoading ? 0.7 : 1 }}>
-                {resetLoading ? "Sending…" : "Send Reset Link →"}
+              <button onClick={handleReset} disabled={resetLoading || resetCooldown > 0} style={{ ...btnPrimary, opacity: (resetLoading || resetCooldown > 0) ? 0.7 : 1 }}>
+                {resetLoading ? "Sending…" : resetCooldown > 0 ? `Resend available in ${resetCooldown}s` : "Send Reset Link →"}
               </button>
               <button onClick={() => { setForgotMode(false); setResetError(""); }} style={btnGhost}>
                 Back to Login

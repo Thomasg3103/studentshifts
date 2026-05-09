@@ -258,6 +258,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           <input
             type="number"
             min="0"
+            max="999"
             step="0.50"
             value={formData.pay ? formData.pay.replace(/[^0-9.]/g, "") : ""}
             onChange={e => setFormData(prev => ({ ...prev, pay: e.target.value ? `€${e.target.value}/hr` : "" }))}
