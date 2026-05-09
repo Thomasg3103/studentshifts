@@ -205,7 +205,6 @@ export default function CompanyDashboard({ setPage, currentUser }) {
   };
 
   const deletePosting = async (id) => {
-    if (!window.confirm("Delete this job posting? This cannot be undone.")) return;
     const { error } = await withTimeout(
       supabase.from("jobs").delete().eq("id", id),
       10000, "Delete timed out."
@@ -1327,6 +1326,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
   const crop  = posting.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
   const [hovered, setHovered] = useState(false);
   const [confirmClose, setConfirmClose] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const deadlineClose = posting.deadline && posting.deadline > today && (new Date(posting.deadline) - new Date(today)) / 86400000 <= 3;
   return (
     <div
@@ -1429,7 +1429,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
           >
             {isActive ? "Close Job" : "Reopen"}
           </button>
-          <button onClick={onDelete} style={{ padding: "0.38rem 0.7rem", border: "1px solid #fca5a5", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#dc2626", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+          <button onClick={() => setConfirmDelete(true)} style={{ padding: "0.38rem 0.7rem", border: "1px solid #fca5a5", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#dc2626", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}>
             Delete
           </button>
         </div>
@@ -1447,6 +1447,25 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
                 </button>
                 <button onClick={() => { onToggleStatus(); setConfirmClose(false); }} style={{ flex: 1, padding: "0.6rem 1rem", border: "none", borderRadius: "0.6rem", background: "#dc2626", cursor: "pointer", color: "white", fontSize: "0.88rem", fontWeight: "700", fontFamily: "inherit" }}>
                   Yes, Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {confirmDelete && (
+          <div onClick={() => setConfirmDelete(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "1rem" }}>
+            <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem 1.5rem", width: "100%", maxWidth: "360px", boxShadow: "0 20px 60px rgba(0,0,0,0.25)", textAlign: "center" }}>
+              <p style={{ fontSize: "1.5rem", margin: "0 0 0.5rem" }}>🗑️</p>
+              <h3 style={{ margin: "0 0 0.4rem", fontWeight: "700", fontSize: "1.05rem", color: "#0f172a" }}>Delete this job?</h3>
+              <p style={{ margin: "0 0 1.5rem", fontSize: "0.875rem", color: "#64748b" }}>
+                This will permanently remove the posting and all its applicants. This cannot be undone.
+              </p>
+              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
+                <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: "0.6rem 1rem", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", background: "white", cursor: "pointer", color: "#374151", fontSize: "0.88rem", fontWeight: "600", fontFamily: "inherit" }}>
+                  Cancel
+                </button>
+                <button onClick={() => { onDelete(); setConfirmDelete(false); }} style={{ flex: 1, padding: "0.6rem 1rem", border: "none", borderRadius: "0.6rem", background: "#dc2626", cursor: "pointer", color: "white", fontSize: "0.88rem", fontWeight: "700", fontFamily: "inherit" }}>
+                  Yes, Delete
                 </button>
               </div>
             </div>
