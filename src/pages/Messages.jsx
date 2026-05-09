@@ -128,7 +128,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
             ))
         }
       </div>
-      {!input && !loading && (
+      {!input && !loading && messages.length === 0 && (
         <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
           <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
