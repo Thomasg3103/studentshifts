@@ -428,7 +428,7 @@ export default function AccountPage({
               </label>
             </div>
             <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "#94a3b8", fontWeight: "500" }}>Welcome back,</p>
-            <p style={{ margin: "0.1rem 0 0.1rem", fontWeight: "800", fontSize: "1.15rem", color: "#1e293b" }}>{firstName} 👋</p>
+            <p style={{ margin: "0.1rem 0 0.1rem", fontWeight: "800", fontSize: "1.15rem", color: "#1e293b" }}>👋 {firstName}</p>
             <p style={{ margin: 0, fontSize: "0.78rem", color: "#94a3b8" }}>{currentUser.email}</p>
             {saving && <p style={{ margin: "0.3rem 0 0", fontSize: "0.7rem", color: "#94a3b8" }}>Saving…</p>}
             {saved  && <p style={{ margin: "0.3rem 0 0", fontSize: "0.7rem", color: "#16a34a", fontWeight: 600 }}>✓ Saved</p>}
