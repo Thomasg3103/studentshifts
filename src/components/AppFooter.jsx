@@ -1,6 +1,8 @@
 import { useNavigate } from "react-router-dom";
+import { useApp } from "../context/AppContext";
 
-export default function AppFooter({ currentUser }) {
+export default function AppFooter() {
+  const { currentUser } = useApp();
   const navigate = useNavigate();
 
   const handleAdvertise = () => {

@@ -2,8 +2,10 @@ import { useState } from "react";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { updatePassword } from "../lib/auth";
+import { useApp } from "../context/AppContext";
 
-export default function ResetPasswordPage({ setPage }) {
+export default function ResetPasswordPage() {
+  const { setPage } = useApp();
   const [password, setPassword]   = useState("");
   const [confirm, setConfirm]     = useState("");
   const [error, setError]         = useState("");

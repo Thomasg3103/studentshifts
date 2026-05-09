@@ -1,10 +1,12 @@
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
+import { useApp } from "../context/AppContext";
 
 const CONTACT_EMAIL = "thomasgallagher3103@gmail.com";
 const LAST_UPDATED  = "15 April 2026";
 
-export default function PrivacyPolicyPage({ setPage }) {
+export default function PrivacyPolicyPage() {
+  const { setPage } = useApp();
   return (
     <><BackButton />
     <PageWrapper narrow>

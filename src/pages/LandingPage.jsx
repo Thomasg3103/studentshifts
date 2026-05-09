@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import AppFooter from "../components/AppFooter";
+import { useApp } from "../context/AppContext";
 
 const MOCK_COMPANIES = [
   { name: "Supermac's",    tagline: "Ireland's favourite fast food",      bg: "#fef3c7", accent: "#d97706", initials: "SM" },
@@ -26,7 +27,8 @@ const STATS = [
   { n: "4.8★", label: "Average Rating" },
 ];
 
-export default function LandingPage({ currentUser }) {
+export default function LandingPage() {
+  const { currentUser } = useApp();
   const navigate  = useNavigate();
   const [search,    setSearch]    = useState("");
   const [locations, setLocations] = useState([]);

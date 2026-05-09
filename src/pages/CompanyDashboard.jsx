@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
+import { useApp } from "../context/AppContext";
 import PageWrapper from "../components/PageWrapper";
 import "../StudentShiftWeb.css";
 import { supabase, withTimeout } from "../lib/supabase";
@@ -41,7 +42,8 @@ function normaliseJob(j) {
   };
 }
 
-export default function CompanyDashboard({ setPage, currentUser }) {
+export default function CompanyDashboard() {
+  const { setPage, currentUser } = useApp();
   const [postings, setPostings]   = useState([]);
   const [loading, setLoading]     = useState(true);
   const [formSaving, setFormSaving] = useState(false);

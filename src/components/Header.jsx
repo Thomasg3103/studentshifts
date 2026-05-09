@@ -1,8 +1,10 @@
 ﻿import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { useApp } from "../context/AppContext";
 
-export default function Header({ currentUser, setPage, likedJobs, appliedJobs, notifCount, msgCount }) {
+export default function Header() {
+  const { currentUser, setPage, likedJobs, appliedJobs, notifCount, msgCount } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const menuRef = useRef(null);

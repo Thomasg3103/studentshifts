@@ -4,6 +4,7 @@ import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
 import { removeApplication } from "../lib/auth";
+import { useApp } from "../context/AppContext";
 
 const STATUS_STYLE = {
   Pending:  { bg: "#fef3c7", color: "#d97706", icon: "🕐", label: "Pending" },
@@ -11,7 +12,8 @@ const STATUS_STYLE = {
   Rejected: { bg: "#fee2e2", color: "#dc2626", icon: "❌", label: "Declined" },
 };
 
-function AppliedJobCard({ job, status, onRemove, setSelectedJob, setPage }) {
+function AppliedJobCard({ job, status, onRemove }) {
+  const { setSelectedJob, setPage } = useApp();
   const s = STATUS_STYLE[status] || STATUS_STYLE.Pending;
   const photo = job.photos?.[0] || null;
   const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
@@ -65,7 +67,8 @@ function AppliedJobCard({ job, status, onRemove, setSelectedJob, setPage }) {
   );
 }
 
-export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppliedJobIds, setSelectedJob, setPage, currentUser, statuses = {} }) {
+export default function AppliedJobs() {
+  const { appliedJobs, setAppliedJobs, setSavedAppliedJobIds, currentUser, appStatuses: statuses = {} } = useApp();
   const [removeError, setRemoveError] = useState("");
 
   const handleRemove = async (jobId) => {
@@ -109,8 +112,6 @@ export default function AppliedJobs({ appliedJobs, setAppliedJobs, setSavedAppli
                 job={job}
                 status={statuses[job.id] || "Pending"}
                 onRemove={handleRemove}
-                setSelectedJob={setSelectedJob}
-                setPage={setPage}
               />
             ))}
           </div>

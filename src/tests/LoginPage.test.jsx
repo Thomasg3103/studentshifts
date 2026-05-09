@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import LoginPage from '../pages/LoginPage';
+import { AppContext } from '../context/AppContext';
 
 vi.mock('../lib/auth', () => ({
   signIn: vi.fn(),
@@ -15,7 +16,9 @@ vi.mock('@sentry/react', () => ({
 const renderLogin = (setPage = vi.fn()) =>
   render(
     <MemoryRouter>
-      <LoginPage setPage={setPage} />
+      <AppContext.Provider value={{ setPage }}>
+        <LoginPage />
+      </AppContext.Provider>
     </MemoryRouter>
   );
 

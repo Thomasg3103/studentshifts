@@ -3,7 +3,7 @@ import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { signUp } from "../lib/auth";
 import { jobCategories } from "../data/jobCategories";
-
+import { useApp } from "../context/AppContext";
 
 function getPasswordStrength(pw) {
   if (!pw) return null;
@@ -19,7 +19,8 @@ function getPasswordStrength(pw) {
   return              { level: "Strong", color: "#22c55e", bars: 4 };
 }
 
-export default function SignupPage({ setPage }) {
+export default function SignupPage() {
+  const { setPage } = useApp();
   const [name, setName]         = useState("");
   const [email, setEmail]       = useState("");
   const [password, setPassword] = useState("");

@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { useApp } from "../context/AppContext";
 
 const STORAGE_KEY = "ss_cookie_notice_dismissed";
 
-export default function CookieBanner({ setPage, hasBottomNav }) {
+export default function CookieBanner() {
+  const { setPage, currentUser } = useApp();
+  const hasBottomNav = !!(currentUser?.role === "student" || currentUser?.role === "company");
   const [dismissed, setDismissed] = useState(
     () => localStorage.getItem(STORAGE_KEY) === "1"
   );

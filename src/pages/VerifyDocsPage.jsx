@@ -2,8 +2,10 @@ import { useState } from "react";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { uploadVerificationDocs } from "../lib/auth";
+import { useApp } from "../context/AppContext";
 
-export default function VerifyDocsPage({ currentUser, setCurrentUser, setPage }) {
+export default function VerifyDocsPage() {
+  const { currentUser, setCurrentUser, setPage } = useApp();
   const [studentIdCard, setStudentIdCard] = useState(null);
   const [governmentId, setGovernmentId]   = useState(null);
   const [error, setError]   = useState("");

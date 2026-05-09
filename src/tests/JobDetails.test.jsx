@@ -2,6 +2,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import JobDetails from '../pages/JobDetails';
+import { AppContext } from '../context/AppContext';
 
 vi.mock('../lib/auth', () => ({
   likeJob: vi.fn(),
@@ -45,22 +46,24 @@ const mockUser = {
   cvName: 'cv.pdf',
 };
 
-const renderJobDetails = (overrides = {}) =>
+const baseContext = {
+  setPage: vi.fn(),
+  currentUser: mockUser,
+  likedJobs: [],
+  setLikedJobs: vi.fn(),
+  appliedJobs: [],
+  setAppliedJobs: vi.fn(),
+  setSavedLikedJobIds: vi.fn(),
+  setSavedAppliedJobIds: vi.fn(),
+  studentLocation: null,
+};
+
+const renderJobDetails = (contextOverrides = {}) =>
   render(
     <MemoryRouter>
-      <JobDetails
-        job={mockJob}
-        setPage={vi.fn()}
-        currentUser={mockUser}
-        likedJobs={[]}
-        setLikedJobs={vi.fn()}
-        appliedJobs={[]}
-        setAppliedJobs={vi.fn()}
-        setSavedLikedJobIds={vi.fn()}
-        setSavedAppliedJobIds={vi.fn()}
-        studentLocation={null}
-        {...overrides}
-      />
+      <AppContext.Provider value={{ ...baseContext, ...contextOverrides }}>
+        <JobDetails job={mockJob} />
+      </AppContext.Provider>
     </MemoryRouter>
   );
 

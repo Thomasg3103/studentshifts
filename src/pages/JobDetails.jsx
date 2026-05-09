@@ -5,6 +5,7 @@ import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { likeJob, unlikeJob, createApplication } from "../lib/auth";
 import { haversineDistance, formatDistance } from "../utils/geo";
+import { useApp } from "../context/AppContext";
 
 function DetailCard({ label, children }) {
   return (
@@ -16,10 +17,9 @@ function DetailCard({ label, children }) {
 }
 
 
-export default function JobDetails({
-  job, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
-  setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation,
-}) {
+export default function JobDetails({ job }) {
+  const { setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
+    setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation } = useApp();
   const [applyModal, setApplyModal]       = useState(null);
   const [photoIdx, setPhotoIdx]           = useState(0);
   const [submitting, setSubmitting]       = useState(false);

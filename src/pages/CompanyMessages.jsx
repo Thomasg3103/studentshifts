@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
 import { fetchCompanyConversations, fetchCompanyDirectConversations, fetchMessages, sendMessage, fetchMessageCount } from "../lib/auth";
 import { supabase } from "../lib/supabase";
+import { useApp } from "../context/AppContext";
 
 function formatConvTime(isoStr) {
   if (!isoStr) return "";
@@ -158,7 +159,8 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
   );
 }
 
-export default function CompanyMessages({ currentUser, setPage, setMsgCount }) {
+export default function CompanyMessages() {
+  const { currentUser, setPage, setMsgCount } = useApp();
   const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
   const [directConvs, setDirectConvs]     = useState([]);

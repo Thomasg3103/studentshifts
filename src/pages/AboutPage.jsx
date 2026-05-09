@@ -1,7 +1,9 @@
 ﻿import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
+import { useApp } from "../context/AppContext";
 
-export default function AboutPage({ setPage }) {
+export default function AboutPage() {
+  const { setPage } = useApp();
   return (
     <><BackButton />
     <PageWrapper narrow>

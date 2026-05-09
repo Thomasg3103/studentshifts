@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import * as Sentry from "@sentry/react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
@@ -23,6 +23,7 @@ import CookieBanner from "./components/CookieBanner";
 import AppFooter from "./components/AppFooter";
 import { supabase } from "./lib/supabase";
 import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug, fetchJobsByIds, fetchMessageCount } from "./lib/auth";
+import { AppContext } from "./context/AppContext";
 
 // Map page-name strings to URL paths (for backwards-compat with setPage calls)
 const PAGE_PATH = {
@@ -308,6 +309,20 @@ export default function StudentShiftsWeb() {
 
   const isLanding = !currentUser && location.pathname === "/";
 
+  const appContextValue = {
+    currentUser, setCurrentUser,
+    setPage,
+    setSelectedJob: setSelectedJobBoth,
+    likedJobs, setLikedJobs,
+    appliedJobs, setAppliedJobs,
+    savedLikedJobIds, setSavedLikedJobIds,
+    savedAppliedJobIds, setSavedAppliedJobIds,
+    studentLocation, setStudentLocation,
+    appStatuses,
+    notifCount,
+    msgCount, setMsgCount,
+  };
+
   if (authLoading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#fafafa" }}>
@@ -319,110 +334,61 @@ export default function StudentShiftsWeb() {
     );
   }
 
-  const sharedStudentProps = {
-    likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, currentUser,
-    setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation,
-  };
-
   return (
-    <>
-      {!isLanding && (
-        <Header
-          currentUser={currentUser}
-          setPage={setPage}
-          likedJobs={likedJobs}
-          appliedJobs={appliedJobs}
-          notifCount={notifCount}
-          msgCount={msgCount}
-        />
-      )}
+    <AppContext.Provider value={appContextValue}>
+      {!isLanding && <Header />}
       <Routes>
         {/* Home / Student Dashboard / Landing */}
         <Route path="/" element={
           !currentUser
-            ? <LandingPage currentUser={currentUser} />
+            ? <LandingPage />
             : currentUser?.role === "student" && !currentUser?.studentIdPath
-            ? <VerifyDocsPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} />
-            : <StudentDashboard
-                setPage={setPage}
-                setSelectedJob={setSelectedJobBoth}
-                {...sharedStudentProps}
-                studentLocation={studentLocation}
-                savedLikedJobIds={savedLikedJobIds}
-                savedAppliedJobIds={savedAppliedJobIds}
-                restoreScrollY={restoreScrollY}
-              />
+            ? <VerifyDocsPage />
+            : <StudentDashboard restoreScrollY={restoreScrollY} />
         } />
 
         {/* Job Details */}
         <Route path="/jobs/:titleSlug/:companySlug" element={
-          <JobDetailsRoute
-            selectedJob={selectedJob}
-            setPage={setPage}
-            {...sharedStudentProps}
-          />
+          <JobDetailsRoute selectedJob={selectedJob} />
         } />
 
         {/* Auth */}
-        <Route path="/login"   element={<LoginPage setPage={setPage} setCurrentUser={setCurrentUser} />} />
-        <Route path="/signup"  element={<SignupPage setPage={setPage} />} />
-        <Route path="/reset-password" element={<ResetPasswordPage setPage={setPage} />} />
-        <Route path="/email-verified" element={<EmailVerifiedPage setPage={setPage} currentUser={currentUser} />} />
+        <Route path="/login"   element={<LoginPage />} />
+        <Route path="/signup"  element={<SignupPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/email-verified" element={<EmailVerifiedPage />} />
 
         {/* Student pages */}
-        <Route path="/account" element={currentUser
-          ? <AccountPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} setLikedJobs={setLikedJobs} setAppliedJobs={setAppliedJobs} setStudentLocation={setStudentLocation} />
-          : <Navigate to="/login" replace />
-        } />
-        <Route path="/liked" element={currentUser
-          ? <LikedJobs likedJobs={likedJobs} setLikedJobs={setLikedJobs} setSavedLikedJobIds={setSavedLikedJobIds} setSelectedJob={setSelectedJobBoth} setPage={setPage} currentUser={currentUser} />
-          : <Navigate to="/login" replace />
-        } />
-        <Route path="/applied" element={currentUser?.role === "student"
-          ? <AppliedJobs appliedJobs={appliedJobs} setAppliedJobs={setAppliedJobs} setSavedAppliedJobIds={setSavedAppliedJobIds} setSelectedJob={setSelectedJobBoth} setPage={setPage} currentUser={currentUser} statuses={appStatuses} />
-          : <Navigate to="/" replace />
-        } />
-        <Route path="/messages" element={currentUser?.role === "student"
-          ? <Messages currentUser={currentUser} setPage={setPage} setMsgCount={setMsgCount} />
-          : <Navigate to="/" replace />
-        } />
-        <Route path="/verify" element={currentUser
-          ? <VerifyDocsPage currentUser={currentUser} setCurrentUser={setCurrentUser} setPage={setPage} />
-          : <Navigate to="/" replace />
-        } />
+        <Route path="/account" element={currentUser ? <AccountPage /> : <Navigate to="/login" replace />} />
+        <Route path="/liked"   element={currentUser ? <LikedJobs /> : <Navigate to="/login" replace />} />
+        <Route path="/applied" element={currentUser?.role === "student" ? <AppliedJobs /> : <Navigate to="/" replace />} />
+        <Route path="/messages" element={currentUser?.role === "student" ? <Messages /> : <Navigate to="/" replace />} />
+        <Route path="/verify"  element={currentUser ? <VerifyDocsPage /> : <Navigate to="/" replace />} />
 
         {/* Company pages */}
-        <Route path="/company" element={currentUser?.role === "company"
-          ? <CompanyDashboard setPage={setPage} currentUser={currentUser} />
-          : <Navigate to="/" replace />
-        } />
-        <Route path="/company/messages" element={currentUser?.role === "company"
-          ? <CompanyMessages currentUser={currentUser} setPage={setPage} setMsgCount={setMsgCount} />
-          : <Navigate to="/" replace />
-        } />
+        <Route path="/company" element={currentUser?.role === "company" ? <CompanyDashboard /> : <Navigate to="/" replace />} />
+        <Route path="/company/messages" element={currentUser?.role === "company" ? <CompanyMessages /> : <Navigate to="/" replace />} />
 
         {/* Admin */}
-        <Route path="/admin" element={currentUser?.role === "admin"
-          ? <AdminPage currentUser={currentUser} setPage={setPage} />
-          : <Navigate to="/" replace />
-        } />
+        <Route path="/admin" element={currentUser?.role === "admin" ? <AdminPage /> : <Navigate to="/" replace />} />
 
         {/* Info pages */}
-        <Route path="/about"   element={<AboutPage setPage={setPage} />} />
-        <Route path="/privacy" element={<PrivacyPolicyPage setPage={setPage} />} />
-        <Route path="/terms"   element={<TermsOfServicePage setPage={setPage} />} />
+        <Route path="/about"   element={<AboutPage />} />
+        <Route path="/privacy" element={<PrivacyPolicyPage />} />
+        <Route path="/terms"   element={<TermsOfServicePage />} />
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      {!isLanding && <AppFooter currentUser={currentUser} />}
-      <CookieBanner setPage={setPage} hasBottomNav={!!(currentUser?.role === "student" || currentUser?.role === "company")} />
-    </>
+      {!isLanding && <AppFooter />}
+      <CookieBanner />
+    </AppContext.Provider>
   );
 }
 
 // Job details route — handles in-app nav (job in state/memory) and direct URL access (fetches from DB)
-function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation }) {
+function JobDetailsRoute({ selectedJob }) {
+  const { currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation, setPage } = useContext(AppContext);
   const { titleSlug, companySlug } = useParams();
   const location = useLocation();
   const navigate  = useNavigate();
@@ -474,7 +440,8 @@ function JobDetailsRoute({ selectedJob, setPage, currentUser, likedJobs, setLike
   );
 }
 
-function EmailVerifiedPage({ setPage, currentUser }) {
+function EmailVerifiedPage() {
+  const { currentUser } = useContext(AppContext);
   const navigate = useNavigate();
   useEffect(() => {
     if (!currentUser) return;

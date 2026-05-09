@@ -3,6 +3,7 @@ import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { fetchAcceptedConversations, fetchStudentDirectConversations, fetchMessages, sendMessage, fetchMessageCount } from "../lib/auth";
 import { supabase } from "../lib/supabase";
+import { useApp } from "../context/AppContext";
 
 function formatConvTime(isoStr) {
   if (!isoStr) return "";
@@ -158,7 +159,8 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
   );
 }
 
-export default function Messages({ currentUser, setPage, setMsgCount }) {
+export default function Messages() {
+  const { currentUser, setPage, setMsgCount } = useApp();
   const [conversations, setConversations] = useState([]);
   const [directConvs, setDirectConvs]     = useState([]);
   const [loading, setLoading]             = useState(true);

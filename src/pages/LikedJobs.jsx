@@ -3,8 +3,10 @@ import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
 import { unlikeJob } from "../lib/auth";
+import { useApp } from "../context/AppContext";
 
-export default function LikedJobs({ likedJobs, setLikedJobs, setSavedLikedJobIds, setSelectedJob, setPage, currentUser }) {
+export default function LikedJobs() {
+  const { likedJobs, setLikedJobs, setSavedLikedJobIds, setSelectedJob, setPage, currentUser } = useApp();
 
   const removeLike = (job) => {
     setLikedJobs(prev => prev.filter(j => j.id !== job.id));

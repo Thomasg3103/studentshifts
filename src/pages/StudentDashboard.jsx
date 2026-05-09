@@ -4,6 +4,7 @@ import { jobCategories, getCategoryForTitle } from "../data/jobCategories";
 import { haversineDistance, formatDistance, mockLocationCoords, geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
 import { likeJob, unlikeJob } from "../lib/auth";
+import { useApp } from "../context/AppContext";
 
 const DESC = {
   "Bar Staff":           "Join our bar team serving drinks and looking after customers. Some experience preferred — full training provided.",
@@ -39,11 +40,10 @@ function daysUntil(dateStr) {
 
 const _geocodeCache = {};
 
-export default function StudentDashboard({
-  setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
-  currentUser, studentLocation, savedLikedJobIds, savedAppliedJobIds, restoreScrollY,
-  setSavedLikedJobIds, setSavedAppliedJobIds,
-}) {
+export default function StudentDashboard({ restoreScrollY }) {
+  const { setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
+    currentUser, studentLocation, savedLikedJobIds, savedAppliedJobIds,
+    setSavedLikedJobIds, setSavedAppliedJobIds } = useApp();
   const [jobs,         setJobs]         = useState([]);
   const [jobsLoading,  setJobsLoading]  = useState(true);
   const [jobsError,    setJobsError]    = useState(false);

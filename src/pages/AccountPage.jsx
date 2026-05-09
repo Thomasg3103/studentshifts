@@ -4,6 +4,7 @@ import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
 import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData } from "../lib/auth";
 import { jobCategories } from "../data/jobCategories";
+import { useApp } from "../context/AppContext";
 
 const PART_TIME_SKILLS = [
   "Customer Service", "Cash Handling", "Till Operation", "Retail Sales", "Stock Management",
@@ -28,14 +29,8 @@ const PART_TIME_SKILLS = [
   "Gardening & Landscaping", "Car Washing", "Parking Attendant",
 ];
 
-export default function AccountPage({
-  currentUser,
-  setCurrentUser,
-  setPage,
-  setLikedJobs,
-  setAppliedJobs,
-  setStudentLocation,
-}) {
+export default function AccountPage() {
+  const { currentUser, setCurrentUser, setPage, setLikedJobs, setAppliedJobs, setStudentLocation } = useApp();
   const [availability, setAvailability]         = useState(currentUser.availability || {});
   const [jobPreferences, setJobPreferences]     = useState(currentUser.jobPreferences || []);
   const [industries, setIndustries]             = useState(currentUser.industries || []);
