@@ -91,6 +91,7 @@ export async function signUp({ email, password, name, role, croNumber, industrie
 // auth metadata into the companies table (only if not already set).
 export async function saveCompanyCroNumber(userId, croNumber) {
   if (!croNumber) return;
+  await supabase.auth.getSession();
   const { error } = await supabase
     .from("companies")
     .update({ cro_number: croNumber })
@@ -102,6 +103,7 @@ export async function saveCompanyCroNumber(userId, croNumber) {
 // Called on first SIGNED_IN for a company — persists industries from metadata.
 export async function saveCompanyIndustries(userId, industries) {
   if (!industries?.length) return;
+  await supabase.auth.getSession();
   const { error } = await supabase
     .from("companies")
     .update({ industries })
@@ -218,6 +220,7 @@ export async function fetchJobsByIds(ids) {
 }
 
 export async function fetchLikedJobIds(userId) {
+  await supabase.auth.getSession();
   const { data, error } = await withTimeout(
     supabase.from("liked_jobs").select("job_id").eq("student_id", userId),
     10000
@@ -227,16 +230,19 @@ export async function fetchLikedJobIds(userId) {
 }
 
 export async function likeJob(userId, jobId) {
+  await supabase.auth.getSession();
   const { error } = await supabase.from("liked_jobs").insert({ student_id: userId, job_id: jobId });
   if (error && error.code !== "23505") throw error;
 }
 
 export async function unlikeJob(userId, jobId) {
+  await supabase.auth.getSession();
   const { error } = await supabase.from("liked_jobs").delete().eq("student_id", userId).eq("job_id", jobId);
   if (error) throw error;
 }
 
 export async function fetchAppliedJobIds(userId) {
+  await supabase.auth.getSession();
   const { data, error } = await withTimeout(
     supabase.from("applications").select("job_id").eq("student_id", userId),
     10000
@@ -246,6 +252,7 @@ export async function fetchAppliedJobIds(userId) {
 }
 
 export async function createApplication(userId, jobId, preferredShift = null) {
+  await supabase.auth.getSession();
   const payload = { student_id: userId, job_id: jobId };
   if (preferredShift) payload.preferred_shift = preferredShift;
   const { error } = await supabase.from("applications").insert(payload);
@@ -262,6 +269,7 @@ export async function createApplication(userId, jobId, preferredShift = null) {
 }
 
 export async function updateApplicationStage(applicationId, stage) {
+  await supabase.auth.getSession();
   const { data, error } = await supabase
     .from("applications")
     .update({ pipeline_stage: stage })
@@ -272,6 +280,7 @@ export async function updateApplicationStage(applicationId, stage) {
 }
 
 export async function saveApplicationNotes(applicationId, notes) {
+  await supabase.auth.getSession();
   const { error } = await supabase
     .from("applications")
     .update({ company_notes: notes })
@@ -280,6 +289,7 @@ export async function saveApplicationNotes(applicationId, notes) {
 }
 
 export async function incrementInterviewRound(applicationId, currentRound) {
+  await supabase.auth.getSession();
   const { data, error } = await supabase
     .from("applications")
     .update({ interview_round: currentRound + 1 })
@@ -290,6 +300,7 @@ export async function incrementInterviewRound(applicationId, currentRound) {
 }
 
 export async function saveTrialSchedule(applicationId, trialDate, trialTime) {
+  await supabase.auth.getSession();
   const { error } = await supabase
     .from("applications")
     .update({ trial_date: trialDate || null, trial_time: trialTime || null })
@@ -298,6 +309,7 @@ export async function saveTrialSchedule(applicationId, trialDate, trialTime) {
 }
 
 export async function saveInterviewSchedule(applicationId, date, time) {
+  await supabase.auth.getSession();
   const { error } = await supabase
     .from("applications")
     .update({ interview_date: date || null, interview_time: time || null })
@@ -306,6 +318,7 @@ export async function saveInterviewSchedule(applicationId, date, time) {
 }
 
 export async function saveInterviewRoundsData(applicationId, rounds) {
+  await supabase.auth.getSession();
   const { error } = await supabase
     .from("applications")
     .update({ interview_rounds_data: rounds })
@@ -314,6 +327,7 @@ export async function saveInterviewRoundsData(applicationId, rounds) {
 }
 
 export async function moveToInterviewRound(applicationId, round) {
+  await supabase.auth.getSession();
   const { data, error } = await supabase
     .from("applications")
     .update({ pipeline_stage: "interview", interview_round: round })
@@ -324,6 +338,7 @@ export async function moveToInterviewRound(applicationId, round) {
 }
 
 export async function fetchLikedStudentIds(companyId) {
+  await supabase.auth.getSession();
   const { data, error } = await supabase
     .from("company_liked_students")
     .select("student_id")
@@ -333,6 +348,7 @@ export async function fetchLikedStudentIds(companyId) {
 }
 
 export async function likeStudent(companyId, studentId) {
+  await supabase.auth.getSession();
   const { error } = await supabase
     .from("company_liked_students")
     .insert({ company_id: companyId, student_id: studentId });
@@ -340,6 +356,7 @@ export async function likeStudent(companyId, studentId) {
 }
 
 export async function unlikeStudent(companyId, studentId) {
+  await supabase.auth.getSession();
   const { error } = await supabase
     .from("company_liked_students")
     .delete()
@@ -349,6 +366,7 @@ export async function unlikeStudent(companyId, studentId) {
 }
 
 export async function fetchApplicationStatuses(userId) {
+  await supabase.auth.getSession();
   const { data, error } = await withTimeout(
     supabase.from("applications").select("job_id, status").eq("student_id", userId),
     10000
@@ -359,6 +377,7 @@ export async function fetchApplicationStatuses(userId) {
 }
 
 export async function removeApplication(userId, jobId) {
+  await supabase.auth.getSession();
   const { error } = await supabase.from("applications").delete().eq("student_id", userId).eq("job_id", jobId);
   if (error) throw error;
 }
@@ -1002,6 +1021,7 @@ export async function getSignedDocumentUrl(bucket, path) {
 }
 
 export async function fetchMessageCount(userId, role) {
+  await supabase.auth.getSession();
   if (role === "student") {
     const { data } = await withTimeout(
       supabase.from("chat_messages").select("job_id").eq("student_id", userId).neq("sender_id", userId),
@@ -1020,6 +1040,7 @@ export async function fetchMessageCount(userId, role) {
 }
 
 export async function fetchMessages(jobId, studentId, companyId = null) {
+  await supabase.auth.getSession();
   let query = supabase.from("chat_messages")
     .select("id, sender_id, text, created_at");
   if (jobId === null) {
@@ -1036,6 +1057,7 @@ export async function fetchMessages(jobId, studentId, companyId = null) {
 }
 
 export async function sendMessage(jobId, studentId, companyId, senderId, text) {
+  await supabase.auth.getSession();
   const { error } = await supabase.from("chat_messages").insert({
     job_id: jobId ?? null, student_id: studentId, company_id: companyId, sender_id: senderId, text,
   });
