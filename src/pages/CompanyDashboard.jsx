@@ -3277,15 +3277,23 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
           const crop = getCrop(safeIdx);
           return src ? (
             <div style={{ marginBottom: "0.75rem" }}>
-              <div style={{ marginBottom: "0.35rem" }}>
-                <p style={{ fontSize: "0.75rem", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.04em", margin: 0 }}>Preview</p>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+                <p style={{ fontSize: "0.75rem", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.04em", margin: 0 }}>Preview · drag to reposition</p>
+                <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
+                  <button type="button" onClick={() => { setCrop(safeIdx, { zoom: 1, offsetX: 0, offsetY: 0 }); }} style={{ ...zoomBtn, color: "#A21D54" }}>Reset</button>
+                  <button type="button" onClick={() => { const nz = Math.max(1, getCrop(safeIdx).zoom - 0.25); setCrop(safeIdx, { zoom: nz }); }} style={zoomBtn}>−</button>
+                  <span style={{ fontSize: "0.72rem", color: "#6b7280", minWidth: "32px", textAlign: "center" }}>{Math.round(crop.zoom * 100)}%</span>
+                  <button type="button" onClick={() => { const nz = Math.min(4, getCrop(safeIdx).zoom + 0.25); setCrop(safeIdx, { zoom: nz }); }} style={zoomBtn}>+</button>
+                </div>
               </div>
               <div
                 ref={previewRef}
-                style={{ position: "relative", width: "100%", backgroundColor: "#f8fafc", borderRadius: "0.6rem", overflow: "hidden", border: "1.5px solid #e2e8f0" }}
+                style={{ position: "relative", width: "100%", backgroundColor: "#f8fafc", borderRadius: "0.6rem", overflow: "hidden", border: "1.5px solid #e2e8f0", cursor: isDragging ? "grabbing" : "grab", userSelect: "none" }}
+                onMouseDown={e => { e.preventDefault(); startDrag(e.clientX, e.clientY); }}
+                onTouchStart={e => { e.preventDefault(); startDrag(e.touches[0].clientX, e.touches[0].clientY); }}
               >
                 <img src={src} alt="preview" draggable={false}
-                  style={{ width: "100%", height: "auto", maxHeight: "320px", objectFit: "contain", display: "block" }}
+                  style={{ width: "100%", height: "auto", maxHeight: "320px", objectFit: "contain", display: "block", transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center", transition: isDragging ? "none" : "transform 0.1s ease" }}
                 />
               </div>
             </div>
