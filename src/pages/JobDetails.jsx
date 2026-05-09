@@ -229,7 +229,7 @@ export default function JobDetails({
             {job.description && (
               <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.1rem", marginBottom: "1.5rem" }}>
                 <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.45rem" }}>About This Role</p>
-                <p style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0 }}>{job.description}</p>
+                <p style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0, whiteSpace: "pre-wrap" }}>{job.description}</p>
               </div>
             )}
 

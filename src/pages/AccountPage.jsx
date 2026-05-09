@@ -4,6 +4,29 @@ import { geocodeAddress, getCurrentPosition } from "../utils/geo";
 import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData } from "../lib/auth";
 import { jobCategories } from "../data/jobCategories";
 
+const PART_TIME_SKILLS = [
+  "Customer Service", "Cash Handling", "Till Operation", "Retail Sales", "Stock Management",
+  "Merchandising", "Visual Merchandising", "Product Knowledge",
+  "Food Service", "Food Preparation", "Kitchen Porter", "Barista", "Bartending",
+  "Waitressing", "Hosting", "Catering", "Hospitality",
+  "Cleaning & Housekeeping", "Laundry & Linen",
+  "Warehouse Work", "Packing & Picking", "Forklift Operation", "Goods Receiving",
+  "Delivery Driving", "Courier Work", "Bike Delivery",
+  "Data Entry", "Administration", "Reception & Front Desk", "Filing & Record Keeping",
+  "Microsoft Office", "Word Processing", "Spreadsheets",
+  "Social Media Management", "Content Creation", "Graphic Design", "Photography",
+  "Childcare", "Babysitting", "After-School Care",
+  "Tutoring", "Teaching Assistant",
+  "Event Staff", "Event Setup & Breakdown", "Ushering", "Crowd Management",
+  "Security", "Door Work",
+  "Call Centre", "Telesales", "Customer Support",
+  "Teamwork", "Communication", "Time Management", "Attention to Detail",
+  "Problem Solving", "Multitasking", "Cash Register", "POS Systems",
+  "Manual Handling", "Health & Safety", "First Aid",
+  "Promotions & Leafleting", "Brand Ambassador",
+  "Gardening & Landscaping", "Car Washing", "Parking Attendant",
+];
+
 export default function AccountPage({
   currentUser,
   setCurrentUser,
@@ -21,6 +44,8 @@ export default function AccountPage({
   const [bio, setBio]                           = useState(currentUser.bio || "");
   const [skills, setSkills]                     = useState(currentUser.skills || []);
   const [skillInput, setSkillInput]             = useState("");
+  const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
+  const skillWrapRef = useRef(null);
   const [saving, setSaving]                     = useState(false);
   const [saved, setSaved]                       = useState(false);
   const [saveError, setSaveError]               = useState("");
@@ -61,19 +86,34 @@ export default function AccountPage({
   };
 
   // ── Skills ──────────────────────────────────────────────────────────────
-  const addSkill = () => {
-    const s = skillInput.trim();
-    if (!s || skills.includes(s)) return;
+  const skillSuggestions = skillInput.trim().length > 0
+    ? PART_TIME_SKILLS.filter(s => s.toLowerCase().includes(skillInput.toLowerCase()) && !skills.includes(s))
+    : [];
+
+  const addSkillFromSuggestion = (s) => {
+    if (skills.includes(s)) return;
     const next = [...skills, s];
     setSkills(next);
     setSkillInput("");
+    setShowSkillSuggestions(false);
     saveField({ skills: next });
   };
+
   const removeSkill = (s) => {
     const next = skills.filter(x => x !== s);
     setSkills(next);
     saveField({ skills: next });
   };
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (skillWrapRef.current && !skillWrapRef.current.contains(e.target)) {
+        setShowSkillSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // ── Availability (debounced) ─────────────────────────────────────────────
   const handleAvailabilityChange = (newAvail) => {
@@ -521,16 +561,34 @@ export default function AccountPage({
                     style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
                   />
 
-                  <label style={labelStyle}>Skills <span style={{ fontWeight: "400", color: "#9ca3af" }}>(press Enter to add)</span></label>
-                  <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                  <label style={labelStyle}>Skills <span style={{ fontWeight: "400", color: "#9ca3af" }}>(type to search, click to add)</span></label>
+                  <div ref={skillWrapRef} style={{ position: "relative", marginBottom: "0.5rem" }}>
                     <input
                       placeholder="e.g. Customer Service"
                       value={skillInput}
-                      onChange={e => setSkillInput(e.target.value)}
-                      onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }}
-                      style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
+                      onChange={e => { setSkillInput(e.target.value); setShowSkillSuggestions(true); }}
+                      onFocus={() => setShowSkillSuggestions(true)}
+                      style={{ ...inputStyle, marginBottom: 0 }}
                     />
-                    <button type="button" onClick={addSkill} style={{ padding: "0.6rem 0.9rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>+ Add</button>
+                    {showSkillSuggestions && skillSuggestions.length > 0 && (
+                      <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20, backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxHeight: "220px", overflowY: "auto", marginTop: "0.25rem" }}>
+                        {skillSuggestions.map(s => (
+                          <button
+                            key={s}
+                            type="button"
+                            onMouseDown={e => { e.preventDefault(); addSkillFromSuggestion(s); }}
+                            style={{ display: "block", width: "100%", textAlign: "left", padding: "0.55rem 0.85rem", background: "none", border: "none", cursor: "pointer", fontSize: "0.85rem", color: "#1e293b", fontFamily: "inherit" }}
+                            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f8fafc"}
+                            onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                          >{s}</button>
+                        ))}
+                      </div>
+                    )}
+                    {showSkillSuggestions && skillInput.trim().length > 0 && skillSuggestions.length === 0 && (
+                      <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20, backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", padding: "0.6rem 0.85rem", marginTop: "0.25rem" }}>
+                        <p style={{ margin: 0, fontSize: "0.82rem", color: "#9ca3af" }}>No matching skills found</p>
+                      </div>
+                    )}
                   </div>
                   {skills.length > 0 && (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
-import { fetchCompanyConversations, fetchCompanyDirectConversations, fetchMessages, sendMessage } from "../lib/auth";
+import { fetchCompanyConversations, fetchCompanyDirectConversations, fetchMessages, sendMessage, fetchMessageCount } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 
 function formatConvTime(isoStr) {
@@ -131,7 +131,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName }) {
   );
 }
 
-export default function CompanyMessages({ currentUser, setPage }) {
+export default function CompanyMessages({ currentUser, setPage, setMsgCount }) {
   const navigate = useNavigate();
   const [conversations, setConversations] = useState([]);
   const [directConvs, setDirectConvs]     = useState([]);
@@ -159,7 +159,13 @@ export default function CompanyMessages({ currentUser, setPage }) {
     });
   }, [currentUser?.id, refreshKey]);
 
-  const goBack = () => { setActive(null); setRefreshKey(k => k + 1); };
+  const goBack = () => {
+    setActive(null);
+    setRefreshKey(k => k + 1);
+    if (setMsgCount && currentUser) {
+      fetchMessageCount(currentUser.id, "company").then(setMsgCount).catch(() => {});
+    }
+  };
 
   if (active) {
     const isDirect = active.jobId === null;

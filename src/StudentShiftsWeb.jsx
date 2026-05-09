@@ -295,7 +295,7 @@ export default function StudentShiftsWeb() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter },
         payload => {
           if (payload.new.sender_id !== currentUser.id) {
-            setMsgCount(c => c + 1);
+            fetchMessageCount(currentUser.id, currentUser.role).then(setMsgCount).catch(() => {});
           }
         })
       .subscribe();
@@ -380,7 +380,7 @@ export default function StudentShiftsWeb() {
           : <Navigate to="/" replace />
         } />
         <Route path="/messages" element={currentUser?.role === "student"
-          ? <Messages currentUser={currentUser} setPage={setPage} />
+          ? <Messages currentUser={currentUser} setPage={setPage} setMsgCount={setMsgCount} />
           : <Navigate to="/" replace />
         } />
         <Route path="/verify" element={currentUser
@@ -394,7 +394,7 @@ export default function StudentShiftsWeb() {
           : <Navigate to="/" replace />
         } />
         <Route path="/company/messages" element={currentUser?.role === "company"
-          ? <CompanyMessages currentUser={currentUser} setPage={setPage} />
+          ? <CompanyMessages currentUser={currentUser} setPage={setPage} setMsgCount={setMsgCount} />
           : <Navigate to="/" replace />
         } />
 
