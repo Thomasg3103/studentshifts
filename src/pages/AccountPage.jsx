@@ -297,8 +297,6 @@ export default function AccountPage({
     <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.85rem 0.9rem", marginBottom: "0.75rem", borderTop: "3px solid #A21D54" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
         <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#A21D54" }}>My Availability</p>
-        {saving && <span style={{ fontSize: "0.65rem", color: "#94a3b8" }}>Saving…</span>}
-        {saved && <span style={{ fontSize: "0.65rem", color: "#16a34a", fontWeight: 600 }}>✓ Saved</span>}
       </div>
       <p style={{ fontSize: "0.73rem", color: "#6b7280", marginBottom: "0.65rem", lineHeight: 1.4 }}>Tap the slots you're free each week.</p>
       <AvailabilityPicker value={availability} onChange={handleAvailabilityChange} />
@@ -430,9 +428,6 @@ export default function AccountPage({
             <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "#94a3b8", fontWeight: "500" }}>Welcome back,</p>
             <p style={{ margin: "0.1rem 0 0.1rem", fontWeight: "800", fontSize: "1.15rem", color: "#1e293b" }}>👋 {firstName}</p>
             <p style={{ margin: 0, fontSize: "0.78rem", color: "#94a3b8" }}>{currentUser.email}</p>
-            {saving && <p style={{ margin: "0.3rem 0 0", fontSize: "0.7rem", color: "#94a3b8" }}>Saving…</p>}
-            {saved  && <p style={{ margin: "0.3rem 0 0", fontSize: "0.7rem", color: "#16a34a", fontWeight: 600 }}>✓ Saved</p>}
-            {saveError && <p style={{ margin: "0.3rem 0 0", fontSize: "0.7rem", color: "#ef4444" }}>{saveError}</p>}
           </div>
 
           {isStudent ? (
@@ -548,6 +543,15 @@ export default function AccountPage({
                     </div>
                   )}
                 </div>
+
+              {/* Save status — above logout/delete */}
+              {(saving || saved || saveError) && (
+                <div style={{ textAlign: "center", padding: "0.6rem 1rem", marginBottom: "0.75rem", borderRadius: "0.6rem", backgroundColor: saveError ? "#fff1f2" : saved ? "#f0fdf4" : "#f8fafc", border: `1.5px solid ${saveError ? "#fca5a5" : saved ? "#86efac" : "#e2e8f0"}` }}>
+                  {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8", fontWeight: 600 }}>Saving…</p>}
+                  {saved  && <p style={{ margin: 0, fontSize: "0.8rem", color: "#16a34a", fontWeight: 700 }}>✓ Saved</p>}
+                  {saveError && <p style={{ margin: 0, fontSize: "0.8rem", color: "#ef4444", fontWeight: 600 }}>{saveError}</p>}
+                </div>
+              )}
 
               <BottomActions />
             </div>
