@@ -149,7 +149,7 @@ export default function Messages({ currentUser, setPage }) {
     ]).then(([convs, directs]) => {
       setConversations(convs);
       setDirectConvs(directs);
-      if (isInitial && convs.length === 0 && directs.length > 0) setTab("direct");
+
       if (isInitial) setLoading(false);
     });
   }, [currentUser?.id, refreshKey]);
