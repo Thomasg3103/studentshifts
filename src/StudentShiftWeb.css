@@ -1,5 +1,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+.rte-content ul, .rte-content ol { padding-left: 1.4rem; margin: 0.35rem 0; }
+.rte-content li { margin-bottom: 0.2rem; }
+.rte-content p, .rte-content div { margin: 0 0 0.35rem; }
+.rte-content p:last-child, .rte-content div:last-child { margin-bottom: 0; }
+
 html, body, #root {
   margin: 0;
   padding: 0;

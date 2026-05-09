@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import PageWrapper from "../components/PageWrapper";
+import RichTextEditor from "../components/RichTextEditor";
 import "../StudentShiftWeb.css";
 import { jobCategories } from "../data/jobCategories";
 import { geocodeAddress } from "../utils/geo";
@@ -3181,12 +3182,10 @@ function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSavin
 
       <div>
         <label style={labelStyle}>Job Description <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(optional)</span></label>
-        <textarea
+        <RichTextEditor
           value={formData.description || ""}
-          onChange={e => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          onChange={html => setFormData(prev => ({ ...prev, description: html }))}
           placeholder="Describe the role, responsibilities, and what you're looking for…"
-          rows={3}
-          style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
         />
       </div>
 
