@@ -1889,6 +1889,7 @@ function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, 
         <DetailPanel
           applicant={liveSelected}
           postingId={posting.id}
+          postingTitle={posting.title}
           companyId={companyId}
           onClose={() => setSelectedApplicant(null)}
           onStageAction={handleStageAction}
@@ -2121,7 +2122,7 @@ function CheckItem({ ok, label, warn }) {
   );
 }
 
-function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, onSendTrialInvite }) {
+function DetailPanel({ applicant, postingId, postingTitle, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, onSendTrialInvite }) {
   const [cvUrl, setCvUrl]     = useState(null);
   const [clUrl, setClUrl]     = useState(null);
   const [cvLoading, setCvLoading] = useState(false);
@@ -2432,7 +2433,7 @@ function DetailPanel({ applicant, postingId, companyId, onClose, onStageAction, 
           {/* Chat — only for accepted applicants */}
           {applicant.status === "Accepted" && (
             <Section label="Messages">
-              <ChatThread jobId={postingId} studentId={applicant.studentId} companyId={companyId} senderId={companyId} studentName={applicant.name} jobTitle={activePosting?.title} />
+              <ChatThread jobId={postingId} studentId={applicant.studentId} companyId={companyId} senderId={companyId} studentName={applicant.name} jobTitle={postingTitle} />
             </Section>
           )}
         </div>
