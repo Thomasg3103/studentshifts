@@ -130,16 +130,14 @@ export default function StudentDashboard({
     const jobMap = Object.fromEntries(jobs.map(j => [j.id, j]));
     if (savedLikedJobIds?.length) {
       setLikedJobs(prev => {
-        const fromDb = savedLikedJobIds.map(id => jobMap[id]).filter(Boolean);
-        const locallyAdded = prev.filter(j => jobMap[j.id] && !savedLikedJobIds.includes(j.id));
-        return [...fromDb, ...locallyAdded];
+        const prevMap = Object.fromEntries(prev.map(j => [j.id, j]));
+        return savedLikedJobIds.map(id => jobMap[id] || prevMap[id]).filter(Boolean);
       });
     }
     if (savedAppliedJobIds?.length) {
       setAppliedJobs(prev => {
-        const fromDb = savedAppliedJobIds.map(id => jobMap[id]).filter(Boolean);
-        const locallyAdded = prev.filter(j => jobMap[j.id] && !savedAppliedJobIds.includes(j.id));
-        return [...fromDb, ...locallyAdded];
+        const prevMap = Object.fromEntries(prev.map(j => [j.id, j]));
+        return savedAppliedJobIds.map(id => jobMap[id] || prevMap[id]).filter(Boolean);
       });
     }
   }, [jobs, currentUser?.id]);

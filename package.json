@@ -10,7 +10,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@sentry/react": "^10.52.0",
     "@supabase/supabase-js": "^2.102.1",
+    "dompurify": "^3.4.2",
     "mammoth": "^1.12.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
