@@ -411,7 +411,7 @@ export default function AccountPage({
   return (
     <>
       <BackButton />
-      <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "1.5rem 1.25rem", boxSizing: "border-box" }}>
+      <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "1.5rem 1.25rem", boxSizing: "border-box", width: "100%", overflowX: "hidden" }}>
         <div style={{ maxWidth: isStudent ? "1100px" : "560px", margin: "0 auto" }}>
 
           {/* Profile photo + name header */}
@@ -713,13 +713,13 @@ function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
         {label} {required && !existingName && <span style={{ color: "#ef4444" }}>*</span>}
       </label>
       <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem" }}>{hint}</p>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", border: `1.5px dashed ${existingName || uploaded ? "#22c55e" : "#d1d5db"}`, borderRadius: "0.5rem", padding: "0.5rem 0.75rem", backgroundColor: existingName || uploaded ? "#f0fdf4" : "white" }}>
-        <label style={{ cursor: "pointer", fontSize: "0.8rem", fontWeight: "600", color: uploading ? "#9ca3af" : "#3b82f6", whiteSpace: "nowrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", border: `1.5px dashed ${existingName || uploaded ? "#22c55e" : "#d1d5db"}`, borderRadius: "0.5rem", padding: "0.5rem 0.75rem", backgroundColor: existingName || uploaded ? "#f0fdf4" : "white", overflow: "hidden" }}>
+        <label style={{ cursor: "pointer", fontSize: "0.8rem", fontWeight: "600", color: uploading ? "#9ca3af" : "#3b82f6", whiteSpace: "nowrap", flexShrink: 0 }}>
           {uploading ? "Uploading…" : existingName ? "Change" : "Choose file"}
           <input type="file" accept={accept} style={{ display: "none" }} onChange={handleChange} disabled={uploading} />
         </label>
-        <span style={{ fontSize: "0.8rem", color: existingName || uploaded ? "#16a34a" : "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {uploaded ? "✓ Uploaded!" : existingName ? `✓ ${existingName}` : "No file chosen"}
+        <span style={{ fontSize: "0.8rem", color: existingName || uploaded ? "#16a34a" : "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+          {uploaded ? "✓ Uploaded!" : existingName ? "✓ Uploaded" : "No file chosen"}
         </span>
       </div>
     </div>
