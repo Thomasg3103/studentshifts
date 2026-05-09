@@ -1326,6 +1326,7 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
   const photo = posting.photos?.[0] || null;
   const crop  = posting.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
   const [hovered, setHovered] = useState(false);
+  const [confirmClose, setConfirmClose] = useState(false);
   const deadlineClose = posting.deadline && posting.deadline > today && (new Date(posting.deadline) - new Date(today)) / 86400000 <= 3;
   return (
     <div
@@ -1422,9 +1423,24 @@ function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleS
           Edit
         </button>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-          <button onClick={onToggleStatus} style={{ padding: "0.38rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#374151", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-            {isActive ? "Close Job" : "Reopen"}
-          </button>
+          {isActive && confirmClose ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+              <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: "700", color: "#374151", textAlign: "center", whiteSpace: "nowrap" }}>Close job?</p>
+              <button onClick={() => { onToggleStatus(); setConfirmClose(false); }} style={{ padding: "0.38rem 0.7rem", border: "1px solid #fca5a5", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#dc2626", fontSize: "0.78rem", fontWeight: "700", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                Yes, Close
+              </button>
+              <button onClick={() => setConfirmClose(false)} style={{ padding: "0.38rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={isActive ? () => setConfirmClose(true) : onToggleStatus}
+              style={{ padding: "0.38rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#374151", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}
+            >
+              {isActive ? "Close Job" : "Reopen"}
+            </button>
+          )}
           <button onClick={onDelete} style={{ padding: "0.38rem 0.7rem", border: "1px solid #fca5a5", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#dc2626", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}>
             Delete
           </button>
