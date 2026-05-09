@@ -54,11 +54,23 @@ function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMess
   );
 }
 
-function ChatThread({ jobId, studentId, companyId, senderId, studentName }) {
+function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTitle }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState("");
   const [loading, setLoading]   = useState(true);
   const msgListRef = useRef(null);
+  const inputRef   = useRef(null);
+
+  const isDirect = jobId === null;
+  const quickReplies = isDirect ? [
+    { label: "Hiring Opportunity", text: `Hi ${studentName}! We came across your profile and think you could be a great fit for our team. We have a part-time opportunity coming up — would you be interested in hearing more?` },
+    { label: "We'd Love to Have You", text: `Hi ${studentName}! We've been impressed by your profile and would love to have you on our team. Please reply here and we'll be in touch with all the details!` },
+    { label: "Tell Us About You", text: `Hi ${studentName}! We're very interested in your profile. Could you tell us a bit more about your availability and what kind of work you're looking for?` },
+  ] : [
+    { label: "You're a Great Fit", text: `Hi ${studentName}! We've reviewed your CV and think you'd be a perfect candidate for the ${jobTitle || "role"}. We'd love to hear from you — please message us back!` },
+    { label: "We'd Love to Hire You", text: `Hi ${studentName}! Great news — we'd love to have you join our team for the ${jobTitle || "position"}. Please reply here and we'll be in touch with all the details to get you started!` },
+    { label: "Tell Us More", text: `Hi ${studentName}! We're very interested in your application. Could you tell us a bit more about your availability and any relevant experience you have?` },
+  ];
 
   useEffect(() => {
     fetchMessages(jobId, studentId, companyId)
@@ -116,8 +128,23 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName }) {
             ))
         }
       </div>
-      <div style={{ padding: "0.75rem 1rem", borderTop: "1.5px solid #e5e7eb", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
+      {!input && !loading && (
+        <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
+          <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+          <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
+            {quickReplies.map(qr => (
+              <button
+                key={qr.label}
+                onClick={() => { setInput(qr.text); setTimeout(() => inputRef.current?.focus(), 0); }}
+                style={{ flexShrink: 0, padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "#A21D54", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+              >{qr.label}</button>
+            ))}
+          </div>
+        </div>
+      )}
+      <div style={{ padding: "0.75rem 1rem", borderTop: input ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
         <input
+          ref={inputRef}
           value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
           placeholder={`Message ${studentName}…`}
@@ -179,7 +206,7 @@ export default function CompanyMessages({ currentUser, setPage, setMsgCount }) {
             <p style={{ margin: 0, fontSize: "0.78rem", color: "#6b7280" }}>{isDirect ? "Direct message" : active.title}</p>
           </div>
         </div>
-        <ChatThread jobId={active.jobId} studentId={active.studentId} companyId={currentUser.id} senderId={currentUser.id} studentName={active.studentName} />
+        <ChatThread jobId={active.jobId} studentId={active.studentId} companyId={currentUser.id} senderId={currentUser.id} studentName={active.studentName} jobTitle={active.title} />
       </div>
     );
   }

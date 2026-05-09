@@ -54,11 +54,23 @@ function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMess
   );
 }
 
-function ChatThread({ jobId, studentId, companyId, senderId, companyName }) {
+function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTitle }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState("");
   const [loading, setLoading]   = useState(true);
   const msgListRef = useRef(null);
+  const inputRef   = useRef(null);
+
+  const isDirect = jobId === null;
+  const quickReplies = isDirect ? [
+    { label: "Interested in Opportunities", text: `Hi ${companyName}! I'd love to learn more about any upcoming opportunities you might have. I'm available for part-time work and would love to chat!` },
+    { label: "Tell Me More", text: `Hi ${companyName}! Thanks for reaching out — could you tell me more about what kind of work you're looking for?` },
+    { label: "My Availability", text: `Hi ${companyName}! I'm interested in hearing more about any roles you have available. What does the position involve and what are the typical hours?` },
+  ] : [
+    { label: "About the Role", text: `Hi ${companyName}! Could you tell me more about what the ${jobTitle || "role"} involves and the typical hours?` },
+    { label: "Application Follow-Up", text: `Hi ${companyName}! I submitted my application for the ${jobTitle || "position"} and just wanted to follow up — is there anything else you need from me?` },
+    { label: "Interview Timing", text: `Hi ${companyName}! I'm very interested in the ${jobTitle || "position"} and available for an interview at your convenience — when would work best for you?` },
+  ];
 
   useEffect(() => {
     fetchMessages(jobId, studentId, companyId)
@@ -116,8 +128,23 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName }) {
             ))
         }
       </div>
-      <div style={{ padding: "0.75rem 1rem", borderTop: "1.5px solid #e5e7eb", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
+      {!input && !loading && (
+        <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
+          <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+          <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
+            {quickReplies.map(qr => (
+              <button
+                key={qr.label}
+                onClick={() => { setInput(qr.text); setTimeout(() => inputRef.current?.focus(), 0); }}
+                style={{ flexShrink: 0, padding: "0.35rem 0.75rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "#A21D54", fontSize: "0.78rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+              >{qr.label}</button>
+            ))}
+          </div>
+        </div>
+      )}
+      <div style={{ padding: "0.75rem 1rem", borderTop: input ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
         <input
+          ref={inputRef}
           value={input} onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === "Enter" && send()}
           placeholder={`Message ${companyName}…`}
@@ -176,7 +203,7 @@ export default function Messages({ currentUser, setPage, setMsgCount }) {
             <p style={{ margin: 0, fontSize: "0.78rem", color: "#6b7280" }}>{isDirect ? "Direct message" : active.companyName}</p>
           </div>
         </div>
-        <ChatThread jobId={active.jobId} studentId={currentUser.id} companyId={active.companyId} senderId={currentUser.id} companyName={active.companyName} />
+        <ChatThread jobId={active.jobId} studentId={currentUser.id} companyId={active.companyId} senderId={currentUser.id} companyName={active.companyName} jobTitle={active.title} />
       </div>
     );
   }
