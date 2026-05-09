@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import * as Sentry from "@sentry/react";
 import DOMPurify from "dompurify";
 import PageWrapper from "../components/PageWrapper";
@@ -171,7 +171,7 @@ export default function JobDetails({
                 <div style={{ width: "144px", height: "144px", borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
                   {photos.length > 0 ? (
                     <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-                      <img src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      <img loading="lazy" src={photos[idx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                     </div>
                   ) : (
                     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
@@ -401,7 +401,7 @@ export default function JobDetails({
                 style={{ width: "min(90vw, 90vh)", height: "min(90vw, 90vh)", position: "relative", overflow: "hidden", borderRadius: "0.5rem", boxShadow: "0 8px 40px rgba(0,0,0,0.6)", flexShrink: 0 }}
               >
                 <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${fsCrop.offsetX}%, ${fsCrop.offsetY}%) scale(${fsCrop.zoom})`, transformOrigin: "center" }}>
-                  <img src={photos[fullscreenIdx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                  <img loading="lazy" src={photos[fullscreenIdx]} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 </div>
               </div>
             );

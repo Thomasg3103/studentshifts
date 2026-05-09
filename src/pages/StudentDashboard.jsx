@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+﻿import { useState, useRef, useEffect, useCallback } from "react";
 import "../StudentShiftWeb.css";
 import { jobCategories, getCategoryForTitle } from "../data/jobCategories";
 import { haversineDistance, formatDistance, mockLocationCoords, geocodeAddress } from "../utils/geo";
@@ -202,6 +202,7 @@ export default function StudentDashboard({
   const [distanceKm,        setDistanceKm]        = useState(0);
   const [searchQuery,       setSearchQuery]       = useState("");
   const [sortBy,            setSortBy]            = useState("");
+  const [visibleCount,      setVisibleCount]      = useState(20);
 
   // Sidebar section collapse state (all open by default)
   const [openSections, setOpenSections] = useState({ sort: true, days: true, location: false, jobType: false, schedule: true, distance: true });
@@ -309,7 +310,7 @@ export default function StudentDashboard({
   });
 
   const payNum = (p) => parseFloat(p.replace(/[^0-9.]/g, "")) || 0;
-  const displayJobs = sortBy === "" ? filteredJobs : [...filteredJobs].sort((a, b) => {
+  const sortedJobs = sortBy === "" ? filteredJobs : [...filteredJobs].sort((a, b) => {
     if (sortBy === "payHigh")     return payNum(b.pay) - payNum(a.pay);
     if (sortBy === "payLow")      return payNum(a.pay) - payNum(b.pay);
     if (sortBy === "dateNewest")  return new Date(b.createdAt) - new Date(a.createdAt);
@@ -318,6 +319,10 @@ export default function StudentDashboard({
     if (sortBy === "distanceFar")  { const da = jobDistance(a) ?? -Infinity; const db = jobDistance(b) ?? -Infinity; return db - da; }
     return 0;
   });
+  const displayJobs = sortedJobs.slice(0, visibleCount);
+  const hasMore = visibleCount < sortedJobs.length;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { setVisibleCount(20); }, [sortedJobs.length, sortBy]);
 
   const toggleLike = (job) => {
     if (!currentUser) { setPage("login"); return; }
@@ -512,7 +517,7 @@ export default function StudentDashboard({
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
-                  {displayJobs.length} job{displayJobs.length !== 1 ? "s" : ""}
+                  {sortedJobs.length} job{sortedJobs.length !== 1 ? "s" : ""}
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", backgroundColor: "#fafafa", borderRadius: "0.6rem", padding: "0.2rem" }}>
                   <button onClick={() => setGridCols(1)} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
@@ -616,7 +621,7 @@ export default function StudentDashboard({
                     <div style={{ width: isPhone ? "100px" : "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-                          <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                          <img loading="lazy" src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         </div>
                       ) : (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
@@ -683,6 +688,18 @@ export default function StudentDashboard({
                 );
               })}
             </div>
+
+            {/* Load more */}
+            {hasMore && (
+              <div style={{ textAlign: "center", paddingTop: "0.5rem", paddingBottom: "0.5rem" }}>
+                <button
+                  onClick={() => setVisibleCount(c => c + 20)}
+                  style={{ padding: "0.65rem 2rem", borderRadius: "2rem", border: "1.5px solid var(--color-brand)", background: "white", color: "var(--color-brand)", fontWeight: 700, fontSize: "0.9rem", fontFamily: "inherit", cursor: "pointer" }}
+                >
+                  Load more ({sortedJobs.length - visibleCount} remaining)
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

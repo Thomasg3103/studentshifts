@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import * as Sentry from "@sentry/react";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
@@ -312,7 +312,7 @@ export default function StudentShiftsWeb() {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#fafafa" }}>
         <div style={{ textAlign: "center", color: "#64748b" }}>
-          <img src="/favicon.svg" alt="StudentShifts" style={{ width: "48px", height: "54px", marginBottom: "0.5rem" }} />
+          <img loading="lazy" src="/favicon.svg" alt="StudentShifts" style={{ width: "48px", height: "54px", marginBottom: "0.5rem" }} />
           <p style={{ fontWeight: "600", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Loading StudentShifts…</p>
         </div>
       </div>

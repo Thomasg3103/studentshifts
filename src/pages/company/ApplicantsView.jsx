@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import DetailPanel, { StatusBadge, CloseJobModal } from "./DetailPanel";
 
 /* ─── Pipeline stage constants ───────────────────────────────────────────── */
@@ -68,7 +68,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
         {/* Photo */}
         <div style={{ width: "40px", height: "40px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {applicant.profilePhoto
-            ? <img src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ? <img loading="lazy" src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           }
         </div>
@@ -199,7 +199,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
                     <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", marginBottom: "0.65rem" }}>
                       <div style={{ width: "38px", height: "38px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {applicant.profilePhoto
-                          ? <img src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          ? <img loading="lazy" src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                         }
                       </div>
@@ -541,7 +541,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
               <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.65rem 0.9rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", marginBottom: "0.4rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
                 <div style={{ width: "42px", height: "42px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {s.profile_photo_url
-                    ? <img src={s.profile_photo_url} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ? <img loading="lazy" src={s.profile_photo_url} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                   }
                 </div>

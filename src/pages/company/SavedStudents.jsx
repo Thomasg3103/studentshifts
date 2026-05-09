@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import { supabase } from "../../lib/supabase";
 import { fetchAllMessagesWithStudent, sendMessage, sendEmail, emailCompanyInterested } from "../../lib/auth";
@@ -155,7 +155,7 @@ export default function SavedStudents({ students, loading, fetched, likedStudent
         <div key={s.id} style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {s.profile_photo_url
-              ? <img src={s.profile_photo_url} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ? <img loading="lazy" src={s.profile_photo_url} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               : <span style={{ fontSize: "1.2rem" }}>👤</span>
             }
           </div>

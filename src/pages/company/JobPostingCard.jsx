@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 
 export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus }) {
   const isActive = posting.status === "Active";
@@ -27,7 +27,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
       <div style={{ width: "160px", flexShrink: 0, position: "relative", overflow: "hidden", alignSelf: "stretch" }}>
         {photo ? (
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-            <img src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <img loading="lazy" src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           </div>
         ) : (
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f1f5f9" }}>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
 import { fetchCompanyConversations, fetchCompanyDirectConversations, fetchMessages, sendMessage, fetchMessageCount } from "../lib/auth";
@@ -18,7 +18,7 @@ function formatConvTime(isoStr) {
 function Avatar({ url, name, size = 44 }) {
   const initials = (name || "?").split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
   if (url) {
-    return <img src={url} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />;
+    return <img loading="lazy" src={url} alt={name} style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} />;
   }
   return (
     <div style={{ width: size, height: size, borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "white", fontWeight: "700", fontSize: Math.round(size * 0.38) + "px" }}>

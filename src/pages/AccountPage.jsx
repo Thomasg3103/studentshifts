@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
@@ -466,7 +466,7 @@ export default function AccountPage({
             <div style={{ position: "relative", display: "inline-block" }}>
               <div style={{ width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: "3px solid #fce7f3", backgroundColor: "#fafafa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", boxShadow: "0 0 0 3px var(--color-brand)22" }}>
                 {profilePhoto
-                  ? <img src={profilePhoto} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ? <img loading="lazy" src={profilePhoto} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   : <PersonIcon />}
               </div>
               <label style={{ position: "absolute", bottom: "2px", right: "2px", width: "26px", height: "26px", borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "0.7rem" }}>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
@@ -21,7 +21,7 @@ function AppliedJobCard({ job, status, onRemove, setSelectedJob, setPage }) {
       <div style={{ width: "120px", height: "120px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
         {photo ? (
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-            <img src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <img loading="lazy" src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           </div>
         ) : (
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>

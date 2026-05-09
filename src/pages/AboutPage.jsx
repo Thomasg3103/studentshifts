@@ -1,4 +1,4 @@
-import PageWrapper from "../components/PageWrapper";
+﻿import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 
 export default function AboutPage({ setPage }) {
@@ -9,7 +9,7 @@ export default function AboutPage({ setPage }) {
       {/* Hero */}
       <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
         <div style={{ width: "72px", height: "72px", borderRadius: "1.25rem", background: "linear-gradient(135deg, #f43f5e, #e11d48)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", boxShadow: "0 8px 24px rgba(244,63,94,0.35)" }}>
-          <img src="/favicon.svg" alt="StudentShifts" style={{ width: "40px", height: "45px" }} />
+          <img loading="lazy" src="/favicon.svg" alt="StudentShifts" style={{ width: "40px", height: "45px" }} />
         </div>
         <h1 style={{ fontWeight: "800", fontSize: "2rem", color: "#1e293b", marginBottom: "0.5rem" }}>About StudentShifts</h1>
         <p style={{ color: "#64748b", fontSize: "1rem", maxWidth: "520px", margin: "0 auto", lineHeight: "1.7" }}>
@@ -70,7 +70,7 @@ export default function AboutPage({ setPage }) {
             { name: "John McCarthy",     role: "Co-Founder & CMO", photo: "/Team/john.jpg",             pos: "top" },
           ].map(({ name, role, photo, pos }) => (
             <div key={name} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
-              <img src={photo} alt={name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", objectPosition: pos, marginBottom: "0.65rem", border: "3px solid #e2e8f0" }} />
+              <img loading="lazy" src={photo} alt={name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", objectPosition: pos, marginBottom: "0.65rem", border: "3px solid #e2e8f0" }} />
               <p style={{ fontWeight: "700", fontSize: "0.9rem", color: "#1e293b", margin: 0 }}>{name}</p>
               <p style={{ fontSize: "0.78rem", color: "var(--color-brand)", fontWeight: "600", margin: "0.2rem 0 0" }}>{role}</p>
             </div>
