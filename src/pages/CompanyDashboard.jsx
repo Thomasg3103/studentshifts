@@ -842,7 +842,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
   const [chatError, setChatError]       = useState("");
-  const bottomRef    = useRef(null);
+  const msgAreaRef   = useRef(null);
   const chatInputRef = useRef(null);
 
   const browseQuickReplies = chatStudent ? [
@@ -874,7 +874,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
   }, [chatStudent?.id]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (msgAreaRef.current) msgAreaRef.current.scrollTop = msgAreaRef.current.scrollHeight;
   }, [chatMessages]);
 
   const sendDM = async () => {
@@ -915,7 +915,7 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
             <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>Direct Message</p>
           </div>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+        <div ref={msgAreaRef} style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
           {chatLoading
             ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
             : chatMessages.length === 0
@@ -931,7 +931,6 @@ function BrowseStudents({ students, loading, fetched, error, companyIndustries, 
                 </div>
               ))
           }
-          <div ref={bottomRef} />
         </div>
         {chatError && (
           <p style={{ margin: 0, padding: "0.4rem 1rem", fontSize: "0.78rem", color: "#e11d48", backgroundColor: "#fff1f2", borderTop: "1px solid #fecdd3" }}>{chatError}</p>
@@ -1115,7 +1114,7 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
   const [chatError, setChatError]       = useState("");
-  const bottomRef    = useRef(null);
+  const msgAreaRef   = useRef(null);
   const chatInputRef = useRef(null);
 
   const savedQuickReplies = chatStudent ? [
@@ -1147,7 +1146,7 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
   }, [chatStudent?.id]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (msgAreaRef.current) msgAreaRef.current.scrollTop = msgAreaRef.current.scrollHeight;
   }, [chatMessages]);
 
   const sendDM = async () => {
@@ -1186,7 +1185,7 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
             <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>Direct Message</p>
           </div>
         </div>
-        <div style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+        <div ref={msgAreaRef} style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
           {chatLoading
             ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
             : chatMessages.length === 0
@@ -1202,7 +1201,6 @@ function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLi
                 </div>
               ))
           }
-          <div ref={bottomRef} />
         </div>
         {chatError && (
           <p style={{ margin: 0, padding: "0.4rem 1rem", fontSize: "0.78rem", color: "#e11d48", backgroundColor: "#fff1f2", borderTop: "1px solid #fecdd3" }}>{chatError}</p>
