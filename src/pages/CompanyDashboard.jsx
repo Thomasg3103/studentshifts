@@ -365,11 +365,20 @@ export default function CompanyDashboard() {
         );
       }
 
-      // 4. Update UI immediately
+      // 4. If all shifts are now filled, close the job automatically
+      if (allShiftsFilled) {
+        await withTimeout(
+          supabase.from("jobs").update({ status: "Closed" }).eq("id", activePosting.id),
+          10000, "Timeout."
+        );
+      }
+
+      // 5. Update UI immediately
       const otherSet = new Set(otherIds);
       const uiUpdater = (p) => ({
         ...p,
         filledShifts: newFilledShifts,
+        status: allShiftsFilled ? "Closed" : p.status,
         applicants: p.applicants.map(a => {
           if (a.id === applicationId) return { ...a, status: "Accepted" };
           if (otherSet.has(a.id))     return { ...a, status: "Rejected" };
@@ -379,7 +388,7 @@ export default function CompanyDashboard() {
       setPostings(prev => prev.map(p => p.id === activePosting.id ? uiUpdater(p) : p));
       setActivePosting(prev => uiUpdater(prev));
 
-      // 5. Send emails best-effort (don't block the UI)
+      // 6. Send emails best-effort (don't block the UI)
       try {
         const allStudentIds = [applicant.studentId, ...(others || []).map(o => o.student_id)];
         const { data: emailProfiles } = await supabase
