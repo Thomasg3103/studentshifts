@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/react";
 import { Toaster } from "react-hot-toast";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
+import ErrorBoundary from "./components/ErrorBoundary";
 import StudentDashboard from "./pages/StudentDashboard";
 import CompanyDashboard from "./pages/CompanyDashboard";
 import LoginPage from "./pages/LoginPage";
@@ -326,6 +327,7 @@ export default function StudentShiftsWeb() {
   return (
     <AppContext.Provider value={appContextValue}>
       {!isLanding && <Header />}
+      <ErrorBoundary>
       <Routes>
         {/* Home / Student Dashboard / Landing */}
         <Route path="/" element={
@@ -369,6 +371,7 @@ export default function StudentShiftsWeb() {
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </ErrorBoundary>
       {!isLanding && <AppFooter />}
       <CookieBanner />
       <Toaster position="bottom-center" toastOptions={{ duration: 4000, style: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: "0.875rem", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" } }} />

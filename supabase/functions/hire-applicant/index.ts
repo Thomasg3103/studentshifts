@@ -230,7 +230,8 @@ Deno.serve(async (req: Request) => {
       const hiredShiftWithTime: string | null = app.preferred_shift
         || (hiredDay && job.times?.[hiredDay] ? `${hiredDay} · ${job.times[hiredDay]}` : hiredDay)
         || null;
-      if (newFilledShifts !== currentFilled) {
+      const needsWrite = hiredDay ? !currentFilled.includes(hiredDay) : true;
+      if (needsWrite) {
         await adminClient.from("jobs").update({ filled_shifts: newFilledShifts }).eq("id", job.id);
       }
 
