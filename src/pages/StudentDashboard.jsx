@@ -246,7 +246,7 @@ export default function StudentDashboard({ restoreScrollY }) {
     try {
       const { data: profiles } = await withTimeout(supabase.from("profiles").select("id, name").in("id", companyIds), 8000);
       if (profiles) profiles.forEach(p => { nameMap[p.id] = p.name; });
-    } catch (_) {}
+    } catch (e) { console.warn("[StudentDashboard] profile name lookup failed:", e); }
     const mapped = rows.map(j => mapJobRow(j, nameMap));
     if (append) setJobs(prev => [...prev, ...mapped]);
     else setJobs(mapped);
@@ -313,7 +313,7 @@ export default function StudentDashboard({ restoreScrollY }) {
             try { localStorage.setItem("ss_geocode_cache", JSON.stringify(_geocodeCache)); } catch {}
             setExtraCoords(prev => ({ ...prev, [loc]: { lat: result.lat, lng: result.lng } }));
           }
-        } catch (_) {}
+        } catch (e) { console.warn("[StudentDashboard] geocode failed:", e); }
         if (!cancelled) await new Promise(r => setTimeout(r, 1200));
       }
     })();

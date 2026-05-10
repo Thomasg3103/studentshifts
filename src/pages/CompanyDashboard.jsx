@@ -77,7 +77,7 @@ export default function CompanyDashboard() {
 
   // Load availability heatmap once
   useEffect(() => {
-    fetchAvailabilityHeatmap().then(setHeatmap).catch(() => {});
+    fetchAvailabilityHeatmap().then(setHeatmap).catch(e => console.warn("[CompanyDashboard] heatmap failed:", e));
   }, []);
 
   // Load liked student IDs on mount
@@ -85,7 +85,7 @@ export default function CompanyDashboard() {
     if (!currentUser?.id) return;
     fetchLikedStudentIds(currentUser.id)
       .then(ids => setLikedStudentIds(new Set(ids)))
-      .catch(() => {});
+      .catch(e => console.warn("[CompanyDashboard] liked students failed:", e));
   }, [currentUser?.id]);
 
   // Load applicant student IDs whenever Browse Students tab is open and jobs are loaded
@@ -98,7 +98,7 @@ export default function CompanyDashboard() {
       10000
     ).then(({ data }) => {
       setApplicantStudentIds(new Set((data || []).map(a => a.student_id)));
-    }).catch(() => {});
+    }).catch(e => console.warn("[CompanyDashboard] applicant IDs failed:", e));
   }, [activeTab, loading]);
 
   // Load all verified students when Browse Students or Saved Students tab is first opened
