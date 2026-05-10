@@ -1,4 +1,5 @@
 ﻿import { useState, useRef, useEffect, useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 import "../StudentShiftWeb.css";
 import { jobCategories, getCategoryForTitle } from "../data/jobCategories";
 import { haversineDistance, formatDistance, mockLocationCoords, geocodeAddress } from "../utils/geo";
@@ -149,6 +150,9 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [jobs,         setJobs]         = useState([]);
   const [jobsLoading,  setJobsLoading]  = useState(true);
   const [jobsError,    setJobsError]    = useState(false);
+  const [fetchedPage,  setFetchedPage]  = useState(0);
+  const [hasMore,      setHasMore]      = useState(true);
+  const [loadingMore,  setLoadingMore]  = useState(false);
   const [extraCoords,  setExtraCoords]  = useState(_geocodeCache);
   const [windowWidth,  setWindowWidth]  = useState(window.innerWidth);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -185,47 +189,73 @@ export default function StudentDashboard({ restoreScrollY }) {
 
   const isMobile = windowWidth < 1024;
 
-  useEffect(() => {
-    withTimeout(
-      supabase.from("jobs").select("*").eq("status", "Active").order("created_at", { ascending: false }),
+  function mapJobRow(j, nameMap) {
+    return {
+      id:              j.id,
+      title:           j.title,
+      company:         nameMap[j.company_id] || "Unknown Company",
+      category:        j.category || "",
+      location:        j.location,
+      lat:             j.lat,
+      lng:             j.lng,
+      pay:             j.pay,
+      description:     j.description || DESC[j.title] || "",
+      deadline:        j.deadline || null,
+      createdAt:       j.created_at,
+      days:            j.days || [],
+      times:           Object.fromEntries(Object.entries(j.times || {}).map(([k, v]) => [k, Array.isArray(v) ? v : [v]])),
+      weekendRequired: j.weekend_required || false,
+      sickPay:         j.sick_pay || false,
+      holidays:        j.holidays || "",
+      photos:          j.photos || [],
+      photoCrops:      j.photo_crops || [],
+      filledShifts:    j.filled_shifts || [],
+      status:          j.status,
+    };
+  }
+
+  async function fetchJobPage(pageNum, append = false) {
+    const today = new Date().toISOString().split("T")[0];
+    const { data, error } = await withTimeout(
+      supabase.from("jobs").select("*").eq("status", "Active")
+        .or(`deadline.is.null,deadline.gte.${today}`)
+        .order("created_at", { ascending: false })
+        .range(pageNum * 20, pageNum * 20 + 19),
       10000, "Loading jobs timed out."
-    ).then(async ({ data, error }) => {
-      if (error) { setJobsError(true); setJobsLoading(false); return; }
-      if (!data || data.length === 0) { setJobsLoading(false); return; }
-      const today = new Date().toISOString().split("T")[0];
-      const liveJobs = data.filter(j => !j.deadline || j.deadline >= today);
-      if (liveJobs.length === 0) { setJobsLoading(false); return; }
-      const companyIds = [...new Set(liveJobs.map(j => j.company_id))];
-      let nameMap = {};
-      try {
-        const { data: profiles } = await withTimeout(supabase.from("profiles").select("id, name").in("id", companyIds), 8000);
-        if (profiles) profiles.forEach(p => { nameMap[p.id] = p.name; });
-      } catch (_) {}
-      setJobs(liveJobs.map(j => ({
-        id:              j.id,
-        title:           j.title,
-        company:         nameMap[j.company_id] || "Unknown Company",
-        category:        j.category || "",
-        location:        j.location,
-        lat:             j.lat,
-        lng:             j.lng,
-        pay:             j.pay,
-        description:     j.description || DESC[j.title] || "",
-        deadline:        j.deadline || null,
-        createdAt:       j.created_at,
-        days:            j.days || [],
-        times:           Object.fromEntries(Object.entries(j.times || {}).map(([k, v]) => [k, Array.isArray(v) ? v : [v]])),
-        weekendRequired: j.weekend_required || false,
-        sickPay:         j.sick_pay || false,
-        holidays:        j.holidays || "",
-        photos:          j.photos || [],
-        photoCrops:      j.photo_crops || [],
-        filledShifts:    j.filled_shifts || [],
-        status:          j.status,
-      })));
-      setJobsLoading(false);
-    }).catch(e => { console.error("[StudentDashboard] jobs error:", e); setJobsError(true); setJobsLoading(false); });
+    );
+    if (error) throw error;
+    const rows = data || [];
+    setHasMore(rows.length === 20);
+    if (!rows.length) return;
+    const companyIds = [...new Set(rows.map(j => j.company_id))];
+    let nameMap = {};
+    try {
+      const { data: profiles } = await withTimeout(supabase.from("profiles").select("id, name").in("id", companyIds), 8000);
+      if (profiles) profiles.forEach(p => { nameMap[p.id] = p.name; });
+    } catch (_) {}
+    const mapped = rows.map(j => mapJobRow(j, nameMap));
+    if (append) setJobs(prev => [...prev, ...mapped]);
+    else setJobs(mapped);
+  }
+
+  useEffect(() => {
+    fetchJobPage(0).catch(e => { console.error("[StudentDashboard] jobs error:", e); setJobsError(true); })
+      .finally(() => setJobsLoading(false));
   }, []);
+
+  const loadMore = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = fetchedPage + 1;
+      await fetchJobPage(nextPage, true);
+      setFetchedPage(nextPage);
+    } catch (e) {
+      console.error("[StudentDashboard] load more error:", e);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loadingMore, hasMore, fetchedPage]);
 
   useEffect(() => {
     if (!jobs.length || !currentUser) return;
@@ -302,7 +332,6 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [distanceKm,        setDistanceKm]        = useState(0);
   const [searchQuery,       setSearchQuery]       = useState("");
   const [sortBy,            setSortBy]            = useState("");
-  const [visibleCount,      setVisibleCount]      = useState(20);
 
   // Sidebar section collapse state (all open by default)
   const [openSections, setOpenSections] = useState({ sort: true, days: true, location: false, jobType: false, schedule: true, distance: true });
@@ -419,10 +448,6 @@ export default function StudentDashboard({ restoreScrollY }) {
     if (sortBy === "distanceFar")  { const da = jobDistance(a) ?? -Infinity; const db = jobDistance(b) ?? -Infinity; return db - da; }
     return 0;
   });
-  const displayJobs = sortedJobs.slice(0, visibleCount);
-  const hasMore = visibleCount < sortedJobs.length;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { setVisibleCount(20); }, [sortedJobs.length, sortBy]);
 
   const toggleLike = (job) => {
     if (!currentUser) { setPage("login"); return; }
@@ -454,6 +479,10 @@ export default function StudentDashboard({ restoreScrollY }) {
 
   return (
     <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <Helmet>
+        <title>Find Your Shift — StudentShifts</title>
+        <meta name="description" content="Browse student-friendly part-time jobs across Ireland. Filter by day, time, location and more." />
+      </Helmet>
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "1.5rem 1.25rem" }}>
 
         {/* Page heading */}
@@ -510,6 +539,7 @@ export default function StudentDashboard({ restoreScrollY }) {
               />
               {searchQuery && (
                 <button
+                  aria-label="Clear search"
                   onClick={() => { setSearchQuery(""); searchInputRef.current?.focus(); }}
                   style={{ position: "absolute", right: "0.6rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: "1.1rem", lineHeight: 1, padding: "0.2rem", display: "flex", alignItems: "center" }}
                 >
@@ -607,7 +637,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                 <p style={{ fontWeight: 600 }}>Loading jobs…</p>
               </div>
             )}
-            {!jobsLoading && !jobsError && displayJobs.length === 0 && (
+            {!jobsLoading && !jobsError && sortedJobs.length === 0 && (
               <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
                 <p style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>No jobs match your filters</p>
                 <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>
@@ -621,7 +651,7 @@ export default function StudentDashboard({ restoreScrollY }) {
 
             {/* Job cards */}
             <div className="job-list-grid" style={{ display: "grid", gridTemplateColumns: gridCols === 2 ? "1fr 1fr" : "1fr", gap: "0.85rem" }}>
-              {displayJobs.map(job => {
+              {sortedJobs.map(job => {
                 const isLiked   = likedJobs.some(j => j.id === job.id);
                 const isApplied = appliedJobs.some(j => j.id === job.id);
                 const dist      = jobDistance(job);
@@ -693,6 +723,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                       onClick={() => toggleLike(job)}
                       disabled={isApplied}
                       title={isApplied ? "Applied" : isLiked ? "Unlike" : "Like"}
+                      aria-label={isApplied ? "Applied" : isLiked ? "Unlike job" : "Like job"}
                       style={{ width: isPhone ? "54px" : "90px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, margin: 0, borderRadius: "0 1rem 1rem 0" }}
                     >
                       {isApplied ? (
@@ -712,10 +743,11 @@ export default function StudentDashboard({ restoreScrollY }) {
             {hasMore && (
               <div style={{ textAlign: "center", paddingTop: "0.5rem", paddingBottom: "0.5rem" }}>
                 <button
-                  onClick={() => setVisibleCount(c => c + 20)}
-                  style={{ padding: "0.65rem 2rem", borderRadius: "2rem", border: "1.5px solid var(--color-brand)", background: "white", color: "var(--color-brand)", fontWeight: 700, fontSize: "0.9rem", fontFamily: "inherit", cursor: "pointer" }}
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  style={{ padding: "0.65rem 2rem", borderRadius: "2rem", border: "1.5px solid var(--color-brand)", background: "white", color: "var(--color-brand)", fontWeight: 700, fontSize: "0.9rem", fontFamily: "inherit", cursor: loadingMore ? "default" : "pointer", opacity: loadingMore ? 0.7 : 1 }}
                 >
-                  Load more ({sortedJobs.length - visibleCount} remaining)
+                  {loadingMore ? "Loading…" : "Load more jobs"}
                 </button>
               </div>
             )}

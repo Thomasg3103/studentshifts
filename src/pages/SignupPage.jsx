@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { signUp } from "../lib/auth";
@@ -110,6 +111,10 @@ export default function SignupPage() {
 
   return (
     <PageWrapper narrow>
+      <Helmet>
+        <title>Create Account — StudentShifts</title>
+        <meta name="description" content="Join StudentShifts for free. Students can browse and apply for part-time jobs; companies can post shifts and find verified student workers." />
+      </Helmet>
       <div style={{ maxWidth: "440px", margin: "0 auto" }}>
 
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
@@ -143,19 +148,26 @@ export default function SignupPage() {
           ))}
         </div>
 
+        <label htmlFor="signup-name" style={srOnly}>{role === "company" ? "Company Name" : "Full Name"}</label>
         <input
+          id="signup-name"
           placeholder={role === "company" ? "Company Name" : "Full Name"}
           value={name}
           onChange={e => setName(e.target.value)}
           style={inputStyle}
         />
+        <label htmlFor="signup-email" style={srOnly}>Email</label>
         <input
+          id="signup-email"
           placeholder="Email"
+          type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
           style={inputStyle}
         />
+        <label htmlFor="signup-password" style={srOnly}>Password</label>
         <input
+          id="signup-password"
           type="password"
           placeholder="Password"
           value={password}
@@ -181,7 +193,9 @@ export default function SignupPage() {
         {/* CRO number — company only */}
         {role === "company" && (
           <div style={{ marginBottom: "0.75rem" }}>
+            <label htmlFor="signup-cro" style={srOnly}>CRO Number</label>
             <input
+              id="signup-cro"
               placeholder="CRO Number (e.g. 123456)"
               value={croNumber}
               onChange={e => setCroNumber(e.target.value)}
@@ -228,7 +242,7 @@ export default function SignupPage() {
           <div style={{ marginTop: "0.5rem", backgroundColor: "#f0f9ff", borderRadius: "0.85rem", padding: "0.9rem 1.1rem", border: "1px solid #bae6fd" }}>
             <p style={{ margin: "0 0 0.25rem", fontWeight: "700", color: "#0369a1", fontSize: "0.875rem" }}>🪪 Verification required</p>
             <p style={{ margin: 0, fontSize: "0.78rem", color: "#0369a1", lineHeight: 1.5 }}>
-              After confirming your email you'll be asked to upload your Student ID and Government ID. You can apply for jobs once verified.
+              After confirming your email you'll be asked to upload your Student ID and Government ID. Our team usually verifies accounts within 24 hours — you'll get an email when you're cleared to apply.
             </p>
           </div>
         )}
@@ -261,6 +275,7 @@ export default function SignupPage() {
 
 
 const inputStyle = { width: "100%", padding: "0.72rem 1rem", marginBottom: "0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "0.95rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b" };
+const srOnly     = { position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };
 const btnPrimary = { ...btnBase, marginTop: "1.25rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" };
 const btnHome    = { ...btnBase, marginTop: "0.6rem", background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 18px rgba(244,63,94,0.35)" };

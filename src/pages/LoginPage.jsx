@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { signIn, sendPasswordReset } from "../lib/auth";
@@ -82,7 +83,9 @@ export default function LoginPage() {
                   {resetError}
                 </div>
               )}
+              <label htmlFor="reset-email" style={srOnly}>Email address</label>
               <input
+                id="reset-email"
                 placeholder="Email address"
                 type="email"
                 value={resetEmail}
@@ -105,6 +108,10 @@ export default function LoginPage() {
 
   return (
     <PageWrapper narrow>
+      <Helmet>
+        <title>Log In — StudentShifts</title>
+        <meta name="description" content="Sign in to your StudentShifts account to find and apply for part-time jobs." />
+      </Helmet>
       <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
 
         <div style={{ marginBottom: "1.75rem" }}>
@@ -118,14 +125,19 @@ export default function LoginPage() {
           </div>
         )}
 
+        <label htmlFor="login-email" style={srOnly}>Email address</label>
         <input
+          id="login-email"
           placeholder="Email address"
+          type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
           style={fieldStyle}
         />
+        <label htmlFor="login-password" style={srOnly}>Password</label>
         <div style={{ position: "relative" }}>
           <input
+            id="login-password"
             placeholder="Password"
             type={showPassword ? "text" : "password"}
             value={password}
@@ -135,6 +147,7 @@ export default function LoginPage() {
           />
           <button
             type="button"
+            aria-label={showPassword ? "Hide password" : "Show password"}
             onClick={() => setShowPassword(p => !p)}
             style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", padding: 0, cursor: "pointer", color: "#94a3b8", fontSize: "1.1rem", lineHeight: 1 }}
           >
@@ -170,6 +183,7 @@ export default function LoginPage() {
 }
 
 const fieldStyle = { width: "100%", padding: "0.72rem 1rem", margin: "0.4rem 0", display: "block", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", boxSizing: "border-box", fontSize: "0.95rem", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#1e293b", outline: "none" };
+const srOnly     = { position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", marginTop: "0.6rem", fontSize: "0.95rem", fontFamily: "inherit" };
 const btnPrimary = { ...btnBase, background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)", marginTop: "1rem" };
 const btnGhost   = { ...btnBase, backgroundColor: "#fafafa", color: "#64748b", boxShadow: "none" };
