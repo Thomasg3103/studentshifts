@@ -46,8 +46,8 @@ export const buildDynamicStages = (applicants) => {
 function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onToggleSelect, isInvited }) {
   const isDecision = applicant.pipelineStage === "decision" && applicant.status === "Pending";
   const statusColors = {
-    Accepted: { bg: "#dcfce7", color: "#15803d", label: "Hired" },
-    Rejected: { bg: "#fee2e2", color: "#b91c1c", label: "Declined" },
+    Accepted: { cls: "badge-green", label: "Hired" },
+    Rejected: { cls: "badge-red",   label: "Declined" },
   };
   const sc = statusColors[applicant.status];
   return (
@@ -77,9 +77,9 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.2rem", flexWrap: "wrap" }}>
             <p style={{ margin: 0, fontWeight: "600", fontSize: "0.875rem", color: "#0f172a" }}>{applicant.name}</p>
-            {sc && <span style={{ fontSize: "0.65rem", fontWeight: "600", padding: "0.15rem 0.5rem", borderRadius: "0.3rem", backgroundColor: sc.bg, color: sc.color, flexShrink: 0 }}>{sc.label}</span>}
-            {isInvited && <span style={{ fontSize: "0.65rem", fontWeight: "600", padding: "0.15rem 0.5rem", borderRadius: "0.3rem", backgroundColor: "#f0f9ff", color: "#0369a1", flexShrink: 0 }}>Invite sent</span>}
-            {applicant.linkedin && <span style={{ fontSize: "0.65rem", fontWeight: "600", padding: "0.15rem 0.5rem", borderRadius: "0.3rem", backgroundColor: "#f0f9ff", color: "#0369a1", flexShrink: 0 }}>LinkedIn</span>}
+            {sc && <span className={`badge badge-tag ${sc.cls}`} style={{ flexShrink: 0 }}>{sc.label}</span>}
+            {isInvited && <span className="badge badge-tag badge-blue" style={{ flexShrink: 0 }}>Invite sent</span>}
+            {applicant.linkedin && <span className="badge badge-tag badge-blue" style={{ flexShrink: 0 }}>LinkedIn</span>}
           </div>
           {applicant.preferredShift && (
             <p style={{ margin: "0 0 0.2rem", fontSize: "0.72rem", color: "#64748b" }}>{applicant.preferredShift}</p>
@@ -87,7 +87,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
           {applicant.skills?.length > 0 ? (
             <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
               {applicant.skills.slice(0, 4).map(s => (
-                <span key={s} style={{ fontSize: "0.65rem", backgroundColor: "#f1f5f9", color: "#475569", borderRadius: "0.3rem", padding: "0.1rem 0.45rem", fontWeight: "500" }}>{s}</span>
+                <span key={s} className="badge badge-tag badge-gray">{s}</span>
               ))}
             </div>
           ) : applicant.bio ? (
