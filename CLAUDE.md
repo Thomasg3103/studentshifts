@@ -68,12 +68,6 @@ ThomasGallagher1 / thomasgallagher3103@gmail.com
 
 ## Outstanding tasks
 
-### Bugs
-- Liked jobs button count styling — match the same number badge style as Applied and Account
-- "Stay Here" after applying never actually submits the application
-- When viewing a job description, Applied/Liked counts and pages stop working (show empty, wrong count) until user returns to dashboard
-- Applied count stuck at wrong number after code revamp (secondary fetch for preferred_shift may be interfering)
-
 ### Multi-shift hiring logic
 - If a job has 2+ shifts and company hires a student for one shift, keep job Active until all shifts are filled
 - If a student applied to all shifts (no preferred_shift) and company hires them, auto-decline all others
