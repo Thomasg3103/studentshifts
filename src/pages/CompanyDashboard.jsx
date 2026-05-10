@@ -251,8 +251,6 @@ export default function CompanyDashboard() {
           console.warn("Photo upload skipped:", e.message);
         }
       }
-      console.log("[saveForm] photos done, inserting jobâ€¦");
-
       const jobData = {
         company_id:      currentUser.id,
         title:           formData.title,
