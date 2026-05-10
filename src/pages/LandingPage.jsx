@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { supabase } from "../lib/supabase";
 import AppFooter from "../components/AppFooter";
 import { useApp } from "../context/AppContext";
@@ -69,6 +70,11 @@ export default function LandingPage() {
 
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
+      <Helmet>
+        <title>StudentShifts — Find Part-Time Jobs in Ireland</title>
+        <meta name="description" content="StudentShifts connects Irish students with flexible part-time and short-term jobs. Browse verified employers, apply in minutes." />
+        <link rel="canonical" href="https://studentshifts.ie/" />
+      </Helmet>
 
       {/* ── Header ── */}
       <header style={{

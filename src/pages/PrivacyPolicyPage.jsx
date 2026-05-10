@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
@@ -8,7 +9,12 @@ const LAST_UPDATED  = "15 April 2026";
 export default function PrivacyPolicyPage() {
   const { setPage } = useApp();
   return (
-    <><BackButton />
+    <><Helmet>
+        <title>Privacy Policy — StudentShifts</title>
+        <meta name="description" content="Read StudentShifts' privacy policy — how we collect, use, and protect your personal data under GDPR." />
+        <link rel="canonical" href="https://studentshifts.ie/privacy" />
+      </Helmet>
+      <BackButton />
     <PageWrapper narrow>
       <div style={{ maxWidth: "680px", margin: "0 auto", color: "#1e293b", fontFamily: "inherit" }}>
 

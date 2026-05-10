@@ -190,9 +190,37 @@ Deno.serve(async (req: Request) => {
     if (companyProfile?.role !== "company") throw new Error("Unauthorised");
     const companyName = companyProfile.name as string;
 
-    const { applicationId, action } = await req.json();
+    const { applicationId, action, idempotencyKey } = await req.json();
     if (!applicationId || !["accept", "reject"].includes(action)) {
       throw new Error("Missing required fields: applicationId, action");
+    }
+
+    // Rate limit: max 10 hire/reject actions per company per minute
+    const { count: recentCount } = await adminClient
+      .from("hire_action_log")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", user.id)
+      .gte("created_at", new Date(Date.now() - 60_000).toISOString());
+    if ((recentCount ?? 0) >= 10) {
+      return new Response(JSON.stringify({ error: "Rate limit exceeded — max 10 hire actions per minute." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Idempotency: reject duplicate (applicationId + action) within 60s
+    const iKey = idempotencyKey || `${applicationId}:${action}`;
+    const { data: existing } = await adminClient
+      .from("hire_action_log")
+      .select("id, result")
+      .eq("company_id", user.id)
+      .eq("idempotency_key", iKey)
+      .gte("created_at", new Date(Date.now() - 60_000).toISOString())
+      .single();
+    if (existing) {
+      return new Response(JSON.stringify({ success: true, idempotent: true, cached: existing.result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     // Fetch application
@@ -313,7 +341,11 @@ Deno.serve(async (req: Request) => {
         ).catch(e => console.warn("Notify email failed:", e));
       }
 
-      return new Response(JSON.stringify({ success: true, filledShifts: newFilledShifts, closedJob, declinedIds }), {
+      const acceptResult = { filledShifts: newFilledShifts, closedJob, declinedIds };
+      await adminClient.from("hire_action_log").insert({
+        company_id: user.id, action, idempotency_key: iKey, result: acceptResult,
+      }).catch(() => {});
+      return new Response(JSON.stringify({ success: true, ...acceptResult }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -331,6 +363,9 @@ Deno.serve(async (req: Request) => {
       sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, studentEmail, subject, html)
         .catch(e => console.warn("Rejection email failed:", e));
     }
+    await adminClient.from("hire_action_log").insert({
+      company_id: user.id, action, idempotency_key: iKey, result: { applicationId },
+    }).catch(() => {});
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

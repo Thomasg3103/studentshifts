@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
@@ -8,7 +9,12 @@ const LAST_UPDATED  = "20 April 2026";
 export default function TermsOfServicePage() {
   const { setPage } = useApp();
   return (
-    <><BackButton />
+    <><Helmet>
+        <title>Terms of Service — StudentShifts</title>
+        <meta name="description" content="Read StudentShifts' terms of service — the rules governing use of the platform for students and employers." />
+        <link rel="canonical" href="https://studentshifts.ie/terms" />
+      </Helmet>
+      <BackButton />
     <PageWrapper narrow>
       <div style={{ maxWidth: "680px", margin: "0 auto", color: "#1e293b", fontFamily: "inherit" }}>
 

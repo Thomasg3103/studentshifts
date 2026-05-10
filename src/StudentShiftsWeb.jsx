@@ -1,28 +1,38 @@
-﻿import { useState, useEffect, useRef, useCallback, useContext } from "react";
+﻿import { useState, useEffect, useRef, useCallback, useContext, lazy, Suspense } from "react";
 import * as Sentry from "@sentry/react";
 import { Toaster } from "react-hot-toast";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
 import ErrorBoundary from "./components/ErrorBoundary";
-import StudentDashboard from "./pages/StudentDashboard";
-import CompanyDashboard from "./pages/CompanyDashboard";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
-import AccountPage from "./pages/AccountPage";
-import JobDetails from "./pages/JobDetails";
-import LikedJobs from "./pages/LikedJobs";
-import AppliedJobs from "./pages/AppliedJobs";
-import AboutPage from "./pages/AboutPage";
-import Messages from "./pages/Messages";
-import CompanyMessages from "./pages/CompanyMessages";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-import VerifyDocsPage from "./pages/VerifyDocsPage";
-import AdminPage from "./pages/AdminPage";
-import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
-import TermsOfServicePage from "./pages/TermsOfServicePage";
-import LandingPage from "./pages/LandingPage";
 import CookieBanner from "./components/CookieBanner";
 import AppFooter from "./components/AppFooter";
+
+const StudentDashboard  = lazy(() => import("./pages/StudentDashboard"));
+const CompanyDashboard  = lazy(() => import("./pages/CompanyDashboard"));
+const LoginPage         = lazy(() => import("./pages/LoginPage"));
+const SignupPage        = lazy(() => import("./pages/SignupPage"));
+const AccountPage       = lazy(() => import("./pages/AccountPage"));
+const JobDetails        = lazy(() => import("./pages/JobDetails"));
+const LikedJobs         = lazy(() => import("./pages/LikedJobs"));
+const AppliedJobs       = lazy(() => import("./pages/AppliedJobs"));
+const AboutPage         = lazy(() => import("./pages/AboutPage"));
+const Messages          = lazy(() => import("./pages/Messages"));
+const CompanyMessages   = lazy(() => import("./pages/CompanyMessages"));
+const ResetPasswordPage = lazy(() => import("./pages/ResetPasswordPage"));
+const VerifyDocsPage    = lazy(() => import("./pages/VerifyDocsPage"));
+const AdminPage         = lazy(() => import("./pages/AdminPage"));
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const TermsOfServicePage= lazy(() => import("./pages/TermsOfServicePage"));
+const LandingPage       = lazy(() => import("./pages/LandingPage"));
+const HelpPage          = lazy(() => import("./pages/HelpPage"));
+
+function PageSpinner() {
+  return (
+    <div style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+    </div>
+  );
+}
 import { supabase } from "./lib/supabase";
 import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug, fetchJobsByIds, fetchMessageCount } from "./lib/auth";
 import { AppContext } from "./context/AppContext";
@@ -43,6 +53,7 @@ const PAGE_PATH = {
   emailVerified:     "/email-verified",
   resetPassword:     "/reset-password",
   about:             "/about",
+  help:              "/help",
   privacy:           "/privacy",
   terms:             "/terms",
 };
@@ -69,6 +80,7 @@ function normaliseProfile(profile) {
     industries:           extra.industries           || [],
     jobPreferences:     extra.job_preferences  || [],
     availability:       extra.availability || {},
+    allowCompanyDm:     extra.allow_company_dm !== false,
     savedLocation:      extra.location_lat ? {
       lat:         extra.location_lat,
       lng:         extra.location_lng,
@@ -121,6 +133,11 @@ export default function StudentShiftsWeb() {
     // Save dashboard scroll before navigating away
     if (prev === "/") dashboardScrollY.current = window.scrollY;
     locationRef.current = curr;
+
+    // GA4 page_view (SPA — GA doesn't auto-track route changes)
+    if (window.gtag && import.meta.env.VITE_GA_MEASUREMENT_ID) {
+      window.gtag("event", "page_view", { page_path: curr, page_title: document.title });
+    }
   }, [location.pathname]);
 
   const [currentUser, setCurrentUser]       = useState(null);
@@ -180,6 +197,10 @@ export default function StudentShiftsWeb() {
           const profile = await getProfile(session.user.id);
           const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
           setCurrentUser(user);
+          // GA4 User ID
+          if (window.gtag && import.meta.env.VITE_GA_MEASUREMENT_ID) {
+            window.gtag("config", import.meta.env.VITE_GA_MEASUREMENT_ID, { user_id: user.id });
+          }
           if (user.role === "company") {
             const metaCro = session.user.user_metadata?.cro_number;
             if (metaCro && !user.croNumber) saveCompanyCroNumber(user.id, metaCro);
@@ -326,52 +347,59 @@ export default function StudentShiftsWeb() {
 
   return (
     <AppContext.Provider value={appContextValue}>
+      <a href="#main-content" className="skip-link">Skip to main content</a>
       {!isLanding && <Header />}
-      <ErrorBoundary>
-      <Routes>
-        {/* Home / Student Dashboard / Landing */}
-        <Route path="/" element={
-          !currentUser
-            ? <LandingPage />
-            : currentUser?.role === "student" && !currentUser?.studentIdPath
-            ? <VerifyDocsPage />
-            : <StudentDashboard restoreScrollY={restoreScrollY} />
-        } />
+      <main id="main-content">
+        <ErrorBoundary>
+          <Suspense fallback={<PageSpinner />}>
+            <Routes>
+              {/* Home / Student Dashboard / Landing */}
+              <Route path="/" element={
+                !currentUser
+                  ? <LandingPage />
+                  : currentUser?.role === "student" && !currentUser?.studentIdPath
+                  ? <VerifyDocsPage />
+                  : <StudentDashboard restoreScrollY={restoreScrollY} />
+              } />
 
-        {/* Job Details */}
-        <Route path="/jobs/:titleSlug/:companySlug" element={
-          <JobDetailsRoute selectedJob={selectedJob} />
-        } />
+              {/* Job Details */}
+              <Route path="/jobs/:titleSlug/:companySlug" element={
+                <JobDetailsRoute selectedJob={selectedJob} />
+              } />
 
-        {/* Auth */}
-        <Route path="/login"   element={<LoginPage />} />
-        <Route path="/signup"  element={<SignupPage />} />
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/email-verified" element={<EmailVerifiedPage />} />
+              {/* Auth */}
+              <Route path="/login"   element={<LoginPage />} />
+              <Route path="/signup"  element={<SignupPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/email-verified" element={<EmailVerifiedPage />} />
 
-        {/* Student pages */}
-        <Route path="/account" element={currentUser ? <AccountPage /> : <Navigate to="/login" replace />} />
-        <Route path="/liked"   element={currentUser ? <LikedJobs /> : <Navigate to="/login" replace />} />
-        <Route path="/applied" element={currentUser?.role === "student" ? <AppliedJobs /> : <Navigate to="/" replace />} />
-        <Route path="/messages" element={currentUser?.role === "student" ? <Messages /> : <Navigate to="/" replace />} />
-        <Route path="/verify"  element={currentUser ? <VerifyDocsPage /> : <Navigate to="/" replace />} />
+              {/* Student pages */}
+              <Route path="/account" element={currentUser ? <AccountPage /> : <Navigate to="/login" replace />} />
+              <Route path="/liked"   element={currentUser ? <LikedJobs /> : <Navigate to="/login" replace />} />
+              <Route path="/applied" element={currentUser?.role === "student" ? <AppliedJobs /> : <Navigate to="/" replace />} />
+              <Route path="/messages" element={currentUser?.role === "student" ? <Messages /> : <Navigate to="/" replace />} />
+              <Route path="/verify"  element={currentUser ? <VerifyDocsPage /> : <Navigate to="/" replace />} />
 
-        {/* Company pages */}
-        <Route path="/company" element={currentUser?.role === "company" ? <CompanyDashboard /> : <Navigate to="/" replace />} />
-        <Route path="/company/messages" element={currentUser?.role === "company" ? <CompanyMessages /> : <Navigate to="/" replace />} />
+              {/* Company pages */}
+              <Route path="/company" element={currentUser?.role === "company" ? <CompanyDashboard /> : <Navigate to="/" replace />} />
+              <Route path="/company/messages" element={currentUser?.role === "company" ? <CompanyMessages /> : <Navigate to="/" replace />} />
 
-        {/* Admin */}
-        <Route path="/admin" element={currentUser?.role === "admin" ? <AdminPage /> : <Navigate to="/" replace />} />
+              {/* Admin */}
+              <Route path="/admin" element={currentUser?.role === "admin" ? <AdminPage /> : <Navigate to="/" replace />} />
 
-        {/* Info pages */}
-        <Route path="/about"   element={<AboutPage />} />
-        <Route path="/privacy" element={<PrivacyPolicyPage />} />
-        <Route path="/terms"   element={<TermsOfServicePage />} />
+              {/* Info pages */}
+              <Route path="/about"   element={<AboutPage />} />
+              <Route path="/privacy" element={<PrivacyPolicyPage />} />
+              <Route path="/terms"   element={<TermsOfServicePage />} />
+              <Route path="/help"    element={<HelpPage />} />
 
-        {/* Catch-all */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-      </ErrorBoundary>
+              {/* 404 */}
+              <Route path="/404" element={<NotFoundPage />} />
+              <Route path="*" element={<Navigate to="/404" replace />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
+      </main>
       {!isLanding && <AppFooter />}
       <CookieBanner />
       <Toaster position="bottom-center" toastOptions={{ duration: 4000, style: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: "0.875rem", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" } }} />
@@ -417,6 +445,28 @@ function JobDetailsRoute({ selectedJob }) {
   if (!job) return null;
 
   return <JobDetails job={job} />;
+}
+
+function NotFoundPage() {
+  const navigate = useNavigate();
+  return (
+    <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
+      <div style={{ textAlign: "center", maxWidth: "420px" }}>
+        <div style={{ fontSize: "5rem", fontWeight: "900", color: "var(--color-brand)", lineHeight: 1, marginBottom: "0.5rem" }}>404</div>
+        <h1 style={{ margin: "0 0 0.75rem", fontWeight: "800", fontSize: "1.6rem", color: "#1e293b" }}>Page not found</h1>
+        <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.75rem" }}>
+          The page you're looking for doesn't exist or has been moved.
+        </p>
+        <button
+          className="btn btn-primary"
+          style={{ padding: "0.75rem 2rem", fontSize: "0.95rem" }}
+          onClick={() => navigate("/", { replace: true })}
+        >
+          Go home
+        </button>
+      </div>
+    </div>
+  );
 }
 
 function EmailVerifiedPage() {

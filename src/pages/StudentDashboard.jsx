@@ -36,10 +36,11 @@ function deadlineLabel(dateStr) {
 }
 function daysUntil(dateStr) {
   if (!dateStr) return null;
-  return Math.ceil((new Date(dateStr) - new Date()) / 86400000);
+  return Math.floor((new Date(dateStr) - new Date()) / 86400000);
 }
 
-const _geocodeCache = {};
+let _geocodeCache = {};
+try { _geocodeCache = JSON.parse(localStorage.getItem("ss_geocode_cache") || "{}"); } catch { _geocodeCache = {}; }
 
 const weekdays  = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 const workweek  = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
@@ -48,9 +49,12 @@ const timeSlots = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:0
 function FilterPanel({
   clearAll, hasActiveFilters, sortBy, openSections, toggleSection,
   warning, selectedDays, toggleDay, dayTimes, updateTime,
+  setSelectedDays, setDayTimes, setSelectedLocations, setSelectedJobTypes,
+  setWeekendOnly, setAllWeekOnly, setNoWeekends,
   distanceKm, setDistanceKm, studentLocation, allLocations,
   selectedLocations, toggleLocation, selectedJobTypes, toggleJobType,
-  weekendOnly, setWeekendOnly, allWeekOnly, setAllWeekOnly, noWeekends, setNoWeekends,
+  weekendOnly, allWeekOnly, noWeekends,
+  onApply,
 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
@@ -65,7 +69,7 @@ function FilterPanel({
       </div>
 
       {/* Days & Times */}
-      <FilterSection title={<>Days &amp; Times {selectedDays.length > 0 && <Pip n={selectedDays.length} />}</>} open={openSections.days} onToggle={() => toggleSection("days")}>
+      <FilterSection title={<>Days &amp; Times {selectedDays.length > 0 && <Pip n={selectedDays.length} />}</>} open={openSections.days} onToggle={() => toggleSection("days")} onClear={selectedDays.length > 0 ? () => { setSelectedDays([]); setDayTimes({}); } : null}>
         {warning && <p style={{ color: "#ef4444", fontSize: "0.76rem", marginBottom: "0.4rem" }}>{warning}</p>}
         {weekdays.map(day => (
           <div key={day} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
@@ -106,7 +110,7 @@ function FilterPanel({
       </FilterSection>
 
       {/* Location */}
-      <FilterSection title={<>Location {selectedLocations.length > 0 && <Pip n={selectedLocations.length} />}</>} open={openSections.location} onToggle={() => toggleSection("location")}>
+      <FilterSection title={<>Location {selectedLocations.length > 0 && <Pip n={selectedLocations.length} />}</>} open={openSections.location} onToggle={() => toggleSection("location")} onClear={selectedLocations.length > 0 ? () => setSelectedLocations([]) : null}>
         {allLocations.map(loc => (
           <label key={loc} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: 500 }}>
             <input type="checkbox" checked={selectedLocations.includes(loc)} onChange={() => toggleLocation(loc)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
@@ -116,7 +120,7 @@ function FilterPanel({
       </FilterSection>
 
       {/* Job Type */}
-      <FilterSection title={<>Job Type {selectedJobTypes.length > 0 && <Pip n={selectedJobTypes.length} />}</>} open={openSections.jobType} onToggle={() => toggleSection("jobType")}>
+      <FilterSection title={<>Job Type {selectedJobTypes.length > 0 && <Pip n={selectedJobTypes.length} />}</>} open={openSections.jobType} onToggle={() => toggleSection("jobType")} onClear={selectedJobTypes.length > 0 ? () => setSelectedJobTypes([]) : null}>
         {Object.keys(jobCategories).map(type => (
           <label key={type} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: 500 }}>
             <input type="checkbox" checked={selectedJobTypes.includes(type)} onChange={() => toggleJobType(type)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
@@ -126,7 +130,7 @@ function FilterPanel({
       </FilterSection>
 
       {/* Schedule */}
-      <FilterSection title="Schedule" open={openSections.schedule} onToggle={() => toggleSection("schedule")}>
+      <FilterSection title="Schedule" open={openSections.schedule} onToggle={() => toggleSection("schedule")} onClear={(weekendOnly || allWeekOnly || noWeekends) ? () => { setWeekendOnly(false); setAllWeekOnly(false); setNoWeekends(false); } : null}>
         {[
           { label: "Weekend Work", active: weekendOnly, toggle: () => setWeekendOnly(p => !p) },
           { label: "All Week",     active: allWeekOnly, toggle: () => setAllWeekOnly(p => !p) },
@@ -138,6 +142,16 @@ function FilterPanel({
           </label>
         ))}
       </FilterSection>
+
+      {/* Mobile: Apply & close button */}
+      {onApply && (
+        <button
+          onClick={onApply}
+          style={{ width: "100%", padding: "0.65rem", borderRadius: "2rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit", marginTop: "0.5rem" }}
+        >
+          Apply Filters
+        </button>
+      )}
 
     </div>
   );
@@ -296,6 +310,7 @@ export default function StudentDashboard({ restoreScrollY }) {
           const result = await geocodeAddress(query);
           if (result && !cancelled) {
             _geocodeCache[loc] = { lat: result.lat, lng: result.lng };
+            try { localStorage.setItem("ss_geocode_cache", JSON.stringify(_geocodeCache)); } catch {}
             setExtraCoords(prev => ({ ...prev, [loc]: { lat: result.lat, lng: result.lng } }));
           }
         } catch (_) {}
@@ -333,8 +348,8 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [searchQuery,       setSearchQuery]       = useState("");
   const [sortBy,            setSortBy]            = useState("");
 
-  // Sidebar section collapse state (all open by default)
-  const [openSections, setOpenSections] = useState({ sort: true, days: true, location: false, jobType: false, schedule: true, distance: true });
+  // Sidebar section collapse state — only "Days & Times" open by default
+  const [openSections, setOpenSections] = useState({ sort: false, days: true, location: false, jobType: false, schedule: false, distance: false });
   const toggleSection = (k) => setOpenSections(p => ({ ...p, [k]: !p[k] }));
 
   const toggleDay = (day) => {
@@ -472,6 +487,7 @@ export default function StudentDashboard({ restoreScrollY }) {
   const filterPanelProps = {
     clearAll, hasActiveFilters, sortBy, openSections, toggleSection,
     warning, selectedDays, toggleDay, dayTimes, updateTime,
+    setSelectedDays, setDayTimes, setSelectedLocations, setSelectedJobTypes,
     distanceKm, setDistanceKm, studentLocation, allLocations,
     selectedLocations, toggleLocation, selectedJobTypes, toggleJobType,
     weekendOnly, setWeekendOnly, allWeekOnly, setAllWeekOnly, noWeekends, setNoWeekends,
@@ -594,7 +610,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                   {sortLabel[sortBy] || "Sort by"} ▾
                 </button>
                 {sortDropdownOpen && (
-                  <div style={{ position: "absolute", top: "calc(100% + 0.4rem)", right: 0, zIndex: 50, backgroundColor: "white", border: "1.5px solid #e5e7eb", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "0.5rem 0.75rem", minWidth: "210px" }}>
+                  <div style={{ position: "absolute", top: "calc(100% + 0.4rem)", ...(isPhone ? { left: 0 } : { right: 0 }), zIndex: 50, backgroundColor: "white", border: "1.5px solid #e5e7eb", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "0.5rem 0.75rem", minWidth: "210px" }}>
                     {[
                       { value: "",             label: "Best Match" },
                       { value: "payHigh",      label: "Pay: High → Low" },
@@ -620,7 +636,7 @@ export default function StudentDashboard({ restoreScrollY }) {
             {/* Mobile filter panel */}
             {isMobile && mobileFiltersOpen && (
               <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", marginBottom: "0.75rem", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
-                <FilterPanel {...filterPanelProps} />
+                <FilterPanel {...filterPanelProps} onApply={() => setMobileFiltersOpen(false)} />
               </div>
             )}
 
@@ -658,11 +674,17 @@ export default function StudentDashboard({ restoreScrollY }) {
                 const dl        = job.deadline;
                 const dlDays    = daysUntil(dl);
                 const dlSoon    = dlDays !== null && dlDays <= 7 && dlDays >= 0;
-                const photo     = job.photos?.[0] || null;
+                const rawPhoto  = job.photos?.[0] || null;
+                const photo     = rawPhoto && rawPhoto.includes("supabase.co") ? `${rawPhoto}?width=200&quality=75` : rawPhoto;
                 const crop      = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
+                const openJob = () => {
+                  setSelectedJob(job);
+                  setPage("jobDetails");
+                  if (window.gtag) window.gtag("event", "view_item", { item_id: job.id, item_name: job.title, item_category: job.category });
+                };
                 return (
-                  <div key={job.id} className="job-card" style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "default" }}>
+                  <div key={job.id} className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
 
                     {/* Square photo */}
                     <div style={{ width: isPhone ? "100px" : "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
@@ -681,18 +703,13 @@ export default function StudentDashboard({ restoreScrollY }) {
                     <div style={{ flex: 1, padding: isPhone ? "0.65rem 0.7rem" : "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       {/* Top: title + company + pills */}
                       <div>
-                        <h2
-                          onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
-                          onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
-                          onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}
-                          style={{ fontWeight: 800, fontSize: isPhone ? "1.0rem" : "1.5rem", margin: "0 0 0.15rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", cursor: "pointer" }}
-                        >{job.title}</h2>
+                        <h2 style={{ fontWeight: 800, fontSize: isPhone ? "1.0rem" : "1.5rem", margin: "0 0 0.15rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
                         <p style={{ margin: isPhone ? "0 0 0.35rem" : "0 0 0.6rem", fontSize: isPhone ? "0.78rem" : "1.1rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                           {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
                             return (
-                              <span key={day} className={`badge ${isFilled ? "badge-gray" : "badge-brand"} ${isPhone ? "badge-sm" : "badge-lg"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }}>
+                              <span key={day} className={`badge ${isFilled ? "badge-gray" : "badge-brand"} ${isPhone ? "badge-sm" : "badge-lg"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }} title={isFilled ? "This shift has been filled" : undefined}>
                                 {day.slice(0, 3)} · {job.times[day]?.join(", ")}{isFilled ? " ✓" : ""}
                               </span>
                             );
@@ -720,7 +737,7 @@ export default function StudentDashboard({ restoreScrollY }) {
 
                     {/* Right: heart / applied icon */}
                     <button
-                      onClick={() => toggleLike(job)}
+                      onClick={e => { e.stopPropagation(); toggleLike(job); }}
                       disabled={isApplied}
                       title={isApplied ? "Applied" : isLiked ? "Unlike" : "Like"}
                       aria-label={isApplied ? "Applied" : isLiked ? "Unlike job" : "Like job"}
@@ -777,16 +794,24 @@ export default function StudentDashboard({ restoreScrollY }) {
   );
 }
 
-function FilterSection({ title, open, onToggle, children }) {
+function FilterSection({ title, open, onToggle, onClear, children }) {
   return (
     <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.5rem 0.75rem", marginBottom: "0.4rem" }}>
-      <button
-        onClick={onToggle}
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", background: "none", border: "none", padding: "0.2rem 0", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", color: "#1e293b", fontFamily: "inherit", textAlign: "left", marginBottom: open ? "0.5rem" : 0 }}
-      >
-        <span>{title}</span>
-        <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{open ? "▲" : "▼"}</span>
-      </button>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: open ? "0.5rem" : 0 }}>
+        <button
+          onClick={onToggle}
+          aria-expanded={open}
+          style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "none", border: "none", padding: "0.2rem 0", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", color: "#1e293b", fontFamily: "inherit", textAlign: "left", flex: 1 }}
+        >
+          <span>{title}</span>
+          <span style={{ fontSize: "0.7rem", color: "#94a3b8", marginLeft: "0.2rem" }}>{open ? "▲" : "▼"}</span>
+        </button>
+        {onClear && (
+          <button onClick={e => { e.stopPropagation(); onClear(); }} style={{ fontSize: "0.7rem", color: "#e11d48", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: "0.1rem 0.25rem", fontFamily: "inherit" }}>
+            Clear
+          </button>
+        )}
+      </div>
       {open && <div>{children}</div>}
     </div>
   );

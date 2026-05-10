@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
-import { signUp } from "../lib/auth";
+import { signUp, resendVerificationEmail } from "../lib/auth";
 import { jobCategories } from "../data/jobCategories";
 import { useApp } from "../context/AppContext";
 
@@ -31,9 +31,26 @@ export default function SignupPage() {
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
   const [done, setDone]         = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendSent, setResendSent] = useState(false);
 
   const toggleIndustry = (cat) =>
     setIndustries(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const id = setInterval(() => setResendCooldown(c => c - 1), 1000);
+    return () => clearInterval(id);
+  }, [resendCooldown]);
+
+  const handleResend = async () => {
+    if (resendCooldown > 0) return;
+    try {
+      await resendVerificationEmail(email);
+    } catch {}
+    setResendSent(true);
+    setResendCooldown(60);
+  };
 
   const handleSignup = async () => {
     if (!name || !email || !password) { setError("Please fill in all required fields."); return; }
@@ -46,6 +63,7 @@ export default function SignupPage() {
     try {
       await signUp({ email, password, name, role, croNumber, industries });
       setDone(true);
+      if (window.gtag) window.gtag("event", "sign_up", { method: "email" });
     } catch (e) {
       Sentry.captureException(e);
       setError(e.message || "Something went wrong. Please try again.");
@@ -102,7 +120,14 @@ export default function SignupPage() {
           <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #86efac", borderRadius: "0.75rem", padding: "0.85rem 1rem", marginBottom: "1.5rem", color: "#16a34a", fontSize: "0.85rem", fontWeight: "500" }}>
             ✅ Once confirmed you'll be able to log in.
           </div>
-          <p style={{ fontSize: "0.82rem", color: "#94a3b8" }}>Didn't get it? Check your spam folder.</p>
+          <p style={{ fontSize: "0.82rem", color: "#94a3b8", marginBottom: "0.75rem" }}>Didn't get it? Check your spam folder.</p>
+          <button
+            onClick={handleResend}
+            disabled={resendCooldown > 0}
+            style={{ ...btnPrimary, marginTop: 0, backgroundColor: "transparent", background: "none", border: "1.5px solid var(--color-brand)", color: "var(--color-brand)", boxShadow: "none", opacity: resendCooldown > 0 ? 0.6 : 1 }}
+          >
+            {resendSent && resendCooldown > 0 ? `Resent! Try again in ${resendCooldown}s` : "Resend verification email"}
+          </button>
           <button onClick={() => setPage("login")} style={btnPrimary}>Go to Login →</button>
         </div>
       </PageWrapper>

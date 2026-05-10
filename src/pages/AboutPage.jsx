@@ -1,11 +1,17 @@
-﻿import PageWrapper from "../components/PageWrapper";
+﻿import { Helmet } from "react-helmet-async";
+import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
 
 export default function AboutPage() {
   const { setPage } = useApp();
   return (
-    <><BackButton />
+    <><Helmet>
+        <title>About StudentShifts — Connecting Students with Part-Time Jobs in Ireland</title>
+        <meta name="description" content="Learn about StudentShifts — the platform connecting Irish students with flexible part-time and short-term work." />
+        <link rel="canonical" href="https://studentshifts.ie/about" />
+      </Helmet>
+      <BackButton />
     <PageWrapper narrow>
 
       {/* Hero */}

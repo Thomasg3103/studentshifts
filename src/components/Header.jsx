@@ -46,8 +46,8 @@ export default function Header() {
 
   const menuItems = currentUser ? [
     { label: "About",       action: () => { setMenuOpen(false); setPage("about"); } },
-    { label: "Help Centre", action: () => { setMenuOpen(false); setPage("about"); } },
-    { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("about"); } },
+    { label: "Help Centre", action: () => { setMenuOpen(false); setPage("help"); } },
+    { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("help"); } },
     { separator: true },
     { label: "Sign Out", action: signOut, danger: true },
   ] : [
@@ -55,8 +55,8 @@ export default function Header() {
     { label: "Sign Up",     action: () => { setMenuOpen(false); setPage("signup"); } },
     { separator: true },
     { label: "About",       action: () => { setMenuOpen(false); setPage("about"); } },
-    { label: "Help Centre", action: () => { setMenuOpen(false); setPage("about"); } },
-    { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("about"); } },
+    { label: "Help Centre", action: () => { setMenuOpen(false); setPage("help"); } },
+    { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("help"); } },
   ];
 
   const Hamburger = () => (
@@ -133,19 +133,19 @@ export default function Header() {
                     <>
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("likedJobs")} style={{ ...navBtn(isLiked), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                          ❤️ <span className="nav-label">Liked</span>
+                          <HeartIcon active={isLiked} color={isLiked ? "var(--color-brand)" : "white"} /> <span className="nav-label">Liked</span>
                         </button>
                         {likedJobs.length > 0 && <span className={`notif-dot${isLiked ? " notif-dot--active" : ""}`}>{likedJobs.length}</span>}
                       </div>
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("appliedJobs")} style={{ ...navBtn(isApplied), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                          📄 <span className="nav-label">Applied</span>
+                          <DocumentIcon active={isApplied} color={isApplied ? "var(--color-brand)" : "white"} /> <span className="nav-label">Applied</span>
                         </button>
                         {appliedJobs.length > 0 && <span className={`notif-dot${isApplied ? " notif-dot--active" : ""}`}>{appliedJobs.length}</span>}
                       </div>
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("messages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
-                          💬 <span className="nav-label">Messages</span>
+                          <ChatIcon active={isMessages} color={isMessages ? "var(--color-brand)" : "white"} /> <span className="nav-label">Messages</span>
                         </button>
                         {msgCount > 0 && <span className={`notif-dot${isMessages ? " notif-dot--active" : ""}`}>{msgCount}</span>}
                       </div>
@@ -176,7 +176,7 @@ export default function Header() {
                     <>
                       <button onClick={() => setPage("studentDashboard")} style={navBtn(isBrowse)}><span className="nav-label">Browse </span>Home</button>
                       <div style={{ position: "relative", display: "inline-block" }}>
-                        <button onClick={() => setPage("companyMessages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>💬 <span className="nav-label">Messages</span></button>
+                        <button onClick={() => setPage("companyMessages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}><ChatIcon active={isMessages} color={isMessages ? "var(--color-brand)" : "white"} /> <span className="nav-label">Messages</span></button>
                         {msgCount > 0 && <span className={`notif-dot${isMessages ? " notif-dot--active" : ""}`}>{msgCount}</span>}
                       </div>
                       <button onClick={() => setPage("companyDashboard")} style={navBtn(isMyJobs)}><span className="nav-label">My </span>Jobs</button>
@@ -269,7 +269,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
       {/* Liked */}
       <div style={{ flex: 1, position: "relative" }}>
         <button onClick={() => setPage("likedJobs")} style={{ ...tab(isLiked), width: "100%", height: "100%" }}>
-          <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>❤️</span>
+          <HeartIcon active={isLiked} />
           Liked
         </button>
         {likedJobs.length > 0 && <span className="nav-dot">{likedJobs.length}</span>}
@@ -278,7 +278,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
       {/* Applied */}
       <div style={{ flex: 1, position: "relative" }}>
         <button onClick={() => setPage("appliedJobs")} style={{ ...tab(isApplied), width: "100%", height: "100%" }}>
-          <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>📄</span>
+          <DocumentIcon active={isApplied} />
           Applied
         </button>
         {appliedJobs.length > 0 && <span className="nav-dot">{appliedJobs.length}</span>}
@@ -293,7 +293,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
       {/* Messages */}
       <div style={{ flex: 1, position: "relative" }}>
         <button onClick={() => setPage("messages")} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
-          <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>💬</span>
+          <ChatIcon active={isMessages} />
           Messages
         </button>
         {msgCount > 0 && <span className="nav-dot nav-dot--right">{msgCount}</span>}
@@ -341,7 +341,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount }) {
       </button>
       <div style={{ flex: 1, position: "relative" }}>
         <button onClick={() => setPage("companyMessages")} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
-          <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>💬</span>
+          <ChatIcon active={isMessages} />
           Messages
         </button>
         {msgCount > 0 && <span className="nav-dot nav-dot--right">{msgCount}</span>}
@@ -401,6 +401,37 @@ function BriefcaseIcon({ active }) {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+    </svg>
+  );
+}
+
+function HeartIcon({ active, color }) {
+  const c = color || (active ? "var(--color-brand)" : "#94a3b8");
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? c : "none"} stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    </svg>
+  );
+}
+
+function DocumentIcon({ active, color }) {
+  const c = color || (active ? "var(--color-brand)" : "#94a3b8");
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
+    </svg>
+  );
+}
+
+function ChatIcon({ active, color }) {
+  const c = color || (active ? "var(--color-brand)" : "#94a3b8");
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
   );
 }

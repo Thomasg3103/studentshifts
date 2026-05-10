@@ -143,15 +143,27 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
           </div>
         </div>
       )}
+      <div aria-live="polite" aria-atomic="true" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>
+        {messages.length > 0 && `New message from ${messages[messages.length - 1]?.sender_id === senderId ? "you" : companyName}`}
+      </div>
+      {input.length > 3800 && (
+        <div style={{ padding: "0.25rem 1rem 0", backgroundColor: "white" }}>
+          <span style={{ fontSize: "0.72rem", color: input.length >= 4000 ? "#ef4444" : "#f97316", fontWeight: 600 }}>
+            {input.length}/4000 characters
+          </span>
+        </div>
+      )}
       <div style={{ padding: "0.75rem 1rem", borderTop: input ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
         <input
           ref={inputRef}
-          value={input} onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && send()}
+          value={input}
+          onChange={e => { if (e.target.value.length <= 4000) setInput(e.target.value); }}
+          onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
           placeholder={`Message ${companyName}…`}
+          maxLength={4000}
           style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
         />
-        <button onClick={send} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
+        <button onClick={send} disabled={!input.trim()} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", opacity: input.trim() ? 1 : 0.5 }}>
           Send
         </button>
       </div>

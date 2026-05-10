@@ -910,3 +910,90 @@ DROP TRIGGER IF EXISTS applications_identity_lock ON applications;
 CREATE TRIGGER applications_identity_lock
   BEFORE UPDATE ON applications
   FOR EACH ROW EXECUTE FUNCTION lock_application_identity();
+
+
+-- ================================================================
+-- SECURITY: hire_action_log — rate limiting + idempotency for hire-applicant Edge Function
+-- ================================================================
+CREATE TABLE IF NOT EXISTS hire_action_log (
+  id              BIGSERIAL PRIMARY KEY,
+  company_id      UUID NOT NULL REFERENCES auth.users(id),
+  action          TEXT NOT NULL,
+  idempotency_key TEXT NOT NULL,
+  result          JSONB,
+  created_at      TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_hire_action_log_company ON hire_action_log(company_id, created_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_hire_action_log_ikey ON hire_action_log(company_id, idempotency_key, created_at);
+
+ALTER TABLE hire_action_log ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "hire_action_log: company insert" ON hire_action_log;
+CREATE POLICY "hire_action_log: company insert" ON hire_action_log
+  FOR INSERT WITH CHECK (auth.uid() = company_id);
+
+DROP POLICY IF EXISTS "hire_action_log: company select" ON hire_action_log;
+CREATE POLICY "hire_action_log: company select" ON hire_action_log
+  FOR SELECT USING (auth.uid() = company_id);
+
+
+-- ================================================================
+-- GDPR: audit_log table
+-- Tracks sensitive data actions (approve/reject student, delete
+-- account, hire applicant) for accountability under GDPR Art. 5(2).
+-- ================================================================
+CREATE TABLE IF NOT EXISTS audit_log (
+  id         BIGSERIAL PRIMARY KEY,
+  actor_id   UUID REFERENCES auth.users(id),
+  action     TEXT NOT NULL,
+  target_id  UUID,
+  metadata   JSONB,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_audit_log_actor ON audit_log(actor_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_audit_log_action ON audit_log(action, created_at);
+
+-- Only admins can read audit_log; no one can delete entries
+ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "audit_log: admin read" ON audit_log;
+CREATE POLICY "audit_log: admin read" ON audit_log
+  FOR SELECT USING (is_admin());
+
+DROP POLICY IF EXISTS "audit_log: service insert" ON audit_log;
+CREATE POLICY "audit_log: service insert" ON audit_log
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+
+
+-- ================================================================
+-- PRIVACY: allow_company_dm column on students
+-- Controls whether companies can initiate DMs before a student applies.
+-- ================================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'students' AND column_name = 'allow_company_dm'
+  ) THEN
+    ALTER TABLE students ADD COLUMN allow_company_dm BOOLEAN DEFAULT TRUE;
+  END IF;
+END $$;
+
+
+-- ================================================================
+-- SECURITY: data export rate limit — 1 per 24 hours per user
+-- Tracked via a lightweight table queried by the export RPC.
+-- ================================================================
+CREATE TABLE IF NOT EXISTS export_log (
+  id         BIGSERIAL PRIMARY KEY,
+  user_id    UUID NOT NULL REFERENCES auth.users(id),
+  exported_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_export_log_user ON export_log(user_id, exported_at);
+
+ALTER TABLE export_log ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "export_log: own insert" ON export_log;
+CREATE POLICY "export_log: own insert" ON export_log
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "export_log: own select" ON export_log;
+CREATE POLICY "export_log: own select" ON export_log
+  FOR SELECT USING (auth.uid() = user_id);

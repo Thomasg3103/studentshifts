@@ -2,6 +2,7 @@
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import DOMPurify from "dompurify";
+import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { likeJob, unlikeJob, createApplication } from "../lib/auth";
@@ -29,12 +30,19 @@ export default function JobDetails({ job }) {
   const [reportOpen, setReportOpen]       = useState(false);
   const [reportReason, setReportReason]   = useState("");
   const [windowWidth, setWindowWidth]     = useState(window.innerWidth);
+  const [applyCooldown, setApplyCooldown] = useState(0);
 
   useEffect(() => {
     const h = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", h);
     return () => window.removeEventListener("resize", h);
   }, []);
+
+  useEffect(() => {
+    if (applyCooldown <= 0) return;
+    const id = setInterval(() => setApplyCooldown(c => c - 1), 1000);
+    return () => clearInterval(id);
+  }, [applyCooldown]);
 
   if (!job) return null;
 
@@ -54,7 +62,7 @@ export default function JobDetails({ job }) {
 
   const handleApply = () => {
     if (!currentUser) { setPage("login"); return; }
-    if (isApplied) return;
+    if (isApplied || applyCooldown > 0) return;
     if (currentUser.verificationStatus !== "verified") {
       setApplyModal("notVerified");
       return;
@@ -89,7 +97,9 @@ export default function JobDetails({ job }) {
         unlikeJob(currentUser.id, job.id).catch(console.error);
       }
       setApplyModal(null);
+      setApplyCooldown(3);
       toast.success("Application submitted!");
+      if (window.gtag) window.gtag("event", "submit_application", { item_id: job.id, item_name: job.title, item_category: job.category });
     } catch (e) {
       Sentry.captureException(e);
       console.error("Apply error:", e);
@@ -148,8 +158,40 @@ export default function JobDetails({ job }) {
     </div>
   );
 
+  const jobSlug = `${job.title.toLowerCase().replace(/\s+/g, "-")}-at-${job.company.toLowerCase().replace(/\s+/g, "-")}`;
+  const canonicalUrl = `https://studentshifts.ie/jobs/${jobSlug}`;
+
+  const jsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "JobPosting",
+    "title": job.title,
+    "description": job.description || `${job.title} at ${job.company} in ${job.location}.`,
+    "hiringOrganization": { "@type": "Organization", "name": job.company },
+    "jobLocation": { "@type": "Place", "address": { "@type": "PostalAddress", "addressLocality": job.location, "addressCountry": "IE" } },
+    "baseSalary": { "@type": "MonetaryAmount", "currency": "EUR", "value": { "@type": "QuantitativeValue", "value": job.pay, "unitText": "HOUR" } },
+    "employmentType": "PART_TIME",
+    "datePosted": job.createdAt?.split("T")[0] || new Date().toISOString().split("T")[0],
+    ...(job.deadline ? { "validThrough": job.deadline } : {}),
+  };
+
   return (
     <>
+      <Helmet>
+        <title>{job.title} at {job.company} — StudentShifts</title>
+        <meta name="description" content={`${job.title} in ${job.location}. Pay: ${job.pay}. Apply now on StudentShifts.`} />
+        <link rel="canonical" href={canonicalUrl} />
+        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+      </Helmet>
+
+      {/* Breadcrumb */}
+      <nav aria-label="Breadcrumb" style={{ padding: "0.6rem 1.25rem", fontSize: "0.8rem", color: "#94a3b8", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
+          <li><a href="/" style={{ color: "var(--color-brand)", fontWeight: 600, textDecoration: "none" }}>Jobs</a></li>
+          <li aria-hidden="true">/</li>
+          <li style={{ color: "#64748b" }}>{job.title} at {job.company}</li>
+        </ol>
+      </nav>
+
       <BackButton />
       <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "1.5rem 1.25rem", boxSizing: "border-box" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", gap: "1.5rem", alignItems: "flex-start" }}>

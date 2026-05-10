@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
+import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import BackButton from "../components/BackButton";
@@ -53,6 +54,7 @@ export default function AccountPage() {
   const [deleting, setDeleting]                 = useState(false);
   const [deleteError, setDeleteError]           = useState("");
   const [exporting, setExporting]               = useState(false);
+  const [allowDm, setAllowDm]                   = useState(currentUser.allowCompanyDm !== false);
   const [profilePhoto, setProfilePhoto]         = useState(currentUser.profilePhoto || "");
   const [windowWidth, setWindowWidth]           = useState(window.innerWidth);
   const availDebounceRef = useRef(null);
@@ -453,6 +455,11 @@ export default function AccountPage() {
 
   return (
     <>
+      <Helmet>
+        <title>My Account — StudentShifts</title>
+        <meta name="robots" content="noindex" />
+        <link rel="canonical" href="https://studentshifts.ie/account" />
+      </Helmet>
       <BackButton />
       <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "1.5rem 1.25rem", boxSizing: "border-box", width: "100%", overflowX: "hidden" }}>
         <div style={{ maxWidth: isStudent ? "1100px" : "560px", margin: "0 auto" }}>
@@ -556,10 +563,14 @@ export default function AccountPage() {
                     style={inputStyle}
                   />
 
-                  <label style={labelStyle}>Short Bio <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <label style={labelStyle}>Short Bio <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
+                    <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#94a3b8" }}>{bio.length}/500</span>
+                  </div>
                   <textarea
                     placeholder="Tell employers a bit about yourself…"
                     value={bio}
+                    maxLength={500}
                     onChange={e => setBio(e.target.value)}
                     onBlur={() => saveField({ bio })}
                     rows={3}
@@ -606,6 +617,29 @@ export default function AccountPage() {
                     </div>
                   )}
                 </div>
+
+              {/* DM Consent */}
+              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.5rem" }}>Messaging</p>
+                <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={allowDm}
+                    onChange={e => {
+                      const next = e.target.checked;
+                      setAllowDm(next);
+                      saveField({ allow_company_dm: next });
+                    }}
+                    style={{ width: "18px", height: "18px", cursor: "pointer", accentColor: "var(--color-brand)" }}
+                  />
+                  <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "#374151" }}>
+                    Allow verified companies to send me messages before I apply
+                  </span>
+                </label>
+                <p style={{ margin: "0.4rem 0 0", fontSize: "0.77rem", color: "#94a3b8", paddingLeft: "1.75rem" }}>
+                  Companies can only contact you if they have been verified by StudentShifts.
+                </p>
+              </div>
 
               {/* Save status — above logout/delete */}
               {(saving || saved || saveError) && (

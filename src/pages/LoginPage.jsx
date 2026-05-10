@@ -25,9 +25,11 @@ export default function LoginPage() {
     setError("");
     try {
       await signIn({ email, password });
+      if (window.gtag) window.gtag("event", "login", { method: "email" });
     } catch (e) {
       Sentry.captureException(e);
-      setError(e.message || "Invalid email or password.");
+      // Always show the same message to prevent email enumeration
+      setError("Invalid email or password.");
     } finally {
       setLoading(false);
     }
@@ -46,12 +48,12 @@ export default function LoginPage() {
     setResetError("");
     try {
       await sendPasswordReset(resetEmail);
-      setResetSent(true);
-      setResetCooldown(60);
     } catch (e) {
       Sentry.captureException(e);
-      setResetError(e.message || "Failed to send reset email — please try again.");
     } finally {
+      // Always show "sent" regardless of whether the email exists (prevents enumeration)
+      setResetSent(true);
+      setResetCooldown(60);
       setResetLoading(false);
     }
   };
