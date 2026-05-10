@@ -35,6 +35,18 @@ Deno.serve(async (req: Request) => {
       .single();
     if (!["admin", "company"].includes(profile?.role)) throw new Error("Unauthorised");
 
+    // Rate limit: 60 emails per 5 minutes per user
+    const windowStart = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { count } = await adminClient
+      .from("email_sends_log")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("sent_at", windowStart);
+    if ((count ?? 0) >= 60) {
+      throw new Error("Rate limit exceeded. Please wait before sending more emails.");
+    }
+    await adminClient.from("email_sends_log").insert({ user_id: user.id });
+
     const { to, subject, html, magicLinkEmail, redirectTo } = await req.json();
     if (!to || !subject || !html) throw new Error("Missing required fields: to, subject, html");
 
@@ -106,7 +118,7 @@ Deno.serve(async (req: Request) => {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     // Only surface expected user-facing errors; swallow internal details
-    const safe = ["Unauthorised", "Missing required fields", "Invalid redirectTo", "Failed to generate magic link"]
+    const safe = ["Unauthorised", "Missing required fields", "Invalid redirectTo", "Failed to generate magic link", "Rate limit exceeded"]
       .some(prefix => msg.startsWith(prefix)) ? msg : "Internal server error";
     console.error("send-email error:", msg);
     return new Response(JSON.stringify({ error: safe }), {

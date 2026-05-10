@@ -30,6 +30,20 @@ RETURNS bigint LANGUAGE sql SECURITY DEFINER STABLE AS $$
 $$;
 
 
+-- ----------------------------------------------------------------
+-- RATE LIMIT TABLE: email_sends_log
+-- Tracks email sends per user for the send-email Edge Function.
+-- Rate limit: 60 emails per 5-minute window per user.
+-- ----------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS email_sends_log (
+  id      BIGSERIAL PRIMARY KEY,
+  user_id UUID NOT NULL,
+  sent_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_email_sends_log_user_time
+  ON email_sends_log(user_id, sent_at);
+
+
 -- ================================================================
 -- TABLE: profiles
 -- Stores: id, name, role, created_at
