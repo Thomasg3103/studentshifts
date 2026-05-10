@@ -155,11 +155,12 @@ export default function StudentShiftsWeb() {
               setSavedAppliedJobIds(appliedIds);
               const allIds = [...new Set([...likedIds, ...appliedIds])];
               if (allIds.length) {
-                fetchJobsByIds(allIds).then(jobs => {
-                  const jobMap = Object.fromEntries(jobs.map(j => [j.id, j]));
+                try {
+                  const fetchedJobs = await fetchJobsByIds(allIds);
+                  const jobMap = Object.fromEntries(fetchedJobs.map(j => [j.id, j]));
                   setLikedJobs(likedIds.map(id => jobMap[id]).filter(Boolean));
                   setAppliedJobs(appliedIds.map(id => jobMap[id]).filter(Boolean));
-                }).catch(() => {});
+                } catch (_) {}
               }
             }
           } catch (e) {
@@ -196,11 +197,12 @@ export default function StudentShiftsWeb() {
             setSavedAppliedJobIds(appliedIds);
             const allIds = [...new Set([...likedIds, ...appliedIds])];
             if (allIds.length) {
-              fetchJobsByIds(allIds).then(jobs => {
-                const jobMap = Object.fromEntries(jobs.map(j => [j.id, j]));
+              try {
+                const fetchedJobs = await fetchJobsByIds(allIds);
+                const jobMap = Object.fromEntries(fetchedJobs.map(j => [j.id, j]));
                 setLikedJobs(likedIds.map(id => jobMap[id]).filter(Boolean));
                 setAppliedJobs(appliedIds.map(id => jobMap[id]).filter(Boolean));
-              }).catch(() => {});
+              } catch (_) {}
             }
           }
         } catch (e) {
@@ -388,7 +390,6 @@ export default function StudentShiftsWeb() {
 
 // Job details route — handles in-app nav (job in state/memory) and direct URL access (fetches from DB)
 function JobDetailsRoute({ selectedJob }) {
-  const { currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs, setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation, setPage } = useContext(AppContext);
   const { titleSlug, companySlug } = useParams();
   const location = useLocation();
   const navigate  = useNavigate();
@@ -424,20 +425,7 @@ function JobDetailsRoute({ selectedJob }) {
 
   if (!job) return null;
 
-  return (
-    <JobDetails
-      job={job}
-      setPage={setPage}
-      currentUser={currentUser}
-      likedJobs={likedJobs}
-      setLikedJobs={setLikedJobs}
-      appliedJobs={appliedJobs}
-      setAppliedJobs={setAppliedJobs}
-      setSavedLikedJobIds={setSavedLikedJobIds}
-      setSavedAppliedJobIds={setSavedAppliedJobIds}
-      studentLocation={studentLocation}
-    />
-  );
+  return <JobDetails job={job} />;
 }
 
 function EmailVerifiedPage() {

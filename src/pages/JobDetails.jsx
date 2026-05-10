@@ -82,14 +82,14 @@ export default function JobDetails({ job }) {
         return timeStr ? `${selectedDay} · ${timeStr}` : selectedDay;
       })() : null;
       await createApplication(currentUser.id, job.id, preferredShift);
-      setAppliedJobs([...appliedJobs, job]);
+      setAppliedJobs(prev => prev.some(j => j.id === job.id) ? prev : [...prev, job]);
       setSavedAppliedJobIds?.(prev => [...new Set([...prev, job.id])]);
       if (isLiked) {
-        setLikedJobs(likedJobs.filter(j => j.id !== job.id));
+        setLikedJobs(prev => prev.filter(j => j.id !== job.id));
         setSavedLikedJobIds?.(prev => prev.filter(id => id !== job.id));
         unlikeJob(currentUser.id, job.id).catch(console.error);
       }
-      setApplyModal("success");
+      setApplyModal(null);
     } catch (e) {
       Sentry.captureException(e);
       console.error("Apply error:", e);
@@ -366,19 +366,7 @@ export default function JobDetails({ job }) {
                   <button onClick={confirmApply} disabled={submitting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: submitting ? "#f48fb1" : "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: submitting ? "none" : "0 4px 14px rgba(162,29,84,0.35)" }}>{submitting ? "Applying…" : "Apply Now"}</button>
                 </div>
               </>
-            ) : (
-              <>
-                <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#f0fdf4", border: "2px solid #86efac", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>🎉</div>
-                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Application Sent!</h3>
-                <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.5rem" }}>
-                  You've applied for <strong>{job.title}</strong> at {job.company}. Good luck!
-                </p>
-                <div style={{ display: "flex", gap: "0.75rem" }}>
-                  <button onClick={() => setApplyModal(null)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Stay Here</button>
-                  <button onClick={() => { setApplyModal(null); setPage("appliedJobs"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: "#10b981", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>View Applications</button>
-                </div>
-              </>
-            )}
+            ) : null}
           </div>
         </div>
       )}

@@ -140,7 +140,8 @@ export default function StudentDashboard({ restoreScrollY }) {
         return savedAppliedJobIds.map(id => jobMap[id] || prevMap[id]).filter(Boolean);
       });
     }
-  }, [jobs, currentUser?.id]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobs, currentUser?.id, savedLikedJobIds, savedAppliedJobIds]);
 
   useEffect(() => {
     if (restoreScrollY > 0) requestAnimationFrame(() => window.scrollTo(0, restoreScrollY));
