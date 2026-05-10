@@ -40,6 +40,108 @@ function daysUntil(dateStr) {
 
 const _geocodeCache = {};
 
+const weekdays  = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+const workweek  = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+const timeSlots = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
+
+function FilterPanel({
+  clearAll, hasActiveFilters, sortBy, openSections, toggleSection,
+  warning, selectedDays, toggleDay, dayTimes, updateTime,
+  distanceKm, setDistanceKm, studentLocation, allLocations,
+  selectedLocations, toggleLocation, selectedJobTypes, toggleJobType,
+  weekendOnly, setWeekendOnly, allWeekOnly, setAllWeekOnly, noWeekends, setNoWeekends,
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "#1e293b" }}>Filter</h3>
+        {(hasActiveFilters || sortBy !== "") && (
+          <button onClick={clearAll} style={{ fontSize: "0.75rem", color: "#e11d48", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>
+            Clear All
+          </button>
+        )}
+      </div>
+
+      {/* Days & Times */}
+      <FilterSection title={<>Days &amp; Times {selectedDays.length > 0 && <Pip n={selectedDays.length} />}</>} open={openSections.days} onToggle={() => toggleSection("days")}>
+        {warning && <p style={{ color: "#ef4444", fontSize: "0.76rem", marginBottom: "0.4rem" }}>{warning}</p>}
+        {weekdays.map(day => (
+          <div key={day} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
+            <input type="checkbox" id={`sd-${day}`} checked={selectedDays.includes(day)} onChange={() => toggleDay(day)} style={{ cursor: "pointer", width: "14px", height: "14px", accentColor: "var(--color-brand)" }} />
+            <label htmlFor={`sd-${day}`} style={{ fontWeight: 500, minWidth: "85px", cursor: "pointer", fontSize: "0.83rem" }}>{day}</label>
+            <select
+              value={dayTimes[day] || ""} onChange={e => updateTime(day, e.target.value)}
+              disabled={!selectedDays.includes(day)}
+              style={{ padding: "0.15rem 0.3rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.75rem", color: selectedDays.includes(day) ? "#111827" : "#9ca3af", cursor: selectedDays.includes(day) ? "pointer" : "not-allowed", backgroundColor: selectedDays.includes(day) ? "white" : "#f9fafb", flex: 1 }}
+            >
+              <option value="">Any time</option>
+              {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+        ))}
+        {/* Distance slider — shown below days/times */}
+        <div style={{ marginTop: "0.6rem", paddingTop: "0.6rem", borderTop: "1px solid #f3f4f6" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
+            <span style={{ fontSize: "0.81rem", color: "#374151", fontWeight: 600 }}>Distance</span>
+            <span style={{ fontSize: "0.81rem", color: "#374151", fontWeight: 500 }}>{distanceKm === 0 ? "Any" : `Within ${distanceKm} km`}</span>
+          </div>
+          {studentLocation ? (
+            <>
+              <SmoothSlider value={distanceKm} onChange={setDistanceKm} />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.68rem", color: "#9ca3af" }}>
+                <span>0 km</span><span>25 km</span><span>50 km</span>
+              </div>
+              {distanceKm > 0 && (
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.3rem" }}>
+                  <button onClick={() => setDistanceKm(0)} style={{ fontSize: "0.72rem", color: "var(--color-brand)", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>Reset</button>
+                </div>
+              )}
+            </>
+          ) : (
+            <p style={{ fontSize: "0.78rem", color: "#9ca3af", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
+          )}
+        </div>
+      </FilterSection>
+
+      {/* Location */}
+      <FilterSection title={<>Location {selectedLocations.length > 0 && <Pip n={selectedLocations.length} />}</>} open={openSections.location} onToggle={() => toggleSection("location")}>
+        {allLocations.map(loc => (
+          <label key={loc} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: 500 }}>
+            <input type="checkbox" checked={selectedLocations.includes(loc)} onChange={() => toggleLocation(loc)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
+            {loc}
+          </label>
+        ))}
+      </FilterSection>
+
+      {/* Job Type */}
+      <FilterSection title={<>Job Type {selectedJobTypes.length > 0 && <Pip n={selectedJobTypes.length} />}</>} open={openSections.jobType} onToggle={() => toggleSection("jobType")}>
+        {Object.keys(jobCategories).map(type => (
+          <label key={type} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: 500 }}>
+            <input type="checkbox" checked={selectedJobTypes.includes(type)} onChange={() => toggleJobType(type)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
+            {type}
+          </label>
+        ))}
+      </FilterSection>
+
+      {/* Schedule */}
+      <FilterSection title="Schedule" open={openSections.schedule} onToggle={() => toggleSection("schedule")}>
+        {[
+          { label: "Weekend Work", active: weekendOnly, toggle: () => setWeekendOnly(p => !p) },
+          { label: "All Week",     active: allWeekOnly, toggle: () => setAllWeekOnly(p => !p) },
+          { label: "No Weekends",  active: noWeekends,  toggle: () => setNoWeekends(p => !p) },
+        ].map(({ label, active, toggle }) => (
+          <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: active ? 700 : 500, color: active ? "var(--color-brand)" : "#374151" }}>
+            <input type="checkbox" checked={active} onChange={toggle} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
+            {label}
+          </label>
+        ))}
+      </FilterSection>
+
+    </div>
+  );
+}
+
 export default function StudentDashboard({ restoreScrollY }) {
   const { setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
     currentUser, studentLocation, savedLikedJobIds, savedAppliedJobIds,
@@ -186,9 +288,6 @@ export default function StudentDashboard({ restoreScrollY }) {
   }, [studentLocation, extraCoords]);
 
   // Filter state
-  const weekdays  = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
-  const workweek  = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
-  const timeSlots = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
   const allLocations = [...new Set(jobs.map(j => j.location))].sort();
 
   const [prefOnly,          setPrefOnly]          = useState(false);
@@ -345,96 +444,13 @@ export default function StudentDashboard({ restoreScrollY }) {
     "distanceFar":  "Distance: Furthest",
   };
 
-  // Sidebar / filter panel content
-  const FilterPanel = () => (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "#1e293b" }}>Filter</h3>
-        {(hasActiveFilters || sortBy !== "") && (
-          <button onClick={clearAll} style={{ fontSize: "0.75rem", color: "#e11d48", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>
-            Clear All
-          </button>
-        )}
-      </div>
-
-      {/* Days & Times */}
-      <FilterSection title={<>Days &amp; Times {selectedDays.length > 0 && <Pip n={selectedDays.length} />}</>} open={openSections.days} onToggle={() => toggleSection("days")}>
-        {warning && <p style={{ color: "#ef4444", fontSize: "0.76rem", marginBottom: "0.4rem" }}>{warning}</p>}
-        {weekdays.map(day => (
-          <div key={day} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.4rem" }}>
-            <input type="checkbox" id={`sd-${day}`} checked={selectedDays.includes(day)} onChange={() => toggleDay(day)} style={{ cursor: "pointer", width: "14px", height: "14px", accentColor: "var(--color-brand)" }} />
-            <label htmlFor={`sd-${day}`} style={{ fontWeight: 500, minWidth: "85px", cursor: "pointer", fontSize: "0.83rem" }}>{day}</label>
-            <select
-              value={dayTimes[day] || ""} onChange={e => updateTime(day, e.target.value)}
-              disabled={!selectedDays.includes(day)}
-              style={{ padding: "0.15rem 0.3rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.75rem", color: selectedDays.includes(day) ? "#111827" : "#9ca3af", cursor: selectedDays.includes(day) ? "pointer" : "not-allowed", backgroundColor: selectedDays.includes(day) ? "white" : "#f9fafb", flex: 1 }}
-            >
-              <option value="">Any time</option>
-              {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
-            </select>
-          </div>
-        ))}
-        {/* Distance slider — shown below days/times */}
-        <div style={{ marginTop: "0.6rem", paddingTop: "0.6rem", borderTop: "1px solid #f3f4f6" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-            <span style={{ fontSize: "0.81rem", color: "#374151", fontWeight: 600 }}>Distance</span>
-            <span style={{ fontSize: "0.81rem", color: "#374151", fontWeight: 500 }}>{distanceKm === 0 ? "Any" : `Within ${distanceKm} km`}</span>
-          </div>
-          {studentLocation ? (
-            <>
-              <SmoothSlider value={distanceKm} onChange={setDistanceKm} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.68rem", color: "#9ca3af" }}>
-                <span>0 km</span><span>25 km</span><span>50 km</span>
-              </div>
-              {distanceKm > 0 && (
-                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.3rem" }}>
-                  <button onClick={() => setDistanceKm(0)} style={{ fontSize: "0.72rem", color: "var(--color-brand)", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>Reset</button>
-                </div>
-              )}
-            </>
-          ) : (
-            <p style={{ fontSize: "0.78rem", color: "#9ca3af", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
-          )}
-        </div>
-      </FilterSection>
-
-      {/* Location */}
-      <FilterSection title={<>Location {selectedLocations.length > 0 && <Pip n={selectedLocations.length} />}</>} open={openSections.location} onToggle={() => toggleSection("location")}>
-        {allLocations.map(loc => (
-          <label key={loc} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: 500 }}>
-            <input type="checkbox" checked={selectedLocations.includes(loc)} onChange={() => toggleLocation(loc)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
-            {loc}
-          </label>
-        ))}
-      </FilterSection>
-
-      {/* Job Type */}
-      <FilterSection title={<>Job Type {selectedJobTypes.length > 0 && <Pip n={selectedJobTypes.length} />}</>} open={openSections.jobType} onToggle={() => toggleSection("jobType")}>
-        {Object.keys(jobCategories).map(type => (
-          <label key={type} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: 500 }}>
-            <input type="checkbox" checked={selectedJobTypes.includes(type)} onChange={() => toggleJobType(type)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
-            {type}
-          </label>
-        ))}
-      </FilterSection>
-
-      {/* Schedule */}
-      <FilterSection title="Schedule" open={openSections.schedule} onToggle={() => toggleSection("schedule")}>
-        {[
-          { label: "Weekend Work", active: weekendOnly, toggle: () => setWeekendOnly(p => !p) },
-          { label: "All Week",     active: allWeekOnly, toggle: () => setAllWeekOnly(p => !p) },
-          { label: "No Weekends",  active: noWeekends,  toggle: () => setNoWeekends(p => !p) },
-        ].map(({ label, active, toggle }) => (
-          <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: active ? 700 : 500, color: active ? "var(--color-brand)" : "#374151" }}>
-            <input type="checkbox" checked={active} onChange={toggle} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
-            {label}
-          </label>
-        ))}
-      </FilterSection>
-
-    </div>
-  );
+  const filterPanelProps = {
+    clearAll, hasActiveFilters, sortBy, openSections, toggleSection,
+    warning, selectedDays, toggleDay, dayTimes, updateTime,
+    distanceKm, setDistanceKm, studentLocation, allLocations,
+    selectedLocations, toggleLocation, selectedJobTypes, toggleJobType,
+    weekendOnly, setWeekendOnly, allWeekOnly, setAllWeekOnly, noWeekends, setNoWeekends,
+  };
 
   return (
     <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
@@ -474,7 +490,7 @@ export default function StudentDashboard({ restoreScrollY }) {
           {!isMobile && (
             <aside style={{ width: "260px", flexShrink: 0, position: "sticky", top: "88px" }}>
               <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
-                {FilterPanel()}
+                <FilterPanel {...filterPanelProps} />
               </div>
             </aside>
           )}
@@ -574,7 +590,7 @@ export default function StudentDashboard({ restoreScrollY }) {
             {/* Mobile filter panel */}
             {isMobile && mobileFiltersOpen && (
               <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", marginBottom: "0.75rem", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
-                {FilterPanel()}
+                <FilterPanel {...filterPanelProps} />
               </div>
             )}
 

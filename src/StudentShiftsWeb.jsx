@@ -137,6 +137,24 @@ export default function StudentShiftsWeb() {
   useEffect(() => {
     const failsafe = setTimeout(() => setAuthLoading(false), 6000);
 
+    async function loadStudentData(userId) {
+      const [likedIds, appliedIds] = await Promise.all([
+        fetchLikedJobIds(userId).catch(() => []),
+        fetchAppliedJobIds(userId).catch(() => []),
+      ]);
+      setSavedLikedJobIds(likedIds);
+      setSavedAppliedJobIds(appliedIds);
+      const allIds = [...new Set([...likedIds, ...appliedIds])];
+      if (allIds.length) {
+        try {
+          const fetchedJobs = await fetchJobsByIds(allIds);
+          const jobMap = Object.fromEntries(fetchedJobs.map(j => [j.id, j]));
+          setLikedJobs(likedIds.map(id => jobMap[id]).filter(Boolean));
+          setAppliedJobs(appliedIds.map(id => jobMap[id]).filter(Boolean));
+        } catch (_) {}
+      }
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "INITIAL_SESSION") {
         if (session?.user) {
@@ -147,23 +165,7 @@ export default function StudentShiftsWeb() {
             if (user.role === "admin")   { navigate("/admin", { replace: true }); }
             else if (user.role === "company") { navigate("/company", { replace: true }); }
             else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected")) { navigate("/verify", { replace: true }); }
-            if (user.role === "student") {
-              const [likedIds, appliedIds] = await Promise.all([
-                fetchLikedJobIds(user.id).catch(() => []),
-                fetchAppliedJobIds(user.id).catch(() => []),
-              ]);
-              setSavedLikedJobIds(likedIds);
-              setSavedAppliedJobIds(appliedIds);
-              const allIds = [...new Set([...likedIds, ...appliedIds])];
-              if (allIds.length) {
-                try {
-                  const fetchedJobs = await fetchJobsByIds(allIds);
-                  const jobMap = Object.fromEntries(fetchedJobs.map(j => [j.id, j]));
-                  setLikedJobs(likedIds.map(id => jobMap[id]).filter(Boolean));
-                  setAppliedJobs(appliedIds.map(id => jobMap[id]).filter(Boolean));
-                } catch (_) {}
-              }
-            }
+            if (user.role === "student") await loadStudentData(user.id);
           } catch (e) {
             Sentry.captureException(e);
             console.error("Failed to load profile", e);
@@ -189,23 +191,7 @@ export default function StudentShiftsWeb() {
           else if (user.role === "company") { navigate("/company", { replace: true }); }
           else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected")) { navigate("/verify", { replace: true }); }
           else { navigate("/", { replace: true }); }
-          if (user.role === "student") {
-            const [likedIds, appliedIds] = await Promise.all([
-              fetchLikedJobIds(user.id).catch(() => []),
-              fetchAppliedJobIds(user.id).catch(() => []),
-            ]);
-            setSavedLikedJobIds(likedIds);
-            setSavedAppliedJobIds(appliedIds);
-            const allIds = [...new Set([...likedIds, ...appliedIds])];
-            if (allIds.length) {
-              try {
-                const fetchedJobs = await fetchJobsByIds(allIds);
-                const jobMap = Object.fromEntries(fetchedJobs.map(j => [j.id, j]));
-                setLikedJobs(likedIds.map(id => jobMap[id]).filter(Boolean));
-                setAppliedJobs(appliedIds.map(id => jobMap[id]).filter(Boolean));
-              } catch (_) {}
-            }
-          }
+          if (user.role === "student") await loadStudentData(user.id);
         } catch (e) {
           Sentry.captureException(e);
           console.error("Failed to load profile", e);

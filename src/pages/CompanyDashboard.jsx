@@ -1,11 +1,12 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { useApp } from "../context/AppContext";
 import PageWrapper from "../components/PageWrapper";
 import "../StudentShiftWeb.css";
 import { supabase, withTimeout } from "../lib/supabase";
-import { sendEmail, emailApplicantAccepted, emailApplicantDeclined, emailInterviewInvite, emailInterviewRejection, emailTrialInvite, emailTrialRejection, fetchAvailabilityHeatmap, fetchAllVerifiedStudents, updateApplicationStage, saveApplicationNotes, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
+import { fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
+import { useHiringPipeline } from "../hooks/useHiringPipeline";
 import { pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
@@ -62,6 +63,17 @@ export default function CompanyDashboard() {
   const [likedStudentIds, setLikedStudentIds] = useState(new Set());
   const [applicantStudentIds, setApplicantStudentIds] = useState(new Set());
   const [applicantsViewMode, setApplicantsViewMode] = useState("list");
+
+  const {
+    updateApplicantStatus,
+    handleStageChange,
+    handleNotesSaved,
+    handleIncrementRound,
+    handleSaveInterviewRoundsData,
+    handleSendInterviewInvite,
+    handleSendTrialInvite,
+    handleSaveTrialSchedule,
+  } = useHiringPipeline({ activePosting, setPostings, setActivePosting, currentUser });
 
   // Load availability heatmap once
   useEffect(() => {
@@ -308,215 +320,6 @@ export default function CompanyDashboard() {
     });
   };
 
-  const updateApplicantStatus = async (applicationId, newStatus, applicant) => {
-    if (newStatus === "Accepted") {
-      // 1. Accept the winner
-      const { error } = await withTimeout(
-        supabase.from("applications").update({ status: "Accepted" }).eq("id", applicationId),
-        10000, "Update timed out."
-      );
-      if (error) { toast.error("Failed to accept applicant."); return; }
-
-      // 2. Mark the hired shift as filled on the job posting
-      const hiredDay = applicant.preferredShift ? applicant.preferredShift.split(" Â· ")[0].trim() : null;
-      const currentFilledShifts = activePosting.filledShifts || [];
-      const remainingUnfilledDays = (activePosting.days || []).filter(d => !currentFilledShifts.includes(d));
-      // If student applied for all shifts (no preferred), they fill every remaining shift
-      const newFilledShifts = hiredDay
-        ? (!currentFilledShifts.includes(hiredDay) ? [...currentFilledShifts, hiredDay] : currentFilledShifts)
-        : [...(activePosting.days || [])];
-      // Build a human-readable shift string for emails
-      const hiredShiftWithTime = applicant.preferredShift
-        || (hiredDay && activePosting.times?.[hiredDay] ? `${hiredDay} Â· ${activePosting.times[hiredDay]}` : hiredDay)
-        || remainingUnfilledDays.map(d => activePosting.times?.[d] ? `${d} Â· ${activePosting.times[d]}` : d).join(", ")
-        || null;
-      if (newFilledShifts !== currentFilledShifts) {
-        await withTimeout(
-          supabase.from("jobs").update({ filled_shifts: newFilledShifts }).eq("id", activePosting.id),
-          10000, "Timeout."
-        );
-      }
-
-      // 3. Auto-decline pending applicants who competed for the same shift.
-      //    If the hired student had a specific shift, only decline applicants with
-      //    the same shift day or no preferred shift (applied to all). Applicants
-      //    for other shifts stay pending so they can be hired for those shifts.
-      const { data: others } = await withTimeout(
-        supabase.from("applications")
-          .select("id, student_id, preferred_shift")
-          .eq("job_id", activePosting.id)
-          .eq("status", "Pending")
-          .neq("id", applicationId),
-        10000, "Timeout."
-      );
-      const allShiftsFilled = newFilledShifts.length >= (activePosting.days || []).length;
-      const otherIds = (others || []).filter(o => {
-        if (!hiredDay) return true; // hired for all shifts â†’ decline everyone
-        const oDay = o.preferred_shift ? o.preferred_shift.split(" Â· ")[0].trim() : null;
-        if (oDay === hiredDay) return true; // competing for the same specific shift â†’ decline
-        if (!oDay) return allShiftsFilled; // applied to all shifts â†’ only decline if no shifts remain
-        return false; // different specific shift â†’ leave in pipeline
-      }).map(o => o.id);
-      if (otherIds.length) {
-        await withTimeout(
-          supabase.from("applications").update({ status: "Rejected" }).in("id", otherIds),
-          10000, "Timeout."
-        );
-      }
-
-      // 4. If all shifts are now filled, close the job automatically
-      if (allShiftsFilled) {
-        await withTimeout(
-          supabase.from("jobs").update({ status: "Closed" }).eq("id", activePosting.id),
-          10000, "Timeout."
-        );
-      }
-
-      // 5. Update UI immediately
-      const otherSet = new Set(otherIds);
-      const uiUpdater = (p) => ({
-        ...p,
-        filledShifts: newFilledShifts,
-        status: allShiftsFilled ? "Closed" : p.status,
-        applicants: p.applicants.map(a => {
-          if (a.id === applicationId) return { ...a, status: "Accepted" };
-          if (otherSet.has(a.id))     return { ...a, status: "Rejected" };
-          return a;
-        }),
-      });
-      setPostings(prev => prev.map(p => p.id === activePosting.id ? uiUpdater(p) : p));
-      setActivePosting(prev => uiUpdater(prev));
-
-      // 6. Send emails best-effort (don't block the UI)
-      try {
-        const allStudentIds = [applicant.studentId, ...(others || []).map(o => o.student_id)];
-        const { data: emailProfiles } = await supabase
-          .rpc("get_user_emails", { user_ids: allStudentIds });
-        const emailMap = Object.fromEntries((emailProfiles || []).map(p => [p.id, p.email]));
-        const appUrl = window.location.origin;
-        const remainingShiftsAfterHire = activePosting.days
-          .filter(d => !newFilledShifts.includes(d))
-          .map(d => {
-            const timeStr = activePosting.times?.[d];
-            return timeStr ? `${d} Â· ${timeStr}` : d;
-          });
-
-        // Applicants who were NOT auto-declined but had this shift as an option
-        // (applied to all, no preferred_shift) â€” notify them the shift was taken
-        const notifyOnly = hiredDay ? (others || []).filter(o => {
-          if (otherIds.includes(o.id)) return false; // already declined
-          return !o.preferred_shift; // applied to all shifts, stays in pipeline
-        }) : [];
-
-        await Promise.allSettled([
-          // Acceptance email to winner
-          emailMap[applicant.studentId] && sendEmail({
-            to: emailMap[applicant.studentId],
-            subject: `You've been hired â€” ${activePosting.title} at ${currentUser.name}`,
-            html: emailApplicantAccepted(applicant.name, activePosting.title, currentUser.name, hiredShiftWithTime || null),
-            magicLinkEmail: emailMap[applicant.studentId],
-            redirectTo: appUrl,
-          }),
-          // Rejection emails to auto-declined applicants
-          ...(otherIds.map(id => {
-            const declinedApplicant = activePosting.applicants?.find(a => a.id === id);
-            const oStudentId = others?.find(o => o.id === id)?.student_id;
-            return oStudentId && emailMap[oStudentId] && sendEmail({
-              to: emailMap[oStudentId],
-              subject: `Update on your ${activePosting.title} application`,
-              html: emailApplicantDeclined(
-                declinedApplicant?.name || "there",
-                activePosting.title,
-                currentUser.name,
-                hiredShiftWithTime,
-                [],
-              ),
-            });
-          })).filter(Boolean),
-          // Notification to all-shift applicants still in pipeline â€” shift taken, others remain
-          ...notifyOnly.map(o => {
-            const notifyApplicant = activePosting.applicants?.find(a => a.student_id === o.student_id || a.id === o.id);
-            const name = notifyApplicant?.name || "there";
-            return emailMap[o.student_id] && sendEmail({
-              to: emailMap[o.student_id],
-              subject: `Update on your ${activePosting.title} application`,
-              html: emailApplicantDeclined(
-                name,
-                activePosting.title,
-                currentUser.name,
-                hiredShiftWithTime,
-                remainingShiftsAfterHire,
-              ),
-            });
-          }).filter(Boolean),
-        ]);
-      } catch (e) {
-        console.warn("Email sending failed:", e);
-      }
-      return;
-    }
-
-    // Manual reject â€” stage-aware email
-    const { error } = await withTimeout(
-      supabase.from("applications").update({ status: newStatus }).eq("id", applicationId),
-      10000, "Update timed out."
-    );
-    if (error) { toast.error("Failed to update status."); return; }
-    const updater = (p) => ({ ...p, applicants: p.applicants.map(a => a.id === applicationId ? { ...a, status: newStatus } : a) });
-    setPostings(prev => prev.map(p => p.id === activePosting.id ? updater(p) : p));
-    setActivePosting(prev => updater(prev));
-
-    try {
-      const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: [applicant.studentId] });
-      const studentEmail = emailRows?.[0]?.email;
-      if (!studentEmail) return;
-      const stage = applicant.pipelineStage || "applied";
-      let html, subject;
-      if (stage === "interview") {
-        subject = `Update on your ${activePosting.title} application`;
-        html = emailInterviewRejection(applicant.name, activePosting.title, currentUser.name);
-      } else if (stage === "trial") {
-        subject = `Update on your ${activePosting.title} application`;
-        html = emailTrialRejection(applicant.name, activePosting.title, currentUser.name);
-      } else {
-        subject = `Update on your ${activePosting.title} application`;
-        html = emailApplicantDeclined(applicant.name, activePosting.title, currentUser.name);
-      }
-      await sendEmail({ to: studentEmail, subject, html });
-    } catch (e) {
-      console.warn("Rejection email failed:", e);
-    }
-  };
-
-  const handleStageChange = async (applicationId, newStage, round) => {
-    try {
-      if (newStage === "interview" && round !== undefined) {
-        await moveToInterviewRound(applicationId, round);
-      } else {
-        await updateApplicationStage(applicationId, newStage);
-      }
-      const updater = p => ({
-        ...p,
-        applicants: p.applicants.map(a => a.id === applicationId
-          ? { ...a, pipelineStage: newStage, ...(round !== undefined ? { interviewRound: round } : {}) }
-          : a),
-      });
-      setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
-      setActivePosting(prev => prev ? updater(prev) : prev);
-    } catch (e) {
-      Sentry.captureException(e);
-      toast.error(`Failed to update stage: ${e?.message || "Unknown error"}`);
-    }
-  };
-
-  const handleNotesSaved = (applicationId, notes) => {
-    const updater = p => ({
-      ...p,
-      applicants: p.applicants.map(a => a.id === applicationId ? { ...a, notes } : a),
-    });
-    setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
-    setActivePosting(prev => prev ? updater(prev) : prev);
-  };
 
   const toggleLike = async (studentId) => {
     const isLiked = likedStudentIds.has(studentId);
@@ -531,88 +334,6 @@ export default function CompanyDashboard() {
     } catch { /* silently ignore */ }
   };
 
-  const handleIncrementRound = async (applicationId, currentRound, newRoundsData) => {
-    try {
-      await incrementInterviewRound(applicationId, currentRound);
-      await saveInterviewRoundsData(applicationId, newRoundsData);
-      const updater = p => ({
-        ...p,
-        applicants: p.applicants.map(a => a.id === applicationId
-          ? { ...a, interviewRound: currentRound + 1, interviewRoundsData: newRoundsData }
-          : a),
-      });
-      setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
-      setActivePosting(prev => prev ? updater(prev) : prev);
-    } catch {
-      toast.error("Failed to update interview round. Please try again.");
-    }
-  };
-
-  const handleSaveInterviewRoundsData = async (applicationId, rounds) => {
-    try {
-      await saveInterviewRoundsData(applicationId, rounds);
-      const updater = p => ({
-        ...p,
-        applicants: p.applicants.map(a => a.id === applicationId ? { ...a, interviewRoundsData: rounds } : a),
-      });
-      setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
-      setActivePosting(prev => prev ? updater(prev) : prev);
-    } catch { /* silently ignore */ }
-  };
-
-  const getStudentEmail = async (studentId) => {
-    const { data: emailRows, error } = await supabase.rpc("get_user_emails", { user_ids: [studentId] });
-    if (error) throw new Error(`Email lookup failed: ${error.message}`);
-    const email = emailRows?.[0]?.email;
-    if (!email) throw new Error(`No email found for student (id: ${studentId}). Make sure the SQL has been updated in Supabase.`);
-    return email;
-  };
-
-  const handleSendInterviewInvite = async (applicationId, date, time, note, teamsLink) => {
-    const applicant = activePosting?.applicants?.find(a => a.id === applicationId);
-    if (!applicant) throw new Error("Applicant not found.");
-    try {
-      const studentEmail = await getStudentEmail(applicant.studentId);
-      await sendEmail({
-        to: studentEmail,
-        subject: `Interview Invitation from ${currentUser.name}`,
-        html: emailInterviewInvite(applicant.name, currentUser.name, date, time, note, teamsLink),
-        magicLinkEmail: studentEmail,
-        redirectTo: window.location.origin,
-      });
-    } catch (e) {
-      throw new Error(e?.message || "Failed to send invite.");
-    }
-  };
-
-  const handleSendTrialInvite = async (applicationId, date, time, note) => {
-    const applicant = activePosting?.applicants?.find(a => a.id === applicationId);
-    if (!applicant) throw new Error("Applicant not found.");
-    try {
-      const studentEmail = await getStudentEmail(applicant.studentId);
-      await sendEmail({
-        to: studentEmail,
-        subject: `Trial Shift Invitation from ${currentUser.name}`,
-        html: emailTrialInvite(applicant.name, currentUser.name, activePosting.title, date, time, note),
-        magicLinkEmail: studentEmail,
-        redirectTo: window.location.origin,
-      });
-    } catch (e) {
-      throw new Error(e?.message || "Failed to send trial invite.");
-    }
-  };
-
-  const handleSaveTrialSchedule = async (applicationId, date, time) => {
-    try {
-      await saveTrialSchedule(applicationId, date, time);
-      const updater = p => ({
-        ...p,
-        applicants: p.applicants.map(a => a.id === applicationId ? { ...a, trialDate: date, trialTime: time } : a),
-      });
-      setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
-      setActivePosting(prev => prev ? updater(prev) : prev);
-    } catch { /* silently ignore â€” schedule is non-critical */ }
-  };
 
   const handleCloseJob = async (jobId, { foundStudent, winnerId, winnerApplicant }) => {
     if (foundStudent && winnerId && winnerApplicant) {
