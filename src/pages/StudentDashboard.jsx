@@ -517,7 +517,7 @@ export default function StudentDashboard({ restoreScrollY }) {
             {/* Job count + grid toggle + Sort By */}
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
-                <span style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", padding: "0.25rem 0.7rem", borderRadius: "999px" }}>
+                <span className="badge badge-brand" style={{ fontSize: "0.8rem" }}>
                   {sortedJobs.length} job{sortedJobs.length !== 1 ? "s" : ""}
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", backgroundColor: "#fafafa", borderRadius: "0.6rem", padding: "0.2rem" }}>
