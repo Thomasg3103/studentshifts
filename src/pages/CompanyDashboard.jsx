@@ -688,7 +688,7 @@ export default function CompanyDashboard() {
           >
             {label}
             {count > 0 && (
-              <span style={{ backgroundColor: activeTab === val ? "var(--color-brand)" : "#e2e8f0", color: activeTab === val ? "white" : "#64748b", fontSize: "0.65rem", fontWeight: "700", borderRadius: "999px", padding: "0.05rem 0.45rem", minWidth: "18px", textAlign: "center" }}>
+              <span className={`badge ${activeTab === val ? "badge-brand-solid" : "badge-gray"}`} style={{ minWidth: "18px", textAlign: "center", padding: "0.05rem 0.45rem", fontSize: "0.65rem" }}>
                 {count}
               </span>
             )}

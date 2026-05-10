@@ -48,12 +48,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
             >
               {posting.title}
             </h2>
-            <span style={{
-              fontSize: "0.6rem", fontWeight: "700", padding: "0.15rem 0.5rem",
-              borderRadius: "0.3rem", textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0,
-              backgroundColor: isActive ? "#dcfce7" : isExpired ? "#fee2e2" : "#f3f4f6",
-              color: isActive ? "#16a34a" : isExpired ? "#dc2626" : "#6b7280",
-            }}>
+            <span className={`badge badge-tag ${isActive ? "badge-green" : isExpired ? "badge-red" : "badge-gray"}`} style={{ textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0 }}>
               {isExpired ? "Expired" : posting.status}
             </span>
           </div>
@@ -64,22 +59,14 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
             {posting.days.map(day => {
               const isFilled = (posting.filledShifts || []).includes(day);
               return (
-                <span key={day} style={{
-                  fontSize: "0.68rem",
-                  backgroundColor: isFilled ? "#f1f5f9" : "#f0f9ff",
-                  color: isFilled ? "#94a3b8" : "#0369a1",
-                  padding: "0.15rem 0.5rem", borderRadius: "0.3rem", fontWeight: "600",
-                  textDecoration: isFilled ? "line-through" : "none",
-                }}>
+                <span key={day} className={`badge badge-tag ${isFilled ? "badge-gray" : "badge-blue"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }}>
                   {day.slice(0, 3)}{posting.times?.[day] ? ` · ${posting.times[day]}` : ""}
                   {isFilled ? " ✓" : ""}
                 </span>
               );
             })}
             {posting.weekendRequired && (
-              <span style={{ fontSize: "0.68rem", backgroundColor: "#fefce8", color: "#a16207", padding: "0.15rem 0.5rem", borderRadius: "0.3rem", fontWeight: "600" }}>
-                Weekend
-              </span>
+              <span className="badge badge-tag badge-yellow">Weekend</span>
             )}
           </div>
         </div>
