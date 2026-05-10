@@ -4,9 +4,14 @@ import { supabase } from "../../lib/supabase";
 import { fetchAllMessagesWithStudent, sendMessage, sendEmail, emailCompanyInterested } from "../../lib/auth";
 import { StudentAvailabilityRow, weekdays } from "./shared";
 
+const PAGE_SIZE = 20;
+
 export default function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, companyName, chatStudent, setChatStudent, setPage, likedStudentIds, applicantStudentIds, onToggleLike }) {
   const [filterByIndustries, setFilterByIndustries] = useState(true);
   const [sortBy, setSortBy] = useState("default");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filterByIndustries, sortBy]);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
@@ -180,6 +185,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       default:               return 0;
     }
   });
+  const visibleStudents = displayStudents.slice(0, visibleCount);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
@@ -221,15 +227,15 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
           No students match your industries yet. Students need to set matching job preferences in their account.
         </p>
       )}
-      {displayStudents.map(s => {
+      {visibleStudents.map(s => {
         const isLiked   = likedStudentIds?.has(s.id);
         const hasApplied = applicantStudentIds?.has(s.id);
         return (
         <div key={s.id} style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {s.profile_photo_url
-              ? <img loading="lazy" src={s.profile_photo_url} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              : <span style={{ fontSize: "1.2rem" }}>👤</span>
+              ? <img loading="lazy" src={s.profile_photo_url} alt={`${s.name} profile`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <span style={{ fontSize: "1.2rem" }} aria-hidden="true">👤</span>
             }
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -243,6 +249,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
               <button
                 onClick={() => onToggleLike?.(s.id)}
                 title={isLiked ? "Remove from liked" : "Save student"}
+                aria-label={isLiked ? `Remove ${s.name} from saved` : `Save ${s.name}`}
                 style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", lineHeight: 1, padding: "0.1rem 0.25rem", color: isLiked ? "#e11d48" : "#cbd5e1" }}
               >
                 {isLiked ? "♥" : "♡"}
@@ -273,6 +280,16 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
           </div>
         </div>
         ); })}
+      {visibleCount < displayStudents.length && (
+        <div style={{ textAlign: "center", paddingTop: "0.5rem" }}>
+          <button
+            onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
+            style={{ padding: "0.6rem 1.75rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#1e293b", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
+          >
+            Load more ({displayStudents.length - visibleCount} remaining)
+          </button>
+        </div>
+      )}
     </div>
   );
 }

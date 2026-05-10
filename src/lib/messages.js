@@ -28,7 +28,7 @@ export async function fetchMessageCount(userId, role) {
   return 0;
 }
 
-export async function fetchMessages(jobId, studentId, companyId = null) {
+export async function fetchMessages(jobId, studentId, companyId = null, { limit = 30, before = null } = {}) {
   await ensureValidSession();
   let query = supabase.from("chat_messages")
     .select("id, sender_id, text, created_at");
@@ -37,12 +37,13 @@ export async function fetchMessages(jobId, studentId, companyId = null) {
   } else {
     query = query.eq("job_id", jobId).eq("student_id", studentId);
   }
+  if (before) query = query.lt("created_at", before);
   const { data, error } = await withTimeout(
-    query.order("created_at", { ascending: true }),
+    query.order("created_at", { ascending: false }).limit(limit),
     10000
   );
   if (error) throw error;
-  return data || [];
+  return (data || []).reverse();
 }
 
 export async function fetchAllMessagesWithStudent(studentId, companyId) {

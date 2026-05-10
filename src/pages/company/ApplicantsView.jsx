@@ -290,6 +290,9 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
   const handleStageAction = async (applicationId, stageKey) => {
     const { dbStage, round } = resolveStageKey(stageKey);
     await onStageChange(applicationId, dbStage, round);
+    if (stageKey === "interview_1" && window.gtag) {
+      window.gtag("event", "generate_lead", { application_id: applicationId, posting_id: posting?.id });
+    }
     setSelectedApplicant(null);
     setActiveStage(stageKey);
   };

@@ -666,7 +666,7 @@ export default function StudentDashboard({ restoreScrollY }) {
             )}
 
             {/* Job cards */}
-            <div className="job-list-grid" style={{ display: "grid", gridTemplateColumns: gridCols === 2 ? "1fr 1fr" : "1fr", gap: "0.85rem" }}>
+            <div role="list" className="job-list-grid" style={{ display: "grid", gridTemplateColumns: gridCols === 2 ? "1fr 1fr" : "1fr", gap: "0.85rem" }}>
               {sortedJobs.map(job => {
                 const isLiked   = likedJobs.some(j => j.id === job.id);
                 const isApplied = appliedJobs.some(j => j.id === job.id);
@@ -684,13 +684,13 @@ export default function StudentDashboard({ restoreScrollY }) {
                   if (window.gtag) window.gtag("event", "view_item", { item_id: job.id, item_name: job.title, item_category: job.category });
                 };
                 return (
-                  <div key={job.id} className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
+                  <div key={job.id} role="listitem" className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
 
                     {/* Square photo */}
                     <div style={{ width: isPhone ? "100px" : "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-                          <img loading="lazy" src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                          <img loading="lazy" src={photo} alt={`${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         </div>
                       ) : (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>

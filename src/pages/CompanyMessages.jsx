@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
 import { fetchCompanyConversations, fetchCompanyDirectConversations, fetchMessages, sendMessage, fetchMessageCount } from "../lib/auth";
@@ -55,12 +55,17 @@ function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMess
   );
 }
 
+const PAGE_SIZE = 30;
+
 function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTitle }) {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput]       = useState("");
-  const [loading, setLoading]   = useState(true);
+  const [messages, setMessages]       = useState([]);
+  const [input, setInput]             = useState("");
+  const [loading, setLoading]         = useState(true);
+  const [hasMore, setHasMore]         = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const msgListRef = useRef(null);
   const inputRef   = useRef(null);
+  const prevScrollHeightRef = useRef(null);
 
   const isDirect = jobId === null;
   const quickReplies = isDirect ? [
@@ -73,9 +78,21 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
     { label: "Tell Us More", text: `Hi ${studentName}! We're very interested in your application. Could you tell us a bit more about your availability and any relevant experience you have?` },
   ];
 
+  const loadEarlier = useCallback(async () => {
+    if (loadingMore || !messages.length) return;
+    setLoadingMore(true);
+    prevScrollHeightRef.current = msgListRef.current?.scrollHeight ?? 0;
+    try {
+      const older = await fetchMessages(jobId, studentId, companyId, { limit: PAGE_SIZE, before: messages[0].created_at });
+      setMessages(prev => [...older, ...prev]);
+      setHasMore(older.length === PAGE_SIZE);
+    } catch (e) { console.warn("Load earlier failed:", e); }
+    finally { setLoadingMore(false); }
+  }, [jobId, studentId, companyId, messages, loadingMore]);
+
   useEffect(() => {
-    fetchMessages(jobId, studentId, companyId)
-      .then(msgs => { setMessages(msgs); setLoading(false); })
+    fetchMessages(jobId, studentId, companyId, { limit: PAGE_SIZE })
+      .then(msgs => { setMessages(msgs); setHasMore(msgs.length === PAGE_SIZE); setLoading(false); })
       .catch(() => setLoading(false));
 
     const isDirect = jobId === null;
@@ -97,7 +114,14 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
   }, [jobId, studentId]);
 
   useEffect(() => {
-    if (msgListRef.current) msgListRef.current.scrollTop = msgListRef.current.scrollHeight;
+    if (prevScrollHeightRef.current !== null) {
+      if (msgListRef.current) {
+        msgListRef.current.scrollTop = msgListRef.current.scrollHeight - prevScrollHeightRef.current;
+      }
+      prevScrollHeightRef.current = null;
+    } else {
+      if (msgListRef.current) msgListRef.current.scrollTop = msgListRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const send = async () => {
@@ -111,6 +135,13 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       <div ref={msgListRef} style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+        {!loading && hasMore && (
+          <div style={{ textAlign: "center", marginBottom: "0.5rem" }}>
+            <button onClick={loadEarlier} disabled={loadingMore} style={{ padding: "0.35rem 1rem", borderRadius: "999px", border: "1.5px solid #e5e7eb", background: "white", color: "#64748b", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: loadingMore ? 0.6 : 1 }}>
+              {loadingMore ? "Loading…" : "Load earlier messages"}
+            </button>
+          </div>
+        )}
         {loading
           ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
           : messages.length === 0
