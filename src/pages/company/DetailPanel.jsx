@@ -6,6 +6,29 @@ import { saveApplicationNotes } from "../../lib/auth";
 import { Section } from "./shared";
 import ChatThread from "./ChatThread";
 
+/* ─── Focus trap hook ────────────────────────────────────────────────────── */
+
+function useFocusTrap(ref, onEscape, enabled = true) {
+  useEffect(() => {
+    if (!enabled || !ref.current) return;
+    const el = ref.current;
+    const prev = document.activeElement;
+    const focusable = el.querySelectorAll('button,input,textarea,select,[tabindex]:not([tabindex="-1"])');
+    if (focusable.length) focusable[0].focus();
+    const onKey = (e) => {
+      if (e.key === "Escape") { onEscape?.(); return; }
+      if (e.key !== "Tab") return;
+      const els = Array.from(el.querySelectorAll('button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+      if (!els.length) return;
+      const first = els[0], last = els[els.length - 1];
+      if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }
+      else            { if (document.activeElement === last)  { e.preventDefault(); first.focus(); } }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("keydown", onKey); prev?.focus(); };
+  }, [enabled]);
+}
+
 /* ─── Local style helpers ────────────────────────────────────────────────── */
 
 const panelActionBtn = (variant) => {
@@ -196,6 +219,8 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
   const [teamsLink, setTeamsLink] = useState("");
   const [sending, setSending]     = useState(false);
   const [error, setError]         = useState("");
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, onClose);
 
   const send = async () => {
     setSending(true);
@@ -214,7 +239,7 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1300 }} />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1301, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(400px,92vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-label={`Send Interview ${roundNumber} Invite`} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1301, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(400px,92vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
         <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Send Interview {roundNumber} Invite</h3>
         <p style={{ margin: "0 0 1.1rem", fontSize: "0.82rem", color: "#64748b" }}>To: <strong>{applicant.name}</strong></p>
 
@@ -272,6 +297,8 @@ export function TrialInviteModal({ applicant, date: initialDate, time: initialTi
   const [note, setNote]     = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError]   = useState("");
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, onClose);
 
   const send = async () => {
     setSending(true);
@@ -290,7 +317,7 @@ export function TrialInviteModal({ applicant, date: initialDate, time: initialTi
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1300 }} />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1301, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(400px,92vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Send Trial Shift Invite" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1301, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(400px,92vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
         <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Send Trial Shift Invite</h3>
         <p style={{ margin: "0 0 1.1rem", fontSize: "0.82rem", color: "#64748b" }}>To: <strong>{applicant.name}</strong></p>
 
@@ -336,6 +363,8 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
   const [mode, setMode]               = useState(null); // null | "found"
   const [winner, setWinner]           = useState(null);
   const [confirming, setConfirming]   = useState(false);
+  const modalRef = useRef(null);
+  useFocusTrap(modalRef, onClose);
 
   const decisionApplicants = posting.applicants.filter(
     a => a.pipelineStage === "decision" && a.status === "Pending"
@@ -351,7 +380,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.5)", zIndex: 1200 }} />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1201, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(420px,90vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Close Job" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1201, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(420px,90vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
 
         {mode === null && (<>
           <h3 style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.1rem", color: "#1e293b" }}>Close this Job</h3>
