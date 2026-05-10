@@ -43,21 +43,15 @@ export function CheckItem({ ok, label, warn }) {
 
 /* ─── StatusBadge ────────────────────────────────────────────────────────── */
 
+const STATUS_CLS = {
+  Pending:  { cls: "badge-gray",  label: "Under Review" },
+  Accepted: { cls: "badge-green", label: "Hired" },
+  Rejected: { cls: "badge-red",   label: "Declined" },
+};
+
 export function StatusBadge({ status }) {
-  const colors = {
-    Pending:  { bg: "#f1f5f9", text: "#64748b", label: "Under Review" },
-    Accepted: { bg: "#dcfce7", text: "#15803d", label: "Hired" },
-    Rejected: { bg: "#fee2e2", text: "#b91c1c", label: "Declined" },
-  };
-  const c = colors[status] || colors.Pending;
-  return (
-    <span style={{
-      fontSize: "0.65rem", fontWeight: "600", padding: "0.2rem 0.55rem",
-      borderRadius: "0.3rem", backgroundColor: c.bg, color: c.text,
-    }}>
-      {c.label}
-    </span>
-  );
+  const { cls, label } = STATUS_CLS[status] || STATUS_CLS.Pending;
+  return <span className={`badge badge-tag ${cls}`}>{label}</span>;
 }
 
 /* ─── PdfModal ───────────────────────────────────────────────────────────── */
@@ -619,7 +613,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               {applicant.skills?.length > 0 ? (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                   {applicant.skills.map(s => (
-                    <span key={s} style={{ fontSize: "0.72rem", backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", borderRadius: "999px", padding: "0.15rem 0.5rem", fontWeight: "600" }}>{s}</span>
+                    <span key={s} className="badge badge-sm badge-blue">{s}</span>
                   ))}
                 </div>
               ) : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not listed</p>}
