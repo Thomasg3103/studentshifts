@@ -7,9 +7,9 @@ import { removeApplication } from "../lib/auth";
 import { useApp } from "../context/AppContext";
 
 const STATUS_STYLE = {
-  Pending:  { bg: "#fef3c7", color: "#d97706", icon: "🕐", label: "Pending" },
-  Accepted: { bg: "#dcfce7", color: "#16a34a", icon: "✅", label: "Accepted" },
-  Rejected: { bg: "#fee2e2", color: "#dc2626", icon: "❌", label: "Declined" },
+  Pending:  { cls: "badge-yellow", icon: "🕐", label: "Pending" },
+  Accepted: { cls: "badge-green",  icon: "✅", label: "Accepted" },
+  Rejected: { cls: "badge-red",    icon: "❌", label: "Declined" },
 };
 
 function AppliedJobCard({ job, status, onRemove }) {
@@ -36,7 +36,7 @@ function AppliedJobCard({ job, status, onRemove }) {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.2rem" }}>
           <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "#1e293b" }}>{job.title}</h2>
           <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexShrink: 0 }}>
-            <span style={{ fontSize: "0.68rem", fontWeight: "700", padding: "0.2rem 0.6rem", borderRadius: "999px", backgroundColor: s.bg, color: s.color, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+            <span className={`badge badge-sm ${s.cls}`} style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>
               {s.icon} {s.label}
             </span>
             <button onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View</button>
@@ -48,7 +48,7 @@ function AppliedJobCard({ job, status, onRemove }) {
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: status === "Rejected" ? "0.5rem" : 0 }}>
           {job.days.map(day => (
-            <span key={day} style={{ fontSize: "0.7rem", backgroundColor: "#fce7f3", color: "var(--color-brand)", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600" }}>
+            <span key={day} className="badge badge-brand badge-sm">
               {day.slice(0, 3)} · {job.times[day]?.join(", ")}
             </span>
           ))}

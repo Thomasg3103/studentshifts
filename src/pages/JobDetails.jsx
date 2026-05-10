@@ -126,7 +126,7 @@ export default function JobDetails({ job }) {
             const t = job.times?.[day];
             const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
             return (
-              <span key={day} style={{ fontSize: "0.73rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "var(--color-brand)", padding: "0.2rem 0.5rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
+              <span key={day} className={`badge badge-sm ${isFilled ? "badge-gray" : "badge-brand"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }}>
                 {day}{timeStr ? ` · ${timeStr}` : ""}{isFilled ? " ✓" : ""}
               </span>
             );
