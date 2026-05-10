@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import * as Sentry from "@sentry/react";
+import toast from "react-hot-toast";
 import PageWrapper from "../components/PageWrapper";
 import {
   fetchPendingStudents, approveStudent, rejectStudent, getSignedDocumentUrl,
@@ -31,7 +32,7 @@ export default function AdminPage() {
       window.open(url, "_blank", "noopener");
     } catch (e) {
       Sentry.captureException(e);
-      alert("Could not open document. Please try again.");
+      toast.error("Could not open document. Please try again.");
     }
   };
 
@@ -55,7 +56,7 @@ export default function AdminPage() {
       }
     } catch (e) {
       Sentry.captureException(e);
-      alert("Failed to approve. Please try again.");
+      toast.error("Failed to approve. Please try again.");
     } finally {
       setActionLoading(null);
     }
@@ -69,7 +70,7 @@ export default function AdminPage() {
       setStudents(prev => prev.filter(s => s.id !== studentId));
     } catch (e) {
       Sentry.captureException(e);
-      alert("Failed to reject. Please try again.");
+      toast.error("Failed to reject. Please try again.");
     } finally {
       setActionLoading(null);
     }
@@ -93,7 +94,7 @@ export default function AdminPage() {
       }
     } catch (e) {
       Sentry.captureException(e);
-      alert("Failed to approve. Please try again.");
+      toast.error("Failed to approve. Please try again.");
     } finally {
       setActionLoading(null);
     }
@@ -107,7 +108,7 @@ export default function AdminPage() {
       setCompanies(prev => prev.filter(c => c.id !== companyId));
     } catch (e) {
       Sentry.captureException(e);
-      alert("Failed to reject. Please try again.");
+      toast.error("Failed to reject. Please try again.");
     } finally {
       setActionLoading(null);
     }
@@ -306,3 +307,4 @@ const cardStyle      = { backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f
 const docBtn         = { padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "var(--color-brand)", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" };
 const actionBtnBase  = { padding: "0.6rem 1.25rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" };
 const verifyLinkStyle = { display: "inline-flex", alignItems: "center", padding: "0.3rem 0.75rem", borderRadius: "0.45rem", border: "1.5px solid #bae6fd", backgroundColor: "white", color: "#0369a1", fontWeight: "600", fontSize: "0.76rem", textDecoration: "none", fontFamily: "inherit" };
+

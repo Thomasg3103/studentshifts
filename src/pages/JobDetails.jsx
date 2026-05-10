@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect } from "react";
 import * as Sentry from "@sentry/react";
+import toast from "react-hot-toast";
 import DOMPurify from "dompurify";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
@@ -23,7 +24,6 @@ export default function JobDetails({ job }) {
   const [applyModal, setApplyModal]       = useState(null);
   const [photoIdx, setPhotoIdx]           = useState(0);
   const [submitting, setSubmitting]       = useState(false);
-  const [applyError, setApplyError]       = useState(null);
   const [fullscreenIdx, setFullscreenIdx] = useState(null);
   const [selectedDay, setSelectedDay]     = useState(null);
   const [reportOpen, setReportOpen]       = useState(false);
@@ -74,7 +74,6 @@ export default function JobDetails({ job }) {
   const confirmApply = async () => {
     if (submitting) return;
     setSubmitting(true);
-    setApplyError(null);
     try {
       const preferredShift = selectedDay ? (() => {
         const t = job.times?.[selectedDay];
@@ -90,10 +89,11 @@ export default function JobDetails({ job }) {
         unlikeJob(currentUser.id, job.id).catch(console.error);
       }
       setApplyModal(null);
+      toast.success("Application submitted!");
     } catch (e) {
       Sentry.captureException(e);
       console.error("Apply error:", e);
-      setApplyError("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setSubmitting(false);
     }
@@ -357,9 +357,6 @@ export default function JobDetails({ job }) {
                       {selectedDay}{(() => { const t = job.times?.[selectedDay]; const s = Array.isArray(t) ? t.join(", ") : t; return s ? ` · ${s}` : ""; })()}
                     </p>
                   </div>
-                )}
-                {applyError && (
-                  <p style={{ fontSize: "0.8rem", color: "#ef4444", marginBottom: "0.75rem" }}>{applyError}</p>
                 )}
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <button onClick={() => setApplyModal(null)} disabled={submitting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit" }}>Cancel</button>

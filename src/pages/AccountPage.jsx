@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
+import toast from "react-hot-toast";
 import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
 import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData } from "../lib/auth";
@@ -264,7 +265,7 @@ export default function AccountPage() {
       setTimeout(() => setIndustrySaved(false), 2500);
     } catch (e) {
       Sentry.captureException(e);
-      alert("Failed to save. Please try again.");
+      toast.error("Failed to save. Please try again.");
     } finally {
       setIndustrySaving(false);
     }
@@ -284,7 +285,7 @@ export default function AccountPage() {
       URL.revokeObjectURL(url);
     } catch (e) {
       Sentry.captureException(e);
-      alert("Export failed. Please try again.");
+      toast.error("Export failed. Please try again.");
     } finally {
       setExporting(false);
     }
@@ -824,3 +825,4 @@ function AvailabilityPicker({ value, onChange }) {
 const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "#374151", marginBottom: "0.3rem" };
 const inputStyle = { width: "100%", padding: "0.6rem 0.75rem", marginBottom: "1rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };
+

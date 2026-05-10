@@ -1,4 +1,5 @@
 ﻿import { useState } from "react";
+import toast from "react-hot-toast";
 import DetailPanel, { StatusBadge, CloseJobModal } from "./DetailPanel";
 
 /* ─── Pipeline stage constants ───────────────────────────────────────────── */
@@ -407,7 +408,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
           onMoveToStage={async (applicationId, stageKey) => {
             const { dbStage, round } = resolveStageKey(stageKey);
             try { await onStageChange(applicationId, dbStage, round); }
-            catch (e) { alert(`Failed to move: ${e?.message || "Unknown error"}`); }
+            catch (e) { toast.error(`Failed to move: ${e?.message || "Unknown error"}`); }
           }}
         />
       ) : (<>
@@ -602,3 +603,4 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
     </div>
   );
 }
+

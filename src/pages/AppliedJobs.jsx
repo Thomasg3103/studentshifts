@@ -1,5 +1,5 @@
-﻿import { useState } from "react";
-import * as Sentry from "@sentry/react";
+﻿import * as Sentry from "@sentry/react";
+import toast from "react-hot-toast";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
@@ -69,18 +69,16 @@ function AppliedJobCard({ job, status, onRemove }) {
 
 export default function AppliedJobs() {
   const { appliedJobs, setAppliedJobs, setSavedAppliedJobIds, currentUser, appStatuses: statuses = {} } = useApp();
-  const [removeError, setRemoveError] = useState("");
-
   const handleRemove = async (jobId) => {
-    setRemoveError("");
     try {
       await removeApplication(currentUser.id, jobId);
       setAppliedJobs(prev => prev.filter(j => j.id !== jobId));
       setSavedAppliedJobIds(prev => prev.filter(id => id !== jobId));
+      toast.success("Application removed");
     } catch (e) {
       Sentry.captureException(e);
       console.error("Failed to remove application:", e);
-      setRemoveError(e.message || "Failed to remove application.");
+      toast.error(e.message || "Failed to remove application.");
     }
   };
 
@@ -91,10 +89,6 @@ export default function AppliedJobs() {
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>✅ Applied Jobs</h1>
         <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Track your applications and hear back from employers</p>
       </div>
-
-      {removeError && (
-        <p style={{ color: "#ef4444", fontSize: "0.85rem", textAlign: "center", marginBottom: "1rem" }}>{removeError}</p>
-      )}
 
       {appliedJobs.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>

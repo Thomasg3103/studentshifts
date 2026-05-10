@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
+import toast from "react-hot-toast";
 import { Document, Page } from "react-pdf";
 import { saveApplicationNotes } from "../../lib/auth";
 import { Section } from "./shared";
@@ -121,7 +122,7 @@ export function PdfModal({ url, label, fileName, onClose }) {
       a.download = fileName;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(a.href);
-    } catch (e) { Sentry.captureException(e); alert("Could not save. Please try again."); }
+    } catch (e) { Sentry.captureException(e); toast.error("Could not save. Please try again."); }
   };
 
   const openWith = async () => {
@@ -132,7 +133,7 @@ export function PdfModal({ url, label, fileName, onClose }) {
         const mime = isDocx ? "application/vnd.openxmlformats-officedocument.wordprocessingml.document" : "application/pdf";
         const file = new File([blob], fileName, { type: mime });
         await navigator.share({ files: [file], title: label });
-      } catch (e) { if (e.name !== "AbortError") { Sentry.captureException(e); alert("Could not share. Please try again."); } }
+      } catch (e) { if (e.name !== "AbortError") { Sentry.captureException(e); toast.error("Could not share. Please try again."); } }
     } else {
       window.open(url, "_blank", "noreferrer");
     }
@@ -349,7 +350,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
   const confirm = async (opts) => {
     setConfirming(true);
     try { await onCloseJob(opts); }
-    catch { alert("Failed to close job. Please try again."); }
+    catch { toast.error("Failed to close job. Please try again."); }
     finally { setConfirming(false); }
   };
 
@@ -483,7 +484,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
       try {
         const { getSignedDocumentUrl } = await import("../../lib/auth");
         setCvUrl(await getSignedDocumentUrl("documents", applicant.cvName));
-      } catch (e) { Sentry.captureException(e); alert(`Could not load CV: ${e.message}`); setCvLoading(false); return; }
+      } catch (e) { Sentry.captureException(e); toast.error(`Could not load CV: ${e.message}`); setCvLoading(false); return; }
       setCvLoading(false);
     }
     setCvOpen(true);
@@ -495,7 +496,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
       try {
         const { getSignedDocumentUrl } = await import("../../lib/auth");
         setClUrl(await getSignedDocumentUrl("documents", applicant.coverLetterName));
-      } catch (e) { Sentry.captureException(e); alert(`Could not load cover letter: ${e.message}`); setClLoading(false); return; }
+      } catch (e) { Sentry.captureException(e); toast.error(`Could not load cover letter: ${e.message}`); setClLoading(false); return; }
       setClLoading(false);
     }
     setClOpen(true);
@@ -829,3 +830,4 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
     </>
   );
 }
+

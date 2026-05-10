@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useRef, useCallback, useContext } from "react";
 import * as Sentry from "@sentry/react";
+import { Toaster } from "react-hot-toast";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
 import StudentDashboard from "./pages/StudentDashboard";
@@ -384,6 +385,7 @@ export default function StudentShiftsWeb() {
       </Routes>
       {!isLanding && <AppFooter />}
       <CookieBanner />
+      <Toaster position="bottom-center" toastOptions={{ duration: 4000, style: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: "0.875rem", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" } }} />
     </AppContext.Provider>
   );
 }

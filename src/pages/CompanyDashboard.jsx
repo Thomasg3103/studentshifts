@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
+import toast from "react-hot-toast";
 import { useApp } from "../context/AppContext";
 import PageWrapper from "../components/PageWrapper";
 import "../StudentShiftWeb.css";
@@ -152,7 +153,7 @@ export default function CompanyDashboard() {
     const results = studentIds.length ? await Promise.all(fetches) : [];
     if (results[0]) (results[0].data || []).forEach(p => { profileMap[p.id] = p; });
     if (results[1]) (results[1].data || []).forEach(s => { cvMap[s.id] = s; });
-    // Fetch preferred_shift separately — silently skip if column doesn't exist yet
+    // Fetch preferred_shift separately â€” silently skip if column doesn't exist yet
     if (appIds.length) {
       const { data: shiftData } = await supabase
         .from("applications").select("id, preferred_shift").in("id", appIds);
@@ -219,15 +220,15 @@ export default function CompanyDashboard() {
 
   const saveForm = async ({ existingPhotos: keptUrls = [], newFiles = [], allCrops = [] } = {}) => {
     if (!formData.title.trim() || !formData.location.trim() || !formData.pay.trim()) {
-      alert("Please fill in Title, Location, and Pay."); return;
+      toast.error("Please fill in Title, Location, and Pay."); return;
     }
-    if (formData.days.length === 0) { alert("Please select at least one day."); return; }
-    if (keptUrls.length === 0 && newFiles.length === 0) { alert("Please upload at least 1 photo."); return; }
+    if (formData.days.length === 0) { toast.error("Please select at least one day."); return; }
+    if (keptUrls.length === 0 && newFiles.length === 0) { toast.error("Please upload at least 1 photo."); return; }
     const descPlain = (formData.description || "").replace(/<[^>]*>/g, "");
-    if (descPlain.length > 5000) { alert(`Description is too long (${descPlain.length} characters). Maximum is 5,000.`); return; }
+    if (descPlain.length > 5000) { toast.error(`Description is too long (${descPlain.length} characters). Maximum is 5,000.`); return; }
     setFormSaving(true);
     try {
-      // Build ordered photo URL array — existing first (already URLs), then upload new files in order
+      // Build ordered photo URL array â€” existing first (already URLs), then upload new files in order
       const photoUrls = [...keptUrls];
       const photoCrops = [...allCrops]; // parallel array, same order
       const ALLOWED_PHOTO_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
@@ -250,7 +251,7 @@ export default function CompanyDashboard() {
           console.warn("Photo upload skipped:", e.message);
         }
       }
-      console.log("[saveForm] photos done, inserting job…");
+      console.log("[saveForm] photos done, inserting jobâ€¦");
 
       const jobData = {
         company_id:      currentUser.id,
@@ -275,7 +276,7 @@ export default function CompanyDashboard() {
       if (formData.id) {
         const { error } = await withTimeout(
           supabase.from("jobs").update(jobData).eq("id", formData.id),
-          10000, "Database timeout — please try again."
+          10000, "Database timeout â€” please try again."
         );
         if (error) throw error;
         setPostings(prev => prev.map(p => p.id === formData.id
@@ -285,7 +286,7 @@ export default function CompanyDashboard() {
       } else {
         const { data, error } = await withTimeout(
           supabase.from("jobs").insert(jobData).select().single(),
-          10000, "Database timeout — please try again."
+          10000, "Database timeout â€” please try again."
         );
         if (error) throw error;
         setPostings(prev => [{ ...normaliseJob(data), applicants: [], applicantCount: 0 }, ...prev]);
@@ -293,7 +294,7 @@ export default function CompanyDashboard() {
       closeModal();
     } catch (e) {
       Sentry.captureException(e);
-      alert("Error saving job. Please try again.");
+      toast.error("Error saving job. Please try again.");
     } finally {
       setFormSaving(false);
     }
@@ -316,10 +317,10 @@ export default function CompanyDashboard() {
         supabase.from("applications").update({ status: "Accepted" }).eq("id", applicationId),
         10000, "Update timed out."
       );
-      if (error) { alert("Failed to accept applicant."); return; }
+      if (error) { toast.error("Failed to accept applicant."); return; }
 
       // 2. Mark the hired shift as filled on the job posting
-      const hiredDay = applicant.preferredShift ? applicant.preferredShift.split(" · ")[0].trim() : null;
+      const hiredDay = applicant.preferredShift ? applicant.preferredShift.split(" Â· ")[0].trim() : null;
       const currentFilledShifts = activePosting.filledShifts || [];
       const remainingUnfilledDays = (activePosting.days || []).filter(d => !currentFilledShifts.includes(d));
       // If student applied for all shifts (no preferred), they fill every remaining shift
@@ -328,8 +329,8 @@ export default function CompanyDashboard() {
         : [...(activePosting.days || [])];
       // Build a human-readable shift string for emails
       const hiredShiftWithTime = applicant.preferredShift
-        || (hiredDay && activePosting.times?.[hiredDay] ? `${hiredDay} · ${activePosting.times[hiredDay]}` : hiredDay)
-        || remainingUnfilledDays.map(d => activePosting.times?.[d] ? `${d} · ${activePosting.times[d]}` : d).join(", ")
+        || (hiredDay && activePosting.times?.[hiredDay] ? `${hiredDay} Â· ${activePosting.times[hiredDay]}` : hiredDay)
+        || remainingUnfilledDays.map(d => activePosting.times?.[d] ? `${d} Â· ${activePosting.times[d]}` : d).join(", ")
         || null;
       if (newFilledShifts !== currentFilledShifts) {
         await withTimeout(
@@ -352,11 +353,11 @@ export default function CompanyDashboard() {
       );
       const allShiftsFilled = newFilledShifts.length >= (activePosting.days || []).length;
       const otherIds = (others || []).filter(o => {
-        if (!hiredDay) return true; // hired for all shifts → decline everyone
-        const oDay = o.preferred_shift ? o.preferred_shift.split(" · ")[0].trim() : null;
-        if (oDay === hiredDay) return true; // competing for the same specific shift → decline
-        if (!oDay) return allShiftsFilled; // applied to all shifts → only decline if no shifts remain
-        return false; // different specific shift → leave in pipeline
+        if (!hiredDay) return true; // hired for all shifts â†’ decline everyone
+        const oDay = o.preferred_shift ? o.preferred_shift.split(" Â· ")[0].trim() : null;
+        if (oDay === hiredDay) return true; // competing for the same specific shift â†’ decline
+        if (!oDay) return allShiftsFilled; // applied to all shifts â†’ only decline if no shifts remain
+        return false; // different specific shift â†’ leave in pipeline
       }).map(o => o.id);
       if (otherIds.length) {
         await withTimeout(
@@ -399,11 +400,11 @@ export default function CompanyDashboard() {
           .filter(d => !newFilledShifts.includes(d))
           .map(d => {
             const timeStr = activePosting.times?.[d];
-            return timeStr ? `${d} · ${timeStr}` : d;
+            return timeStr ? `${d} Â· ${timeStr}` : d;
           });
 
         // Applicants who were NOT auto-declined but had this shift as an option
-        // (applied to all, no preferred_shift) — notify them the shift was taken
+        // (applied to all, no preferred_shift) â€” notify them the shift was taken
         const notifyOnly = hiredDay ? (others || []).filter(o => {
           if (otherIds.includes(o.id)) return false; // already declined
           return !o.preferred_shift; // applied to all shifts, stays in pipeline
@@ -413,7 +414,7 @@ export default function CompanyDashboard() {
           // Acceptance email to winner
           emailMap[applicant.studentId] && sendEmail({
             to: emailMap[applicant.studentId],
-            subject: `You've been hired — ${activePosting.title} at ${currentUser.name}`,
+            subject: `You've been hired â€” ${activePosting.title} at ${currentUser.name}`,
             html: emailApplicantAccepted(applicant.name, activePosting.title, currentUser.name, hiredShiftWithTime || null),
             magicLinkEmail: emailMap[applicant.studentId],
             redirectTo: appUrl,
@@ -434,7 +435,7 @@ export default function CompanyDashboard() {
               ),
             });
           })).filter(Boolean),
-          // Notification to all-shift applicants still in pipeline — shift taken, others remain
+          // Notification to all-shift applicants still in pipeline â€” shift taken, others remain
           ...notifyOnly.map(o => {
             const notifyApplicant = activePosting.applicants?.find(a => a.student_id === o.student_id || a.id === o.id);
             const name = notifyApplicant?.name || "there";
@@ -457,12 +458,12 @@ export default function CompanyDashboard() {
       return;
     }
 
-    // Manual reject — stage-aware email
+    // Manual reject â€” stage-aware email
     const { error } = await withTimeout(
       supabase.from("applications").update({ status: newStatus }).eq("id", applicationId),
       10000, "Update timed out."
     );
-    if (error) { alert("Failed to update status."); return; }
+    if (error) { toast.error("Failed to update status."); return; }
     const updater = (p) => ({ ...p, applicants: p.applicants.map(a => a.id === applicationId ? { ...a, status: newStatus } : a) });
     setPostings(prev => prev.map(p => p.id === activePosting.id ? updater(p) : p));
     setActivePosting(prev => updater(prev));
@@ -506,7 +507,7 @@ export default function CompanyDashboard() {
       setActivePosting(prev => prev ? updater(prev) : prev);
     } catch (e) {
       Sentry.captureException(e);
-      alert(`Failed to update stage: ${e?.message || "Unknown error"}`);
+      toast.error(`Failed to update stage: ${e?.message || "Unknown error"}`);
     }
   };
 
@@ -545,7 +546,7 @@ export default function CompanyDashboard() {
       setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
       setActivePosting(prev => prev ? updater(prev) : prev);
     } catch {
-      alert("Failed to update interview round. Please try again.");
+      toast.error("Failed to update interview round. Please try again.");
     }
   };
 
@@ -612,7 +613,7 @@ export default function CompanyDashboard() {
       });
       setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
       setActivePosting(prev => prev ? updater(prev) : prev);
-    } catch { /* silently ignore — schedule is non-critical */ }
+    } catch { /* silently ignore â€” schedule is non-critical */ }
   };
 
   const handleCloseJob = async (jobId, { foundStudent, winnerId, winnerApplicant }) => {
@@ -623,7 +624,7 @@ export default function CompanyDashboard() {
       supabase.from("jobs").update({ status: "Closed" }).eq("id", jobId),
       10000, "Update timed out."
     );
-    if (error) { alert("Failed to close job. Please try again."); return; }
+    if (error) { toast.error("Failed to close job. Please try again."); return; }
     setPostings(prev => prev.map(p => p.id === jobId ? { ...p, status: "Closed" } : p));
     closeModal();
   };
@@ -640,7 +641,7 @@ export default function CompanyDashboard() {
       {/* Verification banner */}
       {verificationStatus === "pending_review" && (
         <div style={{ backgroundColor: "#fef3c7", border: "1.5px solid #fcd34d", borderRadius: "0.75rem", padding: "1rem 1.25rem", marginBottom: "1.5rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-          <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>⏳</span>
+          <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>â³</span>
           <div>
             <p style={{ margin: 0, fontWeight: "700", color: "#92400e", fontSize: "0.95rem" }}>Account pending verification</p>
             <p style={{ margin: "0.2rem 0 0", color: "#b45309", fontSize: "0.85rem" }}>Our team is reviewing your company account. You'll receive an email once approved and can then start posting jobs.</p>
@@ -649,7 +650,7 @@ export default function CompanyDashboard() {
       )}
       {verificationStatus === "rejected" && (
         <div style={{ backgroundColor: "#fee2e2", border: "1.5px solid #fca5a5", borderRadius: "0.75rem", padding: "1rem 1.25rem", marginBottom: "1.5rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-          <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>❌</span>
+          <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>âŒ</span>
           <div>
             <p style={{ margin: 0, fontWeight: "700", color: "#991b1b", fontSize: "0.95rem" }}>Verification declined</p>
             <p style={{ margin: "0.2rem 0 0", color: "#b91c1c", fontSize: "0.85rem" }}>Your company account was not approved. Please contact support at thomasgallagher3103@gmail.com for assistance.</p>
@@ -695,7 +696,7 @@ export default function CompanyDashboard() {
         ))}
       </div>
 
-      {/* Stats — jobs tab only */}
+      {/* Stats â€” jobs tab only */}
       {activeTab === "jobs" && (
       <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
         <StatCard label="Total Postings" value={postings.length} />
@@ -705,13 +706,13 @@ export default function CompanyDashboard() {
       </div>
       )}
 
-      {/* Student Availability Heatmap — Browse Students tab */}
+      {/* Student Availability Heatmap â€” Browse Students tab */}
       {activeTab === "students" && heatmap && (
         <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showHeatmap ? "1rem" : 0 }}>
             <div>
               <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#1e293b" }}>Student Availability</p>
-              <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>When verified students are free — use this to plan your job times</p>
+              <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>When verified students are free â€” use this to plan your job times</p>
             </div>
             <button onClick={() => setShowHeatmap(p => !p)} style={{ padding: "0.35rem 0.85rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
               {showHeatmap ? "Hide" : "Show"}
@@ -755,15 +756,15 @@ export default function CompanyDashboard() {
         />
       )}
 
-      {/* Postings — jobs tab only */}
+      {/* Postings â€” jobs tab only */}
       {activeTab === "jobs" && (
         loading ? (
           <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#64748b" }}>
-            <p style={{ fontWeight: "600" }}>Loading your job postings…</p>
+            <p style={{ fontWeight: "600" }}>Loading your job postingsâ€¦</p>
           </div>
         ) : postings.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280" }}>
-            <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>📋</div>
+            <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>ðŸ“‹</div>
             <p style={{ fontSize: "1.15rem", fontWeight: "700", color: "#1e293b", marginBottom: "0.4rem" }}>No job postings yet</p>
             <p style={{ marginBottom: "1.75rem", fontSize: "0.9rem", color: "#94a3b8" }}>
               {isVerified ? "Create your first posting to start receiving applicants." : "Your account must be verified before you can post jobs."}
@@ -786,7 +787,7 @@ export default function CompanyDashboard() {
         )
       )}
 
-      {/* Applicants Modal — wide overlay */}
+      {/* Applicants Modal â€” wide overlay */}
       {modal === "applicants" && activePosting && (
         <div onClick={closeModal} className="applicants-modal-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", backdropFilter: "blur(2px)", animation: "fadeInOverlay 0.18s ease" }}>
           <div onClick={e => e.stopPropagation()} className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "0.85rem", width: "100%", maxWidth: "min(96vw, 1500px)", minHeight: "88vh", maxHeight: "96vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid #e2e8f0" }}>
@@ -794,13 +795,13 @@ export default function CompanyDashboard() {
             <div style={{ height: "60px", padding: "0 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: "1rem" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: "0.65rem", flex: 1, minWidth: 0 }}>
                 <h2 style={{ margin: 0, fontWeight: "700", fontSize: "1.05rem", color: "#0f172a", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>{activePosting.title}</h2>
-                <span style={{ fontSize: "0.78rem", color: "#94a3b8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.location} · {activePosting.pay}</span>
+                <span style={{ fontSize: "0.78rem", color: "#94a3b8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.location} Â· {activePosting.pay}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
                 {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (
                   <button key={val} onClick={() => setApplicantsViewMode(val)} style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem", fontWeight: "600", border: `1px solid ${applicantsViewMode === val ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: applicantsViewMode === val ? "#fff0f6" : "white", color: applicantsViewMode === val ? "var(--color-brand)" : "#64748b" }}>{label}</button>
                 ))}
-                <button onClick={closeModal} style={{ width: "32px", height: "32px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                <button onClick={closeModal} style={{ width: "32px", height: "32px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center" }}>âœ•</button>
               </div>
             </div>
             {/* Pipeline funnel */}
@@ -853,3 +854,4 @@ export default function CompanyDashboard() {
     </div>
   );
 }
+
