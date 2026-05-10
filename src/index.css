@@ -1,6 +1,20 @@
 :root {
   --color-brand: #A21D54;
   --color-brand-dark: #C2185B;
+
+  --radius-sm: 0.45rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.25rem;
+  --radius-pill: 999px;
+
+  --border-muted: 1.5px solid #e2e8f0;
+
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.06);
+  --shadow-md: 0 2px 12px rgba(0,0,0,0.07);
+  --shadow-lg: 0 4px 24px rgba(0,0,0,0.1);
+  --shadow-brand: 0 4px 14px rgba(162,29,84,0.35);
+  --shadow-brand-hover: 0 10px 32px rgba(162,29,84,0.14);
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -35,6 +49,95 @@ button {
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
+
+/* ─── Badges / pills ─────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  font-weight: 700;
+  font-size: 0.75rem;
+  padding: 0.2rem 0.65rem;
+  white-space: nowrap;
+  line-height: 1.3;
+}
+.badge-sm { font-size: 0.7rem;  padding: 0.15rem 0.5rem; }
+.badge-lg { font-size: 1rem;    padding: 0.25rem 0.75rem; }
+
+.badge-brand  { background: #fce7f3; color: var(--color-brand); }
+.badge-green  { background: #f0fdf4; color: #16a34a; border: 1px solid #86efac; }
+.badge-yellow { background: #fef3c7; color: #d97706; border: 1px solid #fde68a; }
+.badge-gray   { background: #f1f5f9; color: #64748b; border: 1px solid #e5e7eb; }
+.badge-red    { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+.badge-blue   { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+
+/* ─── Navigation notification dot ───────────────────── */
+.notif-dot {
+  position: absolute;
+  top: -4px; right: -4px;
+  background: #f43f5e;
+  color: white;
+  font-size: 0.62rem;
+  font-weight: 700;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  border: 2px solid var(--color-brand-dark);
+}
+.notif-dot--active { border-color: white; }
+
+/* Mobile bottom-nav dot — centred above icon */
+.nav-dot {
+  position: absolute;
+  top: 6px; left: 50%; margin-left: 6px;
+  background: #f43f5e;
+  color: white;
+  font-size: 0.55rem;
+  font-weight: 700;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+}
+/* Variant pinned to the right edge (Messages tab) */
+.nav-dot--right { left: auto; right: 4px; margin-left: 0; }
+
+/* ─── Buttons ────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  border: none;
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn:disabled { cursor: not-allowed; opacity: 0.6; }
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-brand), var(--color-brand-dark));
+  color: white;
+  box-shadow: var(--shadow-brand);
+}
+.btn-primary:hover:not(:disabled) { opacity: 0.9; }
+
+.btn-outline {
+  border: var(--border-muted);
+  background: white;
+  color: #374151;
+  font-weight: 600;
+}
+.btn-ghost { background: none; border: none; }
+
+/* ─── Cards ──────────────────────────────────────────── */
+.card {
+  background: white;
+  border: var(--border-muted);
+  border-radius: var(--radius-lg);
+}
+.card-shadow { box-shadow: var(--shadow-md); }
+.card-shadow:hover { box-shadow: var(--shadow-brand-hover); }
 
 /* Hide browser-native password reveal button (Edge/IE) */
 input[type="password"]::-ms-reveal,

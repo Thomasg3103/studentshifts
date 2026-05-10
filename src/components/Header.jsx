@@ -135,19 +135,19 @@ export default function Header() {
                         <button onClick={() => setPage("likedJobs")} style={{ ...navBtn(isLiked), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                           ❤️ <span className="nav-label">Liked</span>
                         </button>
-                        {likedJobs.length > 0 && <span style={isLiked ? notifDotActive : notifDot}>{likedJobs.length}</span>}
+                        {likedJobs.length > 0 && <span className={`notif-dot${isLiked ? " notif-dot--active" : ""}`}>{likedJobs.length}</span>}
                       </div>
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("appliedJobs")} style={{ ...navBtn(isApplied), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                           📄 <span className="nav-label">Applied</span>
                         </button>
-                        {appliedJobs.length > 0 && <span style={isApplied ? notifDotActive : notifDot}>{appliedJobs.length}</span>}
+                        {appliedJobs.length > 0 && <span className={`notif-dot${isApplied ? " notif-dot--active" : ""}`}>{appliedJobs.length}</span>}
                       </div>
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("messages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                           💬 <span className="nav-label">Messages</span>
                         </button>
-                        {msgCount > 0 && <span style={isMessages ? notifDotActive : notifDot}>{msgCount}</span>}
+                        {msgCount > 0 && <span className={`notif-dot${isMessages ? " notif-dot--active" : ""}`}>{msgCount}</span>}
                       </div>
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("account")} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
@@ -157,7 +157,7 @@ export default function Header() {
                           }
                           <span className="nav-label">Account</span>
                         </button>
-                        {optionalBadge > 0 && <span style={isAccount ? notifDotActive : notifDot}>{optionalBadge}</span>}
+                        {optionalBadge > 0 && <span className={`notif-dot${isAccount ? " notif-dot--active" : ""}`}>{optionalBadge}</span>}
                       </div>
                     </>
                   );
@@ -177,7 +177,7 @@ export default function Header() {
                       <button onClick={() => setPage("studentDashboard")} style={navBtn(isBrowse)}><span className="nav-label">Browse </span>Home</button>
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button onClick={() => setPage("companyMessages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>💬 <span className="nav-label">Messages</span></button>
-                        {msgCount > 0 && <span style={isMessages ? notifDotActive : notifDot}>{msgCount}</span>}
+                        {msgCount > 0 && <span className={`notif-dot${isMessages ? " notif-dot--active" : ""}`}>{msgCount}</span>}
                       </div>
                       <button onClick={() => setPage("companyDashboard")} style={navBtn(isMyJobs)}><span className="nav-label">My </span>Jobs</button>
                       <div style={{ position: "relative", display: "inline-block" }}>
@@ -188,7 +188,7 @@ export default function Header() {
                           }
                           <span className="nav-label">Account</span>
                         </button>
-                        {optionalBadge > 0 && <span style={isAccount ? notifDotActive : notifDot}>{optionalBadge}</span>}
+                        {optionalBadge > 0 && <span className={`notif-dot${isAccount ? " notif-dot--active" : ""}`}>{optionalBadge}</span>}
                       </div>
                     </>
                   );
@@ -272,9 +272,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
           <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>❤️</span>
           Liked
         </button>
-        {likedJobs.length > 0 && (
-          <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "6px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{likedJobs.length}</span>
-        )}
+        {likedJobs.length > 0 && <span className="nav-dot">{likedJobs.length}</span>}
       </div>
 
       {/* Applied */}
@@ -283,9 +281,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
           <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>📄</span>
           Applied
         </button>
-        {appliedJobs.length > 0 && (
-          <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "6px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{appliedJobs.length}</span>
-        )}
+        {appliedJobs.length > 0 && <span className="nav-dot">{appliedJobs.length}</span>}
       </div>
 
       {/* Home — centre */}
@@ -300,9 +296,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
           <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>💬</span>
           Messages
         </button>
-        {msgCount > 0 && (
-          <span style={{ position: "absolute", top: "6px", right: "4px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{msgCount}</span>
-        )}
+        {msgCount > 0 && <span className="nav-dot nav-dot--right">{msgCount}</span>}
       </div>
 
       {/* Account */}
@@ -314,9 +308,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
           }
           Account
         </button>
-        {optionalBadge > 0 && (
-          <span style={{ position: "absolute", top: "6px", left: "50%", marginLeft: "6px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{optionalBadge}</span>
-        )}
+        {optionalBadge > 0 && <span className="nav-dot">{optionalBadge}</span>}
       </div>
     </nav>
   );
@@ -352,9 +344,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount }) {
           <span style={{ fontSize: "1.3rem", lineHeight: 1 }}>💬</span>
           Messages
         </button>
-        {msgCount > 0 && (
-          <span style={{ position: "absolute", top: "6px", right: "4px", backgroundColor: "#f43f5e", color: "white", fontSize: "0.55rem", fontWeight: 700, width: "14px", height: "14px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>{msgCount}</span>
-        )}
+        {msgCount > 0 && <span className="nav-dot nav-dot--right">{msgCount}</span>}
       </div>
       <button onClick={() => setPage("companyDashboard")} style={tab(isMyJobs)}>
         <BriefcaseIcon active={isMyJobs} />
@@ -415,14 +405,6 @@ function BriefcaseIcon({ active }) {
   );
 }
 
-function CountBadge({ n }) {
-  return (
-    <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "rgba(255,255,255,0.18)", borderRadius: "999px", padding: "0 0.45rem", fontSize: "0.68rem", fontWeight: "700", minWidth: "18px", height: "18px" }}>
-      {n}
-    </span>
-  );
-}
-
 const navBtnPrimary = {
   padding: "0.48rem 1.1rem", borderRadius: "2rem",
   background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))",
@@ -444,15 +426,3 @@ const navBtnActive = {
   boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
 };
 const navBtn = (active) => active ? navBtnActive : navBtnOutline;
-const notifDot = {
-  position: "absolute", top: "-4px", right: "-4px",
-  backgroundColor: "#f43f5e", color: "white",
-  fontSize: "0.62rem", fontWeight: "700",
-  width: "16px", height: "16px", borderRadius: "50%",
-  display: "flex", alignItems: "center", justifyContent: "center",
-  pointerEvents: "none", border: "2px solid var(--color-brand-dark)",
-};
-const notifDotActive = {
-  ...notifDot,
-  border: "2px solid white",
-};

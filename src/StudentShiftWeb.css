@@ -154,17 +154,17 @@ header {
 /* Job card */
 .job-card {
   box-sizing: border-box;
-  border-radius: 1rem;
+  border-radius: var(--radius-lg);
   background: white;
   border: none;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+  box-shadow: var(--shadow-md);
   margin-bottom: 1.25rem;
   overflow: hidden;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .job-card:hover {
-  box-shadow: 0 10px 32px rgba(162,29,84,0.14);
+  box-shadow: var(--shadow-brand-hover);
 }
 
 .job-card:last-child {
@@ -174,8 +174,6 @@ header {
 .cv-tooltip-wrap:hover .cv-tooltip {
   opacity: 1 !important;
 }
-
-@keyframes spin { to { transform: rotate(360deg); } }
 
 /* Distance slider */
 .dist-slider {

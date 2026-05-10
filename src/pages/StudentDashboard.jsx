@@ -646,24 +646,26 @@ export default function StudentDashboard({ restoreScrollY }) {
                           {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
                             return (
-                              <span key={day} style={{ fontSize: isPhone ? "0.7rem" : "1rem", backgroundColor: isFilled ? "#f1f5f9" : "#fce7f3", color: isFilled ? "#94a3b8" : "var(--color-brand)", padding: isPhone ? "0.15rem 0.5rem" : "0.25rem 0.75rem", borderRadius: "999px", fontWeight: 600, textDecoration: isFilled ? "line-through" : "none" }}>
+                              <span key={day} className={`badge ${isFilled ? "badge-gray" : "badge-brand"} ${isPhone ? "badge-sm" : "badge-lg"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }}>
                                 {day.slice(0, 3)} · {job.times[day]?.join(", ")}{isFilled ? " ✓" : ""}
                               </span>
                             );
                           })}
-                          {dist !== null && (
-                            <span style={{ fontSize: isPhone ? "0.7rem" : "1rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1px solid #86efac", padding: isPhone ? "0.15rem 0.5rem" : "0.25rem 0.75rem", borderRadius: "999px", fontWeight: 600 }}>
+                        </div>
+                        {dist !== null && (
+                          <div style={{ marginTop: "0.3rem" }}>
+                            <span className={`badge badge-green ${isPhone ? "badge-sm" : "badge-lg"}`}>
                               📍 {formatDistance(dist)}
                             </span>
-                          )}
-                        </div>
+                          </div>
+                        )}
                       </div>
 
                       {/* Bottom: pay + deadline */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
                         <span style={{ fontWeight: 700, color: "#111827", fontSize: isPhone ? "0.95rem" : "1.35rem" }}>{job.pay}</span>
                         {dl && (
-                          <span style={{ fontSize: isPhone ? "0.68rem" : "0.95rem", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: 600, backgroundColor: dlSoon ? "#fef3c7" : "#f3f4f6", color: dlSoon ? "#d97706" : "#6b7280", border: `1px solid ${dlSoon ? "#fde68a" : "#e5e7eb"}` }}>
+                          <span className={`badge ${dlSoon ? "badge-yellow" : "badge-gray"} ${isPhone ? "badge-sm" : ""}`}>
                             Closes {deadlineLabel(dl)}
                           </span>
                         )}
