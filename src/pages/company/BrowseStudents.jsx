@@ -237,9 +237,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
                 <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{s.name}</p>
                 {hasApplied && (
-                  <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: "#dcfce7", color: "#15803d", border: "1.5px solid #86efac", borderRadius: "999px", padding: "0.1rem 0.5rem", whiteSpace: "nowrap", flexShrink: 0 }}>
-                    Applied ✓
-                  </span>
+                  <span className="badge badge-sm badge-green" style={{ whiteSpace: "nowrap", flexShrink: 0 }}>Applied ✓</span>
                 )}
               </div>
               <button
@@ -254,14 +252,14 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
             {s.skills?.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
                 {s.skills.slice(0, 5).map(sk => (
-                  <span key={sk} style={{ fontSize: "0.7rem", backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1.5px solid #bfdbfe", borderRadius: "999px", padding: "0.1rem 0.5rem", fontWeight: "600" }}>{sk}</span>
+                  <span key={sk} className="badge badge-sm badge-blue">{sk}</span>
                 ))}
               </div>
             )}
             {s.job_preferences?.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.5rem" }}>
                 {s.job_preferences.map(p => (
-                  <span key={p} style={{ fontSize: "0.7rem", backgroundColor: "#f0fdf4", color: "#16a34a", border: "1.5px solid #86efac", borderRadius: "999px", padding: "0.1rem 0.5rem", fontWeight: "600" }}>{p}</span>
+                  <span key={p} className="badge badge-sm badge-green">{p}</span>
                 ))}
               </div>
             )}

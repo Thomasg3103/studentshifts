@@ -213,7 +213,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
                     {/* Preferred shift chip */}
                     {applicant.preferredShift && (
                       <div style={{ marginBottom: "0.55rem" }}>
-                        <span style={{ fontSize: "0.7rem", color: "#64748b", backgroundColor: "#f1f5f9", padding: "0.2rem 0.55rem", borderRadius: "0.3rem", fontWeight: "500" }}>{applicant.preferredShift}</span>
+                        <span className="badge badge-tag badge-gray">{applicant.preferredShift}</span>
                       </div>
                     )}
 
@@ -221,7 +221,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
                     {applicant.skills?.length > 0 && (
                       <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
                         {applicant.skills.slice(0, 3).map(s => (
-                          <span key={s} style={{ fontSize: "0.63rem", backgroundColor: "#f8fafc", color: "#475569", borderRadius: "0.25rem", padding: "0.1rem 0.4rem", fontWeight: "500", border: "1px solid #e2e8f0" }}>{s}</span>
+                          <span key={s} className="badge badge-tag badge-gray">{s}</span>
                         ))}
                       </div>
                     )}
@@ -550,7 +550,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
                   <p style={{ margin: 0, fontWeight: "700", fontSize: "0.88rem", color: "#1e293b" }}>{s.name}</p>
                   {s.bio && <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.bio}</p>}
                 </div>
-                <span style={{ fontSize: "0.68rem", color: "var(--color-brand)", fontWeight: "700", whiteSpace: "nowrap", backgroundColor: "#fce7f3", padding: "0.15rem 0.5rem", borderRadius: "999px" }}>♥ Saved</span>
+                <span className="badge badge-sm badge-brand" style={{ whiteSpace: "nowrap" }}>♥ Saved</span>
               </div>
             ))}
           </div>
