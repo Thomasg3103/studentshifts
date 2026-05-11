@@ -7,11 +7,6 @@ import "../StudentShiftWeb.css";
 import { supabase, withTimeout } from "../lib/supabase";
 import { fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
 import { useHiringPipeline } from "../hooks/useHiringPipeline";
-import { pdfjs } from "react-pdf";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
-pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
-
 import BrowseStudents from "./company/BrowseStudents";
 import SavedStudents from "./company/SavedStudents";
 import JobPostingCard from "./company/JobPostingCard";

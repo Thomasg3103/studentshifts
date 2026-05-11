@@ -1,13 +1,15 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { saveApplicationNotes } from "../../lib/auth";
 import { Section } from "./shared";
 import ChatThread from "./ChatThread";
-import { PdfModal } from "./PdfModal";
 import { InterviewInviteModal } from "./InterviewInviteModal";
+
 import { TrialInviteModal } from "./TrialInviteModal";
 import { CloseJobModal } from "./CloseJobModal";
+
+const PdfModal = lazy(() => import("./PdfModal").then(m => ({ default: m.PdfModal })));
 
 /* ─── Local style helpers ────────────────────────────────────────────────── */
 
@@ -141,8 +143,10 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
 
   return (
     <>
-      {cvOpen && cvUrl && <PdfModal url={cvUrl} label={`${applicant.name}'s CV`} fileName={`${applicant.name.replace(/\s+/g, "_")}_CV.${(applicant.cvName || "pdf").split(".").pop()}`} onClose={() => setCvOpen(false)} />}
-      {clOpen && clUrl && <PdfModal url={clUrl} label={`${applicant.name}'s Cover Letter`} fileName={`${applicant.name.replace(/\s+/g, "_")}_Cover_Letter.${(applicant.coverLetterName || "pdf").split(".").pop()}`} onClose={() => setClOpen(false)} />}
+      <Suspense fallback={null}>
+        {cvOpen && cvUrl && <PdfModal url={cvUrl} label={`${applicant.name}'s CV`} fileName={`${applicant.name.replace(/\s+/g, "_")}_CV.${(applicant.cvName || "pdf").split(".").pop()}`} onClose={() => setCvOpen(false)} />}
+        {clOpen && clUrl && <PdfModal url={clUrl} label={`${applicant.name}'s Cover Letter`} fileName={`${applicant.name.replace(/\s+/g, "_")}_Cover_Letter.${(applicant.coverLetterName || "pdf").split(".").pop()}`} onClose={() => setClOpen(false)} />}
+      </Suspense>
 
       {/* Backdrop */}
       <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.45)", zIndex: 1100, animation: "fadeInOverlay 0.18s ease" }} />
