@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect, useCallback } from "react";
+﻿import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 import "../StudentShiftWeb.css";
 import { jobCategories, getCategoryForTitle } from "../data/jobCategories";
@@ -372,7 +372,8 @@ export default function StudentDashboard({ restoreScrollY }) {
   }, [studentLocation, extraCoords]);
 
   // Filter state
-  const allLocations = [...new Set(jobs.map(j => j.location))].sort();
+  // Memoised so the location list doesn't recreate on every render
+  const allLocations = useMemo(() => [...new Set(jobs.map(j => j.location))].sort(), [jobs]);
 
   const [prefOnly,          setPrefOnly]          = useState(false);
   const [selectedDays,      setSelectedDays]      = useState([]);
@@ -385,11 +386,19 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [noWeekends,        setNoWeekends]        = useState(false);
   const [distanceKm,        setDistanceKm]        = useState(0);
   const [searchQuery,       setSearchQuery]       = useState("");
+  // Debounced version — filter/sort only recomputes 200 ms after the user stops typing
+  const [debouncedSearch,   setDebouncedSearch]   = useState("");
   const [sortBy,            setSortBy]            = useState("");
 
   // Sidebar section collapse state — Sort and Days & Times open by default
   const [openSections, setOpenSections] = useState({ sort: true, days: true, location: false, jobType: false, schedule: false, distance: false });
   const toggleSection = (k) => setOpenSections(p => ({ ...p, [k]: !p[k] }));
+
+  // Debounce search input so filtering doesn't fire on every keystroke
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedSearch(searchQuery), 200);
+    return () => clearTimeout(id);
+  }, [searchQuery]);
 
   const toggleDay = (day) => {
     let updated = [...selectedDays];
@@ -466,12 +475,13 @@ export default function StudentDashboard({ restoreScrollY }) {
     try { localStorage.setItem(ssKey, JSON.stringify(updated)); } catch (e) { console.warn("Could not persist saved search deletion:", e); }
   };
 
-  const hasActiveFilters = selectedDays.length > 0 || selectedLocations.length > 0 || selectedJobTypes.length > 0 || weekendOnly || allWeekOnly || noWeekends || distanceKm > 0 || searchQuery.trim() !== "";
+  const hasActiveFilters = selectedDays.length > 0 || selectedLocations.length > 0 || selectedJobTypes.length > 0 || weekendOnly || allWeekOnly || noWeekends || distanceKm > 0 || debouncedSearch.trim() !== "";
   const activeFilterCount = (selectedDays.length > 0 ? 1 : 0) + (selectedLocations.length > 0 ? 1 : 0) + (selectedJobTypes.length > 0 ? 1 : 0) + (weekendOnly ? 1 : 0) + (allWeekOnly ? 1 : 0) + (noWeekends ? 1 : 0) + (distanceKm > 0 ? 1 : 0);
 
   const userPrefs = currentUser?.jobPreferences || [];
 
-  const firstBlockingFilter = (() => {
+  // Memoised — only recomputes when filter state or jobs actually change
+  const firstBlockingFilter = useMemo(() => {
     if (!hasActiveFilters || jobs.length === 0) return null;
     let pool = [...jobs];
     const step = (filtered, label) => { if (filtered.length === 0 && pool.length > 0) return label; pool = filtered; return null; };
@@ -494,15 +504,16 @@ export default function StudentDashboard({ restoreScrollY }) {
     if (distanceKm > 0 && studentLocation) {
       hit = step(pool.filter(j => { const d = jobDistance(j); return d !== null && d <= distanceKm; }), `${distanceKm}km distance limit`); if (hit) return hit;
     }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      hit = step(pool.filter(j => j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q)), `"${searchQuery}"`); if (hit) return hit;
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
+      hit = step(pool.filter(j => j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q)), `"${debouncedSearch}"`); if (hit) return hit;
     }
     return null;
-  })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobs, hasActiveFilters, prefOnly, userPrefs, selectedDays, dayTimes, selectedLocations, selectedJobTypes, weekendOnly, allWeekOnly, noWeekends, distanceKm, studentLocation, debouncedSearch, jobDistance]);
 
-  // Filter logic (time filter uses >= not exact match)
-  const filteredJobs = jobs.filter(job => {
+  // Filter logic (time filter uses >= not exact match) — memoised
+  const filteredJobs = useMemo(() => jobs.filter(job => {
     if (prefOnly && userPrefs.length > 0) {
       const cat = getCategoryForTitle(job.title);
       if (!cat || !userPrefs.includes(cat)) return false;
@@ -527,15 +538,17 @@ export default function StudentDashboard({ restoreScrollY }) {
       const dist = jobDistance(job);
       if (dist === null || dist > distanceKm) return false;
     }
-    if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
+    if (debouncedSearch.trim()) {
+      const q = debouncedSearch.toLowerCase();
       if (!job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q)) return false;
     }
     return true;
-  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [jobs, prefOnly, userPrefs, selectedDays, dayTimes, selectedLocations, selectedJobTypes, weekendOnly, allWeekOnly, noWeekends, distanceKm, studentLocation, debouncedSearch, jobDistance]);
 
   const payNum = (p) => parseFloat(p.replace(/[^0-9.]/g, "")) || 0;
-  const sortedJobs = sortBy === "" ? filteredJobs : [...filteredJobs].sort((a, b) => {
+  // Memoised — only re-sorts when filteredJobs or sortBy changes
+  const sortedJobs = useMemo(() => sortBy === "" ? filteredJobs : [...filteredJobs].sort((a, b) => {
     if (sortBy === "payHigh")     return payNum(b.pay) - payNum(a.pay);
     if (sortBy === "payLow")      return payNum(a.pay) - payNum(b.pay);
     if (sortBy === "dateNewest")  return new Date(b.createdAt) - new Date(a.createdAt);
@@ -543,7 +556,8 @@ export default function StudentDashboard({ restoreScrollY }) {
     if (sortBy === "distanceNear") { const da = jobDistance(a) ?? Infinity;  const db = jobDistance(b) ?? Infinity;  return da - db; }
     if (sortBy === "distanceFar")  { const da = jobDistance(a) ?? -Infinity; const db = jobDistance(b) ?? -Infinity; return db - da; }
     return 0;
-  });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }), [filteredJobs, sortBy, jobDistance]);
 
   const toggleLike = (job) => {
     if (!currentUser) { setPage("login"); return; }
