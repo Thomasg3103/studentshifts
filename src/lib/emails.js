@@ -253,12 +253,13 @@ export function emailCompanyInterested(studentName, companyName) {
 </html>`;
 }
 
-export function emailInterviewInvite(studentName, companyName, date, time, note, teamsLink) {
-  const sName   = escapeHtml(studentName);
-  const cName   = escapeHtml(companyName);
-  const safeNote = note ? escapeHtml(note) : "";
+export function emailInterviewInvite(studentName, companyName, jobTitle, date, time, note, teamsLink) {
+  const sName     = escapeHtml(studentName);
+  const cName     = escapeHtml(companyName);
+  const jTitle    = jobTitle ? escapeHtml(jobTitle) : "";
+  const safeNote  = note ? escapeHtml(note) : "";
   const safeTeams = teamsLink && /^https?:\/\//i.test(teamsLink) ? escapeHtml(teamsLink) : "";
-  const whenLine = date && time ? `${escapeHtml(date)} at ${escapeHtml(time)}`
+  const whenLine  = date && time ? `${escapeHtml(date)} at ${escapeHtml(time)}`
     : date ? escapeHtml(date)
     : time ? escapeHtml(time)
     : "To be confirmed";
@@ -280,12 +281,13 @@ export function emailInterviewInvite(studentName, companyName, date, time, note,
             <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">You've been invited to interview! 🗓️</p>
             <p style="margin:0 0 20px;font-size:15px;color:#64748b;line-height:1.6;">
               Hi ${sName},<br/><br/>
-              <strong style="color:#1e293b;">${cName}</strong> would like to invite you for an interview on StudentShifts.
+              <strong style="color:#1e293b;">${cName}</strong> would like to invite you for an interview${jTitle ? ` for the <strong style="color:#1e293b;">${jTitle}</strong> position` : ""} on StudentShifts.
             </p>
             <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;">
               <tr>
                 <td style="background-color:#fce7f3;border:1.5px solid #e9d5ff;border-radius:10px;padding:16px 20px;">
                   <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:0.05em;">Interview Details</p>
+                  ${jTitle ? `<p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>Role:</strong> ${jTitle}</p>` : ""}
                   <p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>When:</strong> ${whenLine}</p>
                   ${safeNote ? `<p style="margin:8px 0 0;font-size:14px;color:#374151;line-height:1.5;"><strong>Note from ${cName}:</strong><br/>${safeNote}</p>` : ""}
                   ${safeTeams ? `<p style="margin:10px 0 0;font-size:14px;color:#1e293b;"><strong>Teams Link:</strong> <a href="${safeTeams}" style="color:#A21D54;">${safeTeams}</a></p>` : ""}

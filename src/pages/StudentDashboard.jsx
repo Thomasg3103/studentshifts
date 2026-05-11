@@ -47,7 +47,7 @@ const workweek  = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
 const timeSlots = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
 
 function FilterPanel({
-  clearAll, hasActiveFilters, sortBy, openSections, toggleSection,
+  clearAll, hasActiveFilters, sortBy, setSortBy, openSections, toggleSection,
   warning, selectedDays, toggleDay, dayTimes, updateTime,
   setSelectedDays, setDayTimes, setSelectedLocations, setSelectedJobTypes,
   setWeekendOnly, setAllWeekOnly, setNoWeekends,
@@ -56,17 +56,39 @@ function FilterPanel({
   weekendOnly, allWeekOnly, noWeekends,
   onApply,
 }) {
+  const sortOptions = [
+    { value: "",             label: "Best Match" },
+    { value: "payHigh",      label: "Pay: High → Low" },
+    { value: "payLow",       label: "Pay: Low → High" },
+    { value: "dateNewest",   label: "Date: Newest" },
+    { value: "dateOldest",   label: "Date: Oldest" },
+    ...(studentLocation ? [
+      { value: "distanceNear", label: "Distance: Closest" },
+      { value: "distanceFar",  label: "Distance: Furthest" },
+    ] : []),
+  ];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "#1e293b" }}>Filter</h3>
+        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "#1e293b" }}>Filter &amp; Sort</h3>
         {(hasActiveFilters || sortBy !== "") && (
           <button onClick={clearAll} style={{ fontSize: "0.75rem", color: "#e11d48", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>
             Clear All
           </button>
         )}
       </div>
+
+      {/* Sort */}
+      <FilterSection title={<>Sort by {sortBy && <Pip n="✓" />}</>} open={openSections.sort} onToggle={() => toggleSection("sort")} onClear={sortBy ? () => setSortBy("") : null}>
+        {sortOptions.map(({ value, label }) => (
+          <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "var(--color-brand)" : "#374151" }}>
+            <input type="radio" name="sortByPanel" checked={sortBy === value} onChange={() => setSortBy(value)} style={{ cursor: "pointer", accentColor: "var(--color-brand)" }} />
+            {label}
+          </label>
+        ))}
+      </FilterSection>
 
       {/* Days & Times */}
       <FilterSection title={<>Days &amp; Times {selectedDays.length > 0 && <Pip n={selectedDays.length} />}</>} open={openSections.days} onToggle={() => toggleSection("days")} onClear={selectedDays.length > 0 ? () => { setSelectedDays([]); setDayTimes({}); } : null}>
@@ -357,8 +379,8 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [searchQuery,       setSearchQuery]       = useState("");
   const [sortBy,            setSortBy]            = useState("");
 
-  // Sidebar section collapse state — only "Days & Times" open by default
-  const [openSections, setOpenSections] = useState({ sort: false, days: true, location: false, jobType: false, schedule: false, distance: false });
+  // Sidebar section collapse state — Sort and Days & Times open by default
+  const [openSections, setOpenSections] = useState({ sort: true, days: true, location: false, jobType: false, schedule: false, distance: false });
   const toggleSection = (k) => setOpenSections(p => ({ ...p, [k]: !p[k] }));
 
   const toggleDay = (day) => {
@@ -536,7 +558,7 @@ export default function StudentDashboard({ restoreScrollY }) {
   };
 
   const filterPanelProps = {
-    clearAll, hasActiveFilters, sortBy, openSections, toggleSection,
+    clearAll, hasActiveFilters, sortBy, setSortBy, openSections, toggleSection,
     warning, selectedDays, toggleDay, dayTimes, updateTime,
     setSelectedDays, setDayTimes, setSelectedLocations, setSelectedJobTypes,
     distanceKm, setDistanceKm, studentLocation, allLocations,
@@ -778,18 +800,16 @@ export default function StudentDashboard({ restoreScrollY }) {
                             {job.filledShifts.length} of {job.days.length} shift{job.days.length !== 1 ? "s" : ""} filled
                           </p>
                         )}
-                        {dist !== null && (
-                          <div style={{ marginTop: "0.3rem" }}>
-                            <span className={`badge badge-green ${isPhone ? "badge-sm" : "badge-lg"}`}>
-                              📍 {formatDistance(dist)}
-                            </span>
-                          </div>
-                        )}
                       </div>
 
-                      {/* Bottom: pay + deadline + updated */}
+                      {/* Bottom: pay + distance + deadline + updated */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
                         <span style={{ fontWeight: 700, color: "#111827", fontSize: isPhone ? "0.95rem" : "1.35rem" }}>{job.pay}</span>
+                        {dist !== null && (
+                          <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`}>
+                            📍 {formatDistance(dist)}
+                          </span>
+                        )}
                         {dl && (
                           <span className={`badge ${dlSoon ? "badge-yellow" : "badge-gray"} ${isPhone ? "badge-sm" : ""}`}>
                             Closes {deadlineLabel(dl)}
