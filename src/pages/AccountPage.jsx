@@ -466,6 +466,7 @@ export default function AccountPage() {
     <>
       <Helmet>
         <title>My Account — StudentShifts</title>
+        <meta name="description" content="Manage your StudentShifts profile, CV, availability, and account settings." />
         <meta name="robots" content="noindex" />
         <link rel="canonical" href="https://studentshifts.ie/account" />
       </Helmet>

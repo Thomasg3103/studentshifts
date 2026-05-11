@@ -28,8 +28,18 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
   const isActive  = posting.status === "Active";
   const today     = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Closed" && posting.deadline && posting.deadline < today;
-  const photo     = posting.photos?.[0] || null;
+  const rawPhoto  = posting.photos?.[0] || null;
+  const photo     = rawPhoto ? `${rawPhoto}?width=400&quality=75` : null;
   const crop      = posting.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
+  const postedAgo = (() => {
+    if (!posting.createdAt) return null;
+    const days = Math.floor((Date.now() - new Date(posting.createdAt)) / 86400000);
+    if (days === 0) return "Today";
+    if (days === 1) return "Yesterday";
+    if (days < 7) return `${days}d ago`;
+    if (days < 30) return `${Math.floor(days / 7)}w ago`;
+    return `${Math.floor(days / 30)}mo ago`;
+  })();
   const [hovered,       setHovered]       = useState(false);
   const [confirmClose,  setConfirmClose]  = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -96,7 +106,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
           {posting.days.map(day => {
             const isFilled = (posting.filledShifts || []).includes(day);
             return (
-              <span key={day} className={`badge badge-tag ${isFilled ? "badge-gray" : "badge-blue"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }}>
+              <span key={day} className={`badge badge-tag ${isFilled ? "badge-gray" : "badge-blue"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }} title={isFilled ? "This shift has been filled" : undefined}>
                 {day.slice(0, 3)}{posting.times?.[day] ? ` · ${posting.times[day]}` : ""}
                 {isFilled ? " ✓" : ""}
               </span>
@@ -124,6 +134,12 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
           {deadlineLabel && (
             <span style={{ fontSize: "0.75rem", fontWeight: "600", color: deadlineClose ? "#d97706" : "#94a3b8", whiteSpace: "nowrap" }}>
               {deadlineClose ? "⚠ " : ""}Closes {deadlineLabel}
+            </span>
+          )}
+
+          {postedAgo && (
+            <span style={{ fontSize: "0.72rem", color: "#94a3b8", whiteSpace: "nowrap" }}>
+              Posted {postedAgo}
             </span>
           )}
 

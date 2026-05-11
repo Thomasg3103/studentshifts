@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
+import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { useApp } from "../context/AppContext";
@@ -36,6 +37,7 @@ function normaliseJob(j) {
     filledShifts:    j.filled_shifts || [],
     applicants:      [],
     applicantCount:  j.applicant_count || 0,
+    createdAt:       j.created_at || null,
   };
 }
 
@@ -351,6 +353,10 @@ export default function CompanyDashboard() {
 
   return (
     <div style={{ minHeight: "100vh", backgroundColor: "#fafafa", padding: "1.5rem 1rem" }}>
+      <Helmet>
+        <title>Company Dashboard — StudentShifts</title>
+        <meta name="robots" content="noindex" />
+      </Helmet>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
       {/* Verification banner */}
       {verificationStatus === "pending_review" && (
