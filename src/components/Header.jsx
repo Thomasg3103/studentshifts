@@ -277,7 +277,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, notifCount
 
       {/* Liked */}
       <div style={{ flex: 1, position: "relative" }}>
-        <button aria-label="Liked jobs" onClick={() => setPage("likedJobs")} style={{ ...tab(isLiked), width: "100%", height: "100%" }}>
+        <button aria-label="Liked jobs" aria-current={isLiked ? "page" : undefined} onClick={() => setPage("likedJobs")} style={{ ...tab(isLiked), width: "100%", height: "100%" }}>
           <HeartIcon active={isLiked} />
           Liked
         </button>
@@ -286,7 +286,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, notifCount
 
       {/* Applied */}
       <div style={{ flex: 1, position: "relative" }}>
-        <button aria-label="Applied jobs" onClick={() => setPage("appliedJobs")} style={{ ...tab(isApplied), width: "100%", height: "100%" }}>
+        <button aria-label="Applied jobs" aria-current={isApplied ? "page" : undefined} onClick={() => setPage("appliedJobs")} style={{ ...tab(isApplied), width: "100%", height: "100%" }}>
           <DocumentIcon active={isApplied} />
           Applied
         </button>
@@ -294,14 +294,14 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, notifCount
       </div>
 
       {/* Home — centre */}
-      <button aria-label="Home" onClick={() => setPage("studentDashboard")} style={tab(isHome)}>
+      <button aria-label="Home" aria-current={isHome ? "page" : undefined} onClick={() => setPage("studentDashboard")} style={tab(isHome)}>
         <HomeIcon active={isHome} />
         Home
       </button>
 
       {/* Messages */}
       <div style={{ flex: 1, position: "relative" }}>
-        <button aria-label="Messages" onClick={() => setPage("messages")} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
+        <button aria-label="Messages" aria-current={isMessages ? "page" : undefined} onClick={() => setPage("messages")} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
           <ChatIcon active={isMessages} />
           Messages
         </button>
@@ -310,7 +310,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, notifCount
 
       {/* Account */}
       <div style={{ flex: 1, position: "relative" }}>
-        <button aria-label="Account" onClick={() => setPage("account")} style={{ ...tab(isAccount), width: "100%", height: "100%" }}>
+        <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={{ ...tab(isAccount), width: "100%", height: "100%" }}>
           {currentUser?.profilePhoto
             ? <img loading="lazy" src={currentUser.profilePhoto} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
             : <PersonIcon color={isAccount ? "var(--color-brand)" : "#94a3b8"} />
@@ -344,22 +344,22 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
       display: "flex", alignItems: "stretch", zIndex: 200,
       boxShadow: "0 -4px 16px rgba(0,0,0,0.07)",
     }}>
-      <button aria-label="Browse students" onClick={() => setPage("studentDashboard")} style={tab(isBrowse)}>
+      <button aria-label="Browse students" aria-current={isBrowse ? "page" : undefined} onClick={() => setPage("studentDashboard")} style={tab(isBrowse)}>
         <BrowseIcon active={isBrowse} />
         Browse
       </button>
       <div style={{ flex: 1, position: "relative" }}>
-        <button aria-label="Messages" onClick={() => setPage("companyMessages")} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
+        <button aria-label="Messages" aria-current={isMessages ? "page" : undefined} onClick={() => setPage("companyMessages")} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
           <ChatIcon active={isMessages} />
           Messages
         </button>
         {msgCount > 0 && <span className="nav-dot nav-dot--right">{msgCount}</span>}
       </div>
-      <button aria-label="My jobs" onClick={() => setPage("companyDashboard")} style={tab(isMyJobs)}>
+      <button aria-label="My jobs" aria-current={isMyJobs ? "page" : undefined} onClick={() => setPage("companyDashboard")} style={tab(isMyJobs)}>
         <BriefcaseIcon active={isMyJobs} />
         My Jobs
       </button>
-      <button aria-label="Account" onClick={() => setPage("account")} style={tab(isAccount)}>
+      <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={tab(isAccount)}>
         {currentUser?.profilePhoto
           ? <img loading="lazy" src={currentUser.profilePhoto} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
           : <PersonIcon color={isAccount ? "var(--color-brand)" : "#94a3b8"} />

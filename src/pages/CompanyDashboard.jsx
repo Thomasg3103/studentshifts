@@ -118,11 +118,13 @@ export default function CompanyDashboard() {
   // Load this company's jobs on mount, auto-expire any past their deadline
   useEffect(() => {
     if (!currentUser) return;
+    setLoadError(false);
     withTimeout(
       supabase.from("jobs").select("*, applications(id, status)").eq("company_id", currentUser.id).order("created_at", { ascending: false }),
       10000, "Loading jobs timed out."
     ).then(async ({ data, error }) => {
-      if (!error && data) {
+      if (error) { setLoadError(true); setLoading(false); return; }
+      if (data) {
         const today = new Date().toISOString().split("T")[0];
         const expired = data.filter(j => j.status === "Active" && j.deadline && j.deadline < today);
         if (expired.length) {
@@ -135,7 +137,7 @@ export default function CompanyDashboard() {
         })));
       }
       setLoading(false);
-    }).catch(() => setLoading(false));
+    }).catch(() => { setLoadError(true); setLoading(false); });
   }, [currentUser?.id]);
 
   const totalApplicants = postings.reduce((sum, p) => sum + p.applicantCount, 0);

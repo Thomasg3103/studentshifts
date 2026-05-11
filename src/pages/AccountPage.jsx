@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
@@ -58,8 +58,11 @@ export default function AccountPage() {
   const [changingPw, setChangingPw]             = useState(false);
   const [allowDm, setAllowDm]                   = useState(currentUser.allowCompanyDm !== false);
   const [profilePhoto, setProfilePhoto]         = useState(currentUser.profilePhoto || "");
+  const [photoUploading, setPhotoUploading]     = useState(false);
   const [windowWidth, setWindowWidth]           = useState(window.innerWidth);
   const availDebounceRef = useRef(null);
+  // Track whether bio / linkedin / website have been edited but not yet saved (dirty state)
+  const [dirtyFields, setDirtyFields]           = useState(false);
 
   useEffect(() => {
     const h = () => setWindowWidth(window.innerWidth);
@@ -71,6 +74,14 @@ export default function AccountPage() {
     return () => { if (availDebounceRef.current) clearTimeout(availDebounceRef.current); };
   }, []);
 
+  // Warn user if they try to close/navigate away with unsaved text edits
+  useEffect(() => {
+    if (!dirtyFields) return;
+    const handler = (e) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirtyFields]);
+
   const isMobile  = windowWidth < 768;
   const isStudent = currentUser.role === "student";
   const isCompany = currentUser.role === "company";
@@ -78,6 +89,7 @@ export default function AccountPage() {
   // ── Auto-save helper (students only) ───────────────────────────────────
   // Pass an optional `userUpdate` object to also sync currentUser state (camelCase keys).
   const saveField = async (fields, userUpdate) => {
+    setDirtyFields(false);
     setSaving(true);
     setSaveError("");
     try {
@@ -95,6 +107,7 @@ export default function AccountPage() {
 
   // ── Auto-save helper (companies only) ──────────────────────────────────
   const saveCompanyField = async (fields) => {
+    setDirtyFields(false);
     setSaving(true);
     setSaveError("");
     try {
@@ -160,9 +173,11 @@ export default function AccountPage() {
   const handlePhotoChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    // Show preview immediately
     const reader = new FileReader();
     reader.onload = ev => setProfilePhoto(ev.target.result);
     reader.readAsDataURL(file);
+    setPhotoUploading(true);
     setSaving(true);
     try {
       const url = await uploadAvatar(currentUser.id, file);
@@ -174,11 +189,13 @@ export default function AccountPage() {
       setCurrentUser(prev => ({ ...prev, profilePhoto: url }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch (e) {
-      Sentry.captureException(e);
+    } catch (err) {
+      Sentry.captureException(err);
       setProfilePhoto(currentUser.profilePhoto || "");
-      setSaveError(e.message || "Photo upload failed.");
+      // Toast immediately visible near the photo (more discoverable than bottom banner)
+      toast.error(err.message || "Photo upload failed.");
     } finally {
+      setPhotoUploading(false);
       setSaving(false);
     }
   };
@@ -195,7 +212,7 @@ export default function AccountPage() {
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
       Sentry.captureException(e);
-      setSaveError(e.message || "CV upload failed.");
+      toast.error(e.message || "CV upload failed.");
     } finally {
       setSaving(false);
     }
@@ -213,7 +230,7 @@ export default function AccountPage() {
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
       Sentry.captureException(e);
-      setSaveError(e.message || "Cover letter upload failed.");
+      toast.error(e.message || "Cover letter upload failed.");
     } finally {
       setSaving(false);
     }
@@ -530,14 +547,23 @@ export default function AccountPage() {
           {/* Profile photo + name header */}
           <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
             <div style={{ position: "relative", display: "inline-block" }}>
-              <div style={{ width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: "3px solid #fce7f3", backgroundColor: "#fafafa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto", boxShadow: "0 0 0 3px var(--color-brand)22" }}>
-                {profilePhoto
-                  ? <img loading="lazy" src={profilePhoto} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  : <PersonIcon />}
+              {/* Avatar circle with loading overlay */}
+              <div style={{ position: "relative", width: "88px", height: "88px", margin: "0 auto" }}>
+                <div style={{ width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: "3px solid #fce7f3", backgroundColor: "#fafafa", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 3px var(--color-brand)22" }}>
+                  {profilePhoto
+                    ? <img loading="lazy" src={profilePhoto} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : <PersonIcon />}
+                </div>
+                {/* Uploading spinner overlay */}
+                {photoUploading && (
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "50%", backgroundColor: "rgba(0,0,0,0.45)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <div style={{ width: "22px", height: "22px", border: "3px solid rgba(255,255,255,0.4)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                  </div>
+                )}
               </div>
-              <label style={{ position: "absolute", bottom: "2px", right: "2px", width: "26px", height: "26px", borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "0.7rem" }}>
+              <label style={{ position: "absolute", bottom: "2px", right: "2px", width: "26px", height: "26px", borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", cursor: photoUploading ? "not-allowed" : "pointer", fontSize: "0.7rem", opacity: photoUploading ? 0.6 : 1 }}>
                 📷
-                <input type="file" accept="image/*" style={{ display: "none" }} onChange={handlePhotoChange} />
+                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={handlePhotoChange} disabled={photoUploading} />
               </label>
             </div>
             <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "#94a3b8", fontWeight: "500" }}>Welcome back,</p>
@@ -621,8 +647,9 @@ export default function AccountPage() {
                   <input
                     placeholder="https://linkedin.com/in/yourname"
                     value={linkedIn}
-                    onChange={e => setLinkedIn(e.target.value)}
+                    onChange={e => { setLinkedIn(e.target.value); setDirtyFields(true); }}
                     onBlur={() => {
+                      setDirtyFields(false);
                       if (linkedIn && !/^https:\/\/(www\.)?linkedin\.com\//.test(linkedIn)) {
                         toast.error("Please enter a valid LinkedIn URL (e.g. https://linkedin.com/in/yourname)");
                         return;
@@ -640,8 +667,8 @@ export default function AccountPage() {
                     placeholder="Tell employers a bit about yourself…"
                     value={bio}
                     maxLength={500}
-                    onChange={e => setBio(e.target.value)}
-                    onBlur={() => saveField({ bio }, { bio })}
+                    onChange={e => { setBio(e.target.value); setDirtyFields(true); }}
+                    onBlur={() => { setDirtyFields(false); saveField({ bio }, { bio }); }}
                     rows={3}
                     style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
                   />
@@ -728,6 +755,12 @@ export default function AccountPage() {
                 <InfoRow label="Name"  value={currentUser.name} />
                 <InfoRow label="Email" value={currentUser.email} />
                 <InfoRow label="Role"  value="Company" />
+                {currentUser.croNumber && (
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem", fontSize: "0.9rem" }}>
+                    <span style={{ color: "#6b7280" }}>CRO Number</span>
+                    <span style={{ fontWeight: "600", color: "#111827", fontFamily: "monospace", fontSize: "0.92rem", letterSpacing: "0.05em" }}>{currentUser.croNumber}</span>
+                  </div>
+                )}
               </Collapsible>
 
               <Section title="Company Profile">
@@ -739,8 +772,8 @@ export default function AccountPage() {
                   placeholder="Tell students about your company, culture, and the kinds of roles you hire for…"
                   value={bio}
                   maxLength={500}
-                  onChange={e => setBio(e.target.value)}
-                  onBlur={() => saveCompanyField({ bio })}
+                  onChange={e => { setBio(e.target.value); setDirtyFields(true); }}
+                  onBlur={() => { setDirtyFields(false); saveCompanyField({ bio }); }}
                   rows={4}
                   style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
                 />
@@ -748,8 +781,9 @@ export default function AccountPage() {
                 <input
                   placeholder="https://yourcompany.ie"
                   value={website}
-                  onChange={e => setWebsite(e.target.value)}
+                  onChange={e => { setWebsite(e.target.value); setDirtyFields(true); }}
                   onBlur={() => {
+                    setDirtyFields(false);
                     if (website && !/^https?:\/\/.+/.test(website)) {
                       toast.error("Please enter a valid URL starting with https://");
                       return;
@@ -832,6 +866,9 @@ export default function AccountPage() {
           </div>
         )}
       </div>
+
+      {/* Spinner keyframe — injected as a style tag */}
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </>
   );
 }
@@ -893,18 +930,26 @@ function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded]   = useState(false);
   const [localName, setLocalName] = useState("");
+  const [uploadError, setUploadError] = useState("");
 
   const handleChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    setUploadError("");
     setUploading(true);
     try {
       await onUpload(file);
       setLocalName(file.name);
       setUploaded(true);
       setTimeout(() => setUploaded(false), 2500);
+    } catch (err) {
+      // onUpload (handleCvUpload/handleCoverLetterUpload) shows a toast for lib errors,
+      // but also surface inline here for clarity
+      setUploadError(err?.message || "Upload failed.");
     } finally {
       setUploading(false);
+      // Reset the input so the same file can be re-selected after an error
+      e.target.value = "";
     }
   };
 
@@ -917,13 +962,13 @@ function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
         {label} {required && !existingName && <span style={{ color: "#ef4444" }}>*</span>}
       </label>
       <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem" }}>{hint}</p>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", border: `1.5px dashed ${existingName || uploaded ? "#22c55e" : "#d1d5db"}`, borderRadius: "0.5rem", padding: "0.5rem 0.75rem", backgroundColor: existingName || uploaded ? "#f0fdf4" : "white", overflow: "hidden" }}>
-        <label style={{ cursor: "pointer", fontSize: "0.8rem", fontWeight: "600", color: uploading ? "#9ca3af" : "#3b82f6", whiteSpace: "nowrap", flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", border: `1.5px dashed ${uploadError ? "#fca5a5" : existingName || uploaded ? "#22c55e" : "#d1d5db"}`, borderRadius: "0.5rem", padding: "0.5rem 0.75rem", backgroundColor: uploadError ? "#fff1f2" : existingName || uploaded ? "#f0fdf4" : "white", overflow: "hidden" }}>
+        <label style={{ cursor: uploading ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: "600", color: uploading ? "#9ca3af" : "#3b82f6", whiteSpace: "nowrap", flexShrink: 0 }}>
           {uploading ? "Uploading…" : existingName ? "Change" : "Choose file"}
           <input type="file" accept={accept} style={{ display: "none" }} onChange={handleChange} disabled={uploading} />
         </label>
-        <span style={{ fontSize: "0.8rem", color: existingName || uploaded ? "#16a34a" : "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
-          {uploaded ? `✓ ${displayName}` : existingName ? `✓ ${displayName || "Uploaded"}` : "No file chosen"}
+        <span style={{ fontSize: "0.8rem", color: uploadError ? "#dc2626" : existingName || uploaded ? "#16a34a" : "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+          {uploadError ? uploadError : uploaded ? `✓ ${displayName}` : existingName ? `✓ ${displayName || "Uploaded"}` : "No file chosen"}
         </span>
       </div>
     </div>
@@ -973,4 +1018,3 @@ function AvailabilityPicker({ value, onChange }) {
 const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "#374151", marginBottom: "0.3rem" };
 const inputStyle = { width: "100%", padding: "0.6rem 0.75rem", marginBottom: "1rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };
-
