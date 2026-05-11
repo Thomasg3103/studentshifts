@@ -731,9 +731,22 @@ export default function StudentDashboard({ restoreScrollY }) {
 
             {/* States */}
             {jobsError && !jobsLoading && (
-              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
-                <p style={{ fontSize: "1.1rem", fontWeight: 600, color: "#ef4444" }}>Couldn't load jobs</p>
-                <p style={{ fontSize: "0.875rem" }}>Check your connection and refresh the page.</p>
+              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
+                <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⚠️</div>
+                <p style={{ fontSize: "1.1rem", fontWeight: 600, color: "#ef4444", marginBottom: "0.4rem" }}>Couldn't load jobs</p>
+                <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>Check your connection and try again.</p>
+                <button
+                  onClick={() => {
+                    setJobsError(false);
+                    setJobsLoading(true);
+                    fetchJobPage(0)
+                      .catch(e => { console.error("[StudentDashboard] jobs error:", e); setJobsError(true); })
+                      .finally(() => setJobsLoading(false));
+                  }}
+                  style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  Retry
+                </button>
               </div>
             )}
             {jobsLoading && (
@@ -744,15 +757,26 @@ export default function StudentDashboard({ restoreScrollY }) {
             )}
             {!jobsLoading && !jobsError && sortedJobs.length === 0 && (
               <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
-                <p style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>No jobs match your filters</p>
-                <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem", color: "#6b7280" }}>
-                  {firstBlockingFilter
-                    ? <><strong style={{ color: "#374151" }}>{firstBlockingFilter}</strong> has no matches — try widening it.</>
-                    : "Try removing some filters."}
-                </p>
-                <button onClick={clearAll} style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
-                  Clear All Filters
-                </button>
+                {hasActiveFilters ? (
+                  <>
+                    <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🔍</div>
+                    <p style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>No jobs match your filters</p>
+                    <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem", color: "#6b7280" }}>
+                      {firstBlockingFilter
+                        ? <><strong style={{ color: "#374151" }}>{firstBlockingFilter}</strong> has no matches — try widening it.</>
+                        : "Try removing some filters."}
+                    </p>
+                    <button onClick={clearAll} style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
+                      Clear All Filters
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>📋</div>
+                    <p style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>No jobs available right now</p>
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>Check back soon — new shifts are posted regularly.</p>
+                  </>
+                )}
               </div>
             )}
 
