@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
+import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import {
   fetchPendingStudents, approveStudent, rejectStudent, getSignedDocumentUrl,
@@ -86,9 +87,9 @@ export default function AdminPage() {
     inFlight.current.add(student.id);
     setActionLoading(student.id + "_approve");
     try {
-      await approveStudent(student.id);
+      const isNew = await approveStudent(student.id);
       setStudents(prev => prev.filter(s => s.id !== student.id));
-      if (student.email) {
+      if (isNew && student.email) {
         try {
           await sendEmail({
             to: student.email,
@@ -101,10 +102,12 @@ export default function AdminPage() {
           console.warn("Approval email failed:", e.message);
           toast.error("Approved, but notification email failed to send.");
         }
+      } else if (!isNew) {
+        toast("Already approved by another admin.");
       }
     } catch (e) {
       Sentry.captureException(e);
-      toast.error(e.message || "Failed to approve. Please try again."); // F-H19
+      toast.error(e.message || "Failed to approve. Please try again.");
     } finally {
       inFlight.current.delete(student.id);
       setActionLoading(null);
@@ -147,9 +150,9 @@ export default function AdminPage() {
     inFlight.current.add(company.id);
     setActionLoading(company.id + "_approve");
     try {
-      await approveCompany(company.id);
+      const isNew = await approveCompany(company.id);
       setCompanies(prev => prev.filter(c => c.id !== company.id));
-      if (company.email) {
+      if (isNew && company.email) {
         try {
           await sendEmail({
             to: company.email,
@@ -158,12 +161,14 @@ export default function AdminPage() {
           });
         } catch (e) {
           console.warn("Approval email failed:", e.message);
-          toast.error("Approved, but notification email failed to send."); // F-M7
+          toast.error("Approved, but notification email failed to send.");
         }
+      } else if (!isNew) {
+        toast("Already approved by another admin.");
       }
     } catch (e) {
       Sentry.captureException(e);
-      toast.error(e.message || "Failed to approve. Please try again."); // F-H19
+      toast.error(e.message || "Failed to approve. Please try again.");
     } finally {
       inFlight.current.delete(company.id);
       setActionLoading(null);
@@ -203,6 +208,7 @@ export default function AdminPage() {
 
   return (
     <PageWrapper>
+      <Helmet><meta name="robots" content="noindex, nofollow" /></Helmet>
       <div style={{ maxWidth: "680px", margin: "0 auto" }}>
 
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem", gap: "1rem" }}>

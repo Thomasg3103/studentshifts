@@ -603,9 +603,12 @@ CREATE POLICY "job-photos: own delete" ON storage.objects
 -- ================================================================
 
 -- Approve a student: sets status = 'verified'. Admin only.
+-- Returns true if this was a new approval (prevents duplicate emails when two admins click simultaneously).
 -- Blocks approval if the student has not uploaded both verification documents.
-CREATE OR REPLACE FUNCTION approve_student(student_id uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+DROP FUNCTION IF EXISTS approve_student(uuid);
+CREATE FUNCTION approve_student(student_id uuid)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE rows_affected int;
 BEGIN
   IF NOT is_admin() THEN
     RAISE EXCEPTION 'Unauthorised: admin only';
@@ -618,9 +621,14 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'Cannot approve: student has not uploaded verification documents';
   END IF;
-  UPDATE students SET status = 'verified', student_id_url = NULL, gov_id_url = NULL WHERE id = student_id;
-  INSERT INTO audit_log (actor_id, action, target_id)
-    VALUES (auth.uid(), 'approve_student', student_id);
+  UPDATE students SET status = 'verified', student_id_url = NULL, gov_id_url = NULL
+  WHERE id = student_id AND status = 'pending_review';
+  GET DIAGNOSTICS rows_affected = ROW_COUNT;
+  IF rows_affected > 0 THEN
+    INSERT INTO audit_log (actor_id, action, target_id)
+      VALUES (auth.uid(), 'approve_student', student_id);
+  END IF;
+  RETURN rows_affected > 0;
 END;
 $$;
 
@@ -638,15 +646,22 @@ END;
 $$;
 
 -- Approve a company: sets status = 'verified'. Admin only.
-CREATE OR REPLACE FUNCTION approve_company(company_id uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+-- Returns true if this was a new approval (prevents duplicate emails when two admins click simultaneously).
+DROP FUNCTION IF EXISTS approve_company(uuid);
+CREATE FUNCTION approve_company(company_id uuid)
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE rows_affected int;
 BEGIN
   IF NOT is_admin() THEN
     RAISE EXCEPTION 'Unauthorised: admin only';
   END IF;
-  UPDATE companies SET status = 'verified' WHERE id = company_id;
-  INSERT INTO audit_log (actor_id, action, target_id)
-    VALUES (auth.uid(), 'approve_company', company_id);
+  UPDATE companies SET status = 'verified' WHERE id = company_id AND status = 'pending_review';
+  GET DIAGNOSTICS rows_affected = ROW_COUNT;
+  IF rows_affected > 0 THEN
+    INSERT INTO audit_log (actor_id, action, target_id)
+      VALUES (auth.uid(), 'approve_company', company_id);
+  END IF;
+  RETURN rows_affected > 0;
 END;
 $$;
 
@@ -772,7 +787,7 @@ $$;
 -- Only returns rows where the student actually applied to a job owned by the caller.
 -- ================================================================
 DROP FUNCTION IF EXISTS get_company_applicant_profiles(uuid[]);
-CREATE OR REPLACE FUNCTION get_company_applicant_profiles(student_ids uuid[])
+CREATE FUNCTION get_company_applicant_profiles(student_ids uuid[])
 RETURNS TABLE (
   id               uuid,
   bio              text,
@@ -782,16 +797,28 @@ RETURNS TABLE (
   cover_letter_url text,
   profile_photo_url text
 )
-LANGUAGE sql SECURITY DEFINER STABLE AS $$
-  SELECT s.id, s.bio, s.skills, s.linkedin, s.cv_url, s.cover_letter_url, s.profile_photo_url
-  FROM students s
-  WHERE s.id = ANY(student_ids)
-    AND EXISTS (
-      SELECT 1 FROM applications a
-      JOIN jobs j ON j.id = a.job_id
-      WHERE j.company_id = auth.uid()
-        AND a.student_id = s.id
-    );
+LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+DECLARE call_count bigint;
+BEGIN
+  -- Rate limit: max 60 calls per minute per company (prevents rapid applicant enumeration)
+  SELECT COUNT(*) INTO call_count FROM rpc_rate_log
+  WHERE user_id = auth.uid() AND rpc_name = 'get_company_applicant_profiles'
+    AND called_at > now() - interval '1 minute';
+  IF call_count >= 60 THEN
+    RAISE EXCEPTION 'Rate limit exceeded — too many profile requests';
+  END IF;
+  INSERT INTO rpc_rate_log (user_id, rpc_name) VALUES (auth.uid(), 'get_company_applicant_profiles');
+  RETURN QUERY
+    SELECT s.id, s.bio, s.skills, s.linkedin, s.cv_url, s.cover_letter_url, s.profile_photo_url
+    FROM students s
+    WHERE s.id = ANY(student_ids)
+      AND EXISTS (
+        SELECT 1 FROM applications a
+        JOIN jobs j ON j.id = a.job_id
+        WHERE j.company_id = auth.uid()
+          AND a.student_id = s.id
+      );
+END;
 $$;
 
 
@@ -802,7 +829,7 @@ $$;
 -- ================================================================
 DROP FUNCTION IF EXISTS get_all_verified_students();
 DROP FUNCTION IF EXISTS get_all_verified_students(int, int);
-CREATE OR REPLACE FUNCTION get_all_verified_students(p_limit int DEFAULT 200, p_offset int DEFAULT 0)
+CREATE FUNCTION get_all_verified_students(p_limit int DEFAULT 200, p_offset int DEFAULT 0)
 RETURNS TABLE (
   id                uuid,
   name              text,
@@ -815,6 +842,7 @@ RETURNS TABLE (
   job_preferences   text[]
 )
 LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+DECLARE call_count bigint;
 BEGIN
   IF NOT is_admin() AND NOT EXISTS (
     SELECT 1 FROM companies WHERE companies.id = auth.uid() AND status = 'verified'
@@ -823,6 +851,16 @@ BEGIN
   END IF;
   IF p_limit > 200 THEN
     RAISE EXCEPTION 'p_limit cannot exceed 200';
+  END IF;
+  -- Rate limit: max 30 page-fetches per minute per company (prevents rapid full-roster enumeration)
+  IF NOT is_admin() THEN
+    SELECT COUNT(*) INTO call_count FROM rpc_rate_log
+    WHERE user_id = auth.uid() AND rpc_name = 'get_all_verified_students'
+      AND called_at > now() - interval '1 minute';
+    IF call_count >= 30 THEN
+      RAISE EXCEPTION 'Rate limit exceeded — too many student browse requests';
+    END IF;
+    INSERT INTO rpc_rate_log (user_id, rpc_name) VALUES (auth.uid(), 'get_all_verified_students');
   END IF;
   RETURN QUERY
     SELECT p.id, p.name, s.bio, s.skills, s.linkedin, s.profile_photo_url,

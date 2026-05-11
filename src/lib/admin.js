@@ -64,11 +64,12 @@ export async function fetchPendingCompanies() {
 }
 
 export async function approveStudent(studentId) {
-  const { error } = await withTimeout(
+  const { data, error } = await withTimeout(
     supabase.rpc("approve_student", { student_id: studentId }),
     10000
   );
   if (error) throw error;
+  return data; // true = new approval, false = already approved (another admin got there first)
 }
 
 export async function rejectStudent(studentId) {
@@ -81,11 +82,12 @@ export async function rejectStudent(studentId) {
 
 export async function approveCompany(companyId) {
   await ensureValidSession();
-  const { error } = await withTimeout(
+  const { data, error } = await withTimeout(
     supabase.rpc("approve_company", { company_id: companyId }),
     10000
   );
   if (error) throw error;
+  return data; // true = new approval, false = already approved
 }
 
 export async function rejectCompany(companyId) {

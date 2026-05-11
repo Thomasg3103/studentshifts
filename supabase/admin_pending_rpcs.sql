@@ -15,35 +15,43 @@ UPDATE companies SET status = 'verified' WHERE status = 'pending_review';
 -- Do NOT add them here — running this file after rls_policies.sql would overwrite the audited versions.
 
 -- Fetch pending students (joins auth.users for email) — admin only
-CREATE OR REPLACE FUNCTION get_pending_students()
+-- Limited to 200 rows; UI shows a warning if the list is truncated.
+CREATE OR REPLACE FUNCTION get_pending_students(p_limit int DEFAULT 200, p_offset int DEFAULT 0)
 RETURNS TABLE(id uuid, name text, email text, student_id_url text, gov_id_url text, status text)
 LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   IF NOT is_admin() THEN
     RAISE EXCEPTION 'Unauthorised: admin only';
   END IF;
+  IF p_limit > 200 THEN p_limit := 200; END IF;
   RETURN QUERY
     SELECT s.id, p.name::text, u.email::text, s.student_id_url::text, s.gov_id_url::text, s.status::text
     FROM students s
     JOIN profiles p ON p.id = s.id
     JOIN auth.users u ON u.id = s.id
-    WHERE s.status IN ('pending', 'pending_review');
+    WHERE s.status IN ('pending', 'pending_review')
+    ORDER BY s.id
+    LIMIT p_limit OFFSET p_offset;
 END;
 $$;
 
 -- Fetch pending companies (joins auth.users for email) — admin only
-CREATE OR REPLACE FUNCTION get_pending_companies()
+-- Limited to 200 rows; UI shows a warning if the list is truncated.
+CREATE OR REPLACE FUNCTION get_pending_companies(p_limit int DEFAULT 200, p_offset int DEFAULT 0)
 RETURNS TABLE(id uuid, name text, email text, cro_number text, status text)
 LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   IF NOT is_admin() THEN
     RAISE EXCEPTION 'Unauthorised: admin only';
   END IF;
+  IF p_limit > 200 THEN p_limit := 200; END IF;
   RETURN QUERY
     SELECT c.id, p.name::text, u.email::text, c.cro_number::text, c.status::text
     FROM companies c
     JOIN profiles p ON p.id = c.id
     JOIN auth.users u ON u.id = c.id
-    WHERE c.status = 'pending_review';
+    WHERE c.status = 'pending_review'
+    ORDER BY c.id
+    LIMIT p_limit OFFSET p_offset;
 END;
 $$;

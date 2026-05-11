@@ -236,12 +236,12 @@ export default function StudentShiftsWeb() {
         return;
       }
       if (event === "SIGNED_OUT") {
+        supabase.removeAllChannels();
         setCurrentUser(null);
         setLikedJobs([]);
         setAppliedJobs([]);
         setSavedLikedJobIds([]);
         setSavedAppliedJobIds([]);
-        // R3-H8: clear per-user derived state so previous user's data isn't briefly visible
         setAppStatuses({});
         setNotifCount(0);
         setMsgCount(0);

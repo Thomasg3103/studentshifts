@@ -166,7 +166,7 @@ export default function CompanyDashboard() {
     const results = studentIds.length ? await Promise.all(fetches) : [];
     if (results[0]) (results[0].data || []).forEach(p => { profileMap[p.id] = p; });
     if (results[1]) (results[1].data || []).forEach(s => { cvMap[s.id] = s; });
-    // Fetch preferred_shift separately â€” silently skip if column doesn't exist yet
+    // Fetch preferred_shift separately â€" silently skip if column doesn't exist yet
     if (appIds.length) {
       const { data: shiftData } = await supabase
         .from("applications").select("id, preferred_shift").in("id", appIds);
@@ -244,7 +244,7 @@ export default function CompanyDashboard() {
     if (descPlain.length > 5000) { toast.error(`Description is too long (${descPlain.length} characters). Maximum is 5,000.`); return; }
     setFormSaving(true);
     try {
-      // Build ordered photo URL array â€” existing first (already URLs), then upload new files in order
+      // Build ordered photo URL array â€" existing first (already URLs), then upload new files in order
       const photoUrls = [...keptUrls];
       const photoCrops = [...allCrops]; // parallel array, same order
       const ALLOWED_PHOTO_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
@@ -300,9 +300,17 @@ export default function CompanyDashboard() {
       };
 
       if (formData.id) {
+        // H25: if days were removed, purge filled_shifts entries for those days so hire logic stays consistent
+        const existingJob = postings.find(p => p.id === formData.id);
+        if (existingJob?.filledShifts?.length) {
+          const cleanedFilled = existingJob.filledShifts.filter(d => formData.days.includes(d));
+          if (cleanedFilled.length !== existingJob.filledShifts.length) {
+            jobData.filled_shifts = cleanedFilled;
+          }
+        }
         const { error } = await withTimeout(
           supabase.from("jobs").update(jobData).eq("id", formData.id),
-          10000, "Database timeout â€” please try again."
+          10000, "Database timeout - please try again."
         );
         if (error) throw error;
         setPostings(prev => prev.map(p => p.id === formData.id
@@ -312,7 +320,7 @@ export default function CompanyDashboard() {
       } else {
         const { data, error } = await withTimeout(
           supabase.from("jobs").insert(jobData).select().single(),
-          10000, "Database timeout â€” please try again."
+          10000, "Database timeout - please try again."
         );
         if (error) throw error;
         setPostings(prev => [{ ...normaliseJob(data), applicants: [], applicantCount: 0 }, ...prev]);
@@ -437,7 +445,7 @@ export default function CompanyDashboard() {
         ))}
       </div>
 
-      {/* Stats â€” jobs tab only */}
+      {/* Stats â€" jobs tab only */}
       {activeTab === "jobs" && (
       <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
         <StatCard label="Total Postings" value={postings.length} />
@@ -447,13 +455,13 @@ export default function CompanyDashboard() {
       </div>
       )}
 
-      {/* Student Availability Heatmap â€” Browse Students tab */}
+      {/* Student Availability Heatmap â€" Browse Students tab */}
       {activeTab === "students" && heatmap && (
         <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showHeatmap ? "1rem" : 0 }}>
             <div>
               <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#1e293b" }}>Student Availability</p>
-              <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>When verified students are free â€” use this to plan your job times</p>
+              <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>When verified students are free â€" use this to plan your job times</p>
             </div>
             <button onClick={() => setShowHeatmap(p => !p)} style={{ padding: "0.35rem 0.85rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
               {showHeatmap ? "Hide" : "Show"}
@@ -497,7 +505,7 @@ export default function CompanyDashboard() {
         />
       )}
 
-      {/* Postings â€” jobs tab only */}
+      {/* Postings â€" jobs tab only */}
       {activeTab === "jobs" && (
         loading ? (
           <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#64748b", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
@@ -505,7 +513,7 @@ export default function CompanyDashboard() {
           </div>
         ) : postings.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
-            <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>ðŸ“‹</div>
+            <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>ðŸ"‹</div>
             <p style={{ fontSize: "1.15rem", fontWeight: "700", color: "#1e293b", marginBottom: "0.4rem" }}>No job postings yet</p>
             <p style={{ marginBottom: "1.75rem", fontSize: "0.9rem", color: "#94a3b8" }}>
               {isVerified ? "Create your first posting to start receiving applicants." : "Your account must be verified before you can post jobs."}
@@ -528,7 +536,7 @@ export default function CompanyDashboard() {
         )
       )}
 
-      {/* Applicants Modal â€” wide overlay */}
+      {/* Applicants Modal â€" wide overlay */}
       {modal === "applicants" && activePosting && (
         <div onClick={closeModal} className="applicants-modal-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)", animation: "fadeInOverlay 0.18s ease" }}>
           <div onClick={e => e.stopPropagation()} className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "0.85rem", width: "100%", maxWidth: "min(96vw, 1500px)", minHeight: "88vh", maxHeight: "96vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid #e2e8f0" }}>

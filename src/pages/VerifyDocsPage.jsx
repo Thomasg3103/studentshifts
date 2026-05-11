@@ -27,6 +27,17 @@ export default function VerifyDocsPage() {
   const [showAvailabilityPrompt, setShowAvailabilityPrompt] = useState(false);
 
   const isRejected = currentUser?.verificationStatus === "rejected";
+  const MAX_BYTES = 10 * 1024 * 1024;
+
+  const handleFileChange = (setter) => (file) => {
+    if (file && file.size > MAX_BYTES) {
+      setError("File is too large. Maximum size is 10 MB.");
+      setter(null);
+      return;
+    }
+    setError("");
+    setter(file);
+  };
 
   const handleSubmit = async () => {
     if (!studentIdCard) { setError("Please upload your Student ID card."); return; }
@@ -83,14 +94,14 @@ export default function VerifyDocsPage() {
             label="Student ID Card"
             hint="Photo of your student ID card"
             accept="image/*,.pdf"
-            onChange={setStudentIdCard}
+            onChange={handleFileChange(setStudentIdCard)}
             file={studentIdCard}
           />
           <FileUpload
             label="Government ID"
             hint="Age Card, Passport or Driver's Licence"
             accept="image/*,.pdf"
-            onChange={setGovernmentId}
+            onChange={handleFileChange(setGovernmentId)}
             file={governmentId}
           />
         </div>
