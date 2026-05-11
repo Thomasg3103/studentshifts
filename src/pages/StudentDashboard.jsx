@@ -808,16 +808,18 @@ export default function StudentDashboard({ restoreScrollY }) {
                             {job.filledShifts.length} of {job.days.length} shift{job.days.length !== 1 ? "s" : ""} filled
                           </p>
                         )}
+                        {dist !== null && (
+                          <div style={{ marginTop: "0.3rem" }}>
+                            <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`}>
+                              📍 {formatDistance(dist)}
+                            </span>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Bottom: pay + distance + deadline + updated */}
+                      {/* Bottom: pay + deadline + updated */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
                         <span style={{ fontWeight: 700, color: "#111827", fontSize: isPhone ? "0.95rem" : "1.35rem" }}>{job.pay}</span>
-                        {dist !== null && (
-                          <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`}>
-                            📍 {formatDistance(dist)}
-                          </span>
-                        )}
                         {dl && (
                           <span className={`badge ${dlSoon ? "badge-yellow" : "badge-gray"} ${isPhone ? "badge-sm" : ""}`}>
                             Closes {deadlineLabel(dl)}
