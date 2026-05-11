@@ -274,9 +274,18 @@ export default function AccountPage() {
   };
 
   // ── Export ───────────────────────────────────────────────────────────────
+  const EXPORT_COOLDOWN_MS = 60_000;
   const handleExport = async () => {
+    const lastKey = `export_last_${currentUser.id}`;
+    const last = parseInt(localStorage.getItem(lastKey) || "0", 10);
+    const remaining = Math.ceil((last + EXPORT_COOLDOWN_MS - Date.now()) / 1000);
+    if (remaining > 0) {
+      toast.error(`Please wait ${remaining}s before exporting again.`);
+      return;
+    }
     setExporting(true);
     try {
+      localStorage.setItem(lastKey, String(Date.now()));
       const data = await exportMyData(currentUser.id);
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url  = URL.createObjectURL(blob);
