@@ -15,6 +15,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
+  const [chatSending, setChatSending]   = useState(false);
   const [chatError, setChatError]       = useState("");
   const msgAreaRef   = useRef(null);
   const chatInputRef = useRef(null);
@@ -40,7 +41,12 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
         event: "INSERT", schema: "public", table: "chat_messages",
         filter: `company_id=eq.${companyId}&student_id=eq.${chatStudent.id}`,
       }, payload => {
-        setChatMessages(prev => [...prev, payload.new]);
+        const msg = payload.new;
+        setChatMessages(prev => {
+          // Deduplicate: skip if message with same id already present
+          if (prev.some(m => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
       })
       .subscribe();
 
@@ -53,12 +59,14 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
 
   const sendDM = async () => {
     const text = chatInput.trim();
-    if (!text || !chatStudent) return;
+    if (!text || !chatStudent || chatSending) return;
     const isFirst = chatMessages.length === 0;
-    setChatInput("");
+    setChatSending(true);
     setChatError("");
     try {
       await sendMessage(null, chatStudent.id, companyId, companyId, text);
+      // Only clear input after successful send so user can retry on failure
+      setChatInput("");
       // On first message, email the student
       if (isFirst) {
         const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: [chatStudent.id] });
@@ -77,6 +85,9 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       Sentry.captureException(e);
       console.error("Send failed:", e);
       setChatError(e.message || "Failed to send — please try again.");
+    } finally {
+      setChatSending(false);
+      chatInputRef.current?.focus();
     }
   };
 
@@ -122,17 +133,30 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
             </div>
           </div>
         )}
+        {chatInput.length > 3800 && (
+          <div style={{ padding: "0.25rem 1rem 0", backgroundColor: "white" }}>
+            <span style={{ fontSize: "0.72rem", color: chatInput.length >= 4000 ? "#ef4444" : "#f97316", fontWeight: 600 }}>
+              {chatInput.length}/4000 characters
+            </span>
+          </div>
+        )}
         <div style={{ padding: "0.75rem 1rem", borderTop: chatInput ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
           <input
             ref={chatInputRef}
+            aria-label={`Message ${chatStudent.name}`}
             value={chatInput}
-            onChange={e => setChatInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && sendDM()}
+            onChange={e => { if (e.target.value.length <= 4000) setChatInput(e.target.value); }}
+            onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendDM()}
             placeholder={`Message ${chatStudent.name}…`}
+            maxLength={4000}
             style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
           />
-          <button onClick={sendDM} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
-            Send
+          <button
+            onClick={sendDM}
+            disabled={!chatInput.trim() || chatSending}
+            aria-label="Send message"
+            style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: (!chatInput.trim() || chatSending) ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: (!chatInput.trim() || chatSending) ? 0.5 : 1 }}>
+            {chatSending ? "…" : "Send"}
           </button>
         </div>
       </div>

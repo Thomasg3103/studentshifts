@@ -29,7 +29,7 @@ BEGIN
     FROM students s
     JOIN profiles p ON p.id = s.id
     JOIN auth.users u ON u.id = s.id
-    WHERE s.status IN ('pending', 'pending_review')
+    WHERE s.status = 'pending_review'
     ORDER BY s.id
     LIMIT p_limit OFFSET p_offset;
 END;

@@ -28,8 +28,16 @@ export default function LoginPage() {
       if (window.gtag) window.gtag("event", "login", { method: "email" });
     } catch (e) {
       Sentry.captureException(e);
-      // Always show the same message to prevent email enumeration
-      setError("Invalid email or password.");
+      const msg = e.message || "";
+      if (msg.toLowerCase().includes("verify your email") || msg.toLowerCase().includes("email not confirmed")) {
+        // Surface this specifically — not a security risk (user already knows their email)
+        setError(msg);
+      } else if (msg.toLowerCase().includes("rate limit") || msg.toLowerCase().includes("too many")) {
+        setError("Too many login attempts. Please wait a moment and try again.");
+      } else {
+        // Generic message for wrong credentials — prevents email enumeration
+        setError("Invalid email or password.");
+      }
       setPassword("");
     } finally {
       setLoading(false);

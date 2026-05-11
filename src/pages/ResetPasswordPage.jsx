@@ -17,7 +17,7 @@ function isExpiredLinkError(e) {
 }
 
 export default function ResetPasswordPage() {
-  const { setPage } = useApp();
+  const { setPage, setPasswordRecoveryMode } = useApp();
   const [password, setPassword]   = useState("");
   const [confirm, setConfirm]     = useState("");
   const [error, setError]         = useState("");
@@ -25,7 +25,7 @@ export default function ResetPasswordPage() {
   const [success, setSuccess]     = useState(false);
   const [linkExpired, setLinkExpired] = useState(false);
 
-  // Detect missing/expired token early: Supabase sets the session via hash on PASSWORD_RECOVERY
+  // Detect missing/expired token early: Supabase sets the session via hash on PASSWORD_RECOVERY.
   // If there's no active session when this page loads (i.e. no hash token), show an expired state.
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -45,6 +45,8 @@ export default function ResetPasswordPage() {
       await updatePassword(password);
       // Sign out so the old session/token is invalidated after password change
       await supabase.auth.signOut();
+      // Clear the recovery guard so the route becomes inaccessible again
+      setPasswordRecoveryMode(false);
       setSuccess(true);
       setTimeout(() => setPage("login"), 2500);
     } catch (e) {
@@ -52,7 +54,9 @@ export default function ResetPasswordPage() {
       if (isExpiredLinkError(e)) {
         setLinkExpired(true);
       } else {
-        setError(e.message || "Failed to update password — please try again.");
+        setError("Failed to update password — please try again.");
+        setPassword("");
+        setConfirm("");
       }
     } finally {
       setLoading(false);

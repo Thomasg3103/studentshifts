@@ -1,20 +1,24 @@
 import { supabase, withTimeout, ensureValidSession } from "./supabase";
 
-/** Fetches a user's full profile (profiles + students/companies join). Retries once on timeout. */
+/** Fetches a user's full profile (profiles + students/companies join). Retries once on timeout.
+ *  Returns null if no profile row exists yet (e.g. DB trigger failed at signup). */
 export async function getProfile(userId) {
   const run = () => withTimeout(
     supabase.from("profiles").select("*, students(*), companies(*)").eq("id", userId).single(),
     20000, "Failed to load profile — please refresh."
   );
-  try {
+  const attempt = async () => {
     const { data, error } = await run();
+    // PGRST116 = "no rows returned" — profile row not created yet (trigger failed at signup)
+    if (error?.code === "PGRST116") return null;
     if (error) throw error;
     return data;
+  };
+  try {
+    return await attempt();
   } catch {
     // One auto-retry on timeout — Supabase cold starts can exceed 10 s
-    const { data, error } = await run();
-    if (error) throw error;
-    return data;
+    return await attempt();
   }
 }
 
@@ -39,21 +43,20 @@ export async function updateCompanyProfile(userId, updates) {
 export async function saveCompanyCroNumber(userId, croNumber) {
   if (!croNumber) return;
   await ensureValidSession();
-  const { error } = await supabase
-    .from("companies")
-    .update({ cro_number: croNumber })
-    .eq("id", userId)
-    .is("cro_number", null);
+  const { error } = await withTimeout(
+    supabase.from("companies").update({ cro_number: croNumber }).eq("id", userId).is("cro_number", null),
+    10000
+  );
   if (error) console.warn("CRO save failed:", error.message);
 }
 
 export async function saveCompanyIndustries(userId, industries) {
   if (!industries?.length) return;
   await ensureValidSession();
-  const { error } = await supabase
-    .from("companies")
-    .update({ industries })
-    .eq("id", userId);
+  const { error } = await withTimeout(
+    supabase.from("companies").update({ industries }).eq("id", userId),
+    10000
+  );
   if (error) console.warn("Industries save failed:", error.message);
 }
 

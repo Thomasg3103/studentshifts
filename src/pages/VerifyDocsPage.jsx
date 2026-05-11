@@ -124,7 +124,7 @@ export default function VerifyDocsPage() {
 
         <div style={{ backgroundColor: "#f8fafc", borderRadius: "0.85rem", padding: "1rem 1.25rem", border: "1px solid #e2e8f0" }}>
           <p style={{ margin: "0 0 0.75rem", fontSize: "0.76rem", color: "#64748b", lineHeight: 1.5 }}>
-            Accepted formats: JPG, PNG, WebP, PDF &nbsp;·&nbsp; Max size: 10 MB per file
+            Accepted formats: JPG, PNG, WebP, PDF, Word (.doc/.docx) &nbsp;·&nbsp; Max size: 10 MB per file
           </p>
           <FileUpload
             label="Student ID Card"

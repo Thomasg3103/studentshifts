@@ -147,7 +147,7 @@ export default function Header() {
                         <button aria-label="Applied jobs" onClick={() => setPage("appliedJobs")} style={{ ...navBtn(isApplied), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                           <DocumentIcon active={isApplied} color={isApplied ? "var(--color-brand)" : "white"} /> <span className="nav-label">Applied</span>
                         </button>
-                        {appliedJobs.length > 0 && <span className={`notif-dot${isApplied ? " notif-dot--active" : ""}`}>{appliedJobs.length}</span>}
+                        {notifCount > 0 && <span className={`notif-dot${isApplied ? " notif-dot--active" : ""}`}>{notifCount}</span>}
                       </div>
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button aria-label="Messages" onClick={() => setPage("messages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
@@ -231,6 +231,7 @@ export default function Header() {
           likedJobs={likedJobs}
           appliedJobs={appliedJobs}
           msgCount={msgCount}
+          notifCount={notifCount}
           currentUser={currentUser}
           optionalBadge={optionalBadge}
           pathname={location.pathname}
@@ -243,13 +244,14 @@ export default function Header() {
           setPage={setPage}
           pathname={location.pathname}
           msgCount={msgCount}
+          currentUser={currentUser}
         />
       )}
     </>
   );
 }
 
-function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUser, optionalBadge, pathname }) {
+function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, notifCount, currentUser, optionalBadge, pathname }) {
   const isHome     = pathname === "/" || pathname.startsWith("/jobs/");
   const isLiked    = pathname === "/liked";
   const isApplied  = pathname === "/applied";
@@ -287,7 +289,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
           <DocumentIcon active={isApplied} />
           Applied
         </button>
-        {appliedJobs.length > 0 && <span className="nav-dot">{appliedJobs.length}</span>}
+        {notifCount > 0 && <span className="nav-dot">{notifCount}</span>}
       </div>
 
       {/* Home — centre */}
@@ -320,7 +322,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
   );
 }
 
-function CompanyMobileBottomNav({ setPage, pathname, msgCount }) {
+function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
   const isBrowse   = pathname === "/";
   const isMessages = pathname === "/company/messages";
   const isMyJobs   = pathname === "/company";
@@ -343,7 +345,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount }) {
     }}>
       <button aria-label="Browse students" onClick={() => setPage("studentDashboard")} style={tab(isBrowse)}>
         <BrowseIcon active={isBrowse} />
-        Browse Home
+        Browse
       </button>
       <div style={{ flex: 1, position: "relative" }}>
         <button aria-label="Messages" onClick={() => setPage("companyMessages")} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
@@ -357,7 +359,10 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount }) {
         My Jobs
       </button>
       <button aria-label="Account" onClick={() => setPage("account")} style={tab(isAccount)}>
-        <PersonIcon color={isAccount ? "var(--color-brand)" : "#94a3b8"} />
+        {currentUser?.profilePhoto
+          ? <img loading="lazy" src={currentUser.profilePhoto} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
+          : <PersonIcon color={isAccount ? "var(--color-brand)" : "#94a3b8"} />
+        }
         Account
       </button>
     </nav>

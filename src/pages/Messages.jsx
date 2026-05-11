@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import toast from "react-hot-toast";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { fetchAcceptedConversations, fetchStudentDirectConversations, fetchMessages, sendMessage, fetchMessageCount } from "../lib/auth";
@@ -70,6 +71,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
   const [messages, setMessages]   = useState([]);
   const [input, setInput]         = useState("");
   const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [sending, setSending]     = useState(false);
   const [hasMore, setHasMore]     = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -102,12 +104,13 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
 
   useEffect(() => {
     setLoading(true);
+    setLoadError(false);
     setMessages([]);
     setHasMore(false);
 
     fetchMessages(jobId, studentId, companyId, { limit: PAGE_SIZE })
       .then(msgs => { setMessages(msgs); setHasMore(msgs.length === PAGE_SIZE); })
-      .catch(() => {})
+      .catch(() => { setLoadError(true); })
       .finally(() => setLoading(false));
 
     const channelName = isDirect ? `direct_${companyId}_${studentId}` : `msgs_${jobId}_${studentId}`;
@@ -178,6 +181,23 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
         )}
         {loading
           ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
+          : loadError
+            ? (
+              <div style={{ textAlign: "center", marginTop: "2rem" }}>
+                <p style={{ color: "#ef4444", fontWeight: 600, fontSize: "0.85rem", marginBottom: "0.5rem" }}>Couldn't load messages.</p>
+                <button
+                  onClick={() => {
+                    setLoadError(false);
+                    setLoading(true);
+                    fetchMessages(jobId, studentId, companyId, { limit: PAGE_SIZE })
+                      .then(msgs => { setMessages(msgs); setHasMore(msgs.length === PAGE_SIZE); })
+                      .catch(() => { setLoadError(true); })
+                      .finally(() => setLoading(false));
+                  }}
+                  style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--color-brand)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}
+                >Retry</button>
+              </div>
+            )
           : messages.length === 0
             ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Say hello!</p>
             : messages.map(m => (
@@ -195,7 +215,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
             ))
         }
       </div>
-      {!input && !loading && messages.length === 0 && (
+      {!input && !loading && !loadError && messages.length === 0 && (
         <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
           <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
@@ -305,7 +325,10 @@ export default function Messages() {
       </div>
 
       {loading ? (
-        <p style={{ textAlign: "center", color: "#6b7280", padding: "3rem 1rem" }}>Loading conversations…</p>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+          <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
+          <p style={{ fontWeight: 600 }}>Loading conversations…</p>
+        </div>
       ) : fetchError ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
           <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</p>

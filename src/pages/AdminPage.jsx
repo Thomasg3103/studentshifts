@@ -321,7 +321,7 @@ export default function AdminPage() {
                     <button
                       aria-label={`Approve ${s.name}`}
                       onClick={() => handleApproveStudent(s)}
-                      disabled={!!actionLoading || !s.studentIdUrl || !s.govIdUrl}
+                      disabled={actionLoading === s.id + "_approve" || actionLoading === s.id + "_reject" || !s.studentIdUrl || !s.govIdUrl}
                       title={!s.studentIdUrl || !s.govIdUrl ? "Cannot approve: documents not yet uploaded" : undefined}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: (actionLoading === s.id + "_approve" || !s.studentIdUrl || !s.govIdUrl) ? 0.5 : 1 }}
                     >
@@ -330,7 +330,7 @@ export default function AdminPage() {
                     <button
                       aria-label={`Reject ${s.name}`}
                       onClick={() => handleRejectStudent(s)}
-                      disabled={!!actionLoading}
+                      disabled={actionLoading === s.id + "_approve" || actionLoading === s.id + "_reject"}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === s.id + "_reject" ? 0.7 : 1 }}
                     >
                       {actionLoading === s.id + "_reject" ? "Rejecting…" : "❌ Reject"}
@@ -395,7 +395,7 @@ export default function AdminPage() {
                     <button
                       aria-label={`Approve ${c.name}`}
                       onClick={() => handleApproveCompany(c)}
-                      disabled={!!actionLoading || !c.croNumber} // S-H10: require CRO
+                      disabled={actionLoading === c.id + "_approve" || actionLoading === c.id + "_reject" || !c.croNumber} // S-H10: require CRO
                       title={!c.croNumber ? "Cannot approve: no CRO number provided" : undefined}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: (actionLoading === c.id + "_approve" || !c.croNumber) ? 0.5 : 1 }}
                     >
@@ -404,7 +404,7 @@ export default function AdminPage() {
                     <button
                       aria-label={`Reject ${c.name}`}
                       onClick={() => handleRejectCompany(c)}
-                      disabled={!!actionLoading}
+                      disabled={actionLoading === c.id + "_approve" || actionLoading === c.id + "_reject"}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === c.id + "_reject" ? 0.7 : 1 }}
                     >
                       {actionLoading === c.id + "_reject" ? "Rejecting…" : "❌ Reject"}

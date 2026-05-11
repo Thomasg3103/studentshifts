@@ -74,6 +74,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   const [hireLoading, setHireLoading] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
   const panelBodyRef = useRef(null);
+  useFocusTrap(panelBodyRef, onClose);
 
   const buildRounds = (a) => {
     const stored = Array.isArray(a.interviewRoundsData) ? a.interviewRoundsData : [];
@@ -163,16 +164,22 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
       <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.45)", zIndex: 1100, animation: "fadeInOverlay 0.18s ease" }} />
 
       {/* Panel */}
-      <div style={{
-        position: "fixed", top: 0, right: 0, bottom: 0,
-        width: "min(460px, 100vw)",
-        backgroundColor: "white",
-        zIndex: 1101,
-        display: "flex", flexDirection: "column",
-        boxShadow: "-8px 0 40px rgba(0,0,0,0.2)",
-        overflowY: "auto",
-        animation: "slideInRight 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-      }} ref={panelBodyRef}>
+      <div
+        ref={panelBodyRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${applicant.name} — applicant details`}
+        style={{
+          position: "fixed", top: 0, right: 0, bottom: 0,
+          width: "min(460px, 100vw)",
+          backgroundColor: "white",
+          zIndex: 1101,
+          display: "flex", flexDirection: "column",
+          boxShadow: "-8px 0 40px rgba(0,0,0,0.2)",
+          overflowY: "auto",
+          animation: "slideInRight 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+        }}
+      >
         {/* Header */}
         <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "flex-start", gap: "0.85rem", flexShrink: 0 }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>

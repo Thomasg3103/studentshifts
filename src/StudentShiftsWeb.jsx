@@ -154,6 +154,8 @@ export default function StudentShiftsWeb() {
   const [notifCount, setNotifCount]         = useState(0);
   const [msgCount, setMsgCount]             = useState(0);
   const [authLoading, setAuthLoading]       = useState(true);
+  // Set to true only when Supabase fires PASSWORD_RECOVERY; gates the /reset-password route
+  const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(false);
 
   // Restore session on page load + listen for auth changes
   useEffect(() => {
@@ -184,9 +186,18 @@ export default function StudentShiftsWeb() {
             const profile = await getProfile(session.user.id);
             const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
             setCurrentUser(user);
-            if (user.role === "admin")   { navigate("/admin", { replace: true }); }
-            else if (user.role === "company") { navigate("/company", { replace: true }); }
-            else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected")) { navigate("/verify", { replace: true }); }
+            // INITIAL_SESSION: only redirect if the user's current URL is wrong for their role.
+            // Preserves deep links (e.g. company refreshing /company/messages stays there).
+            const currPath = window.location.pathname;
+            if (user.role === "admin" && currPath !== "/admin") {
+              navigate("/admin", { replace: true });
+            } else if (user.role === "company" && user.verificationStatus === "verified" && !currPath.startsWith("/company") && currPath !== "/account") {
+              navigate("/company", { replace: true });
+            } else if (user.role === "company" && user.verificationStatus !== "verified" && currPath.startsWith("/company")) {
+              navigate("/", { replace: true });
+            } else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected" || user.verificationStatus === "pending_review")) {
+              navigate("/verify", { replace: true });
+            }
             if (user.role === "student") await loadStudentData(user.id);
           } catch (e) {
             Sentry.captureException(e);
@@ -231,6 +242,7 @@ export default function StudentShiftsWeb() {
         } catch { /* silently ignore — stale data not critical */ }
       }
       if (event === "PASSWORD_RECOVERY") {
+        setPasswordRecoveryMode(true);
         navigate("/reset-password", { replace: true });
         clearTimeout(failsafe);
         setAuthLoading(false);
@@ -347,6 +359,7 @@ export default function StudentShiftsWeb() {
     appStatuses,
     notifCount,
     msgCount, setMsgCount,
+    passwordRecoveryMode, setPasswordRecoveryMode,
   };
 
   if (authLoading) {
@@ -374,7 +387,7 @@ export default function StudentShiftsWeb() {
                   ? <LandingPage />
                   : currentUser?.role === "company" && currentUser?.verificationStatus !== "verified"
                   ? <PendingCompanyPage />
-                  : currentUser?.role === "student" && !currentUser?.studentIdPath
+                  : currentUser?.role === "student" && (!currentUser?.studentIdPath || currentUser?.verificationStatus === "pending_review" || currentUser?.verificationStatus === "rejected")
                   ? <VerifyDocsPage />
                   : <StudentDashboard restoreScrollY={restoreScrollY} />
               } />
@@ -392,9 +405,9 @@ export default function StudentShiftsWeb() {
 
               {/* Student pages */}
               <Route path="/account" element={currentUser?.role === "student" || currentUser?.role === "company" ? <AccountPage /> : <Navigate to="/login" replace />} />
-              <Route path="/liked"   element={currentUser?.role === "student" ? <LikedJobs /> : <Navigate to="/" replace />} />
-              <Route path="/applied" element={currentUser?.role === "student" ? <AppliedJobs /> : <Navigate to="/" replace />} />
-              <Route path="/messages" element={currentUser?.role === "student" ? <Messages /> : <Navigate to="/" replace />} />
+              <Route path="/liked"   element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <LikedJobs /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
+              <Route path="/applied" element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <AppliedJobs /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
+              <Route path="/messages" element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <Messages /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
               <Route path="/verify"  element={currentUser?.role === "student" ? <VerifyDocsPage /> : <Navigate to="/" replace />} />
 
               {/* Company pages */}

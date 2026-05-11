@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 import PageWrapper from "../components/PageWrapper";
 import { fetchCompanyConversations, fetchCompanyDirectConversations, fetchMessages, sendMessage, fetchMessageCount } from "../lib/auth";
 import { supabase } from "../lib/supabase";
@@ -156,6 +157,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
       setInput("");
     } catch (e) {
       console.error("Send failed:", e);
+      toast.error("Couldn't send message. Please try again.");
       // Input is NOT cleared on failure so user can retry
     } finally {
       setSending(false);
@@ -312,7 +314,10 @@ export default function CompanyMessages() {
       </div>
 
       {loading ? (
-        <p style={{ textAlign: "center", color: "#6b7280", padding: "3rem 1rem" }}>Loading conversations…</p>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+          <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
+          <p style={{ fontWeight: 600 }}>Loading conversations…</p>
+        </div>
       ) : fetchError ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
           <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</p>

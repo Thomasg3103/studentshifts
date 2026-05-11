@@ -1,7 +1,18 @@
 import { supabase, withTimeout } from "./supabase";
 
 export function toJobSlug(str) {
-  return str.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+  if (!str) return '';
+  // Decompose accented chars (e.g. é → e + combining accent) then strip combining marks
+  // so Irish names like "Óstán" slugify to "ostan" instead of being fully stripped.
+  const ascii = str.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const slug = ascii
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return slug;
 }
 
 export function fromJobSlug(slug) {
