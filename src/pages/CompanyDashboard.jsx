@@ -98,7 +98,7 @@ export default function CompanyDashboard() {
     ).then(({ data }) => {
       setApplicantStudentIds(new Set((data || []).map(a => a.student_id)));
     }).catch(e => console.warn("[CompanyDashboard] applicant IDs failed:", e));
-  }, [activeTab, loading]);
+  }, [activeTab, loading, postings]);
 
   // Load all verified students when Browse Students/Saved Students tab is opened,
   // or when the applicants view opens and there are liked students (to populate Shortlisted tab saved section)
@@ -167,10 +167,12 @@ export default function CompanyDashboard() {
     const results = studentIds.length ? await Promise.all(fetches) : [];
     if (results[0]) (results[0].data || []).forEach(p => { profileMap[p.id] = p; });
     if (results[1]) (results[1].data || []).forEach(s => { cvMap[s.id] = s; });
-    // Fetch preferred_shift separately â€" silently skip if column doesn't exist yet
+    // Fetch preferred_shift separately — silently skip if column doesn't exist yet
     if (appIds.length) {
-      const { data: shiftData } = await supabase
-        .from("applications").select("id, preferred_shift").in("id", appIds);
+      const { data: shiftData } = await withTimeout(
+        supabase.from("applications").select("id, preferred_shift").in("id", appIds),
+        10000
+      ).catch(() => ({ data: [] }));
       (shiftData || []).forEach(s => { shiftMap[s.id] = s.preferred_shift || null; });
     }
     const applicants = (appData || []).map(a => ({
@@ -198,7 +200,7 @@ export default function CompanyDashboard() {
   };
 
   const openCreate = () => {
-    setFormData({ title: "", category: "", location: "", pay: "", description: "", deadline: "", days: [], times: {}, weekendRequired: false, status: "Active", photos: [], photoFiles: [] });
+    setFormData({ title: "", category: "", location: "", pay: "", description: "", deadline: "", days: [], times: {}, weekendRequired: false, status: "Active", photos: [], photoFiles: [], lat: undefined, lng: undefined, sickPay: false, holidays: "" });
     setModal("form");
   };
 

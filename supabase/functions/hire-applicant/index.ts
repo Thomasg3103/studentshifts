@@ -236,7 +236,7 @@ Deno.serve(async (req: Request) => {
     const { data: companyProfile } = await adminClient
       .from("profiles").select("role, name").eq("id", user.id).single();
     if (companyProfile?.role !== "company") throw new Error("Unauthorised");
-    const companyName = companyProfile.name as string;
+    const companyName = (companyProfile.name as string) || "a company";
 
     const { applicationId, action, idempotencyKey } = await req.json();
     if (!applicationId || !["accept", "reject"].includes(action)) {

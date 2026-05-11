@@ -639,7 +639,7 @@ BEGIN
   IF NOT is_admin() THEN
     RAISE EXCEPTION 'Unauthorised: admin only';
   END IF;
-  UPDATE students SET status = 'rejected' WHERE id = student_id;
+  UPDATE students SET status = 'rejected' WHERE id = student_id AND status = 'pending_review';
   INSERT INTO audit_log (actor_id, action, target_id)
     VALUES (auth.uid(), 'reject_student', student_id);
 END;
@@ -672,7 +672,7 @@ BEGIN
   IF NOT is_admin() THEN
     RAISE EXCEPTION 'Unauthorised: admin only';
   END IF;
-  UPDATE companies SET status = 'rejected' WHERE id = company_id;
+  UPDATE companies SET status = 'rejected' WHERE id = company_id AND status = 'pending_review';
   INSERT INTO audit_log (actor_id, action, target_id)
     VALUES (auth.uid(), 'reject_company', company_id);
 END;
@@ -705,7 +705,7 @@ BEGIN
   SELECT COUNT(*) INTO daily_count FROM rpc_rate_log
     WHERE user_id = auth.uid() AND rpc_name = 'get_user_emails'
       AND called_at > now() - interval '24 hours';
-  IF daily_count >= 20 THEN
+  IF daily_count >= 200 THEN
     RAISE EXCEPTION 'Daily rate limit exceeded for email lookup';
   END IF;
   INSERT INTO rpc_rate_log(user_id, rpc_name) VALUES (auth.uid(), 'get_user_emails');
@@ -772,6 +772,8 @@ BEGIN
   DELETE FROM applications           WHERE student_id  = uid;
   DELETE FROM jobs                   WHERE company_id  = uid;
   DELETE FROM export_log             WHERE user_id     = uid;
+  DELETE FROM email_sends_log        WHERE user_id     = uid;
+  DELETE FROM rpc_rate_log           WHERE user_id     = uid;
   DELETE FROM students               WHERE id = uid;
   DELETE FROM companies              WHERE id = uid;
   DELETE FROM profiles               WHERE id = uid;
@@ -1292,8 +1294,8 @@ LIMIT 25;
 
 DROP FUNCTION IF EXISTS get_job_applicant_counts(uuid[]);
 DROP FUNCTION IF EXISTS get_job_applicant_counts(bigint[]);
-CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids bigint[])
-RETURNS TABLE(job_id bigint, applicant_count bigint)
+CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids uuid[])
+RETURNS TABLE(job_id uuid, applicant_count bigint)
 LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
 BEGIN
   IF auth.uid() IS NULL THEN

@@ -24,7 +24,7 @@ export function StudentAvailabilityRow({ availability }) {
           const earliest = slots.reduce((a, b) => a < b ? a : b);
           const latest   = slots.reduce((a, b) => a > b ? a : b);
           // Convert "09:00" → "9am" style
-          const fmt = (t) => { const [h] = t.split(":"); const n = parseInt(h); return n < 12 ? `${n}am` : n === 12 ? "12pm" : `${n - 12}pm`; };
+          const fmt = (t) => { const [h] = t.split(":"); const n = parseInt(h); if (n === 0) return "12am"; if (n < 12) return `${n}am`; if (n === 12) return "12pm"; return `${n - 12}pm`; };
           return (
             <div
               key={day}

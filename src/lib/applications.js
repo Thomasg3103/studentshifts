@@ -12,13 +12,19 @@ export async function fetchLikedJobIds(userId) {
 
 export async function likeJob(userId, jobId) {
   await ensureValidSession();
-  const { error } = await supabase.from("liked_jobs").insert({ student_id: userId, job_id: jobId });
+  const { error } = await withTimeout(
+    supabase.from("liked_jobs").insert({ student_id: userId, job_id: jobId }),
+    10000
+  );
   if (error && error.code !== "23505") throw error;
 }
 
 export async function unlikeJob(userId, jobId) {
   await ensureValidSession();
-  const { error } = await supabase.from("liked_jobs").delete().eq("student_id", userId).eq("job_id", jobId);
+  const { error } = await withTimeout(
+    supabase.from("liked_jobs").delete().eq("student_id", userId).eq("job_id", jobId),
+    10000
+  );
   if (error) throw error;
 }
 
@@ -36,10 +42,10 @@ export async function createApplication(userId, jobId, preferredShift = null) {
   await ensureValidSession();
   const payload = { student_id: userId, job_id: jobId };
   if (preferredShift) payload.preferred_shift = preferredShift;
-  const { error } = await supabase.from("applications").insert(payload);
+  const { error } = await withTimeout(supabase.from("applications").insert(payload), 10000);
   if (!error) return true;
   if (error.code === "42703" && preferredShift) {
-    const { error: e2 } = await supabase.from("applications").insert({ student_id: userId, job_id: jobId });
+    const { error: e2 } = await withTimeout(supabase.from("applications").insert({ student_id: userId, job_id: jobId }), 10000);
     if (!e2) return true;
     if (e2.code === "23505") return false;
     throw e2;
@@ -61,7 +67,10 @@ export async function fetchApplicationStatuses(userId) {
 
 export async function removeApplication(userId, jobId) {
   await ensureValidSession();
-  const { error } = await supabase.from("applications").delete().eq("student_id", userId).eq("job_id", jobId);
+  const { error } = await withTimeout(
+    supabase.from("applications").delete().eq("student_id", userId).eq("job_id", jobId),
+    10000
+  );
   if (error) throw error;
 }
 
@@ -77,10 +86,10 @@ export async function updateApplicationStage(applicationId, stage) {
 
 export async function saveApplicationNotes(applicationId, notes) {
   await ensureValidSession();
-  const { error } = await supabase
-    .from("applications")
-    .update({ company_notes: notes })
-    .eq("id", applicationId);
+  const { error } = await withTimeout(
+    supabase.from("applications").update({ company_notes: notes }).eq("id", applicationId),
+    10000
+  );
   if (error) throw error;
 }
 
@@ -133,28 +142,28 @@ export async function moveToInterviewRound(applicationId, round) {
 
 export async function fetchLikedStudentIds(companyId) {
   await ensureValidSession();
-  const { data, error } = await supabase
-    .from("company_liked_students")
-    .select("student_id")
-    .eq("company_id", companyId);
+  const { data, error } = await withTimeout(
+    supabase.from("company_liked_students").select("student_id").eq("company_id", companyId),
+    10000
+  );
   if (error) throw error;
   return (data || []).map(r => r.student_id);
 }
 
 export async function likeStudent(companyId, studentId) {
   await ensureValidSession();
-  const { error } = await supabase
-    .from("company_liked_students")
-    .insert({ company_id: companyId, student_id: studentId });
+  const { error } = await withTimeout(
+    supabase.from("company_liked_students").insert({ company_id: companyId, student_id: studentId }),
+    10000
+  );
   if (error && error.code !== "23505") throw error;
 }
 
 export async function unlikeStudent(companyId, studentId) {
   await ensureValidSession();
-  const { error } = await supabase
-    .from("company_liked_students")
-    .delete()
-    .eq("company_id", companyId)
-    .eq("student_id", studentId);
+  const { error } = await withTimeout(
+    supabase.from("company_liked_students").delete().eq("company_id", companyId).eq("student_id", studentId),
+    10000
+  );
   if (error) throw error;
 }

@@ -22,7 +22,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
 
   const confirm = async (opts) => {
     setConfirming(true);
-    try { await onCloseJob(opts); }
+    try { await onCloseJob(opts); onClose(); }
     catch { toast.error("Failed to close job. Please try again."); }
     finally { setConfirming(false); }
   };

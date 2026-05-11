@@ -27,7 +27,7 @@ function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }
 export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus }) {
   const isActive  = posting.status === "Active";
   const today     = new Date().toISOString().split("T")[0];
-  const isExpired = posting.status === "Closed" && posting.deadline && posting.deadline < today;
+  const isExpired = posting.status === "Expired";
   const rawPhoto  = posting.photos?.[0] || null;
   const photo     = rawPhoto ? `${rawPhoto}?width=400&quality=75` : null;
   const crop      = posting.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
