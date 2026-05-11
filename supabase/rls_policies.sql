@@ -1049,8 +1049,8 @@ LIMIT 25;
 
 DROP FUNCTION IF EXISTS get_job_applicant_counts(uuid[]);
 DROP FUNCTION IF EXISTS get_job_applicant_counts(bigint[]);
-CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids bigint[])
-RETURNS TABLE(job_id bigint, applicant_count bigint)
+CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids uuid[])
+RETURNS TABLE(job_id uuid, applicant_count bigint)
 LANGUAGE sql SECURITY DEFINER STABLE AS $$
   SELECT a.job_id, COUNT(*) AS applicant_count
   FROM applications a
@@ -1130,3 +1130,70 @@ CREATE POLICY "verification-docs: own delete" ON storage.objects
     bucket_id = 'verification-docs' AND
     auth.uid()::text = (storage.foldername(name))[1]
   );
+
+
+-- ================================================================
+-- FIX #18: Server-side file size + MIME type enforcement on buckets
+-- Mirrors the client-side checks in uploads.js so a rogue API call
+-- cannot bypass them by uploading directly to the storage API.
+-- ================================================================
+UPDATE storage.buckets SET
+  file_size_limit   = 5242880,  -- 5 MB
+  allowed_mime_types = ARRAY['image/jpeg','image/png','image/webp','image/gif']
+WHERE id = 'avatars';
+
+UPDATE storage.buckets SET
+  file_size_limit   = 10485760,  -- 10 MB
+  allowed_mime_types = ARRAY['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+WHERE id = 'documents';
+
+UPDATE storage.buckets SET
+  file_size_limit   = 10485760,  -- 10 MB
+  allowed_mime_types = ARRAY['application/pdf','application/msword','application/vnd.openxmlformats-officedocument.wordprocessingml.document','image/jpeg','image/png','image/webp','image/gif']
+WHERE id = 'verification-docs';
+
+UPDATE storage.buckets SET
+  file_size_limit   = 5242880,  -- 5 MB
+  allowed_mime_types = ARRAY['image/jpeg','image/png','image/webp','image/gif']
+WHERE id = 'job-photos';
+
+
+-- ================================================================
+-- FIX #20: DB CHECK constraints for user-supplied text fields
+-- Prevents oversized inputs from being stored even if client
+-- validation is bypassed via the API.
+-- ================================================================
+DO $$
+BEGIN
+  -- Student bio: max 500 characters
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'students_bio_length'
+  ) THEN
+    ALTER TABLE students ADD CONSTRAINT students_bio_length
+      CHECK (bio IS NULL OR char_length(bio) <= 500);
+  END IF;
+
+  -- Student LinkedIn: must look like a URL if set
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'students_linkedin_format'
+  ) THEN
+    ALTER TABLE students ADD CONSTRAINT students_linkedin_format
+      CHECK (linkedin IS NULL OR linkedin ~ '^https?://');
+  END IF;
+
+  -- Student skills: max 50 items in the array
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'students_skills_count'
+  ) THEN
+    ALTER TABLE students ADD CONSTRAINT students_skills_count
+      CHECK (skills IS NULL OR cardinality(skills) <= 50);
+  END IF;
+
+  -- Job description: max 10,000 characters
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'jobs_description_length'
+  ) THEN
+    ALTER TABLE jobs ADD CONSTRAINT jobs_description_length
+      CHECK (description IS NULL OR char_length(description) <= 10000);
+  END IF;
+END $$;

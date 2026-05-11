@@ -59,7 +59,7 @@ export async function getSignedDocumentUrl(bucket, path) {
       cleanPath = decodeURIComponent(path.slice(idx + marker.length).split("?")[0]);
     }
   }
-  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(cleanPath, 300);
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(cleanPath, 60);
   if (error) throw new Error(`Could not load document: ${error.message}`);
   return data.signedUrl;
 }
