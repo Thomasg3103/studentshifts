@@ -1,7 +1,7 @@
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { supabase } from "../lib/supabase";
-import { sendEmail, emailInterviewInvite, emailTrialInvite, updateApplicationStage, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound } from "../lib/auth";
+import { sendEmail, emailInterviewInvite, emailTrialInvite, updateApplicationStage, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, saveInterviewSchedule } from "../lib/auth";
 
 export function useHiringPipeline({ activePosting, setPostings, setActivePosting, currentUser }) {
   const applyToPosting = (updater) => {
@@ -113,13 +113,23 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
     if (!applicant) throw new Error("Applicant not found.");
     const studentEmail = await getStudentEmail(applicant.studentId);
     const jobTitle = activePosting?.title || "";
-    await sendEmail({
-      to: studentEmail,
-      subject: `Interview Invitation — ${jobTitle ? `${jobTitle} at ` : ""}${currentUser.name}`,
-      html: emailInterviewInvite(applicant.name, currentUser.name, jobTitle, date, time, note, teamsLink),
-      magicLinkEmail: studentEmail,
-      redirectTo: window.location.origin,
-    });
+    await Promise.all([
+      sendEmail({
+        to: studentEmail,
+        subject: `Interview Invitation — ${jobTitle ? `${jobTitle} at ` : ""}${currentUser.name}`,
+        html: emailInterviewInvite(applicant.name, currentUser.name, jobTitle, date, time, note, teamsLink),
+        magicLinkEmail: studentEmail,
+        redirectTo: window.location.origin,
+      }),
+      saveInterviewSchedule(applicationId, date, time).catch(() => {}),
+    ]);
+    applyToPosting(p => ({
+      ...p,
+      applicants: p.applicants.map(a => a.id === applicationId
+        ? { ...a, interviewDate: date, interviewTime: time }
+        : a
+      ),
+    }));
   };
 
   const handleSendTrialInvite = async (applicationId, date, time, note) => {

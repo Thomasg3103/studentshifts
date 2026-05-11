@@ -23,7 +23,7 @@ $$;
 -- recursive RLS evaluation (42P17) from the INSERT policy.
 -- ----------------------------------------------------------------
 CREATE OR REPLACE FUNCTION count_recent_applications(uid uuid)
-RETURNS bigint LANGUAGE sql SECURITY DEFINER STABLE AS $$
+RETURNS bigint LANGUAGE sql SECURITY DEFINER VOLATILE AS $$
   SELECT COUNT(*) FROM applications
   WHERE student_id = uid
     AND created_at > now() - interval '1 hour';
@@ -217,13 +217,19 @@ DROP POLICY IF EXISTS "applications: admin all"             ON applications;
 CREATE POLICY "applications: student own read" ON applications
   FOR SELECT USING (auth.uid() = student_id);
 
--- Student can apply for a job, only if verified and within rate limit (max 20 per hour).
--- Rate limit uses count_recent_applications() (SECURITY DEFINER) to avoid recursive RLS (42P17).
+-- Student can apply for a job, only if verified and within rate limit (max 20 per hour),
+-- and only if the job is Active with a deadline that hasn't passed.
 CREATE POLICY "applications: student own insert" ON applications
   FOR INSERT WITH CHECK (
     auth.uid() = student_id AND
     EXISTS (SELECT 1 FROM students WHERE id = auth.uid() AND status = 'verified') AND
-    count_recent_applications(auth.uid()) < 20
+    count_recent_applications(auth.uid()) < 20 AND
+    EXISTS (
+      SELECT 1 FROM jobs j
+      WHERE j.id = applications.job_id
+        AND j.status = 'Active'
+        AND (j.deadline IS NULL OR j.deadline >= current_date)
+    )
   );
 
 -- Student can only withdraw applications that are still Pending or Rejected (not Accepted)
@@ -377,7 +383,8 @@ CREATE POLICY "avatars: public read" ON storage.objects
 CREATE POLICY "avatars: own upload" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'avatars' AND
-    auth.uid()::text = (storage.foldername(name))[1]
+    auth.uid()::text = (storage.foldername(name))[1] AND
+    name NOT LIKE '%..%'
   );
 
 CREATE POLICY "avatars: own update" ON storage.objects
@@ -387,7 +394,8 @@ CREATE POLICY "avatars: own update" ON storage.objects
   )
   WITH CHECK (
     bucket_id = 'avatars' AND
-    auth.uid()::text = (storage.foldername(name))[1]
+    auth.uid()::text = (storage.foldername(name))[1] AND
+    name NOT LIKE '%..%'
   );
 
 CREATE POLICY "avatars: own delete" ON storage.objects
@@ -418,7 +426,8 @@ CREATE POLICY "documents: own read" ON storage.objects
 CREATE POLICY "documents: own upload" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'documents' AND
-    auth.uid()::text = (storage.foldername(name))[1]
+    auth.uid()::text = (storage.foldername(name))[1] AND
+    name NOT LIKE '%..%'
   );
 
 CREATE POLICY "documents: own update" ON storage.objects
@@ -428,7 +437,8 @@ CREATE POLICY "documents: own update" ON storage.objects
   )
   WITH CHECK (
     bucket_id = 'documents' AND
-    auth.uid()::text = (storage.foldername(name))[1]
+    auth.uid()::text = (storage.foldername(name))[1] AND
+    name NOT LIKE '%..%'
   );
 
 CREATE POLICY "documents: own delete" ON storage.objects
@@ -464,7 +474,8 @@ DROP POLICY IF EXISTS "verification-docs: admin read" ON storage.objects;
 CREATE POLICY "verification-docs: own upload" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'verification-docs' AND
-    auth.uid()::text = (storage.foldername(name))[1]
+    auth.uid()::text = (storage.foldername(name))[1] AND
+    name NOT LIKE '%..%'
   );
 
 -- Students can re-upload (upsert) their docs
@@ -475,7 +486,8 @@ CREATE POLICY "verification-docs: own update" ON storage.objects
   )
   WITH CHECK (
     bucket_id = 'verification-docs' AND
-    auth.uid()::text = (storage.foldername(name))[1]
+    auth.uid()::text = (storage.foldername(name))[1] AND
+    name NOT LIKE '%..%'
   );
 
 -- Students can read their own docs (e.g. to confirm upload)
@@ -509,7 +521,8 @@ CREATE POLICY "job-photos: public read" ON storage.objects
 CREATE POLICY "job-photos: own upload" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'job-photos' AND
-    auth.uid()::text = (storage.foldername(name))[1]
+    auth.uid()::text = (storage.foldername(name))[1] AND
+    name NOT LIKE '%..%'
   );
 
 CREATE POLICY "job-photos: own update" ON storage.objects
@@ -519,7 +532,8 @@ CREATE POLICY "job-photos: own update" ON storage.objects
   )
   WITH CHECK (
     bucket_id = 'job-photos' AND
-    auth.uid()::text = (storage.foldername(name))[1]
+    auth.uid()::text = (storage.foldername(name))[1] AND
+    name NOT LIKE '%..%'
   );
 
 CREATE POLICY "job-photos: own delete" ON storage.objects
@@ -580,12 +594,15 @@ BEGIN
         OR
         u.id = auth.uid()
         OR
-        (caller_role = 'company' AND EXISTS (
-          SELECT 1 FROM applications a
-          JOIN jobs j ON j.id = a.job_id
-          WHERE j.company_id = auth.uid()
-            AND a.student_id = u.id
-        ))
+        (caller_role = 'company' AND
+          EXISTS (SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified') AND
+          EXISTS (
+            SELECT 1 FROM applications a
+            JOIN jobs j ON j.id = a.job_id
+            WHERE j.company_id = auth.uid()
+              AND a.student_id = u.id
+          )
+        )
       );
 END;
 $$;
@@ -1056,17 +1073,24 @@ DECLARE
   user_role text := NEW.raw_user_meta_data->>'role';
   user_name text := COALESCE(NEW.raw_user_meta_data->>'name', 'User');
 BEGIN
+  -- Prevent admin self-assignment: only 'student' and 'company' are valid signup roles
+  IF user_role NOT IN ('student', 'company') THEN
+    user_role := 'student';
+  END IF;
+
   INSERT INTO public.profiles (id, name, role)
     VALUES (NEW.id, user_name, user_role)
     ON CONFLICT (id) DO NOTHING;
 
   IF user_role = 'student' THEN
+    -- 'pending' means docs not yet uploaded; becomes 'pending_review' after VerifyDocsPage upload
     INSERT INTO public.students (id, status)
       VALUES (NEW.id, 'pending')
       ON CONFLICT (id) DO NOTHING;
   ELSIF user_role = 'company' THEN
+    -- Companies have no doc upload step; go straight to admin review queue
     INSERT INTO public.companies (id, cro_number, status)
-      VALUES (NEW.id, NEW.raw_user_meta_data->>'cro_number', 'pending')
+      VALUES (NEW.id, NEW.raw_user_meta_data->>'cro_number', 'pending_review')
       ON CONFLICT (id) DO NOTHING;
   END IF;
 

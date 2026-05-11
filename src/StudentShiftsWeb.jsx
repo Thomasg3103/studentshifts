@@ -177,7 +177,7 @@ export default function StudentShiftsWeb() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "INITIAL_SESSION") {
-        if (session?.user) {
+        if (session?.user && session.user.email_confirmed_at) {
           try {
             const profile = await getProfile(session.user.id);
             const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });

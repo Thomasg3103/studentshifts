@@ -94,10 +94,11 @@ export async function deleteAccount() {
   const { data: { user } } = await supabase.auth.getUser();
   const uid = user?.id;
   if (uid) {
-    const [avatarRes, docRes, verifyRes] = await Promise.allSettled([
+    const [avatarRes, docRes, verifyRes, photoRes] = await Promise.allSettled([
       supabase.storage.from("avatars").list(uid),
       supabase.storage.from("documents").list(uid),
       supabase.storage.from("verification-docs").list(uid),
+      supabase.storage.from("job-photos").list(uid),
     ]);
     const deletes = [];
     if (avatarRes.status === "fulfilled" && avatarRes.value.data?.length) {
@@ -108,6 +109,9 @@ export async function deleteAccount() {
     }
     if (verifyRes.status === "fulfilled" && verifyRes.value.data?.length) {
       deletes.push(supabase.storage.from("verification-docs").remove(verifyRes.value.data.map(f => `${uid}/${f.name}`)));
+    }
+    if (photoRes.status === "fulfilled" && photoRes.value.data?.length) {
+      deletes.push(supabase.storage.from("job-photos").remove(photoRes.value.data.map(f => `${uid}/${f.name}`)));
     }
     await Promise.allSettled(deletes);
   }

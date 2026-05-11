@@ -7,6 +7,7 @@ import {
   fetchPendingCompanies, approveCompany, rejectCompany,
   sendEmail, emailStudentApproved, emailCompanyApproved,
 } from "../lib/auth";
+import { emailStudentRejected, emailCompanyRejected } from "../lib/emails";
 
 export default function AdminPage() {
   const [tab, setTab]           = useState("students");
@@ -62,12 +63,25 @@ export default function AdminPage() {
     }
   };
 
-  const handleRejectStudent = async (studentId) => {
+  const handleRejectStudent = async (student) => {
     if (!window.confirm("Reject this student's verification? They will be notified and can re-submit.")) return;
-    setActionLoading(studentId + "_reject");
+    setActionLoading(student.id + "_reject");
     try {
-      await rejectStudent(studentId);
-      setStudents(prev => prev.filter(s => s.id !== studentId));
+      await rejectStudent(student.id);
+      setStudents(prev => prev.filter(s => s.id !== student.id));
+      if (student.email) {
+        try {
+          await sendEmail({
+            to: student.email,
+            subject: "StudentShifts verification update",
+            html: emailStudentRejected(student.name),
+            magicLinkEmail: student.email,
+            redirectTo: window.location.origin,
+          });
+        } catch (e) {
+          console.warn("Rejection email failed:", e.message);
+        }
+      }
     } catch (e) {
       Sentry.captureException(e);
       toast.error("Failed to reject. Please try again.");
@@ -100,12 +114,23 @@ export default function AdminPage() {
     }
   };
 
-  const handleRejectCompany = async (companyId) => {
+  const handleRejectCompany = async (company) => {
     if (!window.confirm("Reject this company? They will need to contact support to re-apply.")) return;
-    setActionLoading(companyId + "_reject");
+    setActionLoading(company.id + "_reject");
     try {
-      await rejectCompany(companyId);
-      setCompanies(prev => prev.filter(c => c.id !== companyId));
+      await rejectCompany(company.id);
+      setCompanies(prev => prev.filter(c => c.id !== company.id));
+      if (company.email) {
+        try {
+          await sendEmail({
+            to: company.email,
+            subject: "StudentShifts company verification update",
+            html: emailCompanyRejected(company.name),
+          });
+        } catch (e) {
+          console.warn("Rejection email failed:", e.message);
+        }
+      }
     } catch (e) {
       Sentry.captureException(e);
       toast.error("Failed to reject. Please try again.");
@@ -207,7 +232,7 @@ export default function AdminPage() {
                     </button>
                     <button
                       aria-label={`Reject ${s.name}`}
-                      onClick={() => handleRejectStudent(s.id)}
+                      onClick={() => handleRejectStudent(s)}
                       disabled={!!actionLoading}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === s.id + "_reject" ? 0.7 : 1 }}
                     >
@@ -280,7 +305,7 @@ export default function AdminPage() {
                     </button>
                     <button
                       aria-label={`Reject ${c.name}`}
-                      onClick={() => handleRejectCompany(c.id)}
+                      onClick={() => handleRejectCompany(c)}
                       disabled={!!actionLoading}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === c.id + "_reject" ? 0.7 : 1 }}
                     >
