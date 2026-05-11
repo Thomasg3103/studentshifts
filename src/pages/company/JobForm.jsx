@@ -168,8 +168,8 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
 
       {/* Category */}
       <div>
-        <label style={labelStyle}>Job Category *</label>
-        <select value={formData.category || ""} onChange={handleCategoryChange} style={inputStyle}>
+        <label htmlFor="form-category" style={labelStyle}>Job Category *</label>
+        <select id="form-category" value={formData.category || ""} onChange={handleCategoryChange} style={inputStyle}>
           <option value="">Select a category…</option>
           {categoryNames.map(cat => (
             <option key={cat} value={cat}>{cat}</option>
@@ -179,8 +179,9 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
 
       {/* Title — locked until category chosen */}
       <div>
-        <label style={labelStyle}>Job Title *</label>
+        <label htmlFor="form-title" style={labelStyle}>Job Title *</label>
         <select
+          id="form-title"
           value={formData.title || ""}
           onChange={set("title")}
           disabled={!formData.category}
@@ -195,9 +196,10 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
 
       {/* Location with geocoding */}
       <div>
-        <label style={labelStyle}>Location * <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(Eircode or full address)</span></label>
+        <label htmlFor="form-location" style={labelStyle}>Location * <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(Eircode or full address)</span></label>
         <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
           <input
+            id="form-location"
             value={locInput}
             onChange={e => { setLocInput(e.target.value); setShowManual(false); setFormData(prev => ({ ...prev, location: e.target.value, lat: undefined, lng: undefined })); }}
             onKeyDown={e => e.key === "Enter" && handleFindLocation()}
@@ -236,10 +238,10 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         {showManual && (
           <div style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.25rem" }}>
             <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", marginBottom: "0.6rem" }}>Enter address manually</p>
-            <input value={manualLine1} onChange={e => setManualLine1(e.target.value)} placeholder="Address Line 1" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
-            <input value={manualLine2} onChange={e => setManualLine2(e.target.value)} placeholder="Address Line 2 (optional)" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
-            <input value={manualCity} onChange={e => setManualCity(e.target.value)} placeholder="Town / City" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
-            <input value={manualCounty} onChange={e => setManualCounty(e.target.value)} onKeyDown={e => e.key === "Enter" && handleManualGeocode()} placeholder="County" style={{ ...inputStyle, marginBottom: "0.6rem" }} />
+            <input aria-label="Address line 1" value={manualLine1} onChange={e => setManualLine1(e.target.value)} placeholder="Address Line 1" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
+            <input aria-label="Address line 2" value={manualLine2} onChange={e => setManualLine2(e.target.value)} placeholder="Address Line 2 (optional)" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
+            <input aria-label="Town or city" value={manualCity} onChange={e => setManualCity(e.target.value)} placeholder="Town / City" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
+            <input aria-label="County" value={manualCounty} onChange={e => setManualCounty(e.target.value)} onKeyDown={e => e.key === "Enter" && handleManualGeocode()} placeholder="County" style={{ ...inputStyle, marginBottom: "0.6rem" }} />
             <div style={{ display: "flex", gap: "0.5rem" }}>
               <button type="button" onClick={handleManualGeocode} disabled={locLoading} style={{ flex: 1, padding: "0.5rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.8rem", cursor: locLoading ? "not-allowed" : "pointer" }}>
                 {locLoading ? "Finding…" : "Find Address"}
@@ -252,10 +254,11 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         )}
       </div>
       <div>
-        <label style={labelStyle}>Pay *</label>
+        <label htmlFor="form-pay" style={labelStyle}>Pay *</label>
         <div style={{ position: "relative" }}>
           <span style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "#374151", fontWeight: "600", pointerEvents: "none" }}>€</span>
           <input
+            id="form-pay"
             type="number"
             min="0"
             max="999"
@@ -293,8 +296,9 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
 
       {/* Holidays */}
       <div>
-        <label style={labelStyle}>Holiday Entitlement <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(optional)</span></label>
+        <label htmlFor="form-holidays" style={labelStyle}>Holiday Entitlement <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(optional)</span></label>
         <input
+          id="form-holidays"
           type="text"
           value={formData.holidays || ""}
           onChange={e => setFormData(prev => ({ ...prev, holidays: e.target.value }))}
@@ -304,8 +308,9 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       </div>
 
       <div>
-        <label style={labelStyle}>Application Deadline <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(optional)</span></label>
+        <label htmlFor="form-deadline" style={labelStyle}>Application Deadline <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(optional)</span></label>
         <input
+          id="form-deadline"
           type="date"
           value={formData.deadline || ""}
           onChange={set("deadline")}
@@ -374,6 +379,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
                 <div key={day} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
                   <span style={{ minWidth: "88px", fontSize: "0.875rem", fontWeight: "600", color: isWeekend ? "#d97706" : "#374151" }}>{day}</span>
                   <select
+                    aria-label={`${day} shift start time`}
                     value={formData.times?.[day] || ""}
                     onChange={e => setFormData(prev => ({ ...prev, times: { ...prev.times, [day]: e.target.value } }))}
                     style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
@@ -470,8 +476,8 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
 
       {isEdit && (
         <div>
-          <label style={labelStyle}>Status</label>
-          <select value={formData.status} onChange={set("status")} style={inputStyle}>
+          <label htmlFor="form-status" style={labelStyle}>Status</label>
+          <select id="form-status" value={formData.status} onChange={set("status")} style={inputStyle}>
             <option value="Active">Active</option>
             <option value="Closed">Closed</option>
           </select>
