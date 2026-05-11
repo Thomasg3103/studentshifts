@@ -11,6 +11,16 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
  */
 const FRONTEND_URL = Deno.env.get("FRONTEND_URL") || "https://studentshifts.onrender.com";
 
+/** UUID v4 regex */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** fetch() wrapper that aborts after `ms` milliseconds */
+function fetchWithTimeout(url: string, init: RequestInit, ms = 10_000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...init, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": FRONTEND_URL,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -188,7 +198,7 @@ async function sendBrevoEmail(
 ): Promise<void> {
   let finalHtml = html;
   if (magicLinkEmail) {
-    const linkRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+    const linkRes = await fetchWithTimeout(`${supabaseUrl}/auth/v1/admin/generate_link`, {
       method: "POST",
       headers: { "apikey": serviceKey, "Authorization": `Bearer ${serviceKey}`, "Content-Type": "application/json" },
       body: JSON.stringify({ type: "magiclink", email: magicLinkEmail, options: { redirect_to: FRONTEND_URL } }),
@@ -198,7 +208,7 @@ async function sendBrevoEmail(
     finalHtml = html.replaceAll("MAGIC_LINK_PLACEHOLDER", linkData.action_link);
   }
   const safeSubject = String(subject).replace(/[\r\n]/g, "");
-  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+  const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: { "api-key": apiKey, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -238,10 +248,17 @@ Deno.serve(async (req: Request) => {
     if (companyProfile?.role !== "company") throw new Error("Unauthorised");
     const companyName = (companyProfile.name as string) || "a company";
 
-    const { applicationId, action, idempotencyKey } = await req.json();
-    if (!applicationId || !["accept", "reject"].includes(action)) {
+    const { applicationId, action, idempotencyKey: rawIdempotencyKey } = await req.json();
+    if (!applicationId || typeof applicationId !== "string" || !UUID_RE.test(applicationId)) {
       throw new Error("Missing required fields: applicationId, action");
     }
+    if (!["accept", "reject"].includes(action)) {
+      throw new Error("Missing required fields: applicationId, action");
+    }
+    // Cap idempotency key length to prevent oversized DB writes
+    const idempotencyKey = typeof rawIdempotencyKey === "string"
+      ? rawIdempotencyKey.slice(0, 256)
+      : undefined;
 
     // Rate limit: max 10 hire/reject actions per company per minute
     const { count: recentCount } = await adminClient

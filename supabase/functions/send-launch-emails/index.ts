@@ -10,6 +10,13 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const FRONTEND_URL = Deno.env.get("FRONTEND_URL") || "https://studentshifts.onrender.com";
 
+/** fetch() wrapper that aborts after `ms` milliseconds */
+function fetchWithTimeout(url: string, init: RequestInit, ms = 10_000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...init, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin":  FRONTEND_URL,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -62,7 +69,7 @@ Deno.serve(async (req: Request) => {
         `&name=${encodeURIComponent(signup.name)}`;
 
       try {
-        const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
           method: "POST",
           headers: { "api-key": apiKey, "Content-Type": "application/json" },
           body: JSON.stringify({

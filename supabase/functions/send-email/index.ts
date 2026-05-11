@@ -6,11 +6,22 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
  *   OR { type: "new-applicant", jobId: string } — sends new-applicant notification to the company
  * Auth: company or admin JWT (Authorization header)
  * Rate limit: 60 emails per 5 minutes per user (email_sends_log table)
+ *   new-applicant path shares the same rate-limit bucket (student callers).
  * magicLinkEmail: if provided, generates a Supabase magic link and injects it at MAGIC_LINK_PLACEHOLDER in html
  * redirectTo: must start with an allowed origin (FRONTEND_URL or studentshifts.ie)
  * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, BREVO_API_KEY, FRONTEND_URL
  */
 const FRONTEND_URL = Deno.env.get("FRONTEND_URL") || "https://studentshifts.onrender.com";
+
+/** UUID v4 regex — used to validate IDs before passing to DB queries */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** fetch() wrapper that aborts after `ms` milliseconds */
+function fetchWithTimeout(url: string, init: RequestInit, ms = 10_000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...init, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": FRONTEND_URL,
@@ -104,11 +115,35 @@ Deno.serve(async (req: Request) => {
 
     const body = await req.json();
 
-    // ── new-applicant notification (student caller, fire-and-forget safe) ──
+    // ── new-applicant notification (student caller) ──
     if (body.type === "new-applicant") {
       if (profile?.role !== "student") throw new Error("Unauthorised");
       const { jobId } = body;
-      if (!jobId || typeof jobId !== "string") throw new Error("Missing required field: jobId");
+      if (!jobId || typeof jobId !== "string" || !UUID_RE.test(jobId)) {
+        throw new Error("Missing required field: jobId");
+      }
+
+      // Rate limit: same 60/5-min bucket shared with company senders
+      const windowStart = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      const { count: studentCount } = await adminClient
+        .from("email_sends_log")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("sent_at", windowStart);
+      if ((studentCount ?? 0) >= 60) {
+        throw new Error("Rate limit exceeded. Please wait before sending more emails.");
+      }
+
+      // Verify the student actually has an application for this job (prevents notification spam
+      // by sending new-applicant for jobs the caller never applied to)
+      const { data: appCheck } = await adminClient
+        .from("applications")
+        .select("id")
+        .eq("job_id", jobId)
+        .eq("student_id", user.id)
+        .limit(1)
+        .maybeSingle();
+      if (!appCheck) throw new Error("Unauthorised");
 
       // Look up job title and company_id
       const { data: job, error: jobErr } = await adminClient
@@ -116,11 +151,11 @@ Deno.serve(async (req: Request) => {
         .select("title, company_id")
         .eq("id", jobId)
         .single();
-      if (jobErr || !job) throw new Error("Job not found");
+      if (jobErr || !job) throw new Error("Unauthorised");
 
       // Get company email from auth.users (service_role access)
       const { data: companyAuthUser, error: companyAuthErr } = await adminClient.auth.admin.getUserById(job.company_id);
-      if (companyAuthErr || !companyAuthUser?.user?.email) throw new Error("Company email not found");
+      if (companyAuthErr || !companyAuthUser?.user?.email) throw new Error("Unauthorised");
       const companyEmail = companyAuthUser.user.email;
 
       // Get company name from profiles
@@ -144,9 +179,10 @@ Deno.serve(async (req: Request) => {
 
       const dashboardUrl = FRONTEND_URL;
       const html = emailNewApplicant(companyName, job.title, studentName, dashboardUrl);
-      const safeSubject = `New applicant for ${job.title}`;
+      // Strip newlines from job title to prevent SMTP header injection
+      const safeSubject = `New applicant for ${String(job.title).replace(/[\r\n]/g, "")}`;
 
-      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -159,6 +195,9 @@ Deno.serve(async (req: Request) => {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Brevo API error");
+
+      // Log this send so the rate-limit counter is accurate
+      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -225,7 +264,7 @@ Deno.serve(async (req: Request) => {
     // If magicLinkEmail is provided, generate a one-click login link and inject it
     let finalHtml = html;
     if (magicLinkEmail) {
-      const linkRes = await fetch(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+      const linkRes = await fetchWithTimeout(`${supabaseUrl}/auth/v1/admin/generate_link`, {
         method: "POST",
         headers: {
           "apikey": serviceKey,
@@ -246,7 +285,7 @@ Deno.serve(async (req: Request) => {
     // Strip newlines from subject to prevent SMTP header injection
     const safeSubject = String(subject).replace(/[\r\n]/g, "");
 
-    const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+    const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
         "api-key": apiKey,
@@ -270,8 +309,16 @@ Deno.serve(async (req: Request) => {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     // Only surface expected user-facing errors; swallow internal details
-    const safe = ["Unauthorised", "Missing required fields", "Invalid redirectTo", "Failed to generate magic link", "Rate limit exceeded"]
-      .some(prefix => msg.startsWith(prefix)) ? msg : "Internal server error";
+    const SAFE_PREFIXES = [
+      "Unauthorised",
+      "Missing required fields",
+      "Missing required field",
+      "Invalid redirectTo",
+      "Failed to generate magic link",
+      "Rate limit exceeded",
+      "Invalid email address",
+    ];
+    const safe = SAFE_PREFIXES.some(prefix => msg.startsWith(prefix)) ? msg : "Internal server error";
     console.error("send-email error:", msg);
     return new Response(JSON.stringify({ error: safe }), {
       status: safe === "Internal server error" ? 500 : 400,

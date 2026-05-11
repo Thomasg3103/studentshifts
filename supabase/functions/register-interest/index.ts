@@ -12,6 +12,13 @@ const ALLOWED_ORIGINS = [
   "https://www.studentshifts.ie",
 ];
 
+/** fetch() wrapper that aborts after `ms` milliseconds */
+function fetchWithTimeout(url: string, init: RequestInit, ms = 10_000): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  return fetch(url, { ...init, signal: ctrl.signal }).finally(() => clearTimeout(timer));
+}
+
 function corsHeaders(origin: string | null) {
   const allowed = ALLOWED_ORIGINS.includes(origin ?? "") ? origin! : ALLOWED_ORIGINS[0];
   return {
@@ -70,7 +77,7 @@ Deno.serve(async (req: Request) => {
     // Send confirmation email via Brevo (fire-and-forget; don't fail the response if it errors)
     const apiKey = Deno.env.get("BREVO_API_KEY");
     if (apiKey && insertError?.code !== "23505") {
-      fetch("https://api.brevo.com/v3/smtp/email", {
+      fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
         body: JSON.stringify({
