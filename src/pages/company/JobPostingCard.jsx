@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 
 function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }) {
   const ref = useRef(null);
@@ -25,30 +25,43 @@ function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }
 }
 
 export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus }) {
-  const isActive = posting.status === "Active";
-  const today = new Date().toISOString().split("T")[0];
+  const isActive  = posting.status === "Active";
+  const today     = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Closed" && posting.deadline && posting.deadline < today;
-  const photo = posting.photos?.[0] || null;
-  const crop  = posting.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
-  const [hovered, setHovered] = useState(false);
-  const [confirmClose, setConfirmClose] = useState(false);
+  const photo     = posting.photos?.[0] || null;
+  const crop      = posting.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
+  const [hovered,       setHovered]       = useState(false);
+  const [confirmClose,  setConfirmClose]  = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const deadlineClose = posting.deadline && posting.deadline > today && (new Date(posting.deadline) - new Date(today)) / 86400000 <= 3;
+
+  const deadlineLabel = posting.deadline
+    ? new Date(posting.deadline + "T00:00:00").toLocaleDateString("en-IE", { day: "numeric", month: "short" })
+    : null;
+
+  const actionBtn = {
+    padding: "0.32rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem",
+    background: "white", cursor: "pointer", color: "#374151",
+    fontSize: "0.76rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap",
+  };
+
   return (
     <div
       className="job-posting-card"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={{
-        borderRadius: "0.75rem", overflow: "hidden",
-        backgroundColor: "white", border: `1px solid ${isExpired ? "#fca5a5" : "#e2e8f0"}`,
+        borderRadius: "0.85rem", overflow: "hidden",
+        backgroundColor: "white",
+        border: `1.5px solid ${isExpired ? "#fca5a5" : hovered ? "#cbd5e1" : "#e2e8f0"}`,
         display: "flex", alignItems: "stretch",
-        opacity: isActive ? 1 : 0.8,
-        boxShadow: hovered ? "0 4px 20px rgba(0,0,0,0.08)" : "0 1px 4px rgba(0,0,0,0.04)",
-        transition: "box-shadow 0.18s",
+        opacity: isActive ? 1 : 0.82,
+        boxShadow: hovered ? "0 6px 24px rgba(0,0,0,0.09)" : "0 1px 4px rgba(0,0,0,0.04)",
+        transition: "box-shadow 0.18s, border-color 0.18s",
       }}>
+
       {/* Square photo */}
-      <div style={{ width: "160px", flexShrink: 0, position: "relative", overflow: "hidden", alignSelf: "stretch" }}>
+      <div style={{ width: "140px", flexShrink: 0, position: "relative", overflow: "hidden", alignSelf: "stretch" }}>
         {photo ? (
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
             <img loading="lazy" src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -61,93 +74,100 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
       </div>
 
       {/* Main content */}
-      <div style={{ flex: 1, padding: "1rem 1.25rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.25rem" }}>
-            <h2
-              onClick={onViewApplicants}
-              style={{ fontWeight: "700", fontSize: "1.05rem", margin: 0, cursor: "pointer", color: "#0f172a", transition: "color 0.15s" }}
-              onMouseEnter={e => e.currentTarget.style.color = "var(--color-brand)"}
-              onMouseLeave={e => e.currentTarget.style.color = "#0f172a"}
-            >
-              {posting.title}
-            </h2>
-            <span className={`badge badge-tag ${isActive ? "badge-green" : isExpired ? "badge-red" : "badge-gray"}`} style={{ textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0 }}>
-              {isExpired ? "Expired" : posting.status}
-            </span>
-          </div>
-          <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "0.6rem", margin: "0 0 0.6rem" }}>
-            {posting.location} · {posting.pay}
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-            {posting.days.map(day => {
-              const isFilled = (posting.filledShifts || []).includes(day);
-              return (
-                <span key={day} className={`badge badge-tag ${isFilled ? "badge-gray" : "badge-blue"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }}>
-                  {day.slice(0, 3)}{posting.times?.[day] ? ` · ${posting.times[day]}` : ""}
-                  {isFilled ? " ✓" : ""}
-                </span>
-              );
-            })}
-            {posting.weekendRequired && (
-              <span className="badge badge-tag badge-yellow">Weekend</span>
-            )}
-          </div>
+      <div style={{ flex: 1, padding: "1rem 1.25rem", minWidth: 0, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+
+        {/* Title + status badge */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+          <h2 style={{ fontWeight: "700", fontSize: "1.05rem", margin: 0, color: "#0f172a", lineHeight: 1.3 }}>
+            {posting.title}
+          </h2>
+          <span className={`badge badge-tag ${isActive ? "badge-green" : isExpired ? "badge-red" : "badge-gray"}`} style={{ textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0 }}>
+            {isExpired ? "Expired" : posting.status}
+          </span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginTop: "0.75rem" }}>
-          <p style={{ fontSize: "0.8rem", color: "#374151", fontWeight: "600", margin: 0 }}>
-            {posting.applicantCount} applicant{posting.applicantCount !== 1 ? "s" : ""}
-          </p>
-          {posting.deadline && (
-            <p style={{ fontSize: "0.72rem", fontWeight: "600", margin: 0, color: deadlineClose ? "#d97706" : "#94a3b8" }}>
-              {deadlineClose ? "⚠ " : ""}Closes {posting.deadline}
-            </p>
+
+        {/* Location · pay */}
+        <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>
+          {posting.location} · {posting.pay}
+        </p>
+
+        {/* Day pills */}
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+          {posting.days.map(day => {
+            const isFilled = (posting.filledShifts || []).includes(day);
+            return (
+              <span key={day} className={`badge badge-tag ${isFilled ? "badge-gray" : "badge-blue"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }}>
+                {day.slice(0, 3)}{posting.times?.[day] ? ` · ${posting.times[day]}` : ""}
+                {isFilled ? " ✓" : ""}
+              </span>
+            );
+          })}
+          {posting.weekendRequired && <span className="badge badge-tag badge-yellow">Weekend</span>}
+        </div>
+
+        {/* Bottom row: View Applicants CTA + deadline + secondary actions */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "auto", flexWrap: "wrap" }}>
+          <button
+            onClick={onViewApplicants}
+            style={{
+              padding: "0.42rem 1rem", borderRadius: "2rem",
+              background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))",
+              color: "white", border: "none", cursor: "pointer",
+              fontSize: "0.8rem", fontWeight: "700", fontFamily: "inherit", whiteSpace: "nowrap",
+            }}
+          >
+            {posting.applicantCount > 0
+              ? `View ${posting.applicantCount} applicant${posting.applicantCount !== 1 ? "s" : ""} →`
+              : "View applicants →"}
+          </button>
+
+          {deadlineLabel && (
+            <span style={{ fontSize: "0.75rem", fontWeight: "600", color: deadlineClose ? "#d97706" : "#94a3b8", whiteSpace: "nowrap" }}>
+              {deadlineClose ? "⚠ " : ""}Closes {deadlineLabel}
+            </span>
           )}
+
+          {/* Secondary actions */}
+          <div style={{ display: "flex", gap: "0.35rem", marginLeft: "auto" }}>
+            <button onClick={onEdit} aria-label={`Edit ${posting.title}`} style={actionBtn}>Edit</button>
+            <button
+              aria-label={isActive ? `Close ${posting.title}` : `Reopen ${posting.title}`}
+              onClick={isActive ? () => setConfirmClose(true) : onToggleStatus}
+              style={actionBtn}
+            >
+              {isActive ? "Close" : "Reopen"}
+            </button>
+            <button
+              aria-label={`Delete ${posting.title}`}
+              onClick={() => setConfirmDelete(true)}
+              style={{ ...actionBtn, border: "1px solid #fca5a5", color: "#dc2626" }}
+            >
+              Delete
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* Right action column */}
-      <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "0.85rem 0.85rem 0.85rem 0", gap: "0.5rem", flexShrink: 0 }}>
-        <button
-          onClick={onEdit}
-          aria-label={`Edit ${posting.title}`}
-          style={{ padding: "0.35rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}
-        >
-          Edit
-        </button>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
-          <button
-            aria-label={isActive ? `Close ${posting.title}` : `Reopen ${posting.title}`}
-            onClick={isActive ? () => setConfirmClose(true) : onToggleStatus}
-            style={{ padding: "0.38rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#374151", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}
-          >
-            {isActive ? "Close Job" : "Reopen"}
-          </button>
-          <button aria-label={`Delete ${posting.title}`} onClick={() => setConfirmDelete(true)} style={{ padding: "0.38rem 0.7rem", border: "1px solid #fca5a5", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#dc2626", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-            Delete
-          </button>
-        </div>
-        {confirmClose && (
-          <ConfirmDialog
-            title="Close this job?"
-            body="The posting will be hidden from students. You can reopen it at any time."
-            emoji="⚠️"
-            confirmLabel="Yes, Close"
-            onConfirm={() => { onToggleStatus(); setConfirmClose(false); }}
-            onCancel={() => setConfirmClose(false)}
-          />
-        )}
-        {confirmDelete && (
-          <ConfirmDialog
-            title="Delete this job?"
-            body="This will permanently remove the posting and all its applicants. This cannot be undone."
-            emoji="🗑️"
-            confirmLabel="Yes, Delete"
-            onConfirm={() => { onDelete(); setConfirmDelete(false); }}
-            onCancel={() => setConfirmDelete(false)}
-          />
-        )}
-      </div>
+      {confirmClose && (
+        <ConfirmDialog
+          title="Close this job?"
+          body="The posting will be hidden from students. You can reopen it at any time."
+          emoji="⚠️"
+          confirmLabel="Yes, Close"
+          onConfirm={() => { onToggleStatus(); setConfirmClose(false); }}
+          onCancel={() => setConfirmClose(false)}
+        />
+      )}
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete this job?"
+          body="This will permanently remove the posting and all its applicants. This cannot be undone."
+          emoji="🗑️"
+          confirmLabel="Yes, Delete"
+          onConfirm={() => { onDelete(); setConfirmDelete(false); }}
+          onCancel={() => setConfirmDelete(false)}
+        />
+      )}
     </div>
   );
 }

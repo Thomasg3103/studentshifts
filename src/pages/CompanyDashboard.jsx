@@ -373,12 +373,12 @@ export default function CompanyDashboard() {
       )}
 
       {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", gap: "1rem", flexWrap: "wrap" }}>
         <div>
-          <p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Dashboard</p>
+          <p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Company Dashboard</p>
           <h1 style={{ fontSize: "1.65rem", fontWeight: "800", margin: 0, color: "#0f172a", letterSpacing: "-0.02em" }}>{currentUser?.name || "Company"}</h1>
         </div>
-        {isVerified && activeTab === "jobs" && <button onClick={openCreate} style={btnGreen}>+ New Job</button>}
+        {isVerified && activeTab === "jobs" && <button onClick={openCreate} style={{ ...btnGreen, borderRadius: "2rem", padding: "0.55rem 1.4rem", fontSize: "0.9rem" }}>+ New Job</button>}
       </div>
 
       {/* Tab bar */}
@@ -473,17 +473,17 @@ export default function CompanyDashboard() {
       {/* Postings â€” jobs tab only */}
       {activeTab === "jobs" && (
         loading ? (
-          <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#64748b" }}>
+          <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#64748b", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
             <p style={{ fontWeight: "600" }}>Loading your job postingsâ€¦</p>
           </div>
         ) : postings.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280" }}>
+          <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
             <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>ðŸ“‹</div>
             <p style={{ fontSize: "1.15rem", fontWeight: "700", color: "#1e293b", marginBottom: "0.4rem" }}>No job postings yet</p>
             <p style={{ marginBottom: "1.75rem", fontSize: "0.9rem", color: "#94a3b8" }}>
               {isVerified ? "Create your first posting to start receiving applicants." : "Your account must be verified before you can post jobs."}
             </p>
-            {isVerified && <button onClick={openCreate} style={btnGreen}>+ Create Job Posting</button>}
+            {isVerified && <button onClick={openCreate} style={{ ...btnGreen, borderRadius: "2rem", padding: "0.55rem 1.4rem" }}>+ Create Job Posting</button>}
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>

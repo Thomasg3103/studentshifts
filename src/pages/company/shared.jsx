@@ -48,11 +48,20 @@ export function StudentAvailabilityRow({ availability }) {
   );
 }
 
+const STAT_ACCENT = {
+  "Total Postings":   { border: "#6366f1", bg: "#eef2ff" },
+  "Active":           { border: "#10b981", bg: "#ecfdf5" },
+  "Closed":           { border: "#94a3b8", bg: "#f8fafc" },
+  "Total Applicants": { border: "var(--color-brand)", bg: "#fce7f3" },
+};
+
 export function StatCard({ label, value }) {
+  const accent = STAT_ACCENT[label] || { border: "#e2e8f0", bg: "white" };
   return (
     <div style={{
       flex: "1", minWidth: "110px",
-      backgroundColor: "white", border: "1px solid #e2e8f0",
+      backgroundColor: "white", border: "1.5px solid #e2e8f0",
+      borderTop: `3px solid ${accent.border}`,
       borderRadius: "0.75rem", padding: "1rem 1.25rem",
       boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
     }}>
