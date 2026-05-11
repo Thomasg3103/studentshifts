@@ -171,6 +171,7 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [windowWidth,  setWindowWidth]  = useState(window.innerWidth);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [sortDropdownOpen, setSortDropdownOpen] = useState(false);
+  const [sortDropsUp,      setSortDropsUp]      = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const searchInputRef = useRef(null);
   const sortDropdownRef = useRef(null);
@@ -646,13 +647,17 @@ export default function StudentDashboard({ restoreScrollY }) {
               )}
               <div style={{ position: "relative" }} ref={sortDropdownRef}>
                 <button
-                  onClick={() => setSortDropdownOpen(o => !o)}
+                  onClick={() => {
+                    const rect = sortDropdownRef.current?.getBoundingClientRect();
+                    setSortDropsUp(!!rect && window.innerHeight - rect.bottom < 280);
+                    setSortDropdownOpen(o => !o);
+                  }}
                   style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${sortBy ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: sortBy ? "#fce7f3" : "white", color: sortBy ? "var(--color-brand)" : "#64748b", fontWeight: sortBy ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
                 >
                   {sortLabel[sortBy] || "Sort by"} ▾
                 </button>
                 {sortDropdownOpen && (
-                  <div style={{ position: "absolute", top: "calc(100% + 0.4rem)", ...(isPhone ? { left: 0 } : { right: 0 }), zIndex: 50, backgroundColor: "white", border: "1.5px solid #e5e7eb", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "0.5rem 0.75rem", minWidth: "210px" }}>
+                  <div style={{ position: "absolute", ...(sortDropsUp ? { bottom: "calc(100% + 0.4rem)" } : { top: "calc(100% + 0.4rem)" }), ...(isPhone ? { left: 0 } : { right: 0 }), zIndex: 50, backgroundColor: "white", border: "1.5px solid #e5e7eb", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "0.5rem 0.75rem", minWidth: "210px" }}>
                     {[
                       { value: "",             label: "Best Match" },
                       { value: "payHigh",      label: "Pay: High → Low" },
@@ -759,6 +764,11 @@ export default function StudentDashboard({ restoreScrollY }) {
                             );
                           })}
                         </div>
+                        {(job.filledShifts || []).length > 0 && (
+                          <p style={{ margin: "0.25rem 0 0", fontSize: isPhone ? "0.68rem" : "0.75rem", color: "#6b7280", fontWeight: 500 }}>
+                            {job.filledShifts.length} of {job.days.length} shift{job.days.length !== 1 ? "s" : ""} filled
+                          </p>
+                        )}
                         {dist !== null && (
                           <div style={{ marginTop: "0.3rem" }}>
                             <span className={`badge badge-green ${isPhone ? "badge-sm" : "badge-lg"}`}>

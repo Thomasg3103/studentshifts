@@ -309,7 +309,7 @@ export default function AccountPage() {
     try {
       await verifyPassword(currentUser.email, deletePassword);
       await deleteAccount();
-      try { await signOut(); } catch (_) {}
+      try { await signOut(); } catch (e) { console.warn("Sign-out after delete failed:", e); }
       for (const key of Object.keys(localStorage)) {
         if (key.startsWith('ss_notif_seen_')) localStorage.removeItem(key);
       }
@@ -325,7 +325,7 @@ export default function AccountPage() {
   };
 
   const confirmLogout = async () => {
-    try { await signOut(); } catch (_) {}
+    try { await signOut(); } catch (e) { console.warn("Sign-out failed:", e); }
     for (const key of Object.keys(localStorage)) {
       if (key.startsWith('ss_notif_seen_')) localStorage.removeItem(key);
     }

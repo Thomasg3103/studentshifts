@@ -171,7 +171,7 @@ export default function StudentShiftsWeb() {
           const jobMap = Object.fromEntries(fetchedJobs.map(j => [j.id, j]));
           setLikedJobs(likedIds.map(id => jobMap[id]).filter(Boolean));
           setAppliedJobs(appliedIds.map(id => jobMap[id]).filter(Boolean));
-        } catch (_) {}
+        } catch (e) { console.warn("Failed to fetch liked/applied jobs:", e); }
       }
     }
 
