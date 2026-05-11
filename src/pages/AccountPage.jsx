@@ -274,13 +274,15 @@ export default function AccountPage() {
   };
 
   // ── Export ───────────────────────────────────────────────────────────────
-  const EXPORT_COOLDOWN_MS = 60_000;
+  const EXPORT_COOLDOWN_MS = 86_400_000; // 24 hours — mirrors DB rate limit
   const handleExport = async () => {
     const lastKey = `export_last_${currentUser.id}`;
     const last = parseInt(localStorage.getItem(lastKey) || "0", 10);
-    const remaining = Math.ceil((last + EXPORT_COOLDOWN_MS - Date.now()) / 1000);
-    if (remaining > 0) {
-      toast.error(`Please wait ${remaining}s before exporting again.`);
+    const remainingMs = last + EXPORT_COOLDOWN_MS - Date.now();
+    if (remainingMs > 0) {
+      const hours = Math.floor(remainingMs / 3_600_000);
+      const label = hours > 0 ? `${hours}h` : `${Math.ceil(remainingMs / 60_000)}m`;
+      toast.error(`You've already exported today. Try again in ${label}.`);
       return;
     }
     setExporting(true);
@@ -295,8 +297,12 @@ export default function AccountPage() {
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
-      Sentry.captureException(e);
-      toast.error("Export failed. Please try again.");
+      if (e?.message?.includes("once every 24 hours")) {
+        toast.error(e.message);
+      } else {
+        Sentry.captureException(e);
+        toast.error("Export failed. Please try again.");
+      }
     } finally {
       setExporting(false);
     }

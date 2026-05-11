@@ -59,6 +59,19 @@ export async function saveCompanyIndustries(userId, industries) {
 
 /** Exports all personal data for a student as a JSON-serialisable object (GDPR Art. 20). */
 export async function exportMyData(userId) {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data: recent } = await supabase
+    .from("export_log")
+    .select("id")
+    .eq("user_id", userId)
+    .gte("exported_at", since)
+    .limit(1);
+  if (recent && recent.length > 0) {
+    throw new Error("You can only export your data once every 24 hours.");
+  }
+
+  await supabase.from("export_log").insert({ user_id: userId });
+
   const [profileRes, studentRes, applicationsRes, likedRes, messagesRes] = await Promise.all([
     supabase.from("profiles").select("id, name, role, created_at").eq("id", userId).single(),
     supabase.from("students").select("bio, skills, linkedin, location_display, cv_url, cover_letter_url, status").eq("id", userId).single(),
