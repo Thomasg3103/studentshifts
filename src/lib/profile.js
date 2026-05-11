@@ -57,8 +57,8 @@ export async function saveCompanyIndustries(userId, industries) {
   if (error) console.warn("Industries save failed:", error.message);
 }
 
-/** Exports all personal data for a student as a JSON-serialisable object (GDPR Art. 20). */
-export async function exportMyData(userId) {
+/** Exports all personal data as a JSON-serialisable object (GDPR Art. 20). */
+export async function exportMyData(userId, role = "student") {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data: recent } = await supabase
     .from("export_log")
@@ -71,6 +71,22 @@ export async function exportMyData(userId) {
   }
 
   await supabase.from("export_log").insert({ user_id: userId });
+
+  if (role === "company") {
+    const [profileRes, companyRes, jobsRes, messagesRes] = await Promise.all([
+      supabase.from("profiles").select("id, name, role, created_at").eq("id", userId).single(),
+      supabase.from("companies").select("bio, website, cro_number, status").eq("id", userId).single(),
+      supabase.from("jobs").select("id, title, category, pay, location, days, status, deadline, created_at").eq("company_id", userId).order("created_at"),
+      supabase.from("chat_messages").select("text, created_at, sender_id, student_id").eq("company_id", userId).order("created_at"),
+    ]);
+    return {
+      exportedAt: new Date().toISOString(),
+      profile:    profileRes.data  || {},
+      company:    companyRes.data  || {},
+      jobs:       jobsRes.data     || [],
+      messages:   messagesRes.data || [],
+    };
+  }
 
   const [profileRes, studentRes, applicationsRes, likedRes, messagesRes] = await Promise.all([
     supabase.from("profiles").select("id, name, role, created_at").eq("id", userId).single(),

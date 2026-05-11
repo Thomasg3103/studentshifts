@@ -480,6 +480,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           <select id="form-status" value={formData.status} onChange={set("status")} style={inputStyle}>
             <option value="Active">Active</option>
             <option value="Closed">Closed</option>
+            <option value="Expired">Expired</option>
           </select>
         </div>
       )}

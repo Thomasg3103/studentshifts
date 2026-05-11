@@ -288,7 +288,7 @@ export default function AccountPage() {
     setExporting(true);
     try {
       localStorage.setItem(lastKey, String(Date.now()));
-      const data = await exportMyData(currentUser.id);
+      const data = await exportMyData(currentUser.id, currentUser.role);
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement("a");

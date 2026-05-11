@@ -225,8 +225,9 @@ export default function AdminPage() {
                     <button
                       aria-label={`Approve ${s.name}`}
                       onClick={() => handleApproveStudent(s)}
-                      disabled={!!actionLoading}
-                      style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: actionLoading === s.id + "_approve" ? 0.7 : 1 }}
+                      disabled={!!actionLoading || !s.studentIdUrl || !s.govIdUrl}
+                      title={!s.studentIdUrl || !s.govIdUrl ? "Cannot approve: documents not yet uploaded" : undefined}
+                      style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: (actionLoading === s.id + "_approve" || !s.studentIdUrl || !s.govIdUrl) ? 0.5 : 1 }}
                     >
                       {actionLoading === s.id + "_approve" ? "Approving…" : "✅ Approve"}
                     </button>

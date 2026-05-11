@@ -548,11 +548,20 @@ CREATE POLICY "job-photos: own delete" ON storage.objects
 -- ================================================================
 
 -- Approve a student: sets status = 'verified'. Admin only.
+-- Blocks approval if the student has not uploaded both verification documents.
 CREATE OR REPLACE FUNCTION approve_student(student_id uuid)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   IF NOT is_admin() THEN
     RAISE EXCEPTION 'Unauthorised: admin only';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM students s
+    WHERE s.id = student_id
+      AND s.student_id_url IS NOT NULL
+      AND s.gov_id_url IS NOT NULL
+  ) THEN
+    RAISE EXCEPTION 'Cannot approve: student has not uploaded verification documents';
   END IF;
   UPDATE students SET status = 'verified' WHERE id = student_id;
   INSERT INTO audit_log (actor_id, action, target_id)
@@ -570,6 +579,32 @@ BEGIN
   UPDATE students SET status = 'rejected' WHERE id = student_id;
   INSERT INTO audit_log (actor_id, action, target_id)
     VALUES (auth.uid(), 'reject_student', student_id);
+END;
+$$;
+
+-- Approve a company: sets status = 'verified'. Admin only.
+CREATE OR REPLACE FUNCTION approve_company(company_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  IF NOT is_admin() THEN
+    RAISE EXCEPTION 'Unauthorised: admin only';
+  END IF;
+  UPDATE companies SET status = 'verified' WHERE id = company_id;
+  INSERT INTO audit_log (actor_id, action, target_id)
+    VALUES (auth.uid(), 'approve_company', company_id);
+END;
+$$;
+
+-- Reject a company: sets status = 'rejected'. Admin only.
+CREATE OR REPLACE FUNCTION reject_company(company_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  IF NOT is_admin() THEN
+    RAISE EXCEPTION 'Unauthorised: admin only';
+  END IF;
+  UPDATE companies SET status = 'rejected' WHERE id = company_id;
+  INSERT INTO audit_log (actor_id, action, target_id)
+    VALUES (auth.uid(), 'reject_company', company_id);
 END;
 $$;
 
@@ -690,8 +725,14 @@ $$;
 DROP FUNCTION IF EXISTS get_profile_photos(uuid[]);
 CREATE OR REPLACE FUNCTION get_profile_photos(user_ids uuid[])
 RETURNS TABLE (id uuid, profile_photo_url text)
-LANGUAGE sql SECURITY DEFINER STABLE AS $$
-  SELECT s.id, s.profile_photo_url FROM students s WHERE s.id = ANY(user_ids);
+LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Unauthorised';
+  END IF;
+  RETURN QUERY
+    SELECT s.id, s.profile_photo_url FROM students s WHERE s.id = ANY(user_ids);
+END;
 $$;
 
 

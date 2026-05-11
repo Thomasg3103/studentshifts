@@ -13,7 +13,7 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
     const action = newStatus === "Accepted" ? "accept" : "reject";
     try {
       const { data, error } = await supabase.functions.invoke("hire-applicant", {
-        body: { applicationId, action },
+        body: { applicationId, action, idempotencyKey: crypto.randomUUID() },
       });
       if (error) throw error;
 
