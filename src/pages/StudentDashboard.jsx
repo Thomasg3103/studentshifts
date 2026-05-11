@@ -541,6 +541,7 @@ export default function StudentDashboard({ restoreScrollY }) {
       <Helmet>
         <title>Find Your Shift — StudentShifts</title>
         <meta name="description" content="Browse student-friendly part-time jobs across Ireland. Filter by day, time, location and more." />
+        <link rel="canonical" href="https://studentshifts.ie/" />
       </Helmet>
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "1.5rem 1.25rem" }}>
 
@@ -849,6 +850,8 @@ export default function StudentDashboard({ restoreScrollY }) {
 }
 
 function FilterSection({ title, open, onToggle, onClear, children }) {
+  const [everOpened, setEverOpened] = useState(open);
+  useEffect(() => { if (open) setEverOpened(true); }, [open]);
   return (
     <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.5rem 0.75rem", marginBottom: "0.4rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: open ? "0.5rem" : 0 }}>
@@ -866,7 +869,7 @@ function FilterSection({ title, open, onToggle, onClear, children }) {
           </button>
         )}
       </div>
-      {open && <div>{children}</div>}
+      {everOpened && <div style={{ display: open ? "block" : "none" }}>{children}</div>}
     </div>
   );
 }

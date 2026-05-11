@@ -11,6 +11,7 @@ export default function ContactPage() {
       <Helmet>
         <title>Contact Us — StudentShifts</title>
         <meta name="description" content="Get in touch with the StudentShifts team. We're a small team based in Ireland and aim to reply within one working day." />
+        <link rel="canonical" href="https://studentshifts.ie/contact" />
       </Helmet>
       <BackButton />
 

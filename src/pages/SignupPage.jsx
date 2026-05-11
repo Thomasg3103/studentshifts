@@ -153,6 +153,7 @@ export default function SignupPage() {
       <Helmet>
         <title>Create Account — StudentShifts</title>
         <meta name="description" content="Join StudentShifts for free. Students can browse and apply for part-time jobs; companies can post shifts and find verified student workers." />
+        <link rel="canonical" href="https://studentshifts.ie/signup" />
       </Helmet>
       <div style={{ maxWidth: "440px", margin: "0 auto" }}>
 

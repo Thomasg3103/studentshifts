@@ -113,6 +113,7 @@ export default function LoginPage() {
       <Helmet>
         <title>Log In — StudentShifts</title>
         <meta name="description" content="Sign in to your StudentShifts account to find and apply for part-time jobs." />
+        <link rel="canonical" href="https://studentshifts.ie/login" />
       </Helmet>
       <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
 
