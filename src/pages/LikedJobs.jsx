@@ -31,12 +31,12 @@ export default function LikedJobs() {
         </div>
       ) : (
         <>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem" }}>
+          <div role="list" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem" }}>
             {likedJobs.map((job) => {
               const photo = job.photos?.[0] || null;
               const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
               return (
-                <div key={job.id} className="job-card" style={{ display: "flex", alignItems: "flex-start", padding: 0, overflow: "hidden", marginBottom: 0 }}>
+                <div key={job.id} role="listitem" className="job-card" style={{ display: "flex", alignItems: "flex-start", padding: 0, overflow: "hidden", marginBottom: 0 }}>
                   <div style={{ width: "120px", height: "120px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
                     {photo ? (
                       <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
@@ -52,8 +52,8 @@ export default function LikedJobs() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.2rem" }}>
                       <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title}</h2>
                       <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
-                        <button onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View</button>
-                        <button onClick={() => removeLike(job)} style={btnRed}>Remove</button>
+                        <button aria-label={`View ${job.title}`} onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View</button>
+                        <button aria-label={`Remove ${job.title} from liked jobs`} onClick={() => removeLike(job)} style={btnRed}>Remove</button>
                       </div>
                     </div>
                     <p style={{ color: "#6b7280", marginBottom: "0.15rem", fontSize: "0.85rem" }}>{job.company} · {job.location}</p>
