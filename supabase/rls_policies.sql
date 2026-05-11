@@ -1004,6 +1004,24 @@ CREATE POLICY "export_log: own select" ON export_log
 -- SECURITY DEFINER so students can see counts without accessing others' rows.
 -- Safe to expose: returns aggregate counts only, no personal data.
 -- ================================================================
+-- ================================================================
+-- OBSERVABILITY: slow_queries view
+-- Run this in Supabase SQL Editor to surface queries averaging > 200ms.
+-- Requires pg_stat_statements (enabled by default on Supabase).
+-- Reset stats with: SELECT pg_stat_statements_reset();
+-- ================================================================
+CREATE OR REPLACE VIEW slow_queries AS
+SELECT
+  round(mean_exec_time::numeric, 1)  AS avg_ms,
+  calls,
+  round(total_exec_time::numeric, 0) AS total_ms,
+  left(query, 300)                   AS query_preview
+FROM pg_stat_statements
+WHERE mean_exec_time > 200
+ORDER BY mean_exec_time DESC
+LIMIT 25;
+
+
 DROP FUNCTION IF EXISTS get_job_applicant_counts(uuid[]);
 DROP FUNCTION IF EXISTS get_job_applicant_counts(bigint[]);
 CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids bigint[])

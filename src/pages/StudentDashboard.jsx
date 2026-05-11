@@ -2,7 +2,7 @@
 import { Helmet } from "react-helmet-async";
 import "../StudentShiftWeb.css";
 import { jobCategories, getCategoryForTitle } from "../data/jobCategories";
-import { haversineDistance, formatDistance, mockLocationCoords, geocodeAddress } from "../utils/geo";
+import { haversineDistance, formatDistance, coordsForLocation, geocodeAddress } from "../utils/geo";
 import { supabase, withTimeout } from "../lib/supabase";
 import { likeJob, unlikeJob } from "../lib/auth";
 import { useApp } from "../context/AppContext";
@@ -302,12 +302,12 @@ export default function StudentDashboard({ restoreScrollY }) {
     if (restoreScrollY > 0) requestAnimationFrame(() => window.scrollTo(0, restoreScrollY));
   }, []);
 
-  // Geocode missing locations
+  // Geocode missing locations — cache keyed lowercase for case-insensitive hits
   useEffect(() => {
     if (!jobs.length) return;
     const unknown = [...new Set(
-      jobs.filter(j => !j.lat || !j.lng).map(j => j.location)
-        .filter(loc => loc && !mockLocationCoords[loc] && !_geocodeCache[loc])
+      jobs.filter(j => !j.lat || !j.lng).map(j => j.location?.trim().toLowerCase())
+        .filter(loc => loc && !coordsForLocation(loc) && !_geocodeCache[loc])
     )];
     if (!unknown.length) return;
     let cancelled = false;
@@ -323,7 +323,7 @@ export default function StudentDashboard({ restoreScrollY }) {
             setExtraCoords(prev => ({ ...prev, [loc]: { lat: result.lat, lng: result.lng } }));
           }
         } catch (e) { console.warn("[StudentDashboard] geocode failed:", e); }
-        if (!cancelled) await new Promise(r => setTimeout(r, 1200));
+        if (!cancelled) await new Promise(r => setTimeout(r, 1100));
       }
     })();
     return () => { cancelled = true; };
@@ -331,7 +331,7 @@ export default function StudentDashboard({ restoreScrollY }) {
 
   const getJobCoords = (job) => {
     if (job.lat && job.lng) return { lat: job.lat, lng: job.lng };
-    return mockLocationCoords[job.location] || extraCoords[job.location] || null;
+    return coordsForLocation(job.location, extraCoords);
   };
 
   const jobDistance = useCallback((job) => {

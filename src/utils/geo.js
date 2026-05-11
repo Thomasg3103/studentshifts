@@ -101,14 +101,62 @@ export function formatDistance(km) {
 }
 
 /**
- * Approximate coordinates for the mock job location strings (Galway, Ireland).
- * Used to show distances on mock jobs without geocoding each one.
+ * Approximate coordinates for common Galway-area location strings.
+ * Keyed lowercase so lookups are case-insensitive (see coordsForLocation).
+ * Add entries here to avoid hitting Nominatim for frequently-used location names.
  */
 export const mockLocationCoords = {
-  "City Centre": { lat: 53.2707, lng: -9.0568 },
-  "Near Campus":  { lat: 53.2835, lng: -9.0615 },
-  "5 min walk":   { lat: 53.2800, lng: -9.0580 },
-  "10 min walk":  { lat: 53.2750, lng: -9.0540 },
-  "Downtown":     { lat: 53.2720, lng: -9.0540 },
-  "On-Campus":    { lat: 53.2835, lng: -9.0615 },
+  // Mock / dev strings
+  "city centre":   { lat: 53.2707, lng: -9.0568 },
+  "near campus":   { lat: 53.2835, lng: -9.0615 },
+  "5 min walk":    { lat: 53.2800, lng: -9.0580 },
+  "10 min walk":   { lat: 53.2750, lng: -9.0540 },
+  "downtown":      { lat: 53.2720, lng: -9.0540 },
+  "on-campus":     { lat: 53.2835, lng: -9.0615 },
+  // Galway city centre
+  "galway city centre":     { lat: 53.2707, lng: -9.0568 },
+  "galway city":            { lat: 53.2707, lng: -9.0568 },
+  "eyre square":            { lat: 53.2744, lng: -9.0490 },
+  "eyre square, galway":    { lat: 53.2744, lng: -9.0490 },
+  "shop street":            { lat: 53.2731, lng: -9.0527 },
+  "shop street, galway":    { lat: 53.2731, lng: -9.0527 },
+  "quay street":            { lat: 53.2697, lng: -9.0535 },
+  "william street":         { lat: 53.2726, lng: -9.0527 },
+  "mainguard street":       { lat: 53.2720, lng: -9.0538 },
+  "prospect hill":          { lat: 53.2757, lng: -9.0481 },
+  // University / campus
+  "university of galway":   { lat: 53.2833, lng: -9.0617 },
+  "nui galway":             { lat: 53.2833, lng: -9.0617 },
+  "nuig":                   { lat: 53.2833, lng: -9.0617 },
+  "university road":        { lat: 53.2807, lng: -9.0633 },
+  // Suburbs & areas
+  "salthill":               { lat: 53.2590, lng: -9.0847 },
+  "salthill, galway":       { lat: 53.2590, lng: -9.0847 },
+  "knocknacarra":           { lat: 53.2617, lng: -9.1074 },
+  "westside":               { lat: 53.2774, lng: -9.0983 },
+  "renmore":                { lat: 53.2763, lng: -9.0069 },
+  "ballybane":              { lat: 53.2905, lng: -9.0066 },
+  "doughiska":              { lat: 53.2978, lng: -8.9919 },
+  "briarhill":              { lat: 53.2870, lng: -8.9900 },
+  "parkmore":               { lat: 53.2840, lng: -8.9951 },
+  "headford road":          { lat: 53.2913, lng: -9.0614 },
+  "tuam road":              { lat: 53.3033, lng: -9.0396 },
+  "oranmore":               { lat: 53.2581, lng: -8.9274 },
+  "oranmore, galway":       { lat: 53.2581, lng: -8.9274 },
+  "athenry":                { lat: 53.2996, lng: -8.7437 },
+  "loughrea":               { lat: 53.1977, lng: -8.5686 },
+  "tuam":                   { lat: 53.5150, lng: -8.8564 },
+  "clifden":                { lat: 53.4884, lng: -10.0202 },
+  "ballinasloe":            { lat: 53.3308, lng: -8.2200 },
+  "spiddal":                { lat: 53.2434, lng: -9.3086 },
 };
+
+/**
+ * Case-insensitive coordinate lookup: checks mockLocationCoords then the
+ * persistent geocode cache (passed in as extraCoords).
+ */
+export function coordsForLocation(location, extraCoords = {}) {
+  if (!location) return null;
+  const key = location.trim().toLowerCase();
+  return mockLocationCoords[key] ?? extraCoords[key] ?? null;
+}
