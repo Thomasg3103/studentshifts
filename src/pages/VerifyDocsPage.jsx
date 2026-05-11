@@ -95,7 +95,7 @@ export default function VerifyDocsPage() {
           />
         </div>
 
-        <button onClick={handleSubmit} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>
+        <button onClick={handleSubmit} disabled={loading || !studentIdCard || !governmentId} style={{ ...btnPrimary, opacity: (loading || !studentIdCard || !governmentId) ? 0.5 : 1 }}>
           {loading ? "Uploading…" : "Submit Documents →"}
         </button>
 

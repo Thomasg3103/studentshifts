@@ -814,10 +814,13 @@ function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
     const file = e.target.files[0];
     if (!file) return;
     setUploading(true);
-    await onUpload(file);
-    setUploading(false);
-    setUploaded(true);
-    setTimeout(() => setUploaded(false), 2500);
+    try {
+      await onUpload(file);
+      setUploaded(true);
+      setTimeout(() => setUploaded(false), 2500);
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (

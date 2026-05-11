@@ -30,6 +30,7 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
             return a;
           }),
         }));
+        toast.success("Applicant hired!");
       } else {
         applyToPosting(p => ({
           ...p,
@@ -40,7 +41,7 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
       }
     } catch (e) {
       Sentry.captureException(e);
-      toast.error(action === "accept" ? "Failed to accept applicant." : "Failed to update status.");
+      toast.error(action === "accept" ? "Failed to accept applicant. Please try again." : "Failed to update status. Please try again.");
     }
   };
 
@@ -77,7 +78,12 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
   const handleIncrementRound = async (applicationId, currentRound, newRoundsData) => {
     try {
       await incrementInterviewRound(applicationId, currentRound);
-      await saveInterviewRoundsData(applicationId, newRoundsData);
+      try {
+        await saveInterviewRoundsData(applicationId, newRoundsData);
+      } catch {
+        // Round incremented but notes failed — still update UI, show warning
+        toast("Interview round advanced but schedule notes could not be saved.", { icon: "⚠️" });
+      }
       applyToPosting(p => ({
         ...p,
         applicants: p.applicants.map(a => a.id === applicationId
@@ -85,8 +91,9 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
           : a
         ),
       }));
-    } catch {
-      toast.error("Failed to update interview round. Please try again.");
+    } catch (e) {
+      Sentry.captureException(e);
+      toast.error("Failed to advance interview round. Please try again.");
     }
   };
 
@@ -97,7 +104,10 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
         ...p,
         applicants: p.applicants.map(a => a.id === applicationId ? { ...a, interviewRoundsData: rounds } : a),
       }));
-    } catch { /* silently ignore */ }
+    } catch (e) {
+      Sentry.captureException(e);
+      toast.error("Failed to save interview notes. Please try again.");
+    }
   };
 
   const getStudentEmail = async (studentId) => {
@@ -152,7 +162,10 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
         ...p,
         applicants: p.applicants.map(a => a.id === applicationId ? { ...a, trialDate: date, trialTime: time } : a),
       }));
-    } catch { /* silently ignore — schedule is non-critical */ }
+    } catch (e) {
+      Sentry.captureException(e);
+      toast.error("Trial schedule could not be saved — please try again.");
+    }
   };
 
   return {

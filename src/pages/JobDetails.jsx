@@ -51,17 +51,25 @@ export default function JobDetails({ job }) {
 
   const needsSlotPick = (job.days?.length ?? 0) > 1;
 
-  const toggleLike = () => {
+  const toggleLike = async () => {
     if (!currentUser) { setPage("login"); return; }
     if (isApplied) return;
-    setLikedJobs(isLiked ? likedJobs.filter(j => j.id !== job.id) : [...likedJobs, job]);
-    setSavedLikedJobIds?.(prev => isLiked ? prev.filter(id => id !== job.id) : [...new Set([...prev, job.id])]);
-    if (isLiked) unlikeJob(currentUser.id, job.id).catch(console.error);
-    else likeJob(currentUser.id, job.id).catch(console.error);
+    const wasLiked = isLiked;
+    setLikedJobs(prev => wasLiked ? prev.filter(j => j.id !== job.id) : [...prev, job]);
+    setSavedLikedJobIds?.(prev => wasLiked ? prev.filter(id => id !== job.id) : [...new Set([...prev, job.id])]);
+    try {
+      if (wasLiked) await unlikeJob(currentUser.id, job.id);
+      else await likeJob(currentUser.id, job.id);
+    } catch {
+      setLikedJobs(prev => wasLiked ? [...prev, job] : prev.filter(j => j.id !== job.id));
+      setSavedLikedJobIds?.(prev => wasLiked ? [...new Set([...prev, job.id])] : prev.filter(id => id !== job.id));
+      toast.error(wasLiked ? "Failed to remove saved job." : "Failed to save job.");
+    }
   };
 
   const handleApply = () => {
     if (!currentUser) { setPage("login"); return; }
+    if (currentUser.role !== "student") return;
     if (isApplied || applyCooldown > 0) return;
     if (currentUser.verificationStatus !== "verified") {
       setApplyModal("notVerified");

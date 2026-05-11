@@ -234,6 +234,8 @@ export default function CompanyDashboard() {
     if (!formData.title.trim() || !formData.location.trim() || !formData.pay.trim()) {
       toast.error("Please fill in Title, Location, and Pay."); return;
     }
+    const payNum = parseFloat((formData.pay || "").replace(/[^0-9.]/g, ""));
+    if (!payNum || payNum <= 0) { toast.error("Pay rate must be greater than €0."); return; }
     if (formData.days.length === 0) { toast.error("Please select at least one day."); return; }
     if (keptUrls.length === 0 && newFiles.length === 0) { toast.error("Please upload at least 1 photo."); return; }
     const descPlain = (formData.description || "").replace(/<[^>]*>/g, "");

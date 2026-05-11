@@ -1,11 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
+import toast from "react-hot-toast";
 import { supabase } from "../../lib/supabase";
 
 export default function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTitle }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput]       = useState("");
   const [loading, setLoading]   = useState(true);
+  const [sending, setSending]   = useState(false);
   const bottomRef  = useRef(null);
   const inputRef   = useRef(null);
 
@@ -42,14 +44,18 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
 
   const send = async () => {
     const text = input.trim();
-    if (!text) return;
+    if (!text || sending) return;
+    setSending(true);
     setInput("");
     try {
       const { sendMessage } = await import("../../lib/auth");
       await sendMessage(jobId, studentId, companyId, senderId, text);
     } catch (e) {
       Sentry.captureException(e);
-      console.error("Send failed:", e);
+      setInput(text);
+      toast.error("Failed to send message — please try again.");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -100,13 +106,14 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
           aria-label={`Message ${studentName}`}
           value={input}
           onChange={e => { if (e.target.value.length <= 4000) setInput(e.target.value); }}
-          onKeyDown={e => e.key === "Enter" && send()}
+          onKeyDown={e => e.key === "Enter" && !sending && send()}
           maxLength={4000}
+          disabled={sending}
           placeholder="Type a message…"
           style={{ flex: 1, padding: "0.45rem 0.65rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", fontSize: "0.8rem", fontFamily: "inherit" }}
         />
-        <button aria-label="Send message" onClick={send} style={{ padding: "0.45rem 0.75rem", borderRadius: "0.4rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
-          Send
+        <button aria-label="Send message" onClick={send} disabled={sending || !input.trim()} style={{ padding: "0.45rem 0.75rem", borderRadius: "0.4rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.8rem", cursor: sending ? "default" : "pointer", fontFamily: "inherit", opacity: (sending || !input.trim()) ? 0.6 : 1 }}>
+          {sending ? "…" : "Send"}
         </button>
       </div>
     </div>

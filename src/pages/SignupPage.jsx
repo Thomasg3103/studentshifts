@@ -80,7 +80,13 @@ export default function SignupPage() {
       if (window.gtag) window.gtag("event", "sign_up", { method: "email" });
     } catch (e) {
       Sentry.captureException(e);
-      setError(e.message || "Something went wrong. Please try again.");
+      const msg = e.message || "";
+      // Normalize errors that reveal whether an email is registered
+      if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already exists") || msg.toLowerCase().includes("email taken")) {
+        setError("Something went wrong. Please try again.");
+      } else {
+        setError(msg || "Something went wrong. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -214,7 +220,7 @@ export default function SignupPage() {
           placeholder="Password"
           value={password}
           onChange={e => setPassword(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && !croNumber && role === "company" ? null : e.key === "Enter" && handleSignup()}
+          onKeyDown={e => { if (e.key !== "Enter") return; if (role === "company" && !croNumber) return; handleSignup(); }}
           style={inputStyle}
         />
 

@@ -222,6 +222,13 @@ export default function StudentShiftsWeb() {
           console.error("Failed to load profile", e);
         }
       }
+      if (event === "TOKEN_REFRESHED" && session?.user) {
+        try {
+          const profile = await getProfile(session.user.id);
+          const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
+          setCurrentUser(user);
+        } catch { /* silently ignore — stale data not critical */ }
+      }
       if (event === "PASSWORD_RECOVERY") {
         navigate("/reset-password", { replace: true });
         clearTimeout(failsafe);

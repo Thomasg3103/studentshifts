@@ -260,7 +260,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           <input
             id="form-pay"
             type="number"
-            min="0"
+            min="0.01"
             max="999"
             step="0.50"
             value={formData.pay ? formData.pay.replace(/[^0-9.]/g, "") : ""}
