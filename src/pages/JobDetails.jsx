@@ -6,6 +6,7 @@ import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { likeJob, unlikeJob, createApplication } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 import { haversineDistance, formatDistance } from "../utils/geo";
 import { useApp } from "../context/AppContext";
 
@@ -107,6 +108,8 @@ export default function JobDetails({ job }) {
       setApplyModal(null);
       setApplyCooldown(3);
       if (isNew) {
+        // Fire-and-forget: notify the company of the new applicant (don't block student UX)
+        supabase.functions.invoke("send-email", { body: { type: "new-applicant", jobId: job.id } }).catch(() => {});
         toast.success("Application submitted!");
         if (window.gtag) window.gtag("event", "submit_application", { item_id: job.id, item_name: job.title, item_category: job.category });
       } else {

@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 /**
  * send-email — Edge Function
  * POST { to: string|string[], subject: string, html: string, magicLinkEmail?: string, redirectTo?: string }
+ *   OR { type: "new-applicant", jobId: string } — sends new-applicant notification to the company
  * Auth: company or admin JWT (Authorization header)
  * Rate limit: 60 emails per 5 minutes per user (email_sends_log table)
  * magicLinkEmail: if provided, generates a Supabase magic link and injects it at MAGIC_LINK_PLACEHOLDER in html
@@ -16,13 +17,70 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+function escapeHtml(str: string): string {
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function emailNewApplicant(companyName: string, jobTitle: string, applicantName: string, dashboardUrl: string): string {
+  const cName = escapeHtml(companyName);
+  const jTitle = escapeHtml(jobTitle);
+  const aName = escapeHtml(applicantName);
+  const safeUrl = /^https?:\/\//i.test(dashboardUrl) ? escapeHtml(dashboardUrl) : "#";
+  return `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafafa;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+        <tr>
+          <td align="center" style="background:linear-gradient(135deg,#A21D54,#C2185B);padding:36px 24px 32px;">
+            <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">StudentShifts</p>
+            <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Find your next shift</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:36px 32px 28px;">
+            <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">New applicant!</p>
+            <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
+              Hi ${cName},<br/><br/>
+              <strong style="color:#1e293b;">${aName}</strong> has applied for your <strong style="color:#1e293b;">${jTitle}</strong> posting on StudentShifts.
+            </p>
+            <table width="100%" cellpadding="0" cellspacing="0">
+              <tr>
+                <td align="center" style="padding:8px 0 28px;">
+                  <a href="${safeUrl}" style="display:inline-block;background:linear-gradient(135deg,#A21D54,#C2185B);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;box-shadow:0 4px 18px rgba(162,29,84,0.4);">
+                    View Applicant →
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    // Verify the caller is an authenticated admin
+    // Verify the caller is an authenticated user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) throw new Error("Unauthorised");
 
@@ -35,13 +93,79 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: authError } = await callerClient.auth.getUser();
     if (authError || !user) throw new Error("Unauthorised");
 
-    // Check the caller is an admin
+    // Check the caller's role
     const adminClient = createClient(supabaseUrl, serviceKey);
     const { data: profile } = await adminClient
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
+    if (!["admin", "company", "student"].includes(profile?.role)) throw new Error("Unauthorised");
+
+    const body = await req.json();
+
+    // ── new-applicant notification (student caller, fire-and-forget safe) ──
+    if (body.type === "new-applicant") {
+      if (profile?.role !== "student") throw new Error("Unauthorised");
+      const { jobId } = body;
+      if (!jobId || typeof jobId !== "string") throw new Error("Missing required field: jobId");
+
+      // Look up job title and company_id
+      const { data: job, error: jobErr } = await adminClient
+        .from("jobs")
+        .select("title, company_id")
+        .eq("id", jobId)
+        .single();
+      if (jobErr || !job) throw new Error("Job not found");
+
+      // Get company email from auth.users (service_role access)
+      const { data: companyAuthUser, error: companyAuthErr } = await adminClient.auth.admin.getUserById(job.company_id);
+      if (companyAuthErr || !companyAuthUser?.user?.email) throw new Error("Company email not found");
+      const companyEmail = companyAuthUser.user.email;
+
+      // Get company name from profiles
+      const { data: companyProfile } = await adminClient
+        .from("profiles")
+        .select("name")
+        .eq("id", job.company_id)
+        .single();
+      const companyName = companyProfile?.name || "there";
+
+      // Get student name from profiles
+      const { data: studentProfile } = await adminClient
+        .from("profiles")
+        .select("name")
+        .eq("id", user.id)
+        .single();
+      const studentName = studentProfile?.name || "A student";
+
+      const apiKey = Deno.env.get("BREVO_API_KEY");
+      if (!apiKey) throw new Error("BREVO_API_KEY not set");
+
+      const dashboardUrl = FRONTEND_URL;
+      const html = emailNewApplicant(companyName, job.title, studentName, dashboardUrl);
+      const safeSubject = `New applicant for ${job.title}`;
+
+      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: { "api-key": apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
+          to: [{ email: companyEmail }],
+          subject: safeSubject,
+          htmlContent: html,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Brevo API error");
+
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // ── standard email send (company/admin caller) ──
     if (!["admin", "company"].includes(profile?.role)) throw new Error("Unauthorised");
 
     // Rate limit: 60 emails per 5 minutes per user
@@ -55,7 +179,7 @@ Deno.serve(async (req: Request) => {
       throw new Error("Rate limit exceeded. Please wait before sending more emails.");
     }
 
-    const { to, subject, html, magicLinkEmail, redirectTo } = await req.json();
+    const { to, subject, html, magicLinkEmail, redirectTo } = body;
     if (!to || !subject || !html) throw new Error("Missing required fields: to, subject, html");
 
     // Validate email format for all recipients
