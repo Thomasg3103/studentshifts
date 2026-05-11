@@ -96,7 +96,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
             <p style={{ margin: "0.1rem 0 0", fontSize: "0.72rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.bio}</p>
           ) : null}
         </div>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
+        <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
       </button>
       {isDecision && (
         <div style={{ display: "flex", borderTop: "1px solid #e2e8f0" }}>
@@ -268,6 +268,8 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
   const [bulkDeclining, setBulkDeclining]         = useState(false);
   const [showBulkDeclineModal, setShowBulkDeclineModal] = useState(false);
   const [pendingDeclineIds, setPendingDeclineIds] = useState([]);
+  const bulkDeclineModalRef = useRef(null);
+  useFocusTrap(bulkDeclineModalRef, () => setShowBulkDeclineModal(false), showBulkDeclineModal);
 
   if (posting.applicantsLoading) {
     return <div style={{ textAlign: "center", padding: "3rem 1rem" }}><div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⏳</div><p style={{ color: "#64748b", fontWeight: "600", margin: 0 }}>Loading applicants…</p></div>;
@@ -361,7 +363,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
       {/* Bulk Decline Confirmation Modal */}
       {showBulkDeclineModal && (
         <div onClick={() => setShowBulkDeclineModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem" }}>
-          <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Decline ${pendingDeclineIds.length} applicants`} style={{ backgroundColor: "white", borderRadius: "1rem", padding: "2rem", maxWidth: "400px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", border: "1px solid #e2e8f0" }}>
+          <div ref={bulkDeclineModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Decline ${pendingDeclineIds.length} applicants`} style={{ backgroundColor: "white", borderRadius: "1rem", padding: "2rem", maxWidth: "400px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", border: "1px solid #e2e8f0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
               <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <span style={{ fontSize: "1.1rem" }}>✕</span>
