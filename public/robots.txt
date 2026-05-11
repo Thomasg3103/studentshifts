@@ -4,6 +4,9 @@ Disallow: /verify
 Disallow: /company
 Disallow: /account
 Disallow: /reset-password
+Disallow: /messages
+Disallow: /liked
+Disallow: /applied
 Allow: /
 
 Sitemap: https://studentshifts.ie/sitemap.xml

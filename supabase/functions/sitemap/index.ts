@@ -8,10 +8,20 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
  * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, FRONTEND_URL
  */
 
+// MUST be set in Render environment variables to "https://studentshifts.ie" before launch.
+// Defaults to the Render preview URL in the meantime.
 const FRONTEND_URL = Deno.env.get("FRONTEND_URL") || "https://studentshifts.onrender.com";
 
 function toSlug(str: string): string {
-  return str.trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  return str
+    .trim()
+    .toLowerCase()
+    // Expand common special characters before stripping so they don't merge adjacent words
+    .replace(/&/g, "and")
+    .replace(/'/g, "")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-");
 }
 
 Deno.serve(async () => {
