@@ -1240,3 +1240,22 @@ BEGIN
       CHECK (description IS NULL OR char_length(description) <= 10000);
   END IF;
 END $$;
+
+-- ================================================================
+-- Availability heatmap — aggregate student availability by day/slot
+-- Used by CompanyDashboard to show when students are generally free.
+-- Returns one row per (day, slot) pair with a count of verified students.
+-- ================================================================
+CREATE OR REPLACE FUNCTION get_availability_heatmap()
+RETURNS TABLE (day text, slot text, student_count bigint)
+LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT
+    kv.key                    AS day,
+    slot_val                  AS slot,
+    COUNT(*)                  AS student_count
+  FROM students,
+       jsonb_each(availability)                  AS kv,
+       jsonb_array_elements_text(kv.value)       AS slot_val
+  WHERE status = 'verified'
+  GROUP BY 1, 2;
+$$;

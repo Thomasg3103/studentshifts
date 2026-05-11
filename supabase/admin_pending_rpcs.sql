@@ -11,26 +11,8 @@ ALTER TABLE companies ADD COLUMN IF NOT EXISTS cro_number text;
 -- Backfill: any company that existed before this migration is already verified
 UPDATE companies SET status = 'verified' WHERE status = 'pending_review';
 
--- Approve / reject RPCs
-CREATE OR REPLACE FUNCTION approve_company(company_id uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
-BEGIN
-  IF NOT is_admin() THEN
-    RAISE EXCEPTION 'Unauthorised: admin only';
-  END IF;
-  UPDATE companies SET status = 'verified' WHERE id = company_id;
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION reject_company(company_id uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
-BEGIN
-  IF NOT is_admin() THEN
-    RAISE EXCEPTION 'Unauthorised: admin only';
-  END IF;
-  UPDATE companies SET status = 'rejected' WHERE id = company_id;
-END;
-$$;
+-- NOTE: approve_company / reject_company are defined in rls_policies.sql (with audit logging).
+-- Do NOT add them here — running this file after rls_policies.sql would overwrite the audited versions.
 
 -- Fetch pending students (joins auth.users for email) — admin only
 CREATE OR REPLACE FUNCTION get_pending_students()

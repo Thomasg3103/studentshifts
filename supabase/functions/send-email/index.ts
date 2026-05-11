@@ -59,6 +59,13 @@ Deno.serve(async (req: Request) => {
     const { to, subject, html, magicLinkEmail, redirectTo } = await req.json();
     if (!to || !subject || !html) throw new Error("Missing required fields: to, subject, html");
 
+    // Validate email format for all recipients
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const recipients = Array.isArray(to) ? to : [to];
+    if (!recipients.every((r: string) => typeof r === "string" && emailRegex.test(r))) {
+      throw new Error("Invalid email address in recipients");
+    }
+
     // Validate redirectTo against known origins to prevent open redirect
     if (redirectTo) {
       const allowed = [FRONTEND_URL, "https://studentshifts.ie", "https://www.studentshifts.ie"];
