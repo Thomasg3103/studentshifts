@@ -27,6 +27,10 @@ RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER VOLATILE AS $$
 DECLARE
   cnt bigint;
 BEGIN
+  -- R3-C9: only allow probing your own rate-limit count
+  IF uid <> auth.uid() THEN
+    RAISE EXCEPTION 'Unauthorised';
+  END IF;
   -- Serialise concurrent inserts from the same user so the rate-limit check
   -- is atomic. Without this lock, burst-concurrent requests could all pass
   -- the < 20 check before any of them commits.
@@ -98,21 +102,24 @@ DROP POLICY IF EXISTS "students: company read applicants" ON students;
 CREATE POLICY "students: own read" ON students
   FOR SELECT USING (auth.uid() = id);
 
--- Student updates their own row; status column is locked except rejected→pending_review (re-submission).
+-- Student updates their own row; status locked except rejected→pending_review (re-submission).
+-- Document URL columns must be prefixed with the student's own UUID (prevents path injection).
 CREATE POLICY "students: own update" ON students
   FOR UPDATE USING (auth.uid() = id)
   WITH CHECK (
     auth.uid() = id AND
     (
-      -- Normal case: status unchanged
       status = (SELECT status FROM students WHERE id = auth.uid())
       OR
-      -- F-H18: allow rejected students to re-submit verification docs
+      -- F-H18 + R3-C13: allow rejected students to re-submit verification docs
       (
         (SELECT status FROM students WHERE id = auth.uid()) = 'rejected'
         AND status = 'pending_review'
       )
-    )
+    ) AND
+    -- Prevent cv_url/cover_letter_url path injection (R3-C13 / FIX #14)
+    (cv_url IS NULL OR cv_url LIKE auth.uid()::text || '/%') AND
+    (cover_letter_url IS NULL OR cover_letter_url LIKE auth.uid()::text || '/%')
   );
 
 -- Admin can read all students (pending review list, verification, etc.)
@@ -150,9 +157,9 @@ CREATE POLICY "companies: own update" ON companies
     status = (SELECT status FROM companies WHERE id = auth.uid())
   );
 
--- Students can read company info (for job detail pages)
+-- Students can read verified company info (pending/rejected companies are not publicly visible)
 CREATE POLICY "companies: student read" ON companies
-  FOR SELECT USING (auth.role() = 'authenticated');
+  FOR SELECT USING (auth.role() = 'authenticated' AND status = 'verified');
 
 -- Admin full access
 CREATE POLICY "companies: admin all" ON companies
@@ -301,6 +308,22 @@ CREATE POLICY "applications: admin all" ON applications
 
 
 -- ================================================================
+-- RATE LIMIT: chat messages — max 20 per minute per sender (R3-H2)
+-- SECURITY DEFINER bypasses RLS to avoid recursive policy evaluation.
+-- ================================================================
+CREATE OR REPLACE FUNCTION check_chat_rate_limit()
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER VOLATILE AS $$
+DECLARE cnt bigint;
+BEGIN
+  SELECT COUNT(*) INTO cnt
+  FROM chat_messages
+  WHERE sender_id = auth.uid() AND created_at > now() - interval '1 minute';
+  RETURN cnt < 20;
+END;
+$$;
+
+
+-- ================================================================
 -- TABLE: chat_messages
 -- Stores: id, job_id, student_id, company_id, sender_id, text, created_at
 -- ================================================================
@@ -327,6 +350,7 @@ CREATE POLICY "chat_messages: student insert" ON chat_messages
   FOR INSERT WITH CHECK (
     auth.uid() = student_id AND
     auth.uid() = sender_id AND
+    check_chat_rate_limit() AND
     (
       (
         job_id IS NULL AND (
@@ -366,6 +390,7 @@ CREATE POLICY "chat_messages: company insert" ON chat_messages
   FOR INSERT WITH CHECK (
     auth.uid() = company_id AND
     auth.uid() = sender_id AND
+    check_chat_rate_limit() AND
     (
       (
         job_id IS NOT NULL AND
@@ -665,7 +690,7 @@ BEGIN
   SELECT COUNT(*) INTO daily_count FROM rpc_rate_log
     WHERE user_id = auth.uid() AND rpc_name = 'get_user_emails'
       AND called_at > now() - interval '24 hours';
-  IF daily_count >= 200 THEN
+  IF daily_count >= 20 THEN
     RAISE EXCEPTION 'Daily rate limit exceeded for email lookup';
   END IF;
   INSERT INTO rpc_rate_log(user_id, rpc_name) VALUES (auth.uid(), 'get_user_emails');
@@ -713,12 +738,30 @@ END;
 $$;
 
 -- Delete the currently authenticated user's own account.
+-- R3-C1: Explicitly cascades all tables for GDPR Art. 17 compliance.
+-- FK cascades alone are not reliable across all schemas; belt-and-suspenders approach.
 CREATE OR REPLACE FUNCTION delete_account()
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE uid uuid := auth.uid();
 BEGIN
+  IF uid IS NULL THEN RAISE EXCEPTION 'Not authenticated'; END IF;
+
+  -- Audit trail first (before any deletion)
   INSERT INTO audit_log (actor_id, action, target_id)
-    VALUES (auth.uid(), 'delete_account', auth.uid());
-  DELETE FROM auth.users WHERE id = auth.uid();
+    VALUES (uid, 'delete_account', uid);
+
+  -- Cascade deletions in dependency order
+  DELETE FROM chat_messages          WHERE student_id = uid OR company_id = uid;
+  DELETE FROM liked_jobs             WHERE student_id = uid;
+  DELETE FROM company_liked_students WHERE company_id  = uid OR student_id = uid;
+  DELETE FROM applications           WHERE student_id  = uid;
+  DELETE FROM jobs                   WHERE company_id  = uid;
+  DELETE FROM export_log             WHERE user_id     = uid;
+  DELETE FROM students               WHERE id = uid;
+  DELETE FROM companies              WHERE id = uid;
+  DELETE FROM profiles               WHERE id = uid;
+  -- Delete auth user last — this invalidates the caller's session immediately
+  DELETE FROM auth.users             WHERE id = uid;
 END;
 $$;
 
@@ -813,22 +856,6 @@ BEGIN
     SELECT c.id, c.profile_photo_url FROM companies c WHERE c.id = ANY(user_ids);
 END;
 $$;
-
-
--- ================================================================
--- FIX #14: Prevent cv_url/cover_letter_url path injection
--- Students cannot set their document URL to another student's storage path.
--- ================================================================
-DROP POLICY IF EXISTS "students: own update" ON students;
-
-CREATE POLICY "students: own update" ON students
-  FOR UPDATE USING (auth.uid() = id)
-  WITH CHECK (
-    auth.uid() = id AND
-    status = (SELECT status FROM students WHERE id = auth.uid()) AND
-    (cv_url IS NULL OR cv_url LIKE auth.uid()::text || '/%') AND
-    (cover_letter_url IS NULL OR cover_letter_url LIKE auth.uid()::text || '/%')
-  );
 
 
 -- ================================================================
@@ -1118,12 +1145,25 @@ CREATE POLICY "hire_action_log: company select" ON hire_action_log
 -- ================================================================
 CREATE TABLE IF NOT EXISTS audit_log (
   id         BIGSERIAL PRIMARY KEY,
-  actor_id   UUID REFERENCES auth.users(id),
+  actor_id   UUID REFERENCES auth.users(id) ON DELETE SET NULL,
   action     TEXT NOT NULL,
   target_id  UUID,
   metadata   JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+-- R3-L3: ensure existing FK uses ON DELETE SET NULL (alter if constraint already exists without it)
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.referential_constraints
+    WHERE constraint_name = 'audit_log_actor_id_fkey'
+      AND delete_rule = 'NO ACTION'
+  ) THEN
+    ALTER TABLE audit_log DROP CONSTRAINT audit_log_actor_id_fkey;
+    ALTER TABLE audit_log ADD CONSTRAINT audit_log_actor_id_fkey
+      FOREIGN KEY (actor_id) REFERENCES auth.users(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_audit_log_actor ON audit_log(actor_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_audit_log_action ON audit_log(action, created_at);
 
@@ -1370,6 +1410,17 @@ BEGIN
       CHECK (description IS NULL OR char_length(description) <= 10000);
   END IF;
 END $$;
+
+-- ================================================================
+-- PERFORMANCE: missing indexes (R3-H15, R3-L1, R3-L2)
+-- ================================================================
+CREATE INDEX IF NOT EXISTS idx_applications_job_id     ON applications(job_id);
+CREATE INDEX IF NOT EXISTS idx_applications_student_id ON applications(student_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_student_id ON chat_messages(student_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_company_id ON chat_messages(company_id);
+CREATE INDEX IF NOT EXISTS idx_chat_messages_job_id     ON chat_messages(job_id);
+CREATE INDEX IF NOT EXISTS idx_students_skills          ON students USING GIN(skills);
+
 
 -- ================================================================
 -- Availability heatmap — aggregate student availability by day/slot

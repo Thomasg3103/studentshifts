@@ -5,11 +5,18 @@ const ALLOWED_IMAGE_TYPES = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
 const MAX_DOC_BYTES   = 10 * 1024 * 1024;
 const MAX_IMAGE_BYTES =  5 * 1024 * 1024;
 
+// R3-C11: MIME type allowlists — validate the actual file content, not just the extension.
+// Renamed shell.exe → shell.pdf has a PDF extension but a PE MIME type.
+const ALLOWED_DOC_MIMES   = new Set(["application/pdf","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
+const ALLOWED_IMAGE_MIMES = new Set(["image/jpeg","image/png","image/webp","image/gif"]);
+
 export async function uploadDocument(userId, file, bucket, fileName) {
   const ext = file.name.split(".").pop()?.toLowerCase() || "";
   const isVerificationDoc = bucket === "verification-docs";
-  const allowedExts = isVerificationDoc ? new Set([...ALLOWED_DOC_TYPES, ...ALLOWED_IMAGE_TYPES]) : ALLOWED_DOC_TYPES;
-  if (!allowedExts.has(ext)) throw new Error(`File type .${ext} is not allowed. Please upload a PDF${isVerificationDoc ? ", image," : ""} or Word document.`);
+  const allowedExts  = isVerificationDoc ? new Set([...ALLOWED_DOC_TYPES,  ...ALLOWED_IMAGE_TYPES])  : ALLOWED_DOC_TYPES;
+  const allowedMimes = isVerificationDoc ? new Set([...ALLOWED_DOC_MIMES, ...ALLOWED_IMAGE_MIMES]) : ALLOWED_DOC_MIMES;
+  if (!allowedExts.has(ext))        throw new Error(`File type .${ext} is not allowed. Please upload a PDF${isVerificationDoc ? ", image," : ""} or Word document.`);
+  if (!allowedMimes.has(file.type)) throw new Error(`File content type "${file.type}" is not allowed.`);
   if (file.size > MAX_DOC_BYTES) throw new Error("File is too large. Maximum size is 10 MB.");
   const path = `${userId}/${fileName}.${ext}`;
   const { error } = await withTimeout(
@@ -58,6 +65,10 @@ export async function getSignedDocumentUrl(bucket, path) {
     if (idx !== -1) {
       cleanPath = decodeURIComponent(path.slice(idx + marker.length).split("?")[0]);
     }
+  }
+  // R3-M12: block path traversal sequences before passing to storage API
+  if (!cleanPath || /\.\./.test(cleanPath) || cleanPath.startsWith("/")) {
+    throw new Error("Invalid document path.");
   }
   const { data, error } = await supabase.storage.from(bucket).createSignedUrl(cleanPath, 60);
   if (error) throw new Error(`Could not load document: ${error.message}`);

@@ -241,6 +241,10 @@ export default function StudentShiftsWeb() {
         setAppliedJobs([]);
         setSavedLikedJobIds([]);
         setSavedAppliedJobIds([]);
+        // R3-H8: clear per-user derived state so previous user's data isn't briefly visible
+        setAppStatuses({});
+        setNotifCount(0);
+        setMsgCount(0);
         navigate("/", { replace: true });
       }
     });

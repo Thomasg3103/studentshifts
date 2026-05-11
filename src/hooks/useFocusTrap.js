@@ -18,5 +18,7 @@ export function useFocusTrap(ref, onEscape, enabled = true) {
     };
     document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("keydown", onKey); prev?.focus(); };
-  }, [enabled]);
+  // R3-H21: include ref and onEscape so stale closures don't call the wrong handler
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enabled, onEscape]);
 }

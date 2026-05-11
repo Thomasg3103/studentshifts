@@ -67,11 +67,10 @@ export async function removeApplication(userId, jobId) {
 
 export async function updateApplicationStage(applicationId, stage) {
   await ensureValidSession();
-  const { data, error } = await supabase
-    .from("applications")
-    .update({ pipeline_stage: stage })
-    .eq("id", applicationId)
-    .select("id");
+  const { data, error } = await withTimeout(
+    supabase.from("applications").update({ pipeline_stage: stage }).eq("id", applicationId).select("id"),
+    10000
+  );
   if (error) throw error;
   if (!data?.length) throw new Error("Stage update failed — row not found or permission denied");
 }
@@ -87,49 +86,47 @@ export async function saveApplicationNotes(applicationId, notes) {
 
 export async function incrementInterviewRound(applicationId, currentRound) {
   await ensureValidSession();
-  const { data, error } = await supabase
-    .from("applications")
-    .update({ interview_round: currentRound + 1 })
-    .eq("id", applicationId)
-    .select("id");
+  const { data, error } = await withTimeout(
+    supabase.from("applications").update({ interview_round: currentRound + 1 }).eq("id", applicationId).select("id"),
+    10000
+  );
   if (error) throw error;
   if (!data?.length) throw new Error("Round update failed — row not found or permission denied");
 }
 
 export async function saveTrialSchedule(applicationId, trialDate, trialTime) {
   await ensureValidSession();
-  const { error } = await supabase
-    .from("applications")
-    .update({ trial_date: trialDate || null, trial_time: trialTime || null })
-    .eq("id", applicationId);
+  const { error } = await withTimeout(
+    supabase.from("applications").update({ trial_date: trialDate || null, trial_time: trialTime || null }).eq("id", applicationId),
+    10000
+  );
   if (error) throw error;
 }
 
 export async function saveInterviewSchedule(applicationId, date, time) {
   await ensureValidSession();
-  const { error } = await supabase
-    .from("applications")
-    .update({ interview_date: date || null, interview_time: time || null })
-    .eq("id", applicationId);
+  const { error } = await withTimeout(
+    supabase.from("applications").update({ interview_date: date || null, interview_time: time || null }).eq("id", applicationId),
+    10000
+  );
   if (error) throw error;
 }
 
 export async function saveInterviewRoundsData(applicationId, rounds) {
   await ensureValidSession();
-  const { error } = await supabase
-    .from("applications")
-    .update({ interview_rounds_data: rounds })
-    .eq("id", applicationId);
+  const { error } = await withTimeout(
+    supabase.from("applications").update({ interview_rounds_data: rounds }).eq("id", applicationId),
+    10000
+  );
   if (error) throw error;
 }
 
 export async function moveToInterviewRound(applicationId, round) {
   await ensureValidSession();
-  const { data, error } = await supabase
-    .from("applications")
-    .update({ pipeline_stage: "interview", interview_round: round })
-    .eq("id", applicationId)
-    .select("id");
+  const { data, error } = await withTimeout(
+    supabase.from("applications").update({ pipeline_stage: "interview", interview_round: round }).eq("id", applicationId).select("id"),
+    10000
+  );
   if (error) throw error;
   if (!data?.length) throw new Error("Move failed — row not found or permission denied");
 }

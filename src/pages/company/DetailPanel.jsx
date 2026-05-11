@@ -311,6 +311,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                       <input
                         type="date"
                         value={round.date}
+                        min={new Date().toISOString().split("T")[0]}
                         onChange={e => {
                           const v = e.target.value;
                           setInterviewRounds(prev => prev.map((r, idx) => idx === i ? { ...r, date: v } : r));
@@ -348,6 +349,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                 <input
                   type="date"
                   value={trialDate}
+                  min={new Date().toISOString().split("T")[0]}
                   onChange={e => setTrialDate(e.target.value)}
                   onBlur={() => onSaveTrialSchedule?.(applicant.id, trialDate, trialTime)}
                   style={{ flex: 1, minWidth: "130px", padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151" }}

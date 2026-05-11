@@ -27,14 +27,16 @@ export default function SavedStudents({ students, loading, fetched, likedStudent
       .then(msgs => { setChatMessages(msgs); setChatLoading(false); })
       .catch(e => { setChatLoading(false); setChatError(e?.message || "Failed to load messages — please try again."); });
 
+    // R3-C4: filter on both company_id AND student_id — otherwise the subscription receives
+    // ALL messages this company has with any student, not just the open conversation.
     const channel = supabase
       .channel(`saved_direct_${companyId}_${chatStudent.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `company_id=eq.${companyId}` },
-        payload => {
-          if (payload.new.student_id === chatStudent.id) {
-            setChatMessages(prev => [...prev, payload.new]);
-          }
-        })
+      .on("postgres_changes", {
+        event: "INSERT", schema: "public", table: "chat_messages",
+        filter: `company_id=eq.${companyId}&student_id=eq.${chatStudent.id}`,
+      }, payload => {
+        setChatMessages(prev => [...prev, payload.new]);
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };

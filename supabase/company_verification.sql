@@ -12,26 +12,6 @@ ALTER TABLE companies ADD COLUMN IF NOT EXISTS status text NOT NULL DEFAULT 'pen
 -- Backfill: mark all existing companies as already verified
 UPDATE companies SET status = 'verified' WHERE status = 'pending_review';
 
--- ── RPCs (SECURITY DEFINER so only trusted server code runs them) ─────────
-
--- Approve a company (admin only)
-CREATE OR REPLACE FUNCTION approve_company(company_id uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
-BEGIN
-  IF NOT is_admin() THEN
-    RAISE EXCEPTION 'Unauthorised: admin only';
-  END IF;
-  UPDATE companies SET status = 'verified' WHERE id = company_id;
-END;
-$$;
-
--- Reject a company (admin only)
-CREATE OR REPLACE FUNCTION reject_company(company_id uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
-BEGIN
-  IF NOT is_admin() THEN
-    RAISE EXCEPTION 'Unauthorised: admin only';
-  END IF;
-  UPDATE companies SET status = 'rejected' WHERE id = company_id;
-END;
-$$;
+-- NOTE (R3-C5): approve_company and reject_company are defined in rls_policies.sql
+-- (with audit log inserts). Do NOT redefine them here — this file runs after
+-- rls_policies.sql and would silently overwrite the audited versions.

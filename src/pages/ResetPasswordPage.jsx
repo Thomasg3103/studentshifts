@@ -2,6 +2,7 @@ import { useState } from "react";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { updatePassword } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
 
 export default function ResetPasswordPage() {
@@ -20,6 +21,8 @@ export default function ResetPasswordPage() {
     setError("");
     try {
       await updatePassword(password);
+      // R3-H5: sign out so the old session/token is invalidated after password change
+      await supabase.auth.signOut();
       setSuccess(true);
       setTimeout(() => setPage("login"), 2500);
     } catch (e) {
