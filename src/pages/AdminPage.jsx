@@ -198,6 +198,7 @@ export default function AdminPage() {
                   </div>
                   <div style={{ display: "flex", gap: "0.6rem" }}>
                     <button
+                      aria-label={`Approve ${s.name}`}
                       onClick={() => handleApproveStudent(s)}
                       disabled={!!actionLoading}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: actionLoading === s.id + "_approve" ? 0.7 : 1 }}
@@ -205,6 +206,7 @@ export default function AdminPage() {
                       {actionLoading === s.id + "_approve" ? "Approving…" : "✅ Approve"}
                     </button>
                     <button
+                      aria-label={`Reject ${s.name}`}
                       onClick={() => handleRejectStudent(s.id)}
                       disabled={!!actionLoading}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === s.id + "_reject" ? 0.7 : 1 }}
@@ -269,6 +271,7 @@ export default function AdminPage() {
 
                   <div style={{ display: "flex", gap: "0.6rem" }}>
                     <button
+                      aria-label={`Approve ${c.name}`}
                       onClick={() => handleApproveCompany(c)}
                       disabled={!!actionLoading}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: actionLoading === c.id + "_approve" ? 0.7 : 1 }}
@@ -276,6 +279,7 @@ export default function AdminPage() {
                       {actionLoading === c.id + "_approve" ? "Approving…" : "✅ Approve"}
                     </button>
                     <button
+                      aria-label={`Reject ${c.name}`}
                       onClick={() => handleRejectCompany(c.id)}
                       disabled={!!actionLoading}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === c.id + "_reject" ? 0.7 : 1 }}
