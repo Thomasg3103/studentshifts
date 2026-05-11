@@ -13,7 +13,7 @@ export default function AboutPage() {
         <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "About", item: "https://studentshifts.ie/about" }] })}</script>
       </Helmet>
       <BackButton />
-    <PageWrapper narrow>
+    <PageWrapper>
 
       {/* Hero */}
       <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
