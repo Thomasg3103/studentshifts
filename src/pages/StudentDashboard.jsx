@@ -395,8 +395,20 @@ export default function StudentDashboard({ restoreScrollY }) {
     setSearchQuery(f.searchQuery || "");
   };
 
+  const generateSearchName = () => {
+    if (searchQuery.trim()) return searchQuery.trim();
+    const parts = [];
+    if (selectedDays.length > 0) parts.push(selectedDays.slice(0, 2).map(d => d.slice(0, 3)).join("/"));
+    if (selectedLocations.length > 0) parts.push(selectedLocations[0]);
+    if (selectedJobTypes.length > 0) parts.push(selectedJobTypes[0]);
+    if (weekendOnly) parts.push("Weekends");
+    if (allWeekOnly) parts.push("Weekdays");
+    if (distanceKm > 0) parts.push(`${distanceKm}km`);
+    return parts.length > 0 ? parts.join(" · ") : `Search ${savedSearches.length + 1}`;
+  };
+
   const saveSearch = () => {
-    const name = searchQuery.trim() || `Search ${savedSearches.length + 1}`;
+    const name = generateSearchName();
     if (savedSearches.some(s => s.name === name)) {
       setJustSaved(true);
       setTimeout(() => setJustSaved(false), 1500);
@@ -739,8 +751,8 @@ export default function StudentDashboard({ restoreScrollY }) {
                     <button
                       onClick={e => { e.stopPropagation(); toggleLike(job); }}
                       disabled={isApplied}
-                      title={isApplied ? "Applied" : isLiked ? "Unlike" : "Like"}
-                      aria-label={isApplied ? "Applied" : isLiked ? "Unlike job" : "Like job"}
+                      title={isApplied ? "You’ve already applied" : isLiked ? "Remove from liked" : "Save job"}
+                      aria-label={isApplied ? "Already applied" : isLiked ? "Remove from liked jobs" : "Save job"}
                       style={{ width: isPhone ? "54px" : "90px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, margin: 0, borderRadius: "0 1rem 1rem 0" }}
                     >
                       {isApplied ? (

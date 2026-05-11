@@ -6,7 +6,7 @@ import { useApp } from "../context/AppContext";
 const FAQS = [
   {
     q: "How do I get verified as a student?",
-    a: "After signing up, you'll be asked to upload your Student ID and Government ID. Our admin team reviews submissions within 24 hours and sends you an email once you're cleared to apply.",
+    a: "After signing up, you'll be asked to upload your Student ID and Government ID. Our admin team reviews submissions within 24 hours (Mon–Fri) and sends you an email once you're cleared to apply.",
   },
   {
     q: "Is StudentShifts free to use?",

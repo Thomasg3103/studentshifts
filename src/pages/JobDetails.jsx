@@ -103,7 +103,20 @@ export default function JobDetails({ job }) {
     } catch (e) {
       Sentry.captureException(e);
       console.error("Apply error:", e);
-      toast.error("Something went wrong. Please try again.");
+      toast.error(
+        (t) => (
+          <span style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+            Something went wrong.
+            <button
+              onClick={() => { toast.dismiss(t.id); confirmApply(); }}
+              style={{ fontWeight: 700, background: "none", border: "none", cursor: "pointer", color: "inherit", textDecoration: "underline", padding: 0, fontFamily: "inherit", fontSize: "inherit" }}
+            >
+              Retry
+            </button>
+          </span>
+        ),
+        { duration: 6000 }
+      );
     } finally {
       setSubmitting(false);
     }

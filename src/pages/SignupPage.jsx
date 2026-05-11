@@ -283,7 +283,7 @@ export default function SignupPage() {
           <div style={{ marginTop: "0.5rem", backgroundColor: "#f0f9ff", borderRadius: "0.85rem", padding: "0.9rem 1.1rem", border: "1px solid #bae6fd" }}>
             <p style={{ margin: "0 0 0.25rem", fontWeight: "700", color: "#0369a1", fontSize: "0.875rem" }}>🪪 Verification required</p>
             <p style={{ margin: 0, fontSize: "0.78rem", color: "#0369a1", lineHeight: 1.5 }}>
-              After confirming your email you'll be asked to upload your Student ID and Government ID. Our team usually verifies accounts within 24 hours — you'll get an email when you're cleared to apply.
+              After confirming your email you'll be asked to upload your Student ID and Government ID. Our team usually verifies accounts within 24 hours (Mon–Fri) — you'll get an email when you're cleared to apply.
             </p>
           </div>
         )}
