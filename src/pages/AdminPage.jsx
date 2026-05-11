@@ -89,20 +89,25 @@ export default function AdminPage() {
     try {
       const isNew = await approveStudent(student.id);
       setStudents(prev => prev.filter(s => s.id !== student.id));
-      if (isNew && student.email) {
-        try {
-          await sendEmail({
-            to: student.email,
-            subject: "Your StudentShifts account has been approved!",
-            html: emailStudentApproved(student.name),
-            magicLinkEmail: student.email,
-            redirectTo: window.location.origin,
-          });
-        } catch (e) {
-          console.warn("Approval email failed:", e.message);
-          toast.error("Approved, but notification email failed to send.");
+      if (isNew) {
+        if (student.email) {
+          try {
+            await sendEmail({
+              to: student.email,
+              subject: "Your StudentShifts account has been approved!",
+              html: emailStudentApproved(student.name),
+              magicLinkEmail: student.email,
+              redirectTo: window.location.origin,
+            });
+            toast.success(`${student.name} approved and notified.`);
+          } catch (e) {
+            console.warn("Approval email failed:", e.message);
+            toast.error("Approved, but notification email failed to send.");
+          }
+        } else {
+          toast.success(`${student.name} approved.`);
         }
-      } else if (!isNew) {
+      } else {
         toast("Already approved by another admin.");
       }
     } catch (e) {
@@ -136,6 +141,7 @@ export default function AdminPage() {
           console.warn("Rejection email failed:", e.message);
         }
       }
+      toast(`${student.name} rejected.`);
     } catch (e) {
       Sentry.captureException(e);
       toast.error(e.message || "Failed to reject. Please try again."); // F-H19
@@ -152,18 +158,23 @@ export default function AdminPage() {
     try {
       const isNew = await approveCompany(company.id);
       setCompanies(prev => prev.filter(c => c.id !== company.id));
-      if (isNew && company.email) {
-        try {
-          await sendEmail({
-            to: company.email,
-            subject: "Your StudentShifts company account has been verified!",
-            html: emailCompanyApproved(company.name, window.location.origin),
-          });
-        } catch (e) {
-          console.warn("Approval email failed:", e.message);
-          toast.error("Approved, but notification email failed to send.");
+      if (isNew) {
+        if (company.email) {
+          try {
+            await sendEmail({
+              to: company.email,
+              subject: "Your StudentShifts company account has been verified!",
+              html: emailCompanyApproved(company.name, window.location.origin),
+            });
+            toast.success(`${company.name} approved and notified.`);
+          } catch (e) {
+            console.warn("Approval email failed:", e.message);
+            toast.error("Approved, but notification email failed to send.");
+          }
+        } else {
+          toast.success(`${company.name} approved.`);
         }
-      } else if (!isNew) {
+      } else {
         toast("Already approved by another admin.");
       }
     } catch (e) {
@@ -194,6 +205,7 @@ export default function AdminPage() {
           console.warn("Rejection email failed:", e.message);
         }
       }
+      toast(`${company.name} rejected.`);
     } catch (e) {
       Sentry.captureException(e);
       toast.error(e.message || "Failed to reject. Please try again."); // F-H19
@@ -353,7 +365,7 @@ export default function AdminPage() {
                       </p>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                         <a
-                          href={`https://search.cro.ie/company/CompanySearch.aspx`}
+                          href={`https://search.cro.ie/company/CompanySearch.aspx?company_num=${encodeURIComponent(c.croNumber)}&business_ind=A`}
                           target="_blank"
                           rel="noreferrer"
                           style={verifyLinkStyle}
