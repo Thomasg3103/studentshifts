@@ -376,11 +376,11 @@ export default function StudentShiftsWeb() {
               <Route path="/email-verified" element={<EmailVerifiedPage />} />
 
               {/* Student pages */}
-              <Route path="/account" element={currentUser ? <AccountPage /> : <Navigate to="/login" replace />} />
+              <Route path="/account" element={currentUser?.role === "student" || currentUser?.role === "company" ? <AccountPage /> : <Navigate to="/login" replace />} />
               <Route path="/liked"   element={currentUser?.role === "student" ? <LikedJobs /> : <Navigate to="/" replace />} />
               <Route path="/applied" element={currentUser?.role === "student" ? <AppliedJobs /> : <Navigate to="/" replace />} />
               <Route path="/messages" element={currentUser?.role === "student" ? <Messages /> : <Navigate to="/" replace />} />
-              <Route path="/verify"  element={currentUser ? <VerifyDocsPage /> : <Navigate to="/" replace />} />
+              <Route path="/verify"  element={currentUser?.role === "student" ? <VerifyDocsPage /> : <Navigate to="/" replace />} />
 
               {/* Company pages */}
               <Route path="/company" element={currentUser?.role === "company" && currentUser?.verificationStatus === "verified" ? <CompanyDashboard /> : <Navigate to="/" replace />} />

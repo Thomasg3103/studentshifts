@@ -1,12 +1,21 @@
 import { supabase, withTimeout, ensureValidSession } from "./supabase";
 
 export async function fetchAllVerifiedStudents() {
-  const { data, error } = await withTimeout(
-    supabase.rpc("get_all_verified_students"),
-    10000
-  );
-  if (error) throw error;
-  return data || [];
+  const PAGE = 200;
+  let offset = 0;
+  const all = [];
+  while (true) {
+    const { data, error } = await withTimeout(
+      supabase.rpc("get_all_verified_students", { p_limit: PAGE, p_offset: offset }),
+      10000
+    );
+    if (error) throw error;
+    if (!data?.length) break;
+    all.push(...data);
+    if (data.length < PAGE) break;
+    offset += PAGE;
+  }
+  return all;
 }
 
 export async function fetchAvailabilityHeatmap() {

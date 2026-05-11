@@ -290,8 +290,10 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               onBlur={handleNotesBlur}
               placeholder="Private notes visible only to your company…"
               rows={3}
+              maxLength={4000}
               style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.5, color: "#374151" }}
             />
+            <div style={{ textAlign: "right", fontSize: "0.72rem", color: notes.length >= 3800 ? "#ef4444" : "#94a3b8", marginTop: "0.2rem" }}>{notes.length}/4000</div>
           </Section>
 
           {/* Interview rounds — shortlisted and interview stages */}

@@ -617,18 +617,36 @@ BEGIN
 END;
 $$;
 
+-- Tracks daily calls to get_user_emails for rate-limiting.
+CREATE TABLE IF NOT EXISTS rpc_rate_log (
+  id        BIGSERIAL PRIMARY KEY,
+  user_id   UUID NOT NULL,
+  rpc_name  TEXT NOT NULL,
+  called_at TIMESTAMPTZ DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_rpc_rate_log_user_rpc ON rpc_rate_log(user_id, rpc_name, called_at);
+
 -- Returns emails only for users who have a relationship with the caller.
--- Limited to 50 IDs per call to prevent bulk email enumeration.
+-- Limited to 50 IDs per call and 200 calls per day per user.
 CREATE OR REPLACE FUNCTION get_user_emails(user_ids uuid[])
 RETURNS TABLE(id uuid, email text)
-LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+LANGUAGE plpgsql SECURITY DEFINER VOLATILE AS $$
 DECLARE
   caller_role text;
+  daily_count bigint;
 BEGIN
   IF array_length(user_ids, 1) > 50 THEN
     RAISE EXCEPTION 'Too many user IDs requested (max 50)';
   END IF;
   SELECT p.role INTO caller_role FROM profiles p WHERE p.id = auth.uid();
+  -- Daily rate limit: 200 calls per day per user (prevents bulk enumeration across many calls)
+  SELECT COUNT(*) INTO daily_count FROM rpc_rate_log
+    WHERE user_id = auth.uid() AND rpc_name = 'get_user_emails'
+      AND called_at > now() - interval '24 hours';
+  IF daily_count >= 200 THEN
+    RAISE EXCEPTION 'Daily rate limit exceeded for email lookup';
+  END IF;
+  INSERT INTO rpc_rate_log(user_id, rpc_name) VALUES (auth.uid(), 'get_user_emails');
   RETURN QUERY
     SELECT u.id, u.email::text
     FROM auth.users u
@@ -712,9 +730,11 @@ $$;
 -- ================================================================
 -- FIX #9: get_all_verified_students — safe columns only (no lat/lng GPS coordinates)
 -- Only callable by verified companies or admins; raises for all others.
+-- Paginated: p_limit (max 200) and p_offset to cap data exposure per call.
 -- ================================================================
 DROP FUNCTION IF EXISTS get_all_verified_students();
-CREATE OR REPLACE FUNCTION get_all_verified_students()
+DROP FUNCTION IF EXISTS get_all_verified_students(int, int);
+CREATE OR REPLACE FUNCTION get_all_verified_students(p_limit int DEFAULT 200, p_offset int DEFAULT 0)
 RETURNS TABLE (
   id                uuid,
   name              text,
@@ -733,12 +753,17 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'Unauthorised: verified company or admin required';
   END IF;
+  IF p_limit > 200 THEN
+    RAISE EXCEPTION 'p_limit cannot exceed 200';
+  END IF;
   RETURN QUERY
     SELECT p.id, p.name, s.bio, s.skills, s.linkedin, s.profile_photo_url,
            s.location_display, s.availability, s.job_preferences
     FROM students s
     JOIN profiles p ON p.id = s.id
-    WHERE s.status = 'verified';
+    WHERE s.status = 'verified'
+    ORDER BY p.id
+    LIMIT p_limit OFFSET p_offset;
 END;
 $$;
 

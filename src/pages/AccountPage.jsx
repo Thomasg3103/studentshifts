@@ -577,8 +577,8 @@ export default function AccountPage() {
                     value={linkedIn}
                     onChange={e => setLinkedIn(e.target.value)}
                     onBlur={() => {
-                      if (linkedIn && !/^https?:\/\//.test(linkedIn)) {
-                        toast.error("LinkedIn URL must start with https://");
+                      if (linkedIn && !/^https:\/\/(www\.)?linkedin\.com\//.test(linkedIn)) {
+                        toast.error("Please enter a valid LinkedIn URL (e.g. https://linkedin.com/in/yourname)");
                         return;
                       }
                       saveField({ linkedin: linkedIn });
