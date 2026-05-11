@@ -1,4 +1,28 @@
-﻿import { useState } from "react";
+﻿import { useState, useEffect, useRef } from "react";
+
+function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const prev = document.activeElement;
+    ref.current?.querySelector("button")?.focus();
+    const onKey = (e) => { if (e.key === "Escape") onCancel(); };
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("keydown", onKey); prev?.focus(); };
+  }, []);
+  return (
+    <div onClick={onCancel} role="dialog" aria-modal="true" aria-label={title} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "1rem" }}>
+      <div ref={ref} onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem 1.5rem", width: "100%", maxWidth: "360px", boxShadow: "0 20px 60px rgba(0,0,0,0.25)", textAlign: "center" }}>
+        <p style={{ fontSize: "1.5rem", margin: "0 0 0.5rem" }}>{emoji}</p>
+        <h3 style={{ margin: "0 0 0.4rem", fontWeight: "700", fontSize: "1.05rem", color: "#0f172a" }}>{title}</h3>
+        <p style={{ margin: "0 0 1.5rem", fontSize: "0.875rem", color: "#64748b" }}>{body}</p>
+        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
+          <button onClick={onCancel} style={{ flex: 1, padding: "0.6rem 1rem", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", background: "white", cursor: "pointer", color: "#374151", fontSize: "0.88rem", fontWeight: "600", fontFamily: "inherit" }}>Cancel</button>
+          <button onClick={onConfirm} style={{ flex: 1, padding: "0.6rem 1rem", border: "none", borderRadius: "0.6rem", background: "#dc2626", cursor: "pointer", color: "white", fontSize: "0.88rem", fontWeight: "700", fontFamily: "inherit" }}>{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus }) {
   const isActive = posting.status === "Active";
@@ -86,59 +110,42 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "0.85rem 0.85rem 0.85rem 0", gap: "0.5rem", flexShrink: 0 }}>
         <button
           onClick={onEdit}
-          title="Edit job"
+          aria-label={`Edit ${posting.title}`}
           style={{ padding: "0.35rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}
         >
           Edit
         </button>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem" }}>
           <button
+            aria-label={isActive ? `Close ${posting.title}` : `Reopen ${posting.title}`}
             onClick={isActive ? () => setConfirmClose(true) : onToggleStatus}
             style={{ padding: "0.38rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#374151", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}
           >
             {isActive ? "Close Job" : "Reopen"}
           </button>
-          <button onClick={() => setConfirmDelete(true)} style={{ padding: "0.38rem 0.7rem", border: "1px solid #fca5a5", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#dc2626", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+          <button aria-label={`Delete ${posting.title}`} onClick={() => setConfirmDelete(true)} style={{ padding: "0.38rem 0.7rem", border: "1px solid #fca5a5", borderRadius: "0.4rem", background: "white", cursor: "pointer", color: "#dc2626", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap" }}>
             Delete
           </button>
         </div>
         {confirmClose && (
-          <div onClick={() => setConfirmClose(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "1rem" }}>
-            <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem 1.5rem", width: "100%", maxWidth: "360px", boxShadow: "0 20px 60px rgba(0,0,0,0.25)", textAlign: "center" }}>
-              <p style={{ fontSize: "1.5rem", margin: "0 0 0.5rem" }}>⚠️</p>
-              <h3 style={{ margin: "0 0 0.4rem", fontWeight: "700", fontSize: "1.05rem", color: "#0f172a" }}>Close this job?</h3>
-              <p style={{ margin: "0 0 1.5rem", fontSize: "0.875rem", color: "#64748b" }}>
-                The posting will be hidden from students. You can reopen it at any time.
-              </p>
-              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-                <button onClick={() => setConfirmClose(false)} style={{ flex: 1, padding: "0.6rem 1rem", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", background: "white", cursor: "pointer", color: "#374151", fontSize: "0.88rem", fontWeight: "600", fontFamily: "inherit" }}>
-                  Cancel
-                </button>
-                <button onClick={() => { onToggleStatus(); setConfirmClose(false); }} style={{ flex: 1, padding: "0.6rem 1rem", border: "none", borderRadius: "0.6rem", background: "#dc2626", cursor: "pointer", color: "white", fontSize: "0.88rem", fontWeight: "700", fontFamily: "inherit" }}>
-                  Yes, Close
-                </button>
-              </div>
-            </div>
-          </div>
+          <ConfirmDialog
+            title="Close this job?"
+            body="The posting will be hidden from students. You can reopen it at any time."
+            emoji="⚠️"
+            confirmLabel="Yes, Close"
+            onConfirm={() => { onToggleStatus(); setConfirmClose(false); }}
+            onCancel={() => setConfirmClose(false)}
+          />
         )}
         {confirmDelete && (
-          <div onClick={() => setConfirmDelete(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "1rem" }}>
-            <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem 1.5rem", width: "100%", maxWidth: "360px", boxShadow: "0 20px 60px rgba(0,0,0,0.25)", textAlign: "center" }}>
-              <p style={{ fontSize: "1.5rem", margin: "0 0 0.5rem" }}>🗑️</p>
-              <h3 style={{ margin: "0 0 0.4rem", fontWeight: "700", fontSize: "1.05rem", color: "#0f172a" }}>Delete this job?</h3>
-              <p style={{ margin: "0 0 1.5rem", fontSize: "0.875rem", color: "#64748b" }}>
-                This will permanently remove the posting and all its applicants. This cannot be undone.
-              </p>
-              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-                <button onClick={() => setConfirmDelete(false)} style={{ flex: 1, padding: "0.6rem 1rem", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", background: "white", cursor: "pointer", color: "#374151", fontSize: "0.88rem", fontWeight: "600", fontFamily: "inherit" }}>
-                  Cancel
-                </button>
-                <button onClick={() => { onDelete(); setConfirmDelete(false); }} style={{ flex: 1, padding: "0.6rem 1rem", border: "none", borderRadius: "0.6rem", background: "#dc2626", cursor: "pointer", color: "white", fontSize: "0.88rem", fontWeight: "700", fontFamily: "inherit" }}>
-                  Yes, Delete
-                </button>
-              </div>
-            </div>
-          </div>
+          <ConfirmDialog
+            title="Delete this job?"
+            body="This will permanently remove the posting and all its applicants. This cannot be undone."
+            emoji="🗑️"
+            confirmLabel="Yes, Delete"
+            onConfirm={() => { onDelete(); setConfirmDelete(false); }}
+            onCancel={() => setConfirmDelete(false)}
+          />
         )}
       </div>
     </div>
