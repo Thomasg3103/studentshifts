@@ -98,12 +98,21 @@ DROP POLICY IF EXISTS "students: company read applicants" ON students;
 CREATE POLICY "students: own read" ON students
   FOR SELECT USING (auth.uid() = id);
 
--- Student updates their own row; status column is locked (cannot self-verify)
+-- Student updates their own row; status column is locked except rejected→pending_review (re-submission).
 CREATE POLICY "students: own update" ON students
   FOR UPDATE USING (auth.uid() = id)
   WITH CHECK (
     auth.uid() = id AND
-    status = (SELECT status FROM students WHERE id = auth.uid())
+    (
+      -- Normal case: status unchanged
+      status = (SELECT status FROM students WHERE id = auth.uid())
+      OR
+      -- F-H18: allow rejected students to re-submit verification docs
+      (
+        (SELECT status FROM students WHERE id = auth.uid()) = 'rejected'
+        AND status = 'pending_review'
+      )
+    )
   );
 
 -- Admin can read all students (pending review list, verification, etc.)

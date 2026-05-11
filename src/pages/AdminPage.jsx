@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import PageWrapper from "../components/PageWrapper";
@@ -16,8 +16,13 @@ export default function AdminPage() {
   const [loading, setLoading]   = useState(true);
   const [error, setError]       = useState("");
   const [actionLoading, setActionLoading] = useState(null);
+  const [rejectConfirm, setRejectConfirm] = useState(null); // { type: "student"|"company", item }
+  const inFlight = useRef(new Set()); // F-C6: prevent double-approval across renders
 
-  useEffect(() => {
+  // F-M10: extracted so the Refresh button can re-call it
+  const loadData = useCallback(() => {
+    setLoading(true);
+    setError("");
     Promise.all([
       fetchPendingStudents().catch(() => { setError("Failed to load. Please refresh."); return []; }),
       fetchPendingCompanies().catch(() => { setError("Failed to load. Please refresh."); return []; }),
@@ -26,6 +31,8 @@ export default function AdminPage() {
       setCompanies(c);
     }).finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => { loadData(); }, [loadData]);
 
   const openDoc = async (path) => {
     try {
@@ -38,6 +45,8 @@ export default function AdminPage() {
   };
 
   const handleApproveStudent = async (student) => {
+    if (inFlight.current.has(student.id)) return; // F-C6: double-click guard
+    inFlight.current.add(student.id);
     setActionLoading(student.id + "_approve");
     try {
       await approveStudent(student.id);
@@ -58,14 +67,18 @@ export default function AdminPage() {
       }
     } catch (e) {
       Sentry.captureException(e);
-      toast.error("Failed to approve. Please try again.");
+      toast.error(e.message || "Failed to approve. Please try again."); // F-H19
     } finally {
+      inFlight.current.delete(student.id);
       setActionLoading(null);
     }
   };
 
-  const handleRejectStudent = async (student) => {
-    if (!window.confirm("Reject this student's verification? They will be notified and can re-submit.")) return;
+  // F-M8: confirmed=false → show inline modal; confirmed=true → proceed
+  const handleRejectStudent = async (student, confirmed = false) => {
+    if (!confirmed) { setRejectConfirm({ type: "student", item: student }); return; }
+    if (inFlight.current.has(student.id)) return; // F-C6
+    inFlight.current.add(student.id);
     setActionLoading(student.id + "_reject");
     try {
       await rejectStudent(student.id);
@@ -85,13 +98,16 @@ export default function AdminPage() {
       }
     } catch (e) {
       Sentry.captureException(e);
-      toast.error("Failed to reject. Please try again.");
+      toast.error(e.message || "Failed to reject. Please try again."); // F-H19
     } finally {
+      inFlight.current.delete(student.id);
       setActionLoading(null);
     }
   };
 
   const handleApproveCompany = async (company) => {
+    if (inFlight.current.has(company.id)) return; // F-C6
+    inFlight.current.add(company.id);
     setActionLoading(company.id + "_approve");
     try {
       await approveCompany(company.id);
@@ -105,18 +121,22 @@ export default function AdminPage() {
           });
         } catch (e) {
           console.warn("Approval email failed:", e.message);
+          toast.error("Approved, but notification email failed to send."); // F-M7
         }
       }
     } catch (e) {
       Sentry.captureException(e);
-      toast.error("Failed to approve. Please try again.");
+      toast.error(e.message || "Failed to approve. Please try again."); // F-H19
     } finally {
+      inFlight.current.delete(company.id);
       setActionLoading(null);
     }
   };
 
-  const handleRejectCompany = async (company) => {
-    if (!window.confirm("Reject this company? They will need to contact support to re-apply.")) return;
+  const handleRejectCompany = async (company, confirmed = false) => {
+    if (!confirmed) { setRejectConfirm({ type: "company", item: company }); return; } // F-M8
+    if (inFlight.current.has(company.id)) return; // F-C6
+    inFlight.current.add(company.id);
     setActionLoading(company.id + "_reject");
     try {
       await rejectCompany(company.id);
@@ -134,8 +154,9 @@ export default function AdminPage() {
       }
     } catch (e) {
       Sentry.captureException(e);
-      toast.error("Failed to reject. Please try again.");
+      toast.error(e.message || "Failed to reject. Please try again."); // F-H19
     } finally {
+      inFlight.current.delete(company.id);
       setActionLoading(null);
     }
   };
@@ -147,9 +168,19 @@ export default function AdminPage() {
     <PageWrapper>
       <div style={{ maxWidth: "680px", margin: "0 auto" }}>
 
-        <div style={{ marginBottom: "1.5rem" }}>
-          <h2 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Admin Dashboard</h2>
-          <p style={{ margin: 0, color: "#64748b", fontSize: "0.9rem" }}>Pending verification requests</p>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem", gap: "1rem" }}>
+          <div>
+            <h2 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Admin Dashboard</h2>
+            <p style={{ margin: 0, color: "#64748b", fontSize: "0.9rem" }}>Pending verification requests</p>
+          </div>
+          {/* F-M10: refresh button */}
+          <button
+            onClick={loadData}
+            disabled={loading}
+            style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: "600", fontSize: "0.82rem", cursor: loading ? "default" : "pointer", fontFamily: "inherit", opacity: loading ? 0.5 : 1, flexShrink: 0 }}
+          >
+            {loading ? "Loading…" : "↻ Refresh"}
+          </button>
         </div>
 
         {error && (
@@ -292,7 +323,7 @@ export default function AdminPage() {
                     </div>
                   ) : (
                     <div style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "0.6rem", padding: "0.6rem 0.85rem", marginBottom: "1rem" }}>
-                      <p style={{ margin: 0, fontSize: "0.78rem", color: "#c2410c" }}>⚠ No CRO number provided</p>
+                      <p style={{ margin: 0, fontSize: "0.78rem", color: "#c2410c" }}>⚠ No CRO number provided — cannot approve without verification</p>
                     </div>
                   )}
 
@@ -300,8 +331,9 @@ export default function AdminPage() {
                     <button
                       aria-label={`Approve ${c.name}`}
                       onClick={() => handleApproveCompany(c)}
-                      disabled={!!actionLoading}
-                      style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: actionLoading === c.id + "_approve" ? 0.7 : 1 }}
+                      disabled={!!actionLoading || !c.croNumber} // S-H10: require CRO
+                      title={!c.croNumber ? "Cannot approve: no CRO number provided" : undefined}
+                      style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: (actionLoading === c.id + "_approve" || !c.croNumber) ? 0.5 : 1 }}
                     >
                       {actionLoading === c.id + "_approve" ? "Approving…" : "✅ Approve"}
                     </button>
@@ -321,6 +353,43 @@ export default function AdminPage() {
         )}
 
       </div>
+
+      {/* F-M8: Reject confirmation modal */}
+      {rejectConfirm && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }}>
+          <div style={{ backgroundColor: "white", borderRadius: "1rem", padding: "1.5rem 1.75rem", maxWidth: "380px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+            <p style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>
+              Reject {rejectConfirm.type === "student" ? "Student" : "Company"}?
+            </p>
+            <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.5 }}>
+              {rejectConfirm.type === "student"
+                ? <><strong style={{ color: "#1e293b" }}>{rejectConfirm.item.name}</strong> will be notified and can re-submit their documents.</>
+                : <><strong style={{ color: "#1e293b" }}>{rejectConfirm.item.name}</strong> will need to contact support to re-apply.</>}
+            </p>
+            <div style={{ display: "flex", gap: "0.6rem", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setRejectConfirm(null)}
+                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  const item = rejectConfirm.item;
+                  const type = rejectConfirm.type;
+                  setRejectConfirm(null);
+                  if (type === "student") handleRejectStudent(item, true);
+                  else handleRejectCompany(item, true);
+                }}
+                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#e11d48", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
+              >
+                Yes, Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </PageWrapper>
   );
 }
@@ -338,4 +407,3 @@ const cardStyle      = { backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f
 const docBtn         = { padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "var(--color-brand)", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" };
 const actionBtnBase  = { padding: "0.6rem 1.25rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" };
 const verifyLinkStyle = { display: "inline-flex", alignItems: "center", padding: "0.3rem 0.75rem", borderRadius: "0.45rem", border: "1.5px solid #bae6fd", backgroundColor: "white", color: "#0369a1", fontWeight: "600", fontSize: "0.76rem", textDecoration: "none", fontFamily: "inherit" };
-
