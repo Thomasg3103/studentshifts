@@ -63,7 +63,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
         {/* Checkbox — pending only */}
         {applicant.status === "Pending" && (
           <div onClick={e => { e.stopPropagation(); onToggleSelect?.(); }} style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
-            <input type="checkbox" checked={isSelected || false} onChange={() => {}} onClick={e => { e.stopPropagation(); onToggleSelect?.(); }} style={{ cursor: "pointer", accentColor: "var(--color-brand)", width: "15px", height: "15px" }} />
+            <input type="checkbox" checked={isSelected || false} aria-label={`Select ${applicant.name}`} onChange={() => {}} onClick={e => { e.stopPropagation(); onToggleSelect?.(); }} style={{ cursor: "pointer", accentColor: "var(--color-brand)", width: "15px", height: "15px" }} />
           </div>
         )}
         {/* Photo */}
@@ -137,7 +137,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
   };
 
   return (
-    <div style={{ display: "flex", gap: "0.85rem", overflowX: "auto", paddingBottom: "1rem", alignItems: "flex-start" }}>
+    <div role="list" aria-label="Pipeline board" style={{ display: "flex", gap: "0.85rem", overflowX: "auto", paddingBottom: "1rem", alignItems: "flex-start" }}>
       {(stages || []).map(({ key, label }) => {
         const cards  = applicants.filter(a => getVirtualStageKey(a) === key);
         const color  = stageColor(key);
@@ -145,6 +145,8 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
         return (
           <div
             key={key}
+            role="listitem"
+            aria-label={`${label}: ${cards.length} applicant${cards.length !== 1 ? "s" : ""}`}
             onDragOver={e => { e.preventDefault(); setDragOverStage(key); }}
             onDragLeave={e => { if (!e.currentTarget.contains(e.relatedTarget)) setDragOverStage(null); }}
             onDrop={e => handleDrop(e, key)}
@@ -177,6 +179,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
                   <button
                     key={applicant.id}
                     draggable
+                    aria-label={`${applicant.name} — ${sc.label}. Drag to move stage.`}
                     onDragStart={e => {
                       setDraggingId(applicant.id);
                       e.dataTransfer.effectAllowed = "move";
@@ -347,7 +350,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
       {/* Bulk Decline Confirmation Modal */}
       {showBulkDeclineModal && (
         <div onClick={() => setShowBulkDeclineModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem" }}>
-          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1rem", padding: "2rem", maxWidth: "400px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", border: "1px solid #e2e8f0" }}>
+          <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Decline ${pendingDeclineIds.length} applicants`} style={{ backgroundColor: "white", borderRadius: "1rem", padding: "2rem", maxWidth: "400px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", border: "1px solid #e2e8f0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
               <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <span style={{ fontSize: "1.1rem" }}>✕</span>
@@ -385,6 +388,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search applicants…"
+            aria-label="Search applicants"
             style={{ width: "100%", padding: "0.45rem 0.75rem 0.45rem 2rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151", boxSizing: "border-box", outline: "none" }}
           />
           {search && (
@@ -394,6 +398,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
         <select
           value={sortBy}
           onChange={e => setSortBy(e.target.value)}
+          aria-label="Sort applicants"
           style={{ padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151", backgroundColor: "white", cursor: "pointer", outline: "none" }}
         >
           <option value="default">Sort: Default</option>
@@ -416,13 +421,15 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
         />
       ) : (<>
         {/* Pipeline stage tabs */}
-        <div style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", overflowX: "auto", borderBottom: "2px solid #e2e8f0", paddingBottom: 0 }}>
+        <div role="tablist" aria-label="Pipeline stages" style={{ display: "flex", gap: "0.25rem", marginBottom: "1.25rem", overflowX: "auto", borderBottom: "2px solid #e2e8f0", paddingBottom: 0 }}>
         {dynamicStages.map(({ key, label }) => {
           const count  = countFor(key);
           const active = activeStage === key;
           return (
             <button
               key={key}
+              role="tab"
+              aria-selected={active}
               onClick={() => setActiveStage(key)}
               style={{
                 flexShrink: 0,
@@ -477,6 +484,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
             <input
               type="checkbox"
               checked={allSelected}
+              aria-label={allSelected ? "Deselect all pending applicants" : `Select all ${pendingInStage.length} pending applicants`}
               onChange={e => {
                 const ids = pendingInStage.map(a => a.id);
                 if (e.target.checked) setSelectedIds(prev => new Set([...prev, ...ids]));
