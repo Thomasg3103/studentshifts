@@ -157,6 +157,7 @@ button:active:not(:disabled) { opacity: 0.7; }
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
+  -webkit-backdrop-filter: blur(2px);
   backdrop-filter: blur(2px);
 }
 .modal-panel {
