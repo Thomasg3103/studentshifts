@@ -26,11 +26,20 @@ export default function VerifyDocsPage() {
   const [loading, setLoading] = useState(false);
   const [showAvailabilityPrompt, setShowAvailabilityPrompt] = useState(false);
 
-  const isRejected = currentUser?.verificationStatus === "rejected";
-  const MAX_BYTES = 10 * 1024 * 1024;
+  const isRejected  = currentUser?.verificationStatus === "rejected";
+  const isPending   = currentUser?.verificationStatus === "pending_review";
+  const MAX_BYTES   = 10 * 1024 * 1024;
+  const ACCEPTED_EXTS = new Set(["jpg", "jpeg", "png", "webp", "gif", "pdf", "doc", "docx"]);
 
   const handleFileChange = (setter) => (file) => {
-    if (file && file.size > MAX_BYTES) {
+    if (!file) { setter(null); return; }
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    if (!ACCEPTED_EXTS.has(ext)) {
+      setError(`File type .${ext} is not allowed. Please upload a photo (JPG, PNG, WebP) or PDF.`);
+      setter(null);
+      return;
+    }
+    if (file.size > MAX_BYTES) {
       setError("File is too large. Maximum size is 10 MB.");
       setter(null);
       return;
@@ -55,6 +64,30 @@ export default function VerifyDocsPage() {
       setLoading(false);
     }
   };
+
+  // Pending state — documents already submitted, awaiting review
+  if (isPending && !isRejected) {
+    return (
+      <PageWrapper narrow>
+        <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
+          <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⏳</div>
+          <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Documents submitted</h2>
+          <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.25rem" }}>
+            Your student ID and government ID are under review by our team. We'll email you once your account is verified — usually within 24 hours on weekdays.
+          </p>
+          <div style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "0.75rem", padding: "0.85rem 1rem", marginBottom: "1.5rem", color: "#0369a1", fontSize: "0.85rem", lineHeight: 1.5 }}>
+            No action needed. Your documents are safe and reviewed securely by our team.
+          </div>
+          <button
+            onClick={() => setPage("account")}
+            style={{ width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" }}
+          >
+            Set My Availability →
+          </button>
+        </div>
+      </PageWrapper>
+    );
+  }
 
   return (
     <>
@@ -90,24 +123,32 @@ export default function VerifyDocsPage() {
         )}
 
         <div style={{ backgroundColor: "#f8fafc", borderRadius: "0.85rem", padding: "1rem 1.25rem", border: "1px solid #e2e8f0" }}>
+          <p style={{ margin: "0 0 0.75rem", fontSize: "0.76rem", color: "#64748b", lineHeight: 1.5 }}>
+            Accepted formats: JPG, PNG, WebP, PDF &nbsp;·&nbsp; Max size: 10 MB per file
+          </p>
           <FileUpload
             label="Student ID Card"
             hint="Photo of your student ID card"
-            accept="image/*,.pdf"
+            accept="image/*,.pdf,.doc,.docx"
             onChange={handleFileChange(setStudentIdCard)}
             file={studentIdCard}
           />
           <FileUpload
             label="Government ID"
             hint="Age Card, Passport or Driver's Licence"
-            accept="image/*,.pdf"
+            accept="image/*,.pdf,.doc,.docx"
             onChange={handleFileChange(setGovernmentId)}
             file={governmentId}
           />
         </div>
 
         <button onClick={handleSubmit} disabled={loading || !studentIdCard || !governmentId} style={{ ...btnPrimary, opacity: (loading || !studentIdCard || !governmentId) ? 0.5 : 1 }}>
-          {loading ? "Uploading…" : "Submit Documents →"}
+          {loading
+            ? <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+                <span style={{ width: "16px", height: "16px", border: "2.5px solid rgba(255,255,255,0.4)", borderTopColor: "white", borderRadius: "50%", animation: "spin 0.8s linear infinite", display: "inline-block" }} />
+                Uploading…
+              </span>
+            : "Submit Documents →"}
         </button>
 
       </div>

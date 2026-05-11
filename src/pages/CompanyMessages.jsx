@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
 import { fetchCompanyConversations, fetchCompanyDirectConversations, fetchMessages, sendMessage, fetchMessageCount } from "../lib/auth";
@@ -14,6 +14,15 @@ function formatConvTime(isoStr) {
   const diff = Math.floor((now - d) / 86400000);
   if (diff < 7) return d.toLocaleDateString("en-IE", { weekday: "short" });
   return d.toLocaleDateString("en-IE", { day: "numeric", month: "short" });
+}
+
+function formatMsgTime(isoStr) {
+  if (!isoStr) return "";
+  const d = new Date(isoStr);
+  const now = new Date();
+  const timeStr = d.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" });
+  if (d.toDateString() === now.toDateString()) return timeStr;
+  return d.toLocaleDateString("en-IE", { day: "numeric", month: "short" }) + " · " + timeStr;
 }
 
 function Avatar({ url, name, size = 44 }) {
@@ -61,6 +70,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
   const [messages, setMessages]       = useState([]);
   const [input, setInput]             = useState("");
   const [loading, setLoading]         = useState(true);
+  const [sending, setSending]         = useState(false);
   const [hasMore, setHasMore]         = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const msgListRef = useRef(null);
@@ -91,11 +101,15 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
   }, [jobId, studentId, companyId, messages, loadingMore]);
 
   useEffect(() => {
-    fetchMessages(jobId, studentId, companyId, { limit: PAGE_SIZE })
-      .then(msgs => { setMessages(msgs); setHasMore(msgs.length === PAGE_SIZE); setLoading(false); })
-      .catch(() => setLoading(false));
+    setLoading(true);
+    setMessages([]);
+    setHasMore(false);
 
-    const isDirect = jobId === null;
+    fetchMessages(jobId, studentId, companyId, { limit: PAGE_SIZE })
+      .then(msgs => { setMessages(msgs); setHasMore(msgs.length === PAGE_SIZE); })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+
     const channelName = isDirect ? `direct_${companyId}_${studentId}` : `msgs_${jobId}_${studentId}`;
     const filter = isDirect
       ? `and(company_id=eq.${companyId},student_id=eq.${studentId})`
@@ -106,14 +120,21 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter },
         payload => {
           const { new: msg } = payload;
-          if (isDirect ? (msg.student_id === studentId && msg.job_id === null) : (msg.student_id === studentId)) {
-            setMessages(prev => [...prev, msg]);
+          const isRelevant = isDirect
+            ? (msg.student_id === studentId && msg.company_id === companyId && msg.job_id === null)
+            : (msg.job_id === jobId && msg.student_id === studentId);
+          if (isRelevant) {
+            setMessages(prev => {
+              // Deduplicate: skip if message with same id already present
+              if (prev.some(m => m.id === msg.id)) return prev;
+              return [...prev, msg];
+            });
           }
         })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [jobId, studentId]);
+  }, [jobId, studentId, companyId]);
 
   useEffect(() => {
     if (prevScrollHeightRef.current !== null) {
@@ -128,10 +149,18 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
 
   const send = async () => {
     const text = input.trim();
-    if (!text) return;
-    setInput("");
-    try { await sendMessage(jobId, studentId, companyId, senderId, text); }
-    catch (e) { console.error("Send failed:", e); }
+    if (!text || sending) return;
+    setSending(true);
+    try {
+      await sendMessage(jobId, studentId, companyId, senderId, text);
+      setInput("");
+    } catch (e) {
+      console.error("Send failed:", e);
+      // Input is NOT cleared on failure so user can retry
+    } finally {
+      setSending(false);
+      inputRef.current?.focus();
+    }
   };
 
   return (
@@ -157,9 +186,10 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
                   backgroundColor: m.sender_id === senderId ? "var(--color-brand)" : "#e5e7eb",
                   color: m.sender_id === senderId ? "white" : "#111827",
                   padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45,
+                  wordBreak: "break-word", whiteSpace: "pre-wrap",
                 }}>{m.text}</div>
                 <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
-                  {new Date(m.created_at).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
+                  {formatMsgTime(m.created_at)}
                 </p>
               </div>
             ))
@@ -197,8 +227,12 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
           maxLength={4000}
           style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
         />
-        <button aria-label="Send message" onClick={send} disabled={!input.trim()} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", opacity: input.trim() ? 1 : 0.5 }}>
-          Send
+        <button
+          aria-label="Send message"
+          onClick={send}
+          disabled={!input.trim() || sending}
+          style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: (!input.trim() || sending) ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: (!input.trim() || sending) ? 0.5 : 1 }}>
+          {sending ? "…" : "Send"}
         </button>
       </div>
     </div>
@@ -254,7 +288,7 @@ export default function CompanyMessages() {
             <p style={{ margin: 0, fontSize: "0.78rem", color: "#6b7280" }}>{isDirect ? "Direct message" : active.title}</p>
           </div>
         </div>
-        <ChatThread jobId={active.jobId} studentId={active.studentId} companyId={currentUser.id} senderId={currentUser.id} studentName={active.studentName} jobTitle={active.title} />
+        <ChatThread key={`${active.jobId}_${active.studentId}`} jobId={active.jobId} studentId={active.studentId} companyId={currentUser.id} senderId={currentUser.id} studentName={active.studentName} jobTitle={active.title} />
       </div>
     );
   }

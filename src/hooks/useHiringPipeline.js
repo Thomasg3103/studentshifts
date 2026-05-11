@@ -1,9 +1,13 @@
+import { useRef } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
-import { supabase } from "../lib/supabase";
+import { supabase, ensureValidSession } from "../lib/supabase";
 import { sendEmail, emailInterviewInvite, emailTrialInvite, updateApplicationStage, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, saveInterviewSchedule } from "../lib/auth";
 
 export function useHiringPipeline({ activePosting, setPostings, setActivePosting, currentUser }) {
+  // Track in-flight stage-change requests to prevent double-firing on rapid clicks
+  const stagingInFlight = useRef(new Set());
+
   const applyToPosting = (updater) => {
     setPostings(prev => prev.map(p => p.id === activePosting?.id ? updater(p) : p));
     setActivePosting(prev => prev ? updater(prev) : prev);
@@ -12,6 +16,7 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
   const updateApplicantStatus = async (applicationId, newStatus, _applicant) => {
     const action = newStatus === "Accepted" ? "accept" : "reject";
     try {
+      await ensureValidSession();
       const { data, error } = await supabase.functions.invoke("hire-applicant", {
         body: { applicationId, action, idempotencyKey: `${applicationId}:${action}` },
       });
@@ -46,6 +51,10 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
   };
 
   const handleStageChange = async (applicationId, newStage, round) => {
+    // Prevent double-firing if company clicks the same stage button twice rapidly
+    const key = `${applicationId}:${newStage}:${round ?? ""}`;
+    if (stagingInFlight.current.has(key)) return;
+    stagingInFlight.current.add(key);
     try {
       if (newStage === "interview" && round !== undefined) {
         await moveToInterviewRound(applicationId, round);
@@ -65,6 +74,8 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
     } catch (e) {
       Sentry.captureException(e);
       toast.error(`Failed to update stage: ${e?.message || "Unknown error"}`);
+    } finally {
+      stagingInFlight.current.delete(key);
     }
   };
 

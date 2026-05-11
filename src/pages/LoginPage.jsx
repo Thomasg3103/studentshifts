@@ -136,6 +136,7 @@ export default function LoginPage() {
           type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
+          onKeyDown={e => e.key === "Enter" && document.getElementById("login-password")?.focus()}
           style={fieldStyle}
         />
         <label htmlFor="login-password" style={srOnly}>Password</label>
@@ -171,7 +172,6 @@ export default function LoginPage() {
         <button onClick={handleLogin} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>
           {loading ? "Signing in…" : "Login →"}
         </button>
-        <button onClick={() => setPage("studentDashboard")} style={btnGhost}>Browse without account</button>
         <button onClick={() => setPage("studentDashboard")} style={btnHome}>← Back to Home</button>
 
         <p style={{ marginTop: "1.25rem", fontSize: "0.875rem", color: "#64748b" }}>

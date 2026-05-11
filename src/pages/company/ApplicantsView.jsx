@@ -184,26 +184,27 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
               )}
               {cards.map(applicant => {
                 const sc = statusChip[applicant.status] || statusChip.Pending;
+                const isFinished = applicant.status === "Accepted" || applicant.status === "Rejected";
                 return (
                   <button
                     key={applicant.id}
-                    draggable
-                    aria-label={`${applicant.name} — ${sc.label}. Drag to move stage.`}
-                    onDragStart={e => {
+                    draggable={!isFinished}
+                    aria-label={`${applicant.name} — ${sc.label}${isFinished ? "" : ". Drag to move stage."}`}
+                    onDragStart={isFinished ? undefined : e => {
                       setDraggingId(applicant.id);
                       e.dataTransfer.effectAllowed = "move";
                       e.dataTransfer.setData("text/plain", applicant.id);
                     }}
-                    onDragEnd={() => { setDraggingId(null); setDragOverStage(null); }}
+                    onDragEnd={isFinished ? undefined : () => { setDraggingId(null); setDragOverStage(null); }}
                     onClick={() => onSelectApplicant(applicant)}
                     style={{
                       width: "100%", display: "block",
                       padding: "0.9rem 0.95rem",
                       borderRadius: "0.5rem",
-                      border: "1px solid #e2e8f0",
-                      backgroundColor: "white",
-                      cursor: "grab", fontFamily: "inherit", textAlign: "left",
-                      opacity: draggingId === applicant.id ? 0.4 : 1,
+                      border: `1px solid ${isFinished ? "#e2e8f0" : "#e2e8f0"}`,
+                      backgroundColor: isFinished ? "#f8fafc" : "white",
+                      cursor: isFinished ? "pointer" : "grab", fontFamily: "inherit", textAlign: "left",
+                      opacity: draggingId === applicant.id ? 0.4 : isFinished ? 0.75 : 1,
                       boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
                       transition: "opacity 0.15s",
                     }}

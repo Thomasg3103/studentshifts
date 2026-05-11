@@ -55,13 +55,7 @@ export default function LandingPage() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleSearch = () => navigate("/login");
-
-  const handleGoHome = () => {
-    if (currentUser?.role === "company") navigate("/company");
-    else if (currentUser?.role === "admin") navigate("/admin");
-    else navigate("/login");
-  };
+  const handleSearch = () => navigate("/signup");
 
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
@@ -148,6 +142,23 @@ export default function LandingPage() {
           Connecting students across Ireland with part-time work that fits around college — no experience needed.
         </p>
 
+        {/* Primary CTAs */}
+        <div style={{ display: "flex", gap: "0.75rem", maxWidth: "400px", margin: "0 auto 1.25rem", flexWrap: "wrap", justifyContent: "center" }}>
+          <button
+            onClick={() => navigate("/signup")}
+            style={{ flex: 1, minWidth: "160px", padding: "0.9rem 2rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)", whiteSpace: "nowrap" }}
+          >
+            Get Started Free →
+          </button>
+          <button
+            onClick={() => navigate("/login")}
+            style={{ flex: 1, minWidth: "130px", padding: "0.9rem 2rem", borderRadius: "2rem", border: "1.5px solid rgba(255,255,255,0.35)", background: "transparent", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+          >
+            Log In
+          </button>
+        </div>
+
+        {/* Search bar */}
         <div style={{ display: "flex", gap: "0.75rem", maxWidth: "560px", margin: "0 auto 1.5rem", flexWrap: "wrap", justifyContent: "center" }}>
           <input
             value={search}
@@ -163,18 +174,21 @@ export default function LandingPage() {
           />
           <button
             onClick={handleSearch}
-            style={{ padding: "0.9rem 2rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)", whiteSpace: "nowrap" }}
+            style={{ padding: "0.9rem 2rem", borderRadius: "2rem", border: "1.5px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", color: "white", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
           >
-            Search Jobs
+            Browse Jobs
           </button>
         </div>
 
-        <button
-          onClick={handleGoHome}
-          style={{ background: "transparent", border: "none", color: "rgba(255,255,255,0.5)", fontSize: "0.87rem", cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}
-        >
-          Already have an account? Go to Homepage →
-        </button>
+        <p style={{ margin: 0, fontSize: "0.82rem", color: "rgba(255,255,255,0.4)" }}>
+          For employers —{" "}
+          <span
+            onClick={() => navigate("/signup")}
+            style={{ color: "rgba(255,255,255,0.65)", cursor: "pointer", textDecoration: "underline", fontWeight: 600 }}
+          >
+            post a job free
+          </span>
+        </p>
       </section>
 
       {/* ── Main sections ── */}

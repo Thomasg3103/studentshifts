@@ -1,10 +1,11 @@
-import { useState, useEffect, lazy, Suspense } from "react";
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { saveApplicationNotes } from "../../lib/auth";
 import { Section } from "./shared";
 import ChatThread from "./ChatThread";
 import { InterviewInviteModal } from "./InterviewInviteModal";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 
 import { TrialInviteModal } from "./TrialInviteModal";
 import { CloseJobModal } from "./CloseJobModal";
@@ -71,6 +72,8 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   const [shortlistInviteOpen, setShortlistInviteOpen] = useState(false);
   const [nextRoundInviteOpen, setNextRoundInviteOpen] = useState(false);
   const [hireLoading, setHireLoading] = useState(false);
+  const [notesSaved, setNotesSaved] = useState(false);
+  const panelBodyRef = useRef(null);
 
   const buildRounds = (a) => {
     const stored = Array.isArray(a.interviewRoundsData) ? a.interviewRoundsData : [];
@@ -104,7 +107,11 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
     setClUrl(null);
     setCvOpen(false);
     setClOpen(false);
-  }, [applicant.id, applicant.interviewRoundsData]);
+    setNotesSaved(false);
+    // Scroll panel back to top when switching applicants
+    if (panelBodyRef.current) panelBodyRef.current.scrollTop = 0;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applicant.id, applicant.pipelineStage, applicant.notes, applicant.trialDate, applicant.trialTime, applicant.interviewRoundsData]);
 
   const openCv = async () => {
     if (!cvUrl) {
@@ -131,11 +138,14 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   };
 
   const handleNotesBlur = async () => {
-    if (notes === applicant.notes) return;
+    if (notes === (applicant.notes || "")) return;
     setNotesSaving(true);
+    setNotesSaved(false);
     try {
       await saveApplicationNotes(applicant.id, notes);
       onNotesSaved(applicant.id, notes);
+      setNotesSaved(true);
+      setTimeout(() => setNotesSaved(false), 2500);
     } catch { toast.error("Failed to save notes — please try again."); }
     setNotesSaving(false);
   };
@@ -162,7 +172,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
         boxShadow: "-8px 0 40px rgba(0,0,0,0.2)",
         overflowY: "auto",
         animation: "slideInRight 0.22s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-      }}>
+      }} ref={panelBodyRef}>
         {/* Header */}
         <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "flex-start", gap: "0.85rem", flexShrink: 0 }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -283,7 +293,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
           </>)}
 
           {/* Notes */}
-          <Section label={notesSaving ? "Notes — saving…" : "Notes"}>
+          <Section label={notesSaving ? "Notes — saving…" : notesSaved ? "Notes — saved ✓" : "Notes"}>
             <textarea
               value={notes}
               onChange={e => setNotes(e.target.value)}

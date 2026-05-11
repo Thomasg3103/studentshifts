@@ -71,7 +71,10 @@ export async function fetchJobsByIds(ids) {
   );
   if (error || !jobs?.length) return [];
   const companyIds = [...new Set(jobs.map(j => j.company_id))];
-  const { data: profiles } = await supabase.from("profiles").select("id, name").in("id", companyIds);
+  const { data: profiles } = await withTimeout(
+    supabase.from("profiles").select("id, name").in("id", companyIds),
+    8000
+  ).catch(() => ({ data: [] }));
   const nameMap = Object.fromEntries((profiles || []).map(p => [p.id, p.name]));
   return jobs.map(j => normaliseJobRow(j, nameMap[j.company_id]));
 }

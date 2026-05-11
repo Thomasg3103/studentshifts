@@ -46,6 +46,7 @@ export default function SignupPage() {
   const [error, setError]       = useState("");
   const [loading, setLoading]   = useState(false);
   const [done, setDone]         = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendSent, setResendSent] = useState(false);
 
@@ -216,15 +217,25 @@ export default function SignupPage() {
           style={inputStyle}
         />
         <label htmlFor="signup-password" style={srOnly}>Password</label>
-        <input
-          id="signup-password"
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          onKeyDown={e => { if (e.key !== "Enter") return; if (role === "company" && !croNumber) return; handleSignup(); }}
-          style={inputStyle}
-        />
+        <div style={{ position: "relative", marginBottom: "0.75rem" }}>
+          <input
+            id="signup-password"
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onKeyDown={e => { if (e.key !== "Enter") return; if (role === "company" && !croNumber) return; handleSignup(); }}
+            style={{ ...inputStyle, marginBottom: 0, paddingRight: "2.75rem" }}
+          />
+          <button
+            type="button"
+            aria-label={showPassword ? "Hide password" : "Show password"}
+            onClick={() => setShowPassword(p => !p)}
+            style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", padding: 0, cursor: "pointer", color: "#94a3b8", fontSize: "1.1rem", lineHeight: 1 }}
+          >
+            {showPassword ? "🙈" : "👁"}
+          </button>
+        </div>
 
         {password && (() => {
           const s = getPasswordStrength(password);
