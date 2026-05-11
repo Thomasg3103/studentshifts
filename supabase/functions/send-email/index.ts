@@ -54,7 +54,6 @@ Deno.serve(async (req: Request) => {
     if ((count ?? 0) >= 60) {
       throw new Error("Rate limit exceeded. Please wait before sending more emails.");
     }
-    await adminClient.from("email_sends_log").insert({ user_id: user.id });
 
     const { to, subject, html, magicLinkEmail, redirectTo } = await req.json();
     if (!to || !subject || !html) throw new Error("Missing required fields: to, subject, html");
@@ -64,6 +63,16 @@ Deno.serve(async (req: Request) => {
     const recipients = Array.isArray(to) ? to : [to];
     if (!recipients.every((r: string) => typeof r === "string" && emailRegex.test(r))) {
       throw new Error("Invalid email address in recipients");
+    }
+
+    // For company callers, verify every recipient is a student who applied to their jobs.
+    // Admins can email any address (verification notices, support, etc.).
+    if (profile?.role === "company") {
+      const { data: allowedRows } = await adminClient.rpc("get_company_applicant_emails", { company_uuid: user.id });
+      const allowedSet = new Set<string>((allowedRows || []).map((r: { email: string }) => r.email));
+      if (!recipients.every((r: string) => allowedSet.has(r))) {
+        throw new Error("Unauthorised: recipient is not an applicant of this company");
+      }
     }
 
     // Validate redirectTo against known origins to prevent open redirect
@@ -127,6 +136,7 @@ Deno.serve(async (req: Request) => {
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Brevo API error");
+    await adminClient.from("email_sends_log").insert({ user_id: user.id });
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

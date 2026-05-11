@@ -456,10 +456,11 @@ CREATE POLICY "documents: own delete" ON storage.objects
   );
 
 -- Companies can read CVs/cover letters of students who applied to their jobs
--- (storage paths are structured as userId/filename)
+-- (storage paths are structured as userId/cv.ext or userId/cover-letter.ext)
 CREATE POLICY "documents: company read applicant docs" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'documents' AND
+    (split_part(name, '/', 2) LIKE 'cv.%' OR split_part(name, '/', 2) LIKE 'cover-letter.%') AND
     EXISTS (
       SELECT 1 FROM applications a
       JOIN jobs j ON j.id = a.job_id
@@ -647,6 +648,24 @@ BEGIN
           )
         )
       );
+END;
+$$;
+
+-- Returns emails for all students who have applied to any of a company's jobs.
+-- Called server-side from the send-email Edge Function to validate recipients.
+-- SECURITY DEFINER + explicit company_uuid param (no auth.uid() dependency).
+CREATE OR REPLACE FUNCTION get_company_applicant_emails(company_uuid uuid)
+RETURNS TABLE(email text)
+LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+BEGIN
+  RETURN QUERY
+    SELECT u.email::text
+    FROM auth.users u
+    WHERE u.id IN (
+      SELECT a.student_id FROM applications a
+      JOIN jobs j ON j.id = a.job_id
+      WHERE j.company_id = company_uuid
+    );
 END;
 $$;
 

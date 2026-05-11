@@ -277,7 +277,7 @@ Deno.serve(async (req: Request) => {
         .from("applications")
         .select("id, student_id, preferred_shift")
         .eq("job_id", job.id).eq("status", "Pending").neq("id", applicationId);
-      const allShiftsFilled = newFilledShifts.length >= ((job.days as string[]) || []).length;
+      const allShiftsFilled = (job.days?.length || 0) > 0 && newFilledShifts.length >= (job.days?.length || 0);
       const declinedIds: string[] = ((others || []) as { id: string; student_id: string; preferred_shift: string | null }[])
         .filter(o => {
           if (!hiredDay) return true;

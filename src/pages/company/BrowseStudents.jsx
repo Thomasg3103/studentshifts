@@ -36,7 +36,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
 
     const channel = supabase
       .channel(`direct_${companyId}_${chatStudent.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `company_id=eq.${companyId}` },
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `and(company_id=eq.${companyId},student_id=eq.${chatStudent.id})` },
         payload => {
           if (payload.new.student_id === chatStudent.id) {
             setChatMessages(prev => [...prev, payload.new]);
