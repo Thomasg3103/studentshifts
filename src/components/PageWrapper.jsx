@@ -41,6 +41,7 @@ export default function PageWrapper({ children, narrow }) {
         <button
           onClick={scrollToTop}
           className="scroll-top-btn"
+          aria-label="Back to top"
           style={{
             position: "fixed",
             bottom: "2rem",
@@ -59,7 +60,6 @@ export default function PageWrapper({ children, narrow }) {
             justifyContent: "center",
             zIndex: 300,
           }}
-          title="Back to top"
         >
           ↑
         </button>

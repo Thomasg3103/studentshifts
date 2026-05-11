@@ -591,12 +591,12 @@ export default function StudentDashboard({ restoreScrollY }) {
 
         {/* Location nudge */}
         {currentUser?.role === "student" && !studentLocation && (
-          <div onClick={() => setPage("account")} style={{ display: "flex", alignItems: "center", gap: "0.6rem", backgroundColor: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: "0.75rem", padding: "0.6rem 1rem", marginBottom: "1rem", cursor: "pointer" }}>
+          <button onClick={() => setPage("account")} style={{ display: "flex", alignItems: "center", gap: "0.6rem", backgroundColor: "#eff6ff", border: "1.5px solid #bfdbfe", borderRadius: "0.75rem", padding: "0.6rem 1rem", marginBottom: "1rem", cursor: "pointer", width: "100%", textAlign: "left", fontFamily: "inherit" }}>
             <span style={{ fontSize: "1.1rem" }}>📍</span>
             <p style={{ margin: 0, fontSize: "0.82rem", color: "#1d4ed8", fontWeight: 600, lineHeight: 1.4 }}>
               Set your location in Account to see how far each job is from you.
             </p>
-          </div>
+          </button>
         )}
 
         {/* Preference tabs */}
@@ -650,10 +650,12 @@ export default function StudentDashboard({ restoreScrollY }) {
             {savedSearches.length > 0 && (
               <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.6rem" }}>
                 {savedSearches.map((s, i) => (
-                  <button key={i} onClick={() => applyFilters(s.filters)} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.25rem 0.5rem 0.25rem 0.7rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fce7f3", color: "var(--color-brand)", fontSize: "0.77rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-                    ⭐ {s.name}
-                    <span role="button" onClick={e => { e.stopPropagation(); deleteSearch(i); }} style={{ marginLeft: "0.1rem", color: "#f48fb1", fontWeight: 700, fontSize: "0.9rem", lineHeight: 1, cursor: "pointer", padding: "0 0.1rem" }}>×</span>
-                  </button>
+                  <div key={i} style={{ display: "inline-flex", alignItems: "center", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fce7f3", overflow: "hidden" }}>
+                    <button onClick={() => applyFilters(s.filters)} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.25rem 0.3rem 0.25rem 0.7rem", background: "none", border: "none", color: "var(--color-brand)", fontSize: "0.77rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                      ⭐ {s.name}
+                    </button>
+                    <button onClick={() => deleteSearch(i)} aria-label={`Remove saved search: ${s.name}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0.25rem 0.5rem 0.25rem 0.1rem", background: "none", border: "none", color: "#f48fb1", fontWeight: 700, fontSize: "0.9rem", lineHeight: 1, cursor: "pointer" }}>×</button>
+                  </div>
                 ))}
               </div>
             )}
@@ -665,12 +667,13 @@ export default function StudentDashboard({ restoreScrollY }) {
                   {sortedJobs.length} job{sortedJobs.length !== 1 ? "s" : ""}
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", backgroundColor: "#fafafa", borderRadius: "0.6rem", padding: "0.2rem" }}>
-                  <button onClick={() => setGridCols(1)} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
-                  <button onClick={() => setGridCols(2)} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
+                  <button onClick={() => setGridCols(1)} aria-label="Single column layout" aria-pressed={gridCols === 1} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
+                  <button onClick={() => setGridCols(2)} aria-label="Two column layout" aria-pressed={gridCols === 2} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
                 </div>
                 {/* Save search button — auto-saves using search bar text as name */}
                 <button
                   onClick={saveSearch}
+                  aria-label={justSaved ? "Search saved" : "Save current search"}
                   title="Save current search"
                   style={{ padding: "0.28rem 0.55rem", border: `1.5px solid ${justSaved ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", backgroundColor: justSaved ? "#fce7f3" : "white", color: justSaved ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, fontFamily: "inherit" }}
                 >⭐</button>
@@ -885,6 +888,7 @@ export default function StudentDashboard({ restoreScrollY }) {
       {showBackToTop && (
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Back to top"
           style={{
             position: "fixed", bottom: isMobile ? "80px" : "2rem", right: "1.25rem",
             width: "44px", height: "44px", borderRadius: "50%",
@@ -894,7 +898,6 @@ export default function StudentDashboard({ restoreScrollY }) {
             display: "flex", alignItems: "center", justifyContent: "center",
             zIndex: 150,
           }}
-          title="Back to top"
         >
           ↑
         </button>

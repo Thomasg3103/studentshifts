@@ -84,7 +84,12 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     } catch (e) {
       Sentry.captureException(e);
       console.error("Send failed:", e);
-      setChatError(e.message || "Failed to send — please try again.");
+      const msg = e?.message || "";
+      if (msg.includes("row-level security") || msg.includes("policy") || msg.includes("violates")) {
+        setChatError("This student has turned off direct messages from companies.");
+      } else {
+        setChatError(msg || "Failed to send — please try again.");
+      }
     } finally {
       setChatSending(false);
       chatInputRef.current?.focus();

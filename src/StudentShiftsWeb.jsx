@@ -184,21 +184,26 @@ export default function StudentShiftsWeb() {
         if (session?.user && session.user.email_confirmed_at) {
           try {
             const profile = await getProfile(session.user.id);
-            const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
-            setCurrentUser(user);
-            // INITIAL_SESSION: only redirect if the user's current URL is wrong for their role.
-            // Preserves deep links (e.g. company refreshing /company/messages stays there).
-            const currPath = window.location.pathname;
-            if (user.role === "admin" && currPath !== "/admin") {
-              navigate("/admin", { replace: true });
-            } else if (user.role === "company" && user.verificationStatus === "verified" && !currPath.startsWith("/company") && currPath !== "/account") {
-              navigate("/company", { replace: true });
-            } else if (user.role === "company" && user.verificationStatus !== "verified" && currPath.startsWith("/company")) {
-              navigate("/", { replace: true });
-            } else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected" || user.verificationStatus === "pending_review")) {
-              navigate("/verify", { replace: true });
+            if (!profile) {
+              // DB trigger failed at signup — profile row missing; log and leave on landing page
+              console.warn("Profile missing (DB trigger failed?) for user", session.user.id);
+            } else {
+              const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
+              setCurrentUser(user);
+              // INITIAL_SESSION: only redirect if the user's current URL is wrong for their role.
+              // Preserves deep links (e.g. company refreshing /company/messages stays there).
+              const currPath = window.location.pathname;
+              if (user.role === "admin" && currPath !== "/admin") {
+                navigate("/admin", { replace: true });
+              } else if (user.role === "company" && user.verificationStatus === "verified" && !currPath.startsWith("/company") && currPath !== "/account") {
+                navigate("/company", { replace: true });
+              } else if (user.role === "company" && user.verificationStatus !== "verified" && currPath.startsWith("/company")) {
+                navigate("/", { replace: true });
+              } else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected" || user.verificationStatus === "pending_review")) {
+                navigate("/verify", { replace: true });
+              }
+              if (user.role === "student") await loadStudentData(user.id);
             }
-            if (user.role === "student") await loadStudentData(user.id);
           } catch (e) {
             Sentry.captureException(e);
             console.error("Failed to load profile", e);
@@ -210,6 +215,11 @@ export default function StudentShiftsWeb() {
       if (event === "SIGNED_IN" && session?.user) {
         try {
           const profile = await getProfile(session.user.id);
+          if (!profile) {
+            // DB trigger failed — profile row missing; can't proceed without role/data
+            console.warn("Profile missing on SIGNED_IN (DB trigger failed?) for user", session.user.id);
+            return;
+          }
           const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
           setCurrentUser(user);
           // GA4 User ID
@@ -224,8 +234,9 @@ export default function StudentShiftsWeb() {
           }
           const justVerified = window.location.hash.includes("type=signup") || window.location.hash.includes("type=email");
           if (justVerified) { navigate("/email-verified", { replace: true }); return; }
-          if (user.role === "admin")   { navigate("/admin", { replace: true }); }
-          else if (user.role === "company") { navigate("/company", { replace: true }); }
+          if (user.role === "admin") { navigate("/admin", { replace: true }); }
+          else if (user.role === "company" && user.verificationStatus === "verified") { navigate("/company", { replace: true }); }
+          else if (user.role === "company") { navigate("/", { replace: true }); }
           else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected")) { navigate("/verify", { replace: true }); }
           else { navigate("/", { replace: true }); }
           if (user.role === "student") await loadStudentData(user.id);
@@ -237,6 +248,7 @@ export default function StudentShiftsWeb() {
       if (event === "TOKEN_REFRESHED" && session?.user) {
         try {
           const profile = await getProfile(session.user.id);
+          if (!profile) return;
           const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
           setCurrentUser(user);
         } catch { /* silently ignore — stale data not critical */ }
@@ -400,7 +412,7 @@ export default function StudentShiftsWeb() {
               {/* Auth */}
               <Route path="/login"   element={<LoginPage />} />
               <Route path="/signup"  element={<SignupPage />} />
-              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/reset-password" element={passwordRecoveryMode ? <ResetPasswordPage /> : <Navigate to="/login" replace />} />
               <Route path="/email-verified" element={<EmailVerifiedPage />} />
 
               {/* Student pages */}
@@ -507,7 +519,8 @@ function EmailVerifiedPage() {
     if (!currentUser) return;
     const timer = setTimeout(() => {
       if (currentUser.role === "admin") navigate("/admin", { replace: true });
-      else if (currentUser.role === "company") navigate("/company", { replace: true });
+      else if (currentUser.role === "company" && currentUser.verificationStatus === "verified") navigate("/company", { replace: true });
+      else if (currentUser.role === "company") navigate("/", { replace: true });
       else if (currentUser.role === "student" && (!currentUser.studentIdPath || currentUser.verificationStatus === "rejected")) navigate("/verify", { replace: true });
       else navigate("/", { replace: true });
     }, 2000);

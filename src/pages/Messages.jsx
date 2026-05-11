@@ -329,7 +329,7 @@ export default function Messages() {
           <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
           <p style={{ fontWeight: 600 }}>Loading conversations…</p>
         </div>
-      ) : fetchError ? (
+      ) : fetchError && conversations.length === 0 && directConvs.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
           <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</p>
           <p style={{ fontSize: "1rem", fontWeight: "600", color: "#1e293b", marginBottom: "0.4rem" }}>Couldn't load conversations</p>

@@ -1,4 +1,4 @@
-﻿import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
@@ -10,8 +10,8 @@ export default function PrivacyPolicyPage() {
   const { setPage } = useApp();
   return (
     <><Helmet>
-        <title>Privacy Policy â€” StudentShifts</title>
-        <meta name="description" content="Read StudentShifts' privacy policy â€” how we collect, use, and protect your personal data under GDPR." />
+        <title>Privacy Policy - StudentShifts</title>
+        <meta name="description" content="Read StudentShifts privacy policy - how we collect, use, and protect your personal data under GDPR." />
         <link rel="canonical" href="https://studentshifts.ie/privacy" />
         <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "Privacy Policy", item: "https://studentshifts.ie/privacy" }] })}</script>
       </Helmet>
@@ -25,7 +25,7 @@ export default function PrivacyPolicyPage() {
         <p style={body}>
           This Privacy Policy explains how StudentShifts ("<strong>we</strong>", "<strong>us</strong>", "<strong>our</strong>") collects, uses, stores and protects
           your personal data when you use the StudentShifts platform ("<strong>the Service</strong>").
-          We are committed to protecting your privacy and complying with the General Data Protection Regulation (GDPR) and the Data Protection Acts 1988â€“2018 (Ireland).
+          We are committed to protecting your privacy and complying with the General Data Protection Regulation (GDPR) and the Data Protection Acts 1988-2018 (Ireland).
         </p>
 
         <Section title="1. Who We Are">
@@ -40,7 +40,7 @@ export default function PrivacyPolicyPage() {
           <Table rows={[
             ["Name", "Account creation", "Contract"],
             ["Email address", "Account creation, login, notifications", "Contract"],
-            ["Password (hashed)", "Authentication â€” never stored in plain text", "Contract"],
+            ["Password (hashed)", "Authentication - never stored in plain text", "Contract"],
             ["Role (Student / Company)", "Platform functionality", "Contract"],
             ["Student ID document", "Identity and student status verification", "Legal obligation / Legitimate interests"],
             ["Government ID document", "Identity verification", "Legal obligation / Legitimate interests"],
@@ -57,10 +57,10 @@ export default function PrivacyPolicyPage() {
         <Section title="3. Legal Basis for Processing">
           <p style={body}>We rely on the following legal bases under GDPR Article 6:</p>
           <ul style={list}>
-            <li><strong>Contract</strong> â€” processing necessary to provide the Service you signed up for.</li>
-            <li><strong>Legal obligation</strong> â€” verifying student status and identity to comply with our obligations.</li>
-            <li><strong>Legitimate interests</strong> â€” fraud prevention, platform security, and ensuring only eligible students use the Service.</li>
-            <li><strong>Consent</strong> â€” optional features (profile photo, LinkedIn, location). You can withdraw consent at any time by removing the data from your account.</li>
+            <li><strong>Contract</strong> - processing necessary to provide the Service you signed up for.</li>
+            <li><strong>Legal obligation</strong> - verifying student status and identity to comply with our obligations.</li>
+            <li><strong>Legitimate interests</strong> - fraud prevention, platform security, and ensuring only eligible students use the Service.</li>
+            <li><strong>Consent</strong> - optional features (profile photo, LinkedIn, location). You can withdraw consent at any time by removing the data from your account.</li>
           </ul>
         </Section>
 
@@ -78,33 +78,33 @@ export default function PrivacyPolicyPage() {
         <Section title="5. Data Sharing">
           <p style={body}>We do not sell your personal data. We share data only in the following limited circumstances:</p>
           <ul style={list}>
-            <li><strong>Companies you apply to</strong> â€” when you apply for a job, the company can see your name, CV, and cover letter.</li>
-            <li><strong>Supabase</strong> â€” our infrastructure provider stores your data on secure EU-based servers. Supabase acts as a data processor under a Data Processing Agreement.</li>
-            <li><strong>Legal requirements</strong> â€” we may disclose data if required by law or to protect the rights, property, or safety of StudentShifts, our users, or others.</li>
+            <li><strong>Companies you apply to</strong> - when you apply for a job, the company can see your name, CV, and cover letter.</li>
+            <li><strong>Supabase</strong> - our infrastructure provider stores your data on secure EU-based servers. Supabase acts as a data processor under a Data Processing Agreement.</li>
+            <li><strong>Legal requirements</strong> - we may disclose data if required by law or to protect the rights, property, or safety of StudentShifts, our users, or others.</li>
           </ul>
           <p style={body}>Your verification documents (Student ID, Government ID) are only accessible to StudentShifts administrators for verification purposes and are never shared with employers.</p>
         </Section>
 
         <Section title="6. Data Retention">
           <ul style={list}>
-            <li><strong>Active accounts</strong> â€” retained for as long as your account is active.</li>
-            <li><strong>Inactive accounts</strong> â€” accounts with no login activity for 2 years will be deleted along with all associated data.</li>
-            <li><strong>Deleted accounts</strong> â€” when you delete your account, your personal data is permanently removed within 30 days. Anonymised usage statistics may be retained.</li>
-            <li><strong>Verification documents</strong> â€” deleted within 30 days of account verification or account deletion, whichever comes first.</li>
-            <li><strong>Job applications</strong> â€” retained for 12 months after the application date, then deleted.</li>
+            <li><strong>Active accounts</strong> - retained for as long as your account is active.</li>
+            <li><strong>Inactive accounts</strong> - accounts with no login activity for 2 years will be deleted along with all associated data.</li>
+            <li><strong>Deleted accounts</strong> - when you delete your account, your personal data is permanently removed within 30 days. Anonymised usage statistics may be retained.</li>
+            <li><strong>Verification documents</strong> - deleted within 30 days of account verification or account deletion, whichever comes first.</li>
+            <li><strong>Job applications</strong> - retained for 12 months after the application date, then deleted.</li>
           </ul>
         </Section>
 
         <Section title="7. Your Rights Under GDPR">
           <p style={body}>Under GDPR, you have the following rights:</p>
           <ul style={list}>
-            <li><strong>Right of access</strong> â€” request a copy of all personal data we hold about you.</li>
-            <li><strong>Right to rectification</strong> â€” correct inaccurate or incomplete data.</li>
-            <li><strong>Right to erasure</strong> â€” request deletion of your data ("right to be forgotten"). You can also delete your account directly from the Account page.</li>
-            <li><strong>Right to data portability</strong> â€” download a copy of your data from the Account page at any time.</li>
-            <li><strong>Right to restriction</strong> â€” request that we limit processing of your data in certain circumstances.</li>
-            <li><strong>Right to object</strong> â€” object to processing based on legitimate interests.</li>
-            <li><strong>Right to withdraw consent</strong> â€” for consent-based processing (photo, location, LinkedIn), you can withdraw by removing the data from your profile.</li>
+            <li><strong>Right of access</strong> - request a copy of all personal data we hold about you.</li>
+            <li><strong>Right to rectification</strong> - correct inaccurate or incomplete data.</li>
+            <li><strong>Right to erasure</strong> - request deletion of your data ("right to be forgotten"). You can also delete your account directly from the Account page.</li>
+            <li><strong>Right to data portability</strong> - download a copy of your data from the Account page at any time.</li>
+            <li><strong>Right to restriction</strong> - request that we limit processing of your data in certain circumstances.</li>
+            <li><strong>Right to object</strong> - object to processing based on legitimate interests.</li>
+            <li><strong>Right to withdraw consent</strong> - for consent-based processing (photo, location, LinkedIn), you can withdraw by removing the data from your profile.</li>
           </ul>
           <p style={body}>To exercise any of these rights, email us at <a href={`mailto:${CONTACT_EMAIL}`} style={link}>{CONTACT_EMAIL}</a>. We will respond within 30 days.</p>
         </Section>
@@ -114,7 +114,7 @@ export default function PrivacyPolicyPage() {
             <li>All passwords are hashed and never stored in plain text.</li>
             <li>All data is transmitted over HTTPS (TLS encryption).</li>
             <li>Verification documents are stored in a private, access-controlled storage bucket.</li>
-            <li>Database access is restricted by Row Level Security (RLS) policies â€” users can only access their own data.</li>
+            <li>Database access is restricted by Row Level Security (RLS) policies - users can only access their own data.</li>
             <li>Admin access is limited to authorised personnel only.</li>
           </ul>
           <p style={body}>
@@ -158,7 +158,7 @@ export default function PrivacyPolicyPage() {
 
         <div style={{ borderTop: "1px solid #e2e8f0", marginTop: "2rem", paddingTop: "1.25rem" }}>
           <p style={{ ...body, color: "#94a3b8", fontSize: "0.8rem" }}>
-            StudentShifts Â· Ireland Â· <a href={`mailto:${CONTACT_EMAIL}`} style={{ ...link, color: "#94a3b8" }}>{CONTACT_EMAIL}</a>
+            StudentShifts &middot; Ireland &middot; <a href={`mailto:${CONTACT_EMAIL}`} style={{ ...link, color: "#94a3b8" }}>{CONTACT_EMAIL}</a>
           </p>
         </div>
 
@@ -207,4 +207,3 @@ const meta   = { margin: "0 0 2rem", fontSize: "0.82rem", color: "#94a3b8" };
 const body   = { margin: "0 0 0.75rem", fontSize: "0.9rem", color: "#475569", lineHeight: 1.7 };
 const list   = { paddingLeft: "1.25rem", margin: "0 0 0.75rem", fontSize: "0.9rem", color: "#475569", lineHeight: 1.8 };
 const link   = { color: "var(--color-brand)", textDecoration: "none", fontWeight: "600" };
-const backBtn = { marginBottom: "1.5rem", padding: "0.45rem 1rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" };
