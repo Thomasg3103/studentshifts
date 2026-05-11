@@ -5,14 +5,6 @@ import { supabase } from "../lib/supabase";
 import AppFooter from "../components/AppFooter";
 import { useApp } from "../context/AppContext";
 
-const MOCK_COMPANIES = [
-  { name: "Supermac's",    tagline: "Ireland's favourite fast food",      bg: "#fef3c7", accent: "#d97706", initials: "SM" },
-  { name: "SuperValu",     tagline: "Fresh food & great everyday value",  bg: "#dcfce7", accent: "#16a34a", initials: "SV" },
-  { name: "Dunnes Stores", tagline: "Better value beats them all",        bg: "#fee2e2", accent: "#dc2626", initials: "DS" },
-  { name: "Centra",        tagline: "Live every day",                     bg: "#ffedd5", accent: "#ea580c", initials: "CE" },
-  { name: "McDonald's",    tagline: "I'm lovin' it",                      bg: "#fef9c3", accent: "#ca8a04", initials: "MC" },
-  { name: "Penneys",       tagline: "Amazing quality, amazing prices",    bg: "#ede9fe", accent: "#7c3aed", initials: "PE" },
-];
 
 const HOW_IT_WORKS = [
   { icon: "🎓", step: "1. Sign Up",        desc: "Create a free student account in under 2 minutes. Verify your student ID and you're in." },
@@ -21,12 +13,6 @@ const HOW_IT_WORKS = [
   { icon: "🎉", step: "4. Get Hired",      desc: "Hear back fast. Start earning while you study. It's that simple." },
 ];
 
-const STATS = [
-  { n: "500+", label: "Students Registered" },
-  { n: "200+", label: "Shifts Posted" },
-  { n: "40+",  label: "Local Employers" },
-  { n: "4.8★", label: "Average Rating" },
-];
 
 export default function LandingPage() {
   const { currentUser } = useApp();
@@ -34,6 +20,7 @@ export default function LandingPage() {
   const [search,    setSearch]    = useState("");
   const [locations, setLocations] = useState([]);
   const [menuOpen,  setMenuOpen]  = useState(false);
+  const [stats,     setStats]     = useState({ students: null, jobs: null, companies: null });
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -50,6 +37,14 @@ export default function LandingPage() {
         });
         setLocations(Object.entries(groups).sort((a, b) => b[1] - a[1]));
       });
+
+    Promise.all([
+      supabase.from("students").select("id", { count: "exact", head: true }).eq("status", "verified"),
+      supabase.from("jobs").select("id", { count: "exact", head: true }),
+      supabase.from("companies").select("id", { count: "exact", head: true }).eq("status", "verified"),
+    ]).then(([{ count: students }, { count: jobs }, { count: companies }]) => {
+      setStats({ students, jobs, companies });
+    });
   }, []);
 
   useEffect(() => {
@@ -185,26 +180,6 @@ export default function LandingPage() {
       {/* ── Main sections ── */}
       <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "3rem 1.5rem" }}>
 
-        {/* Companies Hiring */}
-        <SectionHeading>Companies Hiring Now</SectionHeading>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(175px, 1fr))", gap: "1rem", marginBottom: "3.5rem" }}>
-          {MOCK_COMPANIES.map(c => (
-            <div
-              key={c.name}
-              style={{ backgroundColor: c.bg, border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem 1.25rem", textAlign: "center", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", cursor: "pointer", transition: "transform 0.15s, box-shadow 0.15s" }}
-              onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 8px 24px rgba(0,0,0,0.1)"; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = ""; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.05)"; }}
-            >
-              <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: `linear-gradient(135deg,${c.accent},${c.accent}bb)`, display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 0.8rem", color: "white", fontWeight: 800, fontSize: "0.82rem" }}>
-                {c.initials}
-              </div>
-              <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1e293b", margin: "0 0 0.25rem" }}>{c.name}</p>
-              <p style={{ fontSize: "0.75rem", color: "#64748b", margin: "0 0 0.75rem", lineHeight: 1.5 }}>{c.tagline}</p>
-              <span style={{ fontSize: "0.68rem", fontWeight: 700, color: c.accent, backgroundColor: `${c.accent}22`, padding: "0.2rem 0.65rem", borderRadius: "999px" }}>Hiring Now</span>
-            </div>
-          ))}
-        </div>
-
         {/* How It Works */}
         <SectionHeading>How It Works</SectionHeading>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "3.5rem" }}>
@@ -220,9 +195,13 @@ export default function LandingPage() {
         {/* Numbers */}
         <SectionHeading>StudentShifts by the Numbers</SectionHeading>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", marginBottom: "3.5rem" }}>
-          {STATS.map(({ n, label }) => (
+          {[
+            { n: stats.students, label: "Verified Students" },
+            { n: stats.jobs,     label: "Shifts Posted" },
+            { n: stats.companies,label: "Verified Employers" },
+          ].map(({ n, label }) => (
             <div key={label} style={{ backgroundColor: "#fce7f3", borderRadius: "1rem", padding: "1.75rem 1rem", textAlign: "center" }}>
-              <p style={{ fontWeight: 800, fontSize: "2rem", color: "var(--color-brand)", margin: 0 }}>{n}</p>
+              <p style={{ fontWeight: 800, fontSize: "2rem", color: "var(--color-brand)", margin: 0 }}>{n ?? "..."}</p>
               <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "0.3rem 0 0", fontWeight: 600 }}>{label}</p>
             </div>
           ))}

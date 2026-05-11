@@ -13,6 +13,7 @@ export default function TermsOfServicePage() {
         <title>Terms of Service — StudentShifts</title>
         <meta name="description" content="Read StudentShifts' terms of service — the rules governing use of the platform for students and employers." />
         <link rel="canonical" href="https://studentshifts.ie/terms" />
+        <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "Terms of Service", item: "https://studentshifts.ie/terms" }] })}</script>
       </Helmet>
       <BackButton />
     <PageWrapper narrow>

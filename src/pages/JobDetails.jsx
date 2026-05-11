@@ -282,17 +282,26 @@ export default function JobDetails({ job }) {
                         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                       )}
                     </button>
-                    <button onClick={handleApply} style={{ ...btn, background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", boxShadow: "0 3px 10px rgba(162,29,84,0.35)" }}>
-                      Apply Now
-                    </button>
+                    {(() => {
+                      const noCv = currentUser?.verificationStatus === "verified" && !currentUser?.cvName;
+                      return (
+                        <button
+                          onClick={noCv ? undefined : handleApply}
+                          disabled={noCv}
+                          style={{ ...btn, background: noCv ? "#e2e8f0" : "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: noCv ? "#94a3b8" : "white", boxShadow: noCv ? "none" : "0 3px 10px rgba(162,29,84,0.35)", cursor: noCv ? "not-allowed" : "pointer" }}
+                        >
+                          Apply Now
+                        </button>
+                      );
+                    })()}
                   </div>
                   {currentUser?.verificationStatus === "verified" && !currentUser?.cvName && (
-                    <p style={{ margin: 0, fontSize: "0.72rem", color: "#ef4444", textAlign: "right" }}>
-                      No CV uploaded —{" "}
-                      <span onClick={() => setPage("account")} style={{ fontWeight: 700, cursor: "pointer", textDecoration: "underline" }}>
-                        add one →
-                      </span>
-                    </p>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.5rem", backgroundColor: "#fef9c3", border: "1.5px solid #fcd34d", borderRadius: "0.6rem", padding: "0.45rem 0.75rem" }}>
+                      <span style={{ fontSize: "0.78rem", color: "#78350f", fontWeight: 600 }}>A CV is required to apply</span>
+                      <button onClick={() => setPage("account")} style={{ fontSize: "0.78rem", fontWeight: 700, color: "#d97706", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontFamily: "inherit" }}>
+                        Upload CV →
+                      </button>
+                    </div>
                   )}
                 </div>
               )}

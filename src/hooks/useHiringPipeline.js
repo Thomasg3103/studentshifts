@@ -58,6 +58,9 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
           : a
         ),
       }));
+      if (newStage === "interview" && window.gtag) {
+        window.gtag("event", "generate_lead", { item_id: applicationId });
+      }
     } catch (e) {
       Sentry.captureException(e);
       toast.error(`Failed to update stage: ${e?.message || "Unknown error"}`);

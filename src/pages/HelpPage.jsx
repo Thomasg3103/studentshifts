@@ -42,6 +42,7 @@ export default function HelpPage() {
         <title>Help Centre — StudentShifts</title>
         <meta name="description" content="Get answers to common questions about StudentShifts — verification, applying for jobs, messaging, and more." />
         <link rel="canonical" href="https://studentshifts.ie/help" />
+        <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "Help Centre", item: "https://studentshifts.ie/help" }] })}</script>
       </Helmet>
       <BackButton />
       <PageWrapper narrow>
