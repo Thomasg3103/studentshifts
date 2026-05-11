@@ -997,3 +997,20 @@ CREATE POLICY "export_log: own insert" ON export_log
 DROP POLICY IF EXISTS "export_log: own select" ON export_log;
 CREATE POLICY "export_log: own select" ON export_log
   FOR SELECT USING (auth.uid() = user_id);
+
+
+-- ================================================================
+-- get_job_applicant_counts — returns non-rejected application count per job.
+-- SECURITY DEFINER so students can see counts without accessing others' rows.
+-- Safe to expose: returns aggregate counts only, no personal data.
+-- ================================================================
+DROP FUNCTION IF EXISTS get_job_applicant_counts(uuid[]);
+CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids uuid[])
+RETURNS TABLE(job_id uuid, applicant_count bigint)
+LANGUAGE sql SECURITY DEFINER STABLE AS $$
+  SELECT a.job_id, COUNT(*) AS applicant_count
+  FROM applications a
+  WHERE a.job_id = ANY(job_ids)
+    AND a.status != 'Rejected'
+  GROUP BY a.job_id;
+$$;

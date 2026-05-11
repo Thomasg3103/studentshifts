@@ -194,6 +194,14 @@ export default function JobDetails({ job }) {
         <meta name="description" content={`${job.title} in ${job.location}. Pay: ${job.pay}. Apply now on StudentShifts.`} />
         <link rel="canonical" href={canonicalUrl} />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            { "@type": "ListItem", "position": 1, "name": "Jobs", "item": "https://studentshifts.ie/" },
+            { "@type": "ListItem", "position": 2, "name": `${job.title} at ${job.company}`, "item": canonicalUrl },
+          ],
+        })}</script>
       </Helmet>
 
       {/* Breadcrumb */}

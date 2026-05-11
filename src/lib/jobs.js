@@ -34,6 +34,7 @@ export function normaliseJobRow(job, companyName) {
     filledShifts:    job.filled_shifts || [],
     status:          job.status,
     updatedAt:       job.updated_at || null,
+    createdAt:       job.created_at || null,
   };
 }
 

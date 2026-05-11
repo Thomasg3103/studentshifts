@@ -161,9 +161,10 @@ export default function StudentDashboard({ restoreScrollY }) {
   const { setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
     currentUser, studentLocation, savedLikedJobIds, savedAppliedJobIds,
     setSavedLikedJobIds, setSavedAppliedJobIds } = useApp();
-  const [jobs,         setJobs]         = useState([]);
-  const [jobsLoading,  setJobsLoading]  = useState(true);
-  const [jobsError,    setJobsError]    = useState(false);
+  const [jobs,           setJobs]           = useState([]);
+  const [jobsLoading,    setJobsLoading]    = useState(true);
+  const [jobsError,      setJobsError]      = useState(false);
+  const [applicantCounts, setApplicantCounts] = useState({});
   const [fetchedPage,  setFetchedPage]  = useState(0);
   const [hasMore,      setHasMore]      = useState(true);
   const [loadingMore,  setLoadingMore]  = useState(false);
@@ -251,6 +252,13 @@ export default function StudentDashboard({ restoreScrollY }) {
     const mapped = rows.map(j => mapJobRow(j, nameMap));
     if (append) setJobs(prev => [...prev, ...mapped]);
     else setJobs(mapped);
+    const jobIds = mapped.map(j => j.id);
+    supabase.rpc("get_job_applicant_counts", { job_ids: jobIds })
+      .then(({ data }) => {
+        if (!data) return;
+        setApplicantCounts(prev => ({ ...prev, ...Object.fromEntries(data.map(r => [r.job_id, Number(r.applicant_count)])) }));
+      })
+      .catch(() => {});
   }
 
   useEffect(() => {
@@ -792,6 +800,17 @@ export default function StudentDashboard({ restoreScrollY }) {
                             Updated {new Date(job.updatedAt).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}
                           </span>
                         )}
+                      </div>
+                      {/* Social proof + response time */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
+                        {(applicantCounts[job.id] ?? 0) > 0 && (
+                          <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#64748b", fontWeight: 500 }}>
+                            👥 {applicantCounts[job.id]} applicant{applicantCounts[job.id] !== 1 ? "s" : ""}
+                          </span>
+                        )}
+                        <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#94a3b8" }}>
+                          ⚡ Responds within 24h (Mon–Fri)
+                        </span>
                       </div>
                     </div>
 
