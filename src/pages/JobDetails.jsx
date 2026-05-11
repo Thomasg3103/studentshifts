@@ -5,7 +5,7 @@ import DOMPurify from "dompurify";
 import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
-import { likeJob, unlikeJob, createApplication } from "../lib/auth";
+import { likeJob, unlikeJob, createApplication, toJobSlug } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 import { haversineDistance, formatDistance } from "../utils/geo";
 import { useApp } from "../context/AppContext";
@@ -186,8 +186,7 @@ export default function JobDetails({ job }) {
     </div>
   );
 
-  const jobSlug = `${job.title.toLowerCase().replace(/\s+/g, "-")}-at-${job.company.toLowerCase().replace(/\s+/g, "-")}`;
-  const canonicalUrl = `https://studentshifts.ie/jobs/${jobSlug}`;
+  const canonicalUrl = `https://studentshifts.ie/jobs/${toJobSlug(job.title)}/${toJobSlug(job.company)}`;
 
   const jsonLd = {
     "@context": "https://schema.org/",
