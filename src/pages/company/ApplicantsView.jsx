@@ -1,6 +1,7 @@
-﻿import { useState } from "react";
+﻿import { useState, useRef } from "react";
 import toast from "react-hot-toast";
 import DetailPanel, { StatusBadge, CloseJobModal } from "./DetailPanel";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 
 /* ─── Pipeline stage constants ───────────────────────────────────────────── */
 
@@ -402,7 +403,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
             style={{ width: "100%", padding: "0.45rem 0.75rem 0.45rem 2rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151", boxSizing: "border-box", outline: "none" }}
           />
           {search && (
-            <button onClick={() => setSearch("")} style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "0.8rem", lineHeight: 1, padding: "0.1rem" }}>✕</button>
+            <button onClick={() => setSearch("")} aria-label="Clear search" style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "0.8rem", lineHeight: 1, padding: "0.1rem" }}>✕</button>
           )}
         </div>
         <select

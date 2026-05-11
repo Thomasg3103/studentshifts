@@ -47,6 +47,7 @@ export default function CompanyDashboard() {
   const [postings, setPostings]   = useState([]);
   const [loading, setLoading]     = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [loadRetryKey, setLoadRetryKey] = useState(0);
   const [formSaving, setFormSaving] = useState(false);
   const [modal, setModal]         = useState(null);
   const [activePosting, setActivePosting] = useState(null);
@@ -554,6 +555,16 @@ export default function CompanyDashboard() {
           <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#64748b", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
             <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
             <p style={{ fontWeight: "600" }}>Loading your job postings…</p>
+          </div>
+        ) : loadError ? (
+          <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "#fff1f2", borderRadius: "1rem", border: "1.5px solid #fca5a5" }}>
+            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⚠️</div>
+            <p style={{ fontWeight: "700", color: "#b91c1c", fontSize: "1rem", marginBottom: "0.4rem" }}>Couldn't load your job postings</p>
+            <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.25rem" }}>Check your connection and try again.</p>
+            <button
+              onClick={() => { setLoadError(false); setLoading(true); }}
+              style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+            >Retry</button>
           </div>
         ) : postings.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
