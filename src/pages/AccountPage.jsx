@@ -40,6 +40,7 @@ export default function AccountPage() {
   const [industrySaving, setIndustrySaving]     = useState(false);
   const [linkedIn, setLinkedIn]                 = useState(currentUser.linkedIn || "");
   const [bio, setBio]                           = useState(currentUser.bio || "");
+  const [website, setWebsite]                   = useState(currentUser.website || "");
   const [skills, setSkills]                     = useState(currentUser.skills || []);
   const [skillInput, setSkillInput]             = useState("");
   const [showSkillSuggestions, setShowSkillSuggestions] = useState(false);
@@ -79,6 +80,23 @@ export default function AccountPage() {
     setSaveError("");
     try {
       await updateStudentProfile(currentUser.id, fields);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (e) {
+      Sentry.captureException(e);
+      setSaveError("Failed to save.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // ── Auto-save helper (companies only) ──────────────────────────────────
+  const saveCompanyField = async (fields) => {
+    setSaving(true);
+    setSaveError("");
+    try {
+      await updateCompanyProfile(currentUser.id, fields);
+      setCurrentUser(prev => ({ ...prev, ...fields }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
@@ -145,7 +163,11 @@ export default function AccountPage() {
     setSaving(true);
     try {
       const url = await uploadAvatar(currentUser.id, file);
-      await updateStudentProfile(currentUser.id, { profile_photo_url: url });
+      if (isCompany) {
+        await updateCompanyProfile(currentUser.id, { profile_photo_url: url });
+      } else {
+        await updateStudentProfile(currentUser.id, { profile_photo_url: url });
+      }
       setCurrentUser(prev => ({ ...prev, profilePhoto: url }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
@@ -887,6 +909,6 @@ function AvailabilityPicker({ value, onChange }) {
 }
 
 const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "#374151", marginBottom: "0.3rem" };
-const inputStyle = { width: "100%", padding: "0.6rem 0.75rem", marginBottom: "1rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white" };
+const inputStyle = { width: "100%", padding: "0.6rem 0.75rem", marginBottom: "1rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };
 

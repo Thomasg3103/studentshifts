@@ -70,9 +70,9 @@ button {
   white-space: nowrap;
   line-height: 1.3;
 }
-.badge-sm  { font-size: 0.7rem;  padding: 0.15rem 0.5rem; }
+.badge-sm  { font-size: 0.72rem; padding: 0.15rem 0.5rem; }
 .badge-lg  { font-size: 1rem;    padding: 0.25rem 0.75rem; }
-.badge-tag { border-radius: var(--radius-sm); font-size: 0.65rem; padding: 0.1rem 0.45rem; font-weight: 500; }
+.badge-tag { border-radius: var(--radius-sm); font-size: 0.72rem; padding: 0.1rem 0.45rem; font-weight: 500; }
 
 .badge-brand       { background: #fce7f3; color: var(--color-brand); }
 .badge-brand-solid { background: var(--color-brand); color: white; }

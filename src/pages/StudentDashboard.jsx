@@ -631,7 +631,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                 placeholder="Search by job title or company…"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                style={{ width: "100%", padding: "0.7rem 2.5rem 0.7rem 1rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white", outline: "none" }}
+                style={{ width: "100%", padding: "0.7rem 2.5rem 0.7rem 1rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white", outline: "none" }}
                 onFocus={e => e.target.style.borderColor = "var(--color-brand)"}
                 onBlur={e => e.target.style.borderColor = "#e2e8f0"}
               />

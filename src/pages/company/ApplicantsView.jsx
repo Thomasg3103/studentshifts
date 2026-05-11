@@ -218,7 +218,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <p style={{ margin: "0 0 0.2rem", fontSize: "0.875rem", fontWeight: "700", color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.name}</p>
-                        <span style={{ fontSize: "0.62rem", fontWeight: "600", padding: "0.1rem 0.45rem", borderRadius: "0.25rem", backgroundColor: sc.bg, color: sc.text }}>{sc.label}</span>
+                        <span style={{ fontSize: "0.72rem", fontWeight: "600", padding: "0.1rem 0.45rem", borderRadius: "0.25rem", backgroundColor: sc.bg, color: sc.text }}>{sc.label}</span>
                       </div>
                     </div>
 
