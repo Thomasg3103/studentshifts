@@ -4,7 +4,7 @@ import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
-import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData } from "../lib/auth";
+import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData, sendPasswordReset } from "../lib/auth";
 import { jobCategories } from "../data/jobCategories";
 import { useApp } from "../context/AppContext";
 
@@ -55,6 +55,7 @@ export default function AccountPage() {
   const [deleting, setDeleting]                 = useState(false);
   const [deleteError, setDeleteError]           = useState("");
   const [exporting, setExporting]               = useState(false);
+  const [changingPw, setChangingPw]             = useState(false);
   const [allowDm, setAllowDm]                   = useState(currentUser.allowCompanyDm !== false);
   const [profilePhoto, setProfilePhoto]         = useState(currentUser.profilePhoto || "");
   const [windowWidth, setWindowWidth]           = useState(window.innerWidth);
@@ -75,11 +76,13 @@ export default function AccountPage() {
   const isCompany = currentUser.role === "company";
 
   // ── Auto-save helper (students only) ───────────────────────────────────
-  const saveField = async (fields) => {
+  // Pass an optional `userUpdate` object to also sync currentUser state (camelCase keys).
+  const saveField = async (fields, userUpdate) => {
     setSaving(true);
     setSaveError("");
     try {
       await updateStudentProfile(currentUser.id, fields);
+      if (userUpdate) setCurrentUser(prev => ({ ...prev, ...userUpdate }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
@@ -119,13 +122,13 @@ export default function AccountPage() {
     setSkills(next);
     setSkillInput("");
     setShowSkillSuggestions(false);
-    saveField({ skills: next });
+    saveField({ skills: next }, { skills: next });
   };
 
   const removeSkill = (s) => {
     const next = skills.filter(x => x !== s);
     setSkills(next);
-    saveField({ skills: next });
+    saveField({ skills: next }, { skills: next });
   };
 
   useEffect(() => {
@@ -142,7 +145,7 @@ export default function AccountPage() {
   const handleAvailabilityChange = (newAvail) => {
     setAvailability(newAvail);
     if (availDebounceRef.current) clearTimeout(availDebounceRef.current);
-    availDebounceRef.current = setTimeout(() => saveField({ availability: newAvail }), 800);
+    availDebounceRef.current = setTimeout(() => saveField({ availability: newAvail }, { availability: newAvail }), 800);
   };
 
   // ── Job Preferences ──────────────────────────────────────────────────────
@@ -150,7 +153,7 @@ export default function AccountPage() {
     const active = jobPreferences.includes(cat);
     const next   = active ? jobPreferences.filter(c => c !== cat) : [...jobPreferences, cat];
     setJobPreferences(next);
-    saveField({ job_preferences: next });
+    saveField({ job_preferences: next }, { jobPreferences: next });
   };
 
   // ── Profile Photo auto-upload ────────────────────────────────────────────
@@ -173,7 +176,8 @@ export default function AccountPage() {
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
       Sentry.captureException(e);
-      console.warn("Photo upload skipped:", e);
+      setProfilePhoto(currentUser.profilePhoto || "");
+      setSaveError(e.message || "Photo upload failed.");
     } finally {
       setSaving(false);
     }
@@ -184,14 +188,14 @@ export default function AccountPage() {
     if (!file) return;
     setSaving(true);
     try {
-      const url = await uploadDocument(currentUser.id, file, "documents", "cv");
-      await updateStudentProfile(currentUser.id, { cv_url: url });
-      setCurrentUser(prev => ({ ...prev, cvName: url }));
+      const path = await uploadDocument(currentUser.id, file, "documents", "cv");
+      await updateStudentProfile(currentUser.id, { cv_url: path });
+      setCurrentUser(prev => ({ ...prev, cvName: file.name }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
       Sentry.captureException(e);
-      setSaveError("CV upload failed.");
+      setSaveError(e.message || "CV upload failed.");
     } finally {
       setSaving(false);
     }
@@ -202,14 +206,14 @@ export default function AccountPage() {
     if (!file) return;
     setSaving(true);
     try {
-      const url = await uploadDocument(currentUser.id, file, "documents", "cover-letter");
-      await updateStudentProfile(currentUser.id, { cover_letter_url: url });
-      setCurrentUser(prev => ({ ...prev, coverLetterName: url }));
+      const path = await uploadDocument(currentUser.id, file, "documents", "cover-letter");
+      await updateStudentProfile(currentUser.id, { cover_letter_url: path });
+      setCurrentUser(prev => ({ ...prev, coverLetterName: file.name }));
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (e) {
       Sentry.captureException(e);
-      setSaveError("Cover letter upload failed.");
+      setSaveError(e.message || "Cover letter upload failed.");
     } finally {
       setSaving(false);
     }
@@ -314,8 +318,8 @@ export default function AccountPage() {
     }
     setExporting(true);
     try {
-      localStorage.setItem(lastKey, String(Date.now()));
       const data = await exportMyData(currentUser.id, currentUser.role);
+      localStorage.setItem(lastKey, String(Date.now()));
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement("a");
@@ -478,6 +482,19 @@ export default function AccountPage() {
     </div>
   );
 
+  const handleChangePassword = async () => {
+    setChangingPw(true);
+    try {
+      await sendPasswordReset(currentUser.email);
+      toast.success("Password reset email sent! Check your inbox.");
+    } catch (e) {
+      Sentry.captureException(e);
+      toast.error("Failed to send reset email. Please try again.");
+    } finally {
+      setChangingPw(false);
+    }
+  };
+
   const BottomActions = () => (
     <>
       <div style={{ borderTop: "1.5px solid #e2e8f0", marginBottom: "1rem", marginTop: "0.25rem" }} />
@@ -485,7 +502,10 @@ export default function AccountPage() {
         <button onClick={() => setShowLogoutModal(true)} style={{ ...btnBase, flex: 1, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 14px rgba(244,63,94,0.3)" }}>Logout</button>
         <button onClick={() => { setDeleteConfirm(""); setDeletePassword(""); setDeleteError(""); setShowDeleteModal(true); }} style={{ ...btnBase, flex: 1, backgroundColor: "transparent", border: "1.5px solid #fca5a5", color: "#dc2626", boxShadow: "none" }}>Delete Account</button>
       </div>
-      <div style={{ textAlign: "center", marginTop: "0.25rem" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: "1.25rem", marginTop: "0.25rem", flexWrap: "wrap" }}>
+        <button onClick={handleChangePassword} disabled={changingPw} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
+          {changingPw ? "Sending…" : "Change Password"}
+        </button>
         <button onClick={handleExport} disabled={exporting} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
           {exporting ? "Exporting…" : "Download My Data"}
         </button>
@@ -607,7 +627,7 @@ export default function AccountPage() {
                         toast.error("Please enter a valid LinkedIn URL (e.g. https://linkedin.com/in/yourname)");
                         return;
                       }
-                      saveField({ linkedin: linkedIn });
+                      saveField({ linkedin: linkedIn }, { linkedIn });
                     }}
                     style={inputStyle}
                   />
@@ -621,7 +641,7 @@ export default function AccountPage() {
                     value={bio}
                     maxLength={500}
                     onChange={e => setBio(e.target.value)}
-                    onBlur={() => saveField({ bio })}
+                    onBlur={() => saveField({ bio }, { bio })}
                     rows={3}
                     style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
                   />
@@ -677,7 +697,7 @@ export default function AccountPage() {
                     onChange={e => {
                       const next = e.target.checked;
                       setAllowDm(next);
-                      saveField({ allow_company_dm: next });
+                      saveField({ allow_company_dm: next }, { allowCompanyDm: next });
                     }}
                     style={{ width: "18px", height: "18px", cursor: "pointer", accentColor: "var(--color-brand)" }}
                   />
@@ -872,6 +892,7 @@ function DocRow({ label, filename }) {
 function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded]   = useState(false);
+  const [localName, setLocalName] = useState("");
 
   const handleChange = async (e) => {
     const file = e.target.files[0];
@@ -879,12 +900,16 @@ function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
     setUploading(true);
     try {
       await onUpload(file);
+      setLocalName(file.name);
       setUploaded(true);
       setTimeout(() => setUploaded(false), 2500);
     } finally {
       setUploading(false);
     }
   };
+
+  // Derive a user-friendly display name from the existingName (which may be a storage path)
+  const displayName = localName || (existingName ? existingName.split("/").pop() : "");
 
   return (
     <div style={{ marginBottom: "0.9rem" }}>
@@ -898,7 +923,7 @@ function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
           <input type="file" accept={accept} style={{ display: "none" }} onChange={handleChange} disabled={uploading} />
         </label>
         <span style={{ fontSize: "0.8rem", color: existingName || uploaded ? "#16a34a" : "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
-          {uploaded ? "✓ Uploaded!" : existingName ? "✓ Uploaded" : "No file chosen"}
+          {uploaded ? `✓ ${displayName}` : existingName ? `✓ ${displayName || "Uploaded"}` : "No file chosen"}
         </span>
       </div>
     </div>

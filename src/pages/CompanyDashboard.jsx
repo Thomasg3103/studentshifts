@@ -260,10 +260,11 @@ export default function CompanyDashboard() {
       const photoCrops = [...allCrops]; // parallel array, same order
       const ALLOWED_PHOTO_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
       const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+      let skippedPhotoCount = 0;
       for (const file of newFiles) {
         const ext = file.name.split('.').pop()?.toLowerCase() || '';
-        if (!ALLOWED_PHOTO_EXTS.has(ext)) { console.warn("Photo upload skipped: invalid type"); continue; }
-        if (file.size > MAX_PHOTO_BYTES) { console.warn("Photo upload skipped: too large"); continue; }
+        if (!ALLOWED_PHOTO_EXTS.has(ext)) { skippedPhotoCount++; continue; }
+        if (file.size > MAX_PHOTO_BYTES) { skippedPhotoCount++; continue; }
         const path = `${currentUser.id}/photo_${Date.now()}.${ext}`;
         try {
           const { error: upErr } = await withTimeout(
@@ -273,10 +274,16 @@ export default function CompanyDashboard() {
           if (!upErr) {
             const { data: { publicUrl } } = supabase.storage.from("job-photos").getPublicUrl(path);
             photoUrls.push(publicUrl);
+          } else {
+            skippedPhotoCount++;
           }
         } catch (e) {
+          skippedPhotoCount++;
           console.warn("Photo upload skipped:", e.message);
         }
+      }
+      if (skippedPhotoCount > 0) {
+        toast.error(`${skippedPhotoCount} photo${skippedPhotoCount > 1 ? "s" : ""} could not be uploaded (wrong type, too large, or network error).`);
       }
       // Delete any photos that were removed during editing
       if (formData.id && originalPhotosRef.current.length > 0) {

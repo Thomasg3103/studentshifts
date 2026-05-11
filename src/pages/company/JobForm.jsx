@@ -1,4 +1,5 @@
-﻿import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect, useMemo } from "react";
+import toast from "react-hot-toast";
 import RichTextEditor from "../../components/RichTextEditor";
 import { geocodeAddress } from "../../utils/geo";
 import { jobCategories } from "../../data/jobCategories";
@@ -60,8 +61,6 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       const { width, height } = previewRef.current.getBoundingClientRect();
       // Store as percentage of container so it scales correctly on any screen size
       setCropSettings(prev => {
-        const current = prev[d.idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
-
         return {
           ...prev,
           [d.idx]: {
@@ -95,11 +94,30 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
   const existingPhotos = (formData.photos    || []).filter(p => typeof p === "string" && p.startsWith("http"));
   const totalPhotos    = existingPhotos.length + photoFiles.length;
 
+  // Memoize object URLs so they are created once per file and revoked on cleanup
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const photoObjectUrls = useMemo(() => photoFiles.map(f => URL.createObjectURL(f)), [formData.photoFiles]);
+  useEffect(() => () => photoObjectUrls.forEach(u => URL.revokeObjectURL(u)), [photoObjectUrls]);
+
+  const ALLOWED_PHOTO_EXTS = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
+  const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+
   const handlePhotoAdd = (e) => {
     const incoming  = Array.from(e.target.files);
     const remaining = 10 - totalPhotos;
     if (remaining <= 0) return;
-    const toAdd    = incoming.slice(0, remaining);
+    const valid = [];
+    const skipped = [];
+    for (const file of incoming) {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "";
+      if (!ALLOWED_PHOTO_EXTS.has(ext)) { skipped.push(`${file.name} (unsupported type)`); continue; }
+      if (file.size > MAX_PHOTO_BYTES)  { skipped.push(`${file.name} (exceeds 5 MB)`); continue; }
+      valid.push(file);
+    }
+    if (skipped.length > 0) {
+      toast.error(`Skipped: ${skipped.join(", ")}`);
+    }
+    const toAdd    = valid.slice(0, remaining);
     const newFiles = [...photoFiles, ...toAdd];
     setFormData(prev => ({ ...prev, photoFiles: newFiles }));
     e.target.value = "";
@@ -408,7 +426,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         {(existingPhotos.length > 0 || photoFiles.length > 0) && (() => {
           const allSrcs = [
             ...existingPhotos,
-            ...photoFiles.map(f => URL.createObjectURL(f)),
+            ...photoObjectUrls,
           ];
           const safeIdx = Math.min(previewIndex, allSrcs.length - 1);
           const src = allSrcs[safeIdx];
@@ -439,29 +457,32 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         })()}
 
         {/* Thumbnails grid */}
-        {(existingPhotos.length > 0 || photoFiles.length > 0) && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.6rem" }}>
-            {existingPhotos.map((url, i) => {
-              const isActive = Math.min(previewIndex, existingPhotos.length + photoFiles.length - 1) === i;
-              return (
-                <div key={url} onClick={() => setPreviewIndex(i)} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: `2px solid ${isActive ? "var(--color-brand)" : "#d1d5db"}`, cursor: "pointer", boxShadow: isActive ? "0 0 0 2px #f48fb1" : "none" }}>
-                  <img loading="lazy" src={url} alt="job photo" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  <button type="button" onClick={e => { e.stopPropagation(); removeExistingPhoto(url); }} style={{ position: "absolute", top: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", color: "white", width: "18px", height: "18px", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
-                </div>
-              );
-            })}
-            {photoFiles.map((file, i) => {
-              const globalIdx = existingPhotos.length + i;
-              const isActive = Math.min(previewIndex, existingPhotos.length + photoFiles.length - 1) === globalIdx;
-              return (
-                <div key={i} onClick={() => setPreviewIndex(globalIdx)} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: `2px solid ${isActive ? "var(--color-brand)" : "#d1d5db"}`, cursor: "pointer", boxShadow: isActive ? "0 0 0 2px #f48fb1" : "none" }}>
-                  <img loading="lazy" src={URL.createObjectURL(file)} alt={file.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  <button type="button" onClick={e => { e.stopPropagation(); removeNewPhoto(i); }} style={{ position: "absolute", top: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", color: "white", width: "18px", height: "18px", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
-                </div>
-              );
-            })}
-          </div>
-        )}
+        {(existingPhotos.length > 0 || photoFiles.length > 0) && (() => {
+          const clampedIdx = Math.min(previewIndex, existingPhotos.length + photoFiles.length - 1);
+          return (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "0.6rem" }}>
+              {existingPhotos.map((url, i) => {
+                const isActive = clampedIdx === i;
+                return (
+                  <div key={url} onClick={() => setPreviewIndex(i)} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: `2px solid ${isActive ? "var(--color-brand)" : "#d1d5db"}`, cursor: "pointer", boxShadow: isActive ? "0 0 0 2px #f48fb1" : "none" }}>
+                    <img loading="lazy" src={url} alt="job photo" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <button type="button" onClick={e => { e.stopPropagation(); removeExistingPhoto(url); }} style={{ position: "absolute", top: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", color: "white", width: "18px", height: "18px", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
+                  </div>
+                );
+              })}
+              {photoObjectUrls.map((objUrl, i) => {
+                const globalIdx = existingPhotos.length + i;
+                const isActive = clampedIdx === globalIdx;
+                return (
+                  <div key={objUrl} onClick={() => setPreviewIndex(globalIdx)} style={{ position: "relative", width: "72px", height: "72px", borderRadius: "0.4rem", overflow: "hidden", border: `2px solid ${isActive ? "var(--color-brand)" : "#d1d5db"}`, cursor: "pointer", boxShadow: isActive ? "0 0 0 2px #f48fb1" : "none" }}>
+                    <img loading="lazy" src={objUrl} alt={photoFiles[i]?.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <button type="button" onClick={e => { e.stopPropagation(); removeNewPhoto(i); }} style={{ position: "absolute", top: "2px", right: "2px", backgroundColor: "rgba(0,0,0,0.55)", border: "none", borderRadius: "50%", color: "white", width: "18px", height: "18px", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>✕</button>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
 
         {/* Add photo button */}
         {totalPhotos < 10 && (

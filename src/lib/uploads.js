@@ -46,6 +46,7 @@ export async function uploadVerificationDocs(userId, studentIdFile, governmentId
 export async function uploadAvatar(userId, file) {
   const ext = file.name.split(".").pop()?.toLowerCase() || "";
   if (!ALLOWED_IMAGE_TYPES.has(ext)) throw new Error(`File type .${ext} is not allowed. Please upload a JPG, PNG, WebP or GIF.`);
+  if (!ALLOWED_IMAGE_MIMES.has(file.type)) throw new Error(`File content type "${file.type}" is not allowed. Please upload a JPG, PNG, WebP or GIF.`);
   if (file.size > MAX_IMAGE_BYTES) throw new Error("Photo is too large. Maximum size is 5 MB.");
   const path = `${userId}/avatar.${ext}`;
   const { error } = await withTimeout(
