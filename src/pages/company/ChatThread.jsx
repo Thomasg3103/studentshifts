@@ -54,7 +54,7 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
   };
 
   return (
-    <div style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.5rem" }}>
+    <div style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.5rem", position: "relative" }}>
       <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", marginBottom: "0.5rem" }}>💬 Messages</p>
       <div style={{ maxHeight: "200px", overflowY: "auto", marginBottom: "0.5rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
         {loading
@@ -74,6 +74,9 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
         }
         <div ref={bottomRef} />
       </div>
+      <div aria-live="polite" aria-atomic="true" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>
+        {messages.length > 0 && `New message from ${messages[messages.length - 1]?.sender_id === senderId ? "you" : studentName}`}
+      </div>
       {!input && !loading && messages.length === 0 && (
         <div style={{ marginBottom: "0.4rem" }}>
           <p style={{ margin: "0 0 0.3rem", fontSize: "0.65rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
@@ -86,16 +89,23 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
           </div>
         </div>
       )}
+      {input.length > 3800 && (
+        <p style={{ margin: "0 0 0.3rem", fontSize: "0.68rem", color: input.length >= 4000 ? "#ef4444" : "#f97316", fontWeight: 600, textAlign: "right" }}>
+          {input.length}/4000 characters
+        </p>
+      )}
       <div style={{ display: "flex", gap: "0.4rem" }}>
         <input
           ref={inputRef}
+          aria-label={`Message ${studentName}`}
           value={input}
-          onChange={e => setInput(e.target.value)}
+          onChange={e => { if (e.target.value.length <= 4000) setInput(e.target.value); }}
           onKeyDown={e => e.key === "Enter" && send()}
+          maxLength={4000}
           placeholder="Type a message…"
           style={{ flex: 1, padding: "0.45rem 0.65rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", fontSize: "0.8rem", fontFamily: "inherit" }}
         />
-        <button onClick={send} style={{ padding: "0.45rem 0.75rem", borderRadius: "0.4rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
+        <button aria-label="Send message" onClick={send} style={{ padding: "0.45rem 0.75rem", borderRadius: "0.4rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
           Send
         </button>
       </div>
