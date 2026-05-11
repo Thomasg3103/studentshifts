@@ -175,7 +175,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               )}
             </div>
           </div>
-          <button onClick={onClose} style={{ width: "30px", height: "30px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "inherit" }}>✕</button>
+          <button aria-label="Close panel" onClick={onClose} style={{ width: "30px", height: "30px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontFamily: "inherit" }}>✕</button>
         </div>
 
         {/* Stage progress strip */}
