@@ -97,7 +97,9 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
 
     const isDirect = jobId === null;
     const channelName = isDirect ? `direct_${companyId}_${studentId}` : `msgs_${jobId}_${studentId}`;
-    const filter = isDirect ? `student_id=eq.${studentId}` : `job_id=eq.${jobId}`;
+    const filter = isDirect
+      ? `and(student_id=eq.${studentId},company_id=eq.${companyId})`
+      : `job_id=eq.${jobId}`;
 
     const channel = supabase
       .channel(channelName)
@@ -111,7 +113,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [jobId, studentId]);
+  }, [jobId, studentId, companyId]);
 
   useEffect(() => {
     if (prevScrollHeightRef.current !== null) {
