@@ -205,7 +205,7 @@ export default function JobDetails({ job }) {
         </ol>
       </nav>
 
-      <BackButton />
+      <BackButton sticky={isNarrow} />
       <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "1.5rem 1.25rem", boxSizing: "border-box" }}>
         <div style={{ maxWidth: "1200px", margin: "0 auto", display: "flex", gap: "1.5rem", alignItems: "flex-start" }}>
 

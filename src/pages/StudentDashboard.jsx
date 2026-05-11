@@ -417,7 +417,7 @@ export default function StudentDashboard({ restoreScrollY }) {
     }
     const updated = [...savedSearches, { name, filters: currentFilters() }];
     setSavedSearches(updated);
-    localStorage.setItem(ssKey, JSON.stringify(updated));
+    try { localStorage.setItem(ssKey, JSON.stringify(updated)); } catch (e) { console.warn("Could not persist saved search:", e); }
     setJustSaved(true);
     setTimeout(() => setJustSaved(false), 1500);
   };
@@ -425,7 +425,7 @@ export default function StudentDashboard({ restoreScrollY }) {
   const deleteSearch = (i) => {
     const updated = savedSearches.filter((_, idx) => idx !== i);
     setSavedSearches(updated);
-    localStorage.setItem(ssKey, JSON.stringify(updated));
+    try { localStorage.setItem(ssKey, JSON.stringify(updated)); } catch (e) { console.warn("Could not persist saved search deletion:", e); }
   };
 
   const hasActiveFilters = selectedDays.length > 0 || selectedLocations.length > 0 || selectedJobTypes.length > 0 || weekendOnly || allWeekOnly || noWeekends || distanceKm > 0 || searchQuery.trim() !== "";
