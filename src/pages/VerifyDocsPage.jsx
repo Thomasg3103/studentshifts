@@ -4,6 +4,20 @@ import PageWrapper from "../components/PageWrapper";
 import { uploadVerificationDocs } from "../lib/auth";
 import { useApp } from "../context/AppContext";
 
+function StepBar({ step, total, label }) {
+  return (
+    <div style={{ marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", fontSize: "0.74rem", fontWeight: "600", color: "#94a3b8" }}>
+        <span>Step {step} of {total}</span>
+        <span>{label}</span>
+      </div>
+      <div style={{ height: "4px", backgroundColor: "#e2e8f0", borderRadius: "2px", overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${(step / total) * 100}%`, background: "linear-gradient(90deg, var(--color-brand), var(--color-brand-dark))", borderRadius: "2px" }} />
+      </div>
+    </div>
+  );
+}
+
 export default function VerifyDocsPage() {
   const { currentUser, setCurrentUser, setPage } = useApp();
   const [studentIdCard, setStudentIdCard] = useState(null);
@@ -35,6 +49,8 @@ export default function VerifyDocsPage() {
     <>
     <PageWrapper narrow>
       <div style={{ maxWidth: "440px", margin: "0 auto" }}>
+
+        {!isRejected && <StepBar step={2} total={2} label="Verify your identity" />}
 
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>{isRejected ? "❌" : "🪪"}</div>

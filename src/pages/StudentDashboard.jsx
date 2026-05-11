@@ -557,7 +557,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                 <button
                   aria-label="Clear search"
                   onClick={() => { setSearchQuery(""); searchInputRef.current?.focus(); }}
-                  style={{ position: "absolute", right: "0.6rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9ca3af", fontSize: "1.1rem", lineHeight: 1, padding: "0.2rem", display: "flex", alignItems: "center" }}
+                  style={{ position: "absolute", right: "0.6rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9ca3af", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: "1.1rem", lineHeight: 1, borderRadius: "50%" }}
                 >
                   ×
                 </button>

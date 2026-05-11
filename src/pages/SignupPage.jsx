@@ -6,6 +6,20 @@ import { signUp, resendVerificationEmail } from "../lib/auth";
 import { jobCategories } from "../data/jobCategories";
 import { useApp } from "../context/AppContext";
 
+function StepBar({ step, total, label }) {
+  return (
+    <div style={{ marginBottom: "1.5rem" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", fontSize: "0.74rem", fontWeight: "600", color: "#94a3b8" }}>
+        <span>Step {step} of {total}</span>
+        <span>{label}</span>
+      </div>
+      <div style={{ height: "4px", backgroundColor: "#e2e8f0", borderRadius: "2px", overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${(step / total) * 100}%`, background: "linear-gradient(90deg, var(--color-brand), var(--color-brand-dark))", borderRadius: "2px" }} />
+      </div>
+    </div>
+  );
+}
+
 function getPasswordStrength(pw) {
   if (!pw) return null;
   let score = 0;
@@ -141,6 +155,8 @@ export default function SignupPage() {
         <meta name="description" content="Join StudentShifts for free. Students can browse and apply for part-time jobs; companies can post shifts and find verified student workers." />
       </Helmet>
       <div style={{ maxWidth: "440px", margin: "0 auto" }}>
+
+        {role === "student" && <StepBar step={1} total={2} label="Create account" />}
 
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
           <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Create account</h2>
