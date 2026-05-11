@@ -90,6 +90,28 @@ export async function exportMyData(userId) {
 }
 
 export async function deleteAccount() {
+  // GDPR Art. 17 — erase storage files before deleting the auth user
+  const { data: { user } } = await supabase.auth.getUser();
+  const uid = user?.id;
+  if (uid) {
+    const [avatarRes, docRes, verifyRes] = await Promise.allSettled([
+      supabase.storage.from("avatars").list(uid),
+      supabase.storage.from("documents").list(uid),
+      supabase.storage.from("verification-docs").list(uid),
+    ]);
+    const deletes = [];
+    if (avatarRes.status === "fulfilled" && avatarRes.value.data?.length) {
+      deletes.push(supabase.storage.from("avatars").remove(avatarRes.value.data.map(f => `${uid}/${f.name}`)));
+    }
+    if (docRes.status === "fulfilled" && docRes.value.data?.length) {
+      deletes.push(supabase.storage.from("documents").remove(docRes.value.data.map(f => `${uid}/${f.name}`)));
+    }
+    if (verifyRes.status === "fulfilled" && verifyRes.value.data?.length) {
+      deletes.push(supabase.storage.from("verification-docs").remove(verifyRes.value.data.map(f => `${uid}/${f.name}`)));
+    }
+    await Promise.allSettled(deletes);
+  }
+
   const { error } = await withTimeout(
     supabase.rpc("delete_account"),
     15000, "Account deletion timed out — please try again."

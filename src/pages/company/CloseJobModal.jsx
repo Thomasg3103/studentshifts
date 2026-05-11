@@ -40,11 +40,11 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
               <span style={{ fontWeight: "700" }}>Found a Student</span>
               <span style={{ fontSize: "0.75rem", color: "var(--color-brand)" }}>Select which student you hired</span>
             </button>
-            <button onClick={() => confirm({ foundStudent: false })} disabled={confirming} style={closeOptBtn("#0369a1", "#f0f9ff", "#bae6fd")}>
+            <button onClick={() => confirm({ foundStudent: false, closeReason: "hired_elsewhere" })} disabled={confirming} style={closeOptBtn("#0369a1", "#f0f9ff", "#bae6fd")}>
               <span style={{ fontWeight: "700" }}>Hired Elsewhere</span>
               <span style={{ fontSize: "0.75rem", color: "#0369a1" }}>Found someone outside StudentShifts</span>
             </button>
-            <button onClick={() => confirm({ foundStudent: false })} disabled={confirming} style={closeOptBtn("#64748b", "#f8fafc", "#e2e8f0")}>
+            <button onClick={() => confirm({ foundStudent: false, closeReason: "no_longer_needed" })} disabled={confirming} style={closeOptBtn("#64748b", "#f8fafc", "#e2e8f0")}>
               <span style={{ fontWeight: "700" }}>Job No Longer Needed</span>
               <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Position was cancelled or filled internally</span>
             </button>
@@ -86,7 +86,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
           )}
           <button
             disabled={!winner || confirming}
-            onClick={() => confirm({ foundStudent: true, winnerId: winner.id, winnerApplicant: winner })}
+            onClick={() => confirm({ foundStudent: true, winnerId: winner.id, winnerApplicant: winner, closeReason: "found_student" })}
             style={{ width: "100%", padding: "0.7rem", borderRadius: "0.6rem", border: "none", backgroundColor: winner ? "var(--color-brand)" : "#e2e8f0", color: winner ? "white" : "#94a3b8", fontWeight: "700", fontSize: "0.875rem", cursor: winner ? "pointer" : "default", fontFamily: "inherit", opacity: confirming ? 0.7 : 1 }}
           >
             {confirming ? "Processing…" : "Confirm Hire & Close Job"}

@@ -98,16 +98,19 @@ export default function CompanyDashboard() {
     }).catch(e => console.warn("[CompanyDashboard] applicant IDs failed:", e));
   }, [activeTab, loading]);
 
-  // Load all verified students when Browse Students or Saved Students tab is first opened
+  // Load all verified students when Browse Students/Saved Students tab is opened,
+  // or when the applicants view opens and there are liked students (to populate Shortlisted tab saved section)
   useEffect(() => {
-    if ((activeTab !== "students" && activeTab !== "saved") || studentsFetched || !currentUser) return;
+    const needStudents = activeTab === "students" || activeTab === "saved" ||
+      (modal === "applicants" && likedStudentIds.size > 0);
+    if (!needStudents || studentsFetched || !currentUser) return;
     setStudentsLoading(true);
     setStudentsError(null);
     fetchAllVerifiedStudents()
       .then(data => { setStudents(data); setStudentsFetched(true); })
       .catch(e => { setStudentsError(e.message || "Failed to load students"); setStudentsFetched(true); })
       .finally(() => setStudentsLoading(false));
-  }, [activeTab]);
+  }, [activeTab, modal, likedStudentIds.size]);
 
   // Load this company's jobs on mount, auto-expire any past their deadline
   useEffect(() => {
@@ -332,12 +335,14 @@ export default function CompanyDashboard() {
   };
 
 
-  const handleCloseJob = async (jobId, { foundStudent, winnerId, winnerApplicant }) => {
+  const handleCloseJob = async (jobId, { foundStudent, winnerId, winnerApplicant, closeReason }) => {
     if (foundStudent && winnerId && winnerApplicant) {
       await updateApplicantStatus(winnerId, "Accepted", winnerApplicant);
     }
+    const update = { status: "Closed" };
+    if (closeReason) update.close_reason = closeReason;
     const { error } = await withTimeout(
-      supabase.from("jobs").update({ status: "Closed" }).eq("id", jobId),
+      supabase.from("jobs").update(update).eq("id", jobId),
       10000, "Update timed out."
     );
     if (error) { toast.error("Failed to close job. Please try again."); return; }

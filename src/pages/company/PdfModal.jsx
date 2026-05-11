@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
+import DOMPurify from "dompurify";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { Document, Page, pdfjs } from "react-pdf";
@@ -119,7 +120,7 @@ export function PdfModal({ url, label, fileName, onClose }) {
               <p style={{ color: "#e11d48", textAlign: "center", marginTop: "2rem" }}>{docxError}</p>
             ) : (
               <div
-                dangerouslySetInnerHTML={{ __html: docxHtml || "" }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(docxHtml || "") }}
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "0.9rem", lineHeight: 1.7, color: "#1e293b", maxWidth: "680px", margin: "0 auto", padding: "1rem" }}
               />
             )

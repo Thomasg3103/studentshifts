@@ -1078,3 +1078,31 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION handle_new_user();
+
+
+-- ================================================================
+-- BUG FIX: close_reason column on jobs
+-- Records why a job was closed: 'found_student' | 'hired_elsewhere' | 'no_longer_needed'
+-- ================================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'jobs' AND column_name = 'close_reason'
+  ) THEN
+    ALTER TABLE jobs ADD COLUMN close_reason text;
+  END IF;
+END $$;
+
+
+-- ================================================================
+-- BUG FIX: verification-docs own-delete policy
+-- Students must be able to delete their own verification documents
+-- so that delete_account() achieves full GDPR Art. 17 erasure.
+-- ================================================================
+DROP POLICY IF EXISTS "verification-docs: own delete" ON storage.objects;
+CREATE POLICY "verification-docs: own delete" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'verification-docs' AND
+    auth.uid()::text = (storage.foldername(name))[1]
+  );
