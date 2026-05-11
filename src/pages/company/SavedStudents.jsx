@@ -4,7 +4,7 @@ import { supabase } from "../../lib/supabase";
 import { fetchAllMessagesWithStudent, sendMessage, sendEmail, emailCompanyInterested } from "../../lib/auth";
 import { StudentAvailabilityRow } from "./shared";
 
-export default function SavedStudents({ students, loading, fetched, likedStudentIds, onToggleLike, chatStudent, setChatStudent, companyId, companyName }) {
+export default function SavedStudents({ students, loading, fetched, error, likedStudentIds, applicantStudentIds, onToggleLike, chatStudent, setChatStudent, companyId, companyName }) {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
@@ -132,13 +132,23 @@ export default function SavedStudents({ students, loading, fetched, likedStudent
     );
   }
 
-  if (!fetched && loading) {
+  if (!fetched) {
     return <p style={{ textAlign: "center", color: "#6b7280", padding: "3rem 1rem" }}>Loading students…</p>;
+  }
+
+  if (fetched && error) {
+    return (
+      <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "#fff1f2", borderRadius: "0.75rem", border: "1.5px solid #fca5a5" }}>
+        <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</p>
+        <p style={{ fontWeight: "700", fontSize: "1rem", color: "#b91c1c", marginBottom: "0.4rem" }}>Could not load students</p>
+        <p style={{ fontSize: "0.85rem", color: "#64748b" }}>{error}</p>
+      </div>
+    );
   }
 
   const savedStudents = students.filter(s => likedStudentIds?.has(s.id));
 
-  if (fetched && savedStudents.length === 0) {
+  if (savedStudents.length === 0) {
     return (
       <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280" }}>
         <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>♡</div>
@@ -153,26 +163,34 @@ export default function SavedStudents({ students, loading, fetched, likedStudent
       <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>
         {savedStudents.length} saved student{savedStudents.length !== 1 ? "s" : ""}
       </p>
-      {savedStudents.map(s => (
+      {savedStudents.map(s => {
+        const hasApplied = applicantStudentIds?.has(s.id);
+        return (
         <div key={s.id} style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {s.profile_photo_url
-              ? <img loading="lazy" src={s.profile_photo_url} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              : <span style={{ fontSize: "1.2rem" }}>👤</span>
+              ? <img loading="lazy" src={`${s.profile_photo_url}?width=100&quality=75`} alt={`${s.name} profile`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             }
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.2rem" }}>
-              <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{s.name}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
+                <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{s.name}</p>
+                {hasApplied && (
+                  <span className="badge badge-sm badge-green" style={{ whiteSpace: "nowrap", flexShrink: 0 }}>Applied ✓</span>
+                )}
+              </div>
               <button
                 onClick={() => onToggleLike?.(s.id)}
                 title="Remove from saved"
+                aria-label={`Remove ${s.name} from saved`}
                 style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.2rem", lineHeight: 1, padding: "0.1rem 0.25rem", color: "#e11d48" }}
               >
                 ♥
               </button>
             </div>
-            {s.bio && <p style={{ margin: "0 0 0.4rem", fontSize: "0.8rem", color: "#64748b", lineHeight: 1.5 }}>{s.bio}</p>}
+            {s.bio && <p style={{ margin: "0 0 0.4rem", fontSize: "0.8rem", color: "#64748b", lineHeight: 1.5 }}>{s.bio.length > 160 ? s.bio.slice(0, 160).trimEnd() + "…" : s.bio}</p>}
             {s.skills?.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
                 {s.skills.slice(0, 5).map(sk => (
@@ -196,7 +214,7 @@ export default function SavedStudents({ students, loading, fetched, likedStudent
             </button>
           </div>
         </div>
-      ))}
+        ); })}
     </div>
   );
 }

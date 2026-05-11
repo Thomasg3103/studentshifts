@@ -1,9 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { updatePassword } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
+
+function isExpiredLinkError(e) {
+  const msg = (e?.message || "").toLowerCase();
+  return (
+    msg.includes("expired") ||
+    msg.includes("invalid") ||
+    msg.includes("token") ||
+    msg.includes("otp") ||
+    (e?.status === 401 || e?.status === 403)
+  );
+}
 
 export default function ResetPasswordPage() {
   const { setPage } = useApp();
@@ -12,6 +23,17 @@ export default function ResetPasswordPage() {
   const [error, setError]         = useState("");
   const [loading, setLoading]     = useState(false);
   const [success, setSuccess]     = useState(false);
+  const [linkExpired, setLinkExpired] = useState(false);
+
+  // Detect missing/expired token early: Supabase sets the session via hash on PASSWORD_RECOVERY
+  // If there's no active session when this page loads (i.e. no hash token), show an expired state.
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
+        setLinkExpired(true);
+      }
+    });
+  }, []);
 
   const handleSubmit = async () => {
     if (!password || !confirm) { setError("Please fill in both fields."); return; }
@@ -21,13 +43,17 @@ export default function ResetPasswordPage() {
     setError("");
     try {
       await updatePassword(password);
-      // R3-H5: sign out so the old session/token is invalidated after password change
+      // Sign out so the old session/token is invalidated after password change
       await supabase.auth.signOut();
       setSuccess(true);
       setTimeout(() => setPage("login"), 2500);
     } catch (e) {
       Sentry.captureException(e);
-      setError(e.message || "Failed to update password — please try again.");
+      if (isExpiredLinkError(e)) {
+        setLinkExpired(true);
+      } else {
+        setError(e.message || "Failed to update password — please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -41,7 +67,20 @@ export default function ResetPasswordPage() {
           <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Choose a strong password for your account</p>
         </div>
 
-        {success ? (
+        {linkExpired ? (
+          <div style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "0.75rem", padding: "1.25rem 1.25rem", textAlign: "left" }}>
+            <p style={{ fontWeight: 700, fontSize: "0.95rem", color: "#92400e", margin: "0 0 0.5rem" }}>⏰ Reset link expired</p>
+            <p style={{ fontSize: "0.875rem", color: "#78350f", margin: "0 0 1.25rem", lineHeight: 1.55 }}>
+              Password reset links expire after 1 hour. Please request a new one from the login page.
+            </p>
+            <button
+              onClick={() => setPage("login")}
+              style={{ width: "100%", padding: "0.72rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.9rem", fontFamily: "inherit", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" }}
+            >
+              Back to Login →
+            </button>
+          </div>
+        ) : success ? (
           <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #86efac", borderRadius: "0.6rem", padding: "0.9rem 1rem", color: "#16a34a", fontSize: "0.875rem", fontWeight: "500" }}>
             ✅ Password updated! Redirecting to login…
           </div>

@@ -36,12 +36,12 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
 
     const channel = supabase
       .channel(`direct_${companyId}_${chatStudent.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `and(company_id=eq.${companyId},student_id=eq.${chatStudent.id})` },
-        payload => {
-          if (payload.new.student_id === chatStudent.id) {
-            setChatMessages(prev => [...prev, payload.new]);
-          }
-        })
+      .on("postgres_changes", {
+        event: "INSERT", schema: "public", table: "chat_messages",
+        filter: `company_id=eq.${companyId}&student_id=eq.${chatStudent.id}`,
+      }, payload => {
+        setChatMessages(prev => [...prev, payload.new]);
+      })
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -255,7 +255,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
                 {isLiked ? "♥" : "♡"}
               </button>
             </div>
-            {s.bio && <p style={{ margin: "0 0 0.4rem", fontSize: "0.8rem", color: "#64748b", lineHeight: 1.5 }}>{s.bio}</p>}
+            {s.bio && <p style={{ margin: "0 0 0.4rem", fontSize: "0.8rem", color: "#64748b", lineHeight: 1.5 }}>{s.bio.length > 160 ? s.bio.slice(0, 160).trimEnd() + "…" : s.bio}</p>}
             {s.skills?.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
                 {s.skills.slice(0, 5).map(sk => (
@@ -280,7 +280,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
           </div>
         </div>
         ); })}
-      {visibleCount < displayStudents.length && (
+      {visibleCount < displayStudents.length ? (
         <div style={{ textAlign: "center", paddingTop: "0.5rem" }}>
           <button
             onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
@@ -289,6 +289,10 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
             Load more ({displayStudents.length - visibleCount} remaining)
           </button>
         </div>
+      ) : displayStudents.length > 0 && (
+        <p style={{ textAlign: "center", fontSize: "0.78rem", color: "#94a3b8", paddingTop: "0.5rem", margin: 0 }}>
+          All {displayStudents.length} student{displayStudents.length !== 1 ? "s" : ""} shown
+        </p>
       )}
     </div>
   );

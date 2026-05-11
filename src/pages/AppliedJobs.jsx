@@ -1,4 +1,5 @@
-﻿import * as Sentry from "@sentry/react";
+import { useState } from "react";
+import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
@@ -12,11 +13,49 @@ const STATUS_STYLE = {
   Rejected: { cls: "badge-red",    icon: "❌", label: "Declined" },
 };
 
-function AppliedJobCard({ job, status, onRemove }) {
+// Sort order: Accepted first, Rejected second, Pending last
+const STATUS_ORDER = { Accepted: 0, Rejected: 1, Pending: 2 };
+
+function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, onCancel }) {
+  return (
+    <div
+      onClick={onCancel}
+      style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)" }}
+    >
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "1.75rem 1.5rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
+      >
+        <h3 style={{ fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.4rem", color: "#1e293b" }}>{title}</h3>
+        <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1.5rem", lineHeight: 1.55 }}>{message}</p>
+        <div style={{ display: "flex", gap: "0.75rem" }}>
+          <button
+            onClick={onCancel}
+            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
+          >
+            Keep it
+          </button>
+          <button
+            onClick={onConfirm}
+            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", color: "white", ...confirmStyle }}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AppliedJobCard({ job, status, onRemove, onMessage }) {
   const { setSelectedJob, setPage } = useApp();
   const s = STATUS_STYLE[status] || STATUS_STYLE.Pending;
   const photo = job.photos?.[0] || null;
   const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
+
+  const showMessage = status === "Accepted";
+  const showWithdraw = status === "Pending";
+  const showRemove = status === "Rejected";
 
   return (
     <div role="listitem" className="job-card" style={{ display: "flex", alignItems: "flex-start", padding: 0, overflow: "hidden", marginBottom: 0 }}>
@@ -46,7 +85,7 @@ function AppliedJobCard({ job, status, onRemove }) {
         <p style={{ color: "#6b7280", fontSize: "0.85rem", marginBottom: "0.15rem" }}>{job.company} · {job.location}</p>
         <p style={{ fontWeight: "700", color: "#111827", marginBottom: "0.35rem", fontSize: "0.9rem" }}>{job.pay}</p>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: status === "Rejected" ? "0.5rem" : 0 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: (showMessage || showWithdraw || showRemove) ? "0.5rem" : 0 }}>
           {(job.days || []).map(day => (
             <span key={day} className="badge badge-brand badge-sm">
               {day.slice(0, 3)} · {(job.times || {})[day]?.join(", ")}
@@ -54,15 +93,35 @@ function AppliedJobCard({ job, status, onRemove }) {
           ))}
         </div>
 
-        {status === "Rejected" && (
-          <button
-            aria-label={`Remove application to ${job.title}`}
-            onClick={() => onRemove(job.id)}
-            style={{ marginTop: "0.5rem", padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
-          >
-            Remove
-          </button>
-        )}
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+          {showMessage && (
+            <button
+              aria-label={`Message ${job.company} about ${job.title}`}
+              onClick={() => onMessage()}
+              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #10b981, #059669)", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(16,185,129,0.3)" }}
+            >
+              💬 Message Company
+            </button>
+          )}
+          {showWithdraw && (
+            <button
+              aria-label={`Withdraw application to ${job.title}`}
+              onClick={() => onRemove(job.id, "withdraw")}
+              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
+            >
+              Withdraw
+            </button>
+          )}
+          {showRemove && (
+            <button
+              aria-label={`Remove application to ${job.title}`}
+              onClick={() => onRemove(job.id, "remove")}
+              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
+            >
+              Remove
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -70,18 +129,40 @@ function AppliedJobCard({ job, status, onRemove }) {
 
 export default function AppliedJobs() {
   const { appliedJobs, setAppliedJobs, setSavedAppliedJobIds, currentUser, appStatuses: statuses = {}, setPage } = useApp();
-  const handleRemove = async (jobId) => {
+  const [confirm, setConfirm] = useState(null); // { jobId, type: "withdraw"|"remove" }
+
+  const handleRemoveRequest = (jobId, type) => {
+    setConfirm({ jobId, type });
+  };
+
+  const handleRemoveConfirm = async () => {
+    if (!confirm) return;
+    const { jobId, type } = confirm;
+    setConfirm(null);
     try {
       await removeApplication(currentUser.id, jobId);
       setAppliedJobs(prev => prev.filter(j => j.id !== jobId));
       setSavedAppliedJobIds(prev => prev.filter(id => id !== jobId));
-      toast.success("Application removed");
+      toast.success(type === "withdraw" ? "Application withdrawn" : "Application removed");
     } catch (e) {
       Sentry.captureException(e);
       console.error("Failed to remove application:", e);
       toast.error(e.message || "Failed to remove application.");
     }
   };
+
+  const handleMessage = () => {
+    setPage("messages");
+  };
+
+  // Sort: Accepted → Rejected → Pending; ties keep original order
+  const sorted = [...appliedJobs].sort((a, b) => {
+    const sa = STATUS_ORDER[statuses[a.id] ?? "Pending"] ?? 2;
+    const sb = STATUS_ORDER[statuses[b.id] ?? "Pending"] ?? 2;
+    return sa - sb;
+  });
+
+  const confirmingJob = confirm ? appliedJobs.find(j => j.id === confirm.jobId) : null;
 
   return (
     <><BackButton />
@@ -101,12 +182,13 @@ export default function AppliedJobs() {
       ) : (
         <>
           <div role="list" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem" }}>
-            {appliedJobs.map(job => (
+            {sorted.map(job => (
               <AppliedJobCard
                 key={job.id}
                 job={job}
                 status={statuses[job.id] || "Pending"}
-                onRemove={handleRemove}
+                onRemove={handleRemoveRequest}
+                onMessage={handleMessage}
               />
             ))}
           </div>
@@ -115,7 +197,23 @@ export default function AppliedJobs() {
           </div>
         </>
       )}
-    </PageWrapper></>
+    </PageWrapper>
+
+    {confirm && confirmingJob && (
+      <ConfirmDialog
+        title={confirm.type === "withdraw" ? "Withdraw application?" : "Remove application?"}
+        message={
+          confirm.type === "withdraw"
+            ? `Your application to ${confirmingJob.title} at ${confirmingJob.company} will be cancelled. This cannot be undone.`
+            : `Remove your declined application to ${confirmingJob.title} at ${confirmingJob.company} from your list?`
+        }
+        confirmLabel={confirm.type === "withdraw" ? "Yes, withdraw" : "Remove"}
+        confirmStyle={{ background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 14px rgba(244,63,94,0.3)" }}
+        onConfirm={handleRemoveConfirm}
+        onCancel={() => setConfirm(null)}
+      />
+    )}
+    </>
   );
 }
 

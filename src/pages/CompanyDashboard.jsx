@@ -87,9 +87,9 @@ export default function CompanyDashboard() {
       .catch(e => console.warn("[CompanyDashboard] liked students failed:", e));
   }, [currentUser?.id]);
 
-  // Load applicant student IDs whenever Browse Students tab is open and jobs are loaded
+  // Load applicant student IDs whenever Browse Students or Saved Students tab is open and jobs are loaded
   useEffect(() => {
-    if (activeTab !== "students" || !currentUser || loading) return;
+    if ((activeTab !== "students" && activeTab !== "saved") || !currentUser || loading) return;
     const jobIds = postings.map(p => p.id);
     if (!jobIds.length) return;
     withTimeout(
@@ -242,11 +242,13 @@ export default function CompanyDashboard() {
   };
 
   const saveForm = async ({ existingPhotos: keptUrls = [], newFiles = [], allCrops = [] } = {}) => {
+    if (!formData.category) { toast.error("Please select a job category."); return; }
     if (!formData.title.trim() || !formData.location.trim() || !formData.pay.trim()) {
       toast.error("Please fill in Title, Location, and Pay."); return;
     }
     const payNum = parseFloat((formData.pay || "").replace(/[^0-9.]/g, ""));
     if (!payNum || payNum <= 0) { toast.error("Pay rate must be greater than €0."); return; }
+    if (payNum > 999) { toast.error("Pay rate cannot exceed €999/hr."); return; }
     if (formData.days.length === 0) { toast.error("Please select at least one day."); return; }
     if (keptUrls.length === 0 && newFiles.length === 0) { toast.error("Please upload at least 1 photo."); return; }
     const descPlain = (formData.description || "").replace(/<[^>]*>/g, "");
@@ -356,15 +358,27 @@ export default function CompanyDashboard() {
 
   const toggleLike = async (studentId) => {
     const isLiked = likedStudentIds.has(studentId);
+    // Optimistic update
+    if (isLiked) {
+      setLikedStudentIds(prev => { const next = new Set(prev); next.delete(studentId); return next; });
+    } else {
+      setLikedStudentIds(prev => new Set([...prev, studentId]));
+    }
     try {
       if (isLiked) {
         await unlikeStudent(currentUser.id, studentId);
-        setLikedStudentIds(prev => { const next = new Set(prev); next.delete(studentId); return next; });
       } else {
         await likeStudent(currentUser.id, studentId);
-        setLikedStudentIds(prev => new Set([...prev, studentId]));
       }
-    } catch { /* silently ignore */ }
+    } catch {
+      // Roll back the optimistic update
+      if (isLiked) {
+        setLikedStudentIds(prev => new Set([...prev, studentId]));
+      } else {
+        setLikedStudentIds(prev => { const next = new Set(prev); next.delete(studentId); return next; });
+      }
+      toast.error("Could not update saved students — please try again.");
+    }
   };
 
 
@@ -505,7 +519,9 @@ export default function CompanyDashboard() {
           students={students}
           loading={studentsLoading}
           fetched={studentsFetched}
+          error={studentsError}
           likedStudentIds={likedStudentIds}
+          applicantStudentIds={applicantStudentIds}
           onToggleLike={toggleLike}
           chatStudent={chatStudent}
           setChatStudent={setChatStudent}
@@ -518,7 +534,8 @@ export default function CompanyDashboard() {
       {activeTab === "jobs" && (
         loading ? (
           <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#64748b", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
-            <p style={{ fontWeight: "600" }}>Loading your job postingsâ€¦</p>
+            <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
+            <p style={{ fontWeight: "600" }}>Loading your job postings…</p>
           </div>
         ) : postings.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
