@@ -710,6 +710,43 @@ export default function AccountPage() {
                 <InfoRow label="Role"  value="Company" />
               </Collapsible>
 
+              <Section title="Company Profile">
+                <label style={labelStyle}>Company Bio <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
+                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-0.25rem", marginBottom: "0.25rem" }}>
+                  <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#94a3b8" }}>{bio.length}/500</span>
+                </div>
+                <textarea
+                  placeholder="Tell students about your company, culture, and the kinds of roles you hire for…"
+                  value={bio}
+                  maxLength={500}
+                  onChange={e => setBio(e.target.value)}
+                  onBlur={() => saveCompanyField({ bio })}
+                  rows={4}
+                  style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
+                />
+                <label style={labelStyle}>Website <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
+                <input
+                  placeholder="https://yourcompany.ie"
+                  value={website}
+                  onChange={e => setWebsite(e.target.value)}
+                  onBlur={() => {
+                    if (website && !/^https?:\/\/.+/.test(website)) {
+                      toast.error("Please enter a valid URL starting with https://");
+                      return;
+                    }
+                    saveCompanyField({ website });
+                  }}
+                  style={inputStyle}
+                />
+                {(saving || saved || saveError) && (
+                  <div style={{ textAlign: "center", padding: "0.4rem 0.75rem", borderRadius: "0.5rem", backgroundColor: saveError ? "#fff1f2" : saved ? "#f0fdf4" : "#f8fafc", border: `1.5px solid ${saveError ? "#fca5a5" : saved ? "#86efac" : "#e2e8f0"}` }}>
+                    {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8", fontWeight: 600 }}>Saving…</p>}
+                    {saved  && <p style={{ margin: 0, fontSize: "0.8rem", color: "#16a34a", fontWeight: 700 }}>✓ Saved</p>}
+                    {saveError && <p style={{ margin: 0, fontSize: "0.8rem", color: "#ef4444", fontWeight: 600 }}>{saveError}</p>}
+                  </div>
+                )}
+              </Section>
+
               <Section title="Our Industries">
                 <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.9rem" }}>Which industries does your company hire in? Students matching these will appear in Browse Students.</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "1rem" }}>

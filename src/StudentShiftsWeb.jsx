@@ -80,6 +80,7 @@ function normaliseProfile(profile) {
     studentIdPath:        extra.student_id_url     || null,
     verificationStatus:   extra.status             || null,
     croNumber:            extra.cro_number          || null,
+    website:              extra.website             || "",
     industries:           extra.industries           || [],
     jobPreferences:     extra.job_preferences  || [],
     availability:       extra.availability || {},
