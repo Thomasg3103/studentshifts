@@ -1173,12 +1173,14 @@ BEGIN
       CHECK (bio IS NULL OR char_length(bio) <= 500);
   END IF;
 
-  -- Student LinkedIn: must look like a URL if set
+  -- Student LinkedIn: must look like a URL if set.
+  -- NOT VALID skips the check on existing rows (some may lack the scheme prefix)
+  -- but enforces the constraint on all future inserts and updates.
   IF NOT EXISTS (
     SELECT 1 FROM pg_constraint WHERE conname = 'students_linkedin_format'
   ) THEN
     ALTER TABLE students ADD CONSTRAINT students_linkedin_format
-      CHECK (linkedin IS NULL OR linkedin ~ '^https?://');
+      CHECK (linkedin IS NULL OR linkedin ~ '^https?://') NOT VALID;
   END IF;
 
   -- Student skills: max 50 items in the array
