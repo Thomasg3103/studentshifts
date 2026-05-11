@@ -46,6 +46,7 @@ export default function CompanyDashboard() {
   const { setPage, currentUser } = useApp();
   const [postings, setPostings]   = useState([]);
   const [loading, setLoading]     = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [formSaving, setFormSaving] = useState(false);
   const [modal, setModal]         = useState(null);
   const [activePosting, setActivePosting] = useState(null);
@@ -220,24 +221,32 @@ export default function CompanyDashboard() {
   const toggleStatus = async (id) => {
     const posting = postings.find(p => p.id === id);
     const newStatus = posting.status === "Active" ? "Closed" : "Active";
-    const { error } = await withTimeout(
-      supabase.from("jobs").update({ status: newStatus }).eq("id", id),
-      10000, "Update timed out."
-    );
-    if (!error) {
+    try {
+      const { error } = await withTimeout(
+        supabase.from("jobs").update({ status: newStatus }).eq("id", id),
+        10000, "Update timed out."
+      );
+      if (error) throw error;
       setPostings(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
       if (activePosting?.id === id) setActivePosting(prev => prev ? { ...prev, status: newStatus } : prev);
+    } catch (e) {
+      console.error("[CompanyDashboard] toggleStatus error:", e);
+      toast.error("Failed to update job status. Please try again.");
     }
   };
 
   const deletePosting = async (id) => {
-    const { error } = await withTimeout(
-      supabase.from("jobs").delete().eq("id", id),
-      10000, "Delete timed out."
-    );
-    if (!error) {
+    try {
+      const { error } = await withTimeout(
+        supabase.from("jobs").delete().eq("id", id),
+        10000, "Delete timed out."
+      );
+      if (error) throw error;
       setPostings(prev => prev.filter(p => p.id !== id));
       if (activePosting?.id === id) { setActivePosting(null); setModal(null); }
+    } catch (e) {
+      console.error("[CompanyDashboard] deletePosting error:", e);
+      toast.error("Failed to delete job. Please try again.");
     }
   };
 
