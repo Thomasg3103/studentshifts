@@ -67,6 +67,20 @@ Deno.serve(async (req: Request) => {
     const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const db          = createClient(supabaseUrl, serviceKey);
 
+    // Global rate limit: reject if more than 20 new signups in the last 60 seconds.
+    // This guards against bot storms draining Brevo quota and filling the signups table.
+    const oneMinuteAgo = new Date(Date.now() - 60_000).toISOString();
+    const { count: recentCount } = await db
+      .from("signups")
+      .select("id", { count: "exact", head: true })
+      .gte("created_at", oneMinuteAgo);
+    if ((recentCount ?? 0) >= 20) {
+      return new Response(JSON.stringify({ error: "Too many requests. Please try again in a moment." }), {
+        status: 429,
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
+    }
+
     const { error: insertError } = await db.from("signups").insert([{ name, email }]);
 
     if (insertError && insertError.code !== "23505") {

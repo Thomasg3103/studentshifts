@@ -6,7 +6,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
  *   OR { type: "new-applicant", jobId: string } — sends new-applicant notification to the company
  * Auth: company or admin JWT (Authorization header)
  * Rate limit: 60 emails per 5 minutes per user (email_sends_log table)
- *   new-applicant path shares the same rate-limit bucket (student callers).
+ *   new-applicant path: tighter limit of 10 per hour per student caller.
  * magicLinkEmail: if provided, generates a Supabase magic link and injects it at MAGIC_LINK_PLACEHOLDER in html
  * redirectTo: must start with an allowed origin (FRONTEND_URL or studentshifts.ie)
  * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, BREVO_API_KEY, FRONTEND_URL
@@ -123,14 +123,16 @@ Deno.serve(async (req: Request) => {
         throw new Error("Missing required field: jobId");
       }
 
-      // Rate limit: same 60/5-min bucket shared with company senders
-      const windowStart = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+      // Rate limit: max 10 new-applicant notifications per student per hour.
+      // This is intentionally tighter than the company/admin 60/5-min bucket to
+      // prevent a student from spamming many companies with notification emails.
+      const windowStart = new Date(Date.now() - 60 * 60 * 1000).toISOString();
       const { count: studentCount } = await adminClient
         .from("email_sends_log")
         .select("id", { count: "exact", head: true })
         .eq("user_id", user.id)
         .gte("sent_at", windowStart);
-      if ((studentCount ?? 0) >= 60) {
+      if ((studentCount ?? 0) >= 10) {
         throw new Error("Rate limit exceeded. Please wait before sending more emails.");
       }
 
