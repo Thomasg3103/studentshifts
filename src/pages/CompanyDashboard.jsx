@@ -139,7 +139,7 @@ export default function CompanyDashboard() {
       }
       setLoading(false);
     }).catch(() => { setLoadError(true); setLoading(false); });
-  }, [currentUser?.id]);
+  }, [currentUser?.id, loadRetryKey]);
 
   const totalApplicants = postings.reduce((sum, p) => sum + p.applicantCount, 0);
   const activeCount     = postings.filter(p => p.status === "Active").length;
@@ -562,7 +562,7 @@ export default function CompanyDashboard() {
             <p style={{ fontWeight: "700", color: "#b91c1c", fontSize: "1rem", marginBottom: "0.4rem" }}>Couldn't load your job postings</p>
             <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.25rem" }}>Check your connection and try again.</p>
             <button
-              onClick={() => { setLoadError(false); setLoading(true); }}
+              onClick={() => { setLoadError(false); setLoading(true); setLoadRetryKey(k => k + 1); }}
               style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
             >Retry</button>
           </div>
