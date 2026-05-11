@@ -28,7 +28,7 @@ export default function AppFooter() {
             <FLink onClick={() => navigate("/about")}>Help Centre</FLink>
             <FLink onClick={handleAdvertise}>Advertise a Job</FLink>
             <FLink onClick={() => navigate("/about")}>FAQs</FLink>
-            <FLink onClick={() => navigate("/about")}>Contact Us</FLink>
+            <FLink onClick={() => navigate("/contact")}>Contact Us</FLink>
           </div>
 
           <div>

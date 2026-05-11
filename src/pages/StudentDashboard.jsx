@@ -430,6 +430,36 @@ export default function StudentDashboard({ restoreScrollY }) {
   const hasActiveFilters = selectedDays.length > 0 || selectedLocations.length > 0 || selectedJobTypes.length > 0 || weekendOnly || allWeekOnly || noWeekends || distanceKm > 0 || searchQuery.trim() !== "";
   const activeFilterCount = (selectedDays.length > 0 ? 1 : 0) + (selectedLocations.length > 0 ? 1 : 0) + (selectedJobTypes.length > 0 ? 1 : 0) + (weekendOnly ? 1 : 0) + (allWeekOnly ? 1 : 0) + (noWeekends ? 1 : 0) + (distanceKm > 0 ? 1 : 0);
 
+  const firstBlockingFilter = (() => {
+    if (!hasActiveFilters || jobs.length === 0) return null;
+    let pool = [...jobs];
+    const step = (filtered, label) => { if (filtered.length === 0 && pool.length > 0) return label; pool = filtered; return null; };
+    let hit;
+    if (prefOnly && userPrefs.length > 0) {
+      hit = step(pool.filter(j => { const c = getCategoryForTitle(j.title); return c && userPrefs.includes(c); }), "your job preferences"); if (hit) return hit;
+    }
+    if (selectedDays.length > 0) {
+      hit = step(pool.filter(j => selectedDays.every(d => { if (!j.days.includes(d)) return false; if (dayTimes[d]) return j.times[d]?.some(t => t >= dayTimes[d]); return true; })), selectedDays.length === 1 ? `${selectedDays[0]}` : `${selectedDays.slice(0,2).map(d=>d.slice(0,3)).join("/")} days`); if (hit) return hit;
+    }
+    if (selectedLocations.length > 0) {
+      hit = step(pool.filter(j => selectedLocations.includes(j.location)), selectedLocations.length === 1 ? selectedLocations[0] : "location filter"); if (hit) return hit;
+    }
+    if (selectedJobTypes.length > 0) {
+      hit = step(pool.filter(j => { const c = getCategoryForTitle(j.title); return c && selectedJobTypes.includes(c); }), "job type filter"); if (hit) return hit;
+    }
+    if (weekendOnly) { hit = step(pool.filter(j => j.days.includes("Saturday") || j.days.includes("Sunday")), "weekends-only filter"); if (hit) return hit; }
+    if (allWeekOnly) { hit = step(pool.filter(j => workweek.every(d => j.days.includes(d))), "full-week filter"); if (hit) return hit; }
+    if (noWeekends)  { hit = step(pool.filter(j => !j.days.includes("Saturday") && !j.days.includes("Sunday")), "no-weekends filter"); if (hit) return hit; }
+    if (distanceKm > 0 && studentLocation) {
+      hit = step(pool.filter(j => { const d = jobDistance(j); return d !== null && d <= distanceKm; }), `${distanceKm}km distance limit`); if (hit) return hit;
+    }
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      hit = step(pool.filter(j => j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q)), `"${searchQuery}"`); if (hit) return hit;
+    }
+    return null;
+  })();
+
   const userPrefs = currentUser?.jobPreferences || [];
 
   // Filter logic (time filter uses >= not exact match)
@@ -668,8 +698,10 @@ export default function StudentDashboard({ restoreScrollY }) {
             {!jobsLoading && !jobsError && sortedJobs.length === 0 && (
               <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
                 <p style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>No jobs match your filters</p>
-                <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>
-                  {searchQuery.trim() ? `No results for "${searchQuery}"` : "Try removing some filters."}
+                <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem", color: "#6b7280" }}>
+                  {firstBlockingFilter
+                    ? <><strong style={{ color: "#374151" }}>{firstBlockingFilter}</strong> has no matches — try widening it.</>
+                    : "Try removing some filters."}
                 </p>
                 <button onClick={clearAll} style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
                   Clear All Filters

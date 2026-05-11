@@ -25,6 +25,7 @@ const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsOfServicePage= lazy(() => import("./pages/TermsOfServicePage"));
 const LandingPage       = lazy(() => import("./pages/LandingPage"));
 const HelpPage          = lazy(() => import("./pages/HelpPage"));
+const ContactPage       = lazy(() => import("./pages/ContactPage"));
 
 function PageSpinner() {
   return (
@@ -54,6 +55,7 @@ const PAGE_PATH = {
   resetPassword:     "/reset-password",
   about:             "/about",
   help:              "/help",
+  contact:           "/contact",
   privacy:           "/privacy",
   terms:             "/terms",
 };
@@ -392,6 +394,7 @@ export default function StudentShiftsWeb() {
               <Route path="/privacy" element={<PrivacyPolicyPage />} />
               <Route path="/terms"   element={<TermsOfServicePage />} />
               <Route path="/help"    element={<HelpPage />} />
+              <Route path="/contact" element={<ContactPage />} />
 
               {/* 404 */}
               <Route path="/404" element={<NotFoundPage />} />
