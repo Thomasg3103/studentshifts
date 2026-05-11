@@ -27,9 +27,6 @@ const LandingPage       = lazy(() => import("./pages/LandingPage"));
 const HelpPage          = lazy(() => import("./pages/HelpPage"));
 const ContactPage       = lazy(() => import("./pages/ContactPage"));
 const PendingCompanyPage= lazy(() => import("./pages/PendingCompanyPage"));
-const ComingSoonPage    = lazy(() => import("./pages/ComingSoonPage"));
-
-const COMING_SOON = import.meta.env.VITE_COMING_SOON === "true";
 
 function PageSpinner() {
   return (
@@ -355,17 +352,6 @@ export default function StudentShiftsWeb() {
           <p style={{ fontWeight: "600", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Loading StudentShifts…</p>
         </div>
       </div>
-    );
-  }
-
-  // Pre-launch gate: logged-in non-admin users see holding page until VITE_COMING_SOON is removed
-  if (COMING_SOON && currentUser && currentUser.role !== "admin") {
-    return (
-      <AppContext.Provider value={appContextValue}>
-        <Suspense fallback={null}>
-          <ComingSoonPage />
-        </Suspense>
-      </AppContext.Provider>
     );
   }
 

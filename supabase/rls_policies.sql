@@ -98,22 +98,21 @@ DROP POLICY IF EXISTS "students: company read applicants" ON students;
 CREATE POLICY "students: own read" ON students
   FOR SELECT USING (auth.uid() = id);
 
--- Student updates their own row; status locked except rejected→pending_review (re-submission).
--- Document URL columns must be prefixed with the student's own UUID (prevents path injection).
+-- Student updates their own row; status column is locked except rejected→pending_review (re-submission).
 CREATE POLICY "students: own update" ON students
   FOR UPDATE USING (auth.uid() = id)
   WITH CHECK (
     auth.uid() = id AND
     (
+      -- Normal case: status unchanged
       status = (SELECT status FROM students WHERE id = auth.uid())
       OR
+      -- F-H18: allow rejected students to re-submit verification docs
       (
         (SELECT status FROM students WHERE id = auth.uid()) = 'rejected'
         AND status = 'pending_review'
       )
-    ) AND
-    (cv_url IS NULL OR cv_url LIKE auth.uid()::text || '/%') AND
-    (cover_letter_url IS NULL OR cover_letter_url LIKE auth.uid()::text || '/%')
+    )
   );
 
 -- Admin can read all students (pending review list, verification, etc.)
@@ -817,6 +816,22 @@ $$;
 
 
 -- ================================================================
+-- FIX #14: Prevent cv_url/cover_letter_url path injection
+-- Students cannot set their document URL to another student's storage path.
+-- ================================================================
+DROP POLICY IF EXISTS "students: own update" ON students;
+
+CREATE POLICY "students: own update" ON students
+  FOR UPDATE USING (auth.uid() = id)
+  WITH CHECK (
+    auth.uid() = id AND
+    status = (SELECT status FROM students WHERE id = auth.uid()) AND
+    (cv_url IS NULL OR cv_url LIKE auth.uid()::text || '/%') AND
+    (cover_letter_url IS NULL OR cover_letter_url LIKE auth.uid()::text || '/%')
+  );
+
+
+-- ================================================================
 -- FIX #16: Job status must be 'Active' or 'Closed' — no arbitrary strings
 -- ================================================================
 DROP POLICY IF EXISTS "jobs: company insert" ON jobs;
@@ -1355,41 +1370,6 @@ BEGIN
       CHECK (description IS NULL OR char_length(description) <= 10000);
   END IF;
 END $$;
-
--- ================================================================
--- signups table — pre-launch interest registrations (populated by register-interest Edge Function)
--- ================================================================
-CREATE TABLE IF NOT EXISTS signups (
-  id                   uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  name                 text NOT NULL,
-  email                text NOT NULL UNIQUE,
-  created_at           timestamptz DEFAULT now(),
-  launch_email_sent_at timestamptz
-);
-
-ALTER TABLE signups ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "signups: admin read" ON signups;
-CREATE POLICY "signups: admin read" ON signups
-  FOR SELECT USING (is_admin());
-
--- No INSERT/UPDATE policy for auth users — only the service_role (register-interest + send-launch-emails
--- Edge Functions) may write to this table.
-
-CREATE OR REPLACE FUNCTION get_signups()
-RETURNS TABLE(id uuid, name text, email text, created_at timestamptz, launch_email_sent_at timestamptz)
-LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
-BEGIN
-  IF NOT is_admin() THEN
-    RAISE EXCEPTION 'Unauthorised';
-  END IF;
-  RETURN QUERY
-    SELECT s.id, s.name, s.email, s.created_at, s.launch_email_sent_at
-    FROM signups s
-    ORDER BY s.created_at DESC;
-END;
-$$;
-
 
 -- ================================================================
 -- Availability heatmap — aggregate student availability by day/slot
