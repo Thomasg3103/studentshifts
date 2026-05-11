@@ -1,5 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/**
+ * hire-applicant — Edge Function
+ * POST { applicationId: string, action: "accept"|"reject", idempotencyKey?: string }
+ * Auth: company JWT (Authorization header)
+ * Rate limit: 10 actions/min per company (hire_action_log table)
+ * Idempotency: duplicate (applicationId+action) within 60s returns cached result
+ * Side-effects: updates applications.status, jobs.filled_shifts, sends Brevo emails
+ * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, BREVO_API_KEY, FRONTEND_URL
+ */
 const FRONTEND_URL = Deno.env.get("FRONTEND_URL") || "https://studentshifts.onrender.com";
 
 const corsHeaders = {

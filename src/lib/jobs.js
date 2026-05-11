@@ -33,6 +33,7 @@ export function normaliseJobRow(job, companyName) {
     photoCrops:      job.photo_crops || [],
     filledShifts:    job.filled_shifts || [],
     status:          job.status,
+    updatedAt:       job.updated_at || null,
   };
 }
 

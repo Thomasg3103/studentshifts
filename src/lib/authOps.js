@@ -1,5 +1,6 @@
 import { supabase, withTimeout, invalidateSessionCache } from "./supabase";
 
+/** @param {{ email: string, password: string, name: string, role: "student"|"company", croNumber?: string, industries?: string[] }} params */
 export async function signUp({ email, password, name, role, croNumber, industries }) {
   if (role !== 'student' && role !== 'company') throw new Error('Invalid role');
   const meta = { name, role };
@@ -13,6 +14,7 @@ export async function signUp({ email, password, name, role, croNumber, industrie
   return data.user;
 }
 
+/** @param {{ email: string, password: string }} params — throws if credentials invalid or email unconfirmed */
 export async function signIn({ email, password }) {
   invalidateSessionCache();
   const { data, error } = await withTimeout(
@@ -36,6 +38,7 @@ export async function signOut() {
   if (error) throw error;
 }
 
+/** Sends a password-reset email. Always resolves — never reveals whether the address exists. */
 export async function sendPasswordReset(email) {
   const { error } = await withTimeout(
     supabase.auth.resetPasswordForEmail(email, {
@@ -62,6 +65,7 @@ export async function resendVerificationEmail(email) {
   if (error) throw error;
 }
 
+/** Re-authenticates the current user before a sensitive action. Throws "Incorrect password" on failure. */
 export async function verifyPassword(email, password) {
   const { error } = await withTimeout(
     supabase.auth.signInWithPassword({ email, password }),

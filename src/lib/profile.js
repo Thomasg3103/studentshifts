@@ -1,5 +1,6 @@
 import { supabase, withTimeout, ensureValidSession } from "./supabase";
 
+/** Fetches a user's full profile (profiles + students/companies join). Retries once on timeout. */
 export async function getProfile(userId) {
   const run = () => withTimeout(
     supabase.from("profiles").select("*, students(*), companies(*)").eq("id", userId).single(),
@@ -56,6 +57,7 @@ export async function saveCompanyIndustries(userId, industries) {
   if (error) console.warn("Industries save failed:", error.message);
 }
 
+/** Exports all personal data for a student as a JSON-serialisable object (GDPR Art. 20). */
 export async function exportMyData(userId) {
   const [profileRes, studentRes, applicationsRes, likedRes, messagesRes] = await Promise.all([
     supabase.from("profiles").select("id, name, role, created_at").eq("id", userId).single(),

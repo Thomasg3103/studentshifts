@@ -254,7 +254,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, currentUse
 
   const tab = (active) => ({
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-    gap: "2px", flex: 1, padding: "0.35rem 0",
+    gap: "2px", flex: 1, padding: "0.35rem 0", minHeight: "48px",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
     color: active ? "var(--color-brand)" : "#94a3b8",
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
@@ -324,7 +324,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount }) {
 
   const tab = (active) => ({
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-    gap: "2px", flex: 1, padding: "0.35rem 0",
+    gap: "2px", flex: 1, padding: "0.35rem 0", minHeight: "48px",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
     color: active ? "var(--color-brand)" : "#94a3b8",
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,

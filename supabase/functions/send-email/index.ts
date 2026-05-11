@@ -1,5 +1,14 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/**
+ * send-email — Edge Function
+ * POST { to: string|string[], subject: string, html: string, magicLinkEmail?: string, redirectTo?: string }
+ * Auth: company or admin JWT (Authorization header)
+ * Rate limit: 60 emails per 5 minutes per user (email_sends_log table)
+ * magicLinkEmail: if provided, generates a Supabase magic link and injects it at MAGIC_LINK_PLACEHOLDER in html
+ * redirectTo: must start with an allowed origin (FRONTEND_URL or studentshifts.ie)
+ * Env: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, BREVO_API_KEY, FRONTEND_URL
+ */
 const FRONTEND_URL = Deno.env.get("FRONTEND_URL") || "https://studentshifts.onrender.com";
 
 const corsHeaders = {

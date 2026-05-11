@@ -779,12 +779,17 @@ export default function StudentDashboard({ restoreScrollY }) {
                         )}
                       </div>
 
-                      {/* Bottom: pay + deadline */}
+                      {/* Bottom: pay + deadline + updated */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
                         <span style={{ fontWeight: 700, color: "#111827", fontSize: isPhone ? "0.95rem" : "1.35rem" }}>{job.pay}</span>
                         {dl && (
                           <span className={`badge ${dlSoon ? "badge-yellow" : "badge-gray"} ${isPhone ? "badge-sm" : ""}`}>
                             Closes {deadlineLabel(dl)}
+                          </span>
+                        )}
+                        {job.updatedAt && (
+                          <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#94a3b8", marginLeft: "auto" }}>
+                            Updated {new Date(job.updatedAt).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}
                           </span>
                         )}
                       </div>
