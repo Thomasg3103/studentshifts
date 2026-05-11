@@ -96,3 +96,18 @@ export async function rejectCompany(companyId) {
   );
   if (error) throw error;
 }
+
+export async function getSignups() {
+  const { data, error } = await withTimeout(
+    supabase.rpc("get_signups"),
+    10000
+  );
+  if (error) throw error;
+  return data || [];
+}
+
+export async function sendLaunchEmails() {
+  const { data, error } = await supabase.functions.invoke("send-launch-emails");
+  if (error) throw error;
+  return data; // { sent, skipped, total, errors }
+}

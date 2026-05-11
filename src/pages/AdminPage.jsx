@@ -6,6 +6,7 @@ import {
   fetchPendingStudents, approveStudent, rejectStudent, getSignedDocumentUrl,
   fetchPendingCompanies, approveCompany, rejectCompany,
   sendEmail, emailStudentApproved, emailCompanyApproved,
+  getSignups, sendLaunchEmails,
 } from "../lib/auth";
 import { emailStudentRejected, emailCompanyRejected } from "../lib/emails";
 
@@ -18,6 +19,9 @@ export default function AdminPage() {
   const [actionLoading, setActionLoading] = useState(null);
   const [rejectConfirm, setRejectConfirm] = useState(null); // { type: "student"|"company", item }
   const inFlight = useRef(new Set()); // F-C6: prevent double-approval across renders
+  const [signups, setSignups]             = useState(null); // null = not yet fetched
+  const [signupsLoading, setSignupsLoading] = useState(false);
+  const [launchSending, setLaunchSending] = useState(false);
 
   // F-M10: extracted so the Refresh button can re-call it
   const loadData = useCallback(() => {
@@ -33,6 +37,39 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  const loadSignups = useCallback(async () => {
+    setSignupsLoading(true);
+    try {
+      const data = await getSignups();
+      setSignups(data);
+    } catch (e) {
+      toast.error("Failed to load signups.");
+    } finally {
+      setSignupsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === "signups" && signups === null) loadSignups();
+  }, [tab, signups, loadSignups]);
+
+  const handleSendLaunchEmails = async () => {
+    const unsent = (signups || []).filter(s => !s.launch_email_sent_at).length;
+    if (unsent === 0) { toast("All signups have already received the launch email."); return; }
+    if (!window.confirm(`Send launch emails to ${unsent} signup${unsent === 1 ? "" : "s"}? This cannot be undone.`)) return;
+    setLaunchSending(true);
+    try {
+      const result = await sendLaunchEmails();
+      toast.success(`Sent ${result.sent} launch email${result.sent === 1 ? "" : "s"}!`);
+      if (result.errors?.length) console.warn("Launch email errors:", result.errors);
+      loadSignups(); // refresh sent_at timestamps
+    } catch (e) {
+      toast.error(e.message || "Failed to send launch emails.");
+    } finally {
+      setLaunchSending(false);
+    }
+  };
 
   const openDoc = async (path) => {
     try {
@@ -194,6 +231,7 @@ export default function AdminPage() {
           {[
             { key: "students",  label: "Students",  count: pendingStudents },
             { key: "companies", label: "Companies", count: pendingCompanies },
+            { key: "signups",   label: "Signups",   count: 0 },
           ].map(({ key, label, count }) => {
             const active = tab === key;
             return (
@@ -228,7 +266,15 @@ export default function AdminPage() {
           })}
         </div>
 
-        {loading ? (
+        {tab === "signups" ? (
+          <SignupsPanel
+            signups={signups}
+            loading={signupsLoading}
+            launchSending={launchSending}
+            onRefresh={loadSignups}
+            onSendLaunch={handleSendLaunchEmails}
+          />
+        ) : loading ? (
           <p style={{ color: "#64748b" }}>Loading…</p>
         ) : tab === "students" ? (
           students.length === 0 ? (
@@ -399,6 +445,101 @@ function EmptyState({ label }) {
     <div style={{ textAlign: "center", padding: "3rem 0", color: "#94a3b8" }}>
       <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>✅</div>
       <p style={{ fontWeight: "600", margin: 0 }}>{label}</p>
+    </div>
+  );
+}
+
+function SignupsPanel({ signups, loading, launchSending, onRefresh, onSendLaunch }) {
+  const [search, setSearch] = useState("");
+
+  if (loading || signups === null) {
+    return <p style={{ color: "#64748b" }}>Loading…</p>;
+  }
+
+  const now   = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const week  = new Date(today); week.setDate(week.getDate() - 7);
+
+  const total   = signups.length;
+  const todayN  = signups.filter(s => new Date(s.created_at) >= today).length;
+  const weekN   = signups.filter(s => new Date(s.created_at) >= week).length;
+  const unsent  = signups.filter(s => !s.launch_email_sent_at).length;
+
+  const filtered = search
+    ? signups.filter(s =>
+        s.name.toLowerCase().includes(search.toLowerCase()) ||
+        s.email.toLowerCase().includes(search.toLowerCase()))
+    : signups;
+
+  return (
+    <div>
+      {/* Stat cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
+        {[
+          { label: "Total", value: total },
+          { label: "This week", value: weekN },
+          { label: "Today", value: todayN },
+          { label: "Not emailed", value: unsent },
+        ].map(({ label, value }) => (
+          <div key={label} style={{ background: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem 1.25rem" }}>
+            <p style={{ margin: "0 0 0.25rem", fontSize: "0.72rem", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8" }}>{label}</p>
+            <p style={{ margin: 0, fontSize: "2rem", fontWeight: "800", background: "linear-gradient(135deg,var(--color-brand),#C2185B)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Actions row */}
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+        <input
+          type="text"
+          placeholder="Search name or email…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          style={{ flex: 1, minWidth: "180px", padding: "0.55rem 0.9rem", border: "1.5px solid #e2e8f0", borderRadius: "0.5rem", fontSize: "0.875rem", fontFamily: "inherit", outline: "none" }}
+        />
+        <button
+          onClick={onRefresh}
+          style={{ padding: "0.55rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
+        >
+          ↺ Refresh
+        </button>
+        <button
+          onClick={onSendLaunch}
+          disabled={launchSending || unsent === 0}
+          style={{ padding: "0.55rem 1rem", borderRadius: "0.5rem", border: "none", background: unsent === 0 ? "#e2e8f0" : "linear-gradient(135deg,var(--color-brand),#C2185B)", color: unsent === 0 ? "#94a3b8" : "white", fontWeight: "700", fontSize: "0.82rem", cursor: (launchSending || unsent === 0) ? "default" : "pointer", fontFamily: "inherit", opacity: launchSending ? 0.6 : 1 }}
+        >
+          {launchSending ? "Sending…" : unsent === 0 ? "All emailed" : `Send Launch Emails (${unsent})`}
+        </button>
+      </div>
+
+      {/* Table */}
+      {filtered.length === 0 ? (
+        <EmptyState label={search ? "No matches found" : "No signups yet"} />
+      ) : (
+        <div style={{ background: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", overflow: "hidden" }}>
+          {filtered.map((s, i) => {
+            const initials = s.name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+            const date = new Date(s.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" });
+            return (
+              <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.85rem", padding: "0.8rem 1.25rem", borderBottom: i < filtered.length - 1 ? "1px solid #f1f5f9" : "none" }}>
+                <div style={{ width: "34px", height: "34px", borderRadius: "50%", background: "linear-gradient(135deg,var(--color-brand),#C2185B)", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontSize: "0.75rem", fontWeight: "700", flexShrink: 0 }}>
+                  {initials}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: 0, fontWeight: "600", fontSize: "0.875rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</p>
+                  <p style={{ margin: 0, fontSize: "0.78rem", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.email}</p>
+                </div>
+                <div style={{ textAlign: "right", flexShrink: 0 }}>
+                  <p style={{ margin: 0, fontSize: "0.75rem", color: "#94a3b8" }}>{date}</p>
+                  {s.launch_email_sent_at && (
+                    <p style={{ margin: "0.1rem 0 0", fontSize: "0.68rem", color: "#22c55e", fontWeight: "600" }}>✓ Emailed</p>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

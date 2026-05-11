@@ -36,8 +36,9 @@ function getPasswordStrength(pw) {
 
 export default function SignupPage() {
   const { setPage } = useApp();
-  const [name, setName]         = useState("");
-  const [email, setEmail]       = useState("");
+  const params = new URLSearchParams(window.location.search);
+  const [name, setName]         = useState(params.get("name") || "");
+  const [email, setEmail]       = useState(params.get("email") || "");
   const [password, setPassword] = useState("");
   const [role, setRole]         = useState("student");
   const [croNumber, setCroNumber] = useState("");
