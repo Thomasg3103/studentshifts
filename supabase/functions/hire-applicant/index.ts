@@ -161,10 +161,11 @@ async function sendBrevoEmail(
       body: JSON.stringify({ type: "magiclink", email: magicLinkEmail, options: { redirect_to: FRONTEND_URL } }),
     });
     const linkData = await linkRes.json();
-    if (linkData.action_link) finalHtml = html.replaceAll("MAGIC_LINK_PLACEHOLDER", linkData.action_link);
+    if (!linkData.action_link) throw new Error("Failed to generate magic link");
+    finalHtml = html.replaceAll("MAGIC_LINK_PLACEHOLDER", linkData.action_link);
   }
   const safeSubject = String(subject).replace(/[\r\n]/g, "");
-  await fetch("https://api.brevo.com/v3/smtp/email", {
+  const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: { "api-key": apiKey, "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -174,6 +175,10 @@ async function sendBrevoEmail(
       htmlContent: finalHtml,
     }),
   });
+  if (!res.ok) {
+    const errData = await res.json().catch(() => ({}));
+    throw new Error(`Brevo API error ${res.status}: ${(errData as { message?: string }).message || "unknown"}`);
+  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -185,7 +190,8 @@ Deno.serve(async (req: Request) => {
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const brevoKey    = Deno.env.get("BREVO_API_KEY") || "";
+    const brevoKey    = Deno.env.get("BREVO_API_KEY");
+    if (!brevoKey) throw new Error("BREVO_API_KEY not set");
 
     const callerClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
@@ -255,8 +261,12 @@ Deno.serve(async (req: Request) => {
     const studentEmail: string | undefined = emailRows?.[0]?.email;
 
     if (action === "accept") {
-      // 1. Accept the winner
-      await adminClient.from("applications").update({ status: "Accepted" }).eq("id", applicationId);
+      // 1. Accept the winner — only if still Pending (guards against re-accept and concurrent double-hire)
+      const { data: acceptedRows, error: acceptErr } = await adminClient
+        .from("applications").update({ status: "Accepted" })
+        .eq("id", applicationId).eq("status", "Pending").select("id");
+      if (acceptErr) throw acceptErr;
+      if (!acceptedRows?.length) throw new Error("Application already processed");
 
       // 2. Calculate and persist new filled_shifts
       const hiredDay = app.preferred_shift ? (app.preferred_shift as string).split(" · ")[0].trim() : null;
@@ -328,7 +338,7 @@ Deno.serve(async (req: Request) => {
         ((notifyProfilesRes.data || []) as { id: string; name: string }[]).map(p => [p.id, p.name])
       );
 
-      if (studentEmail && brevoKey) {
+      if (studentEmail) {
         sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, studentEmail,
           `You've been hired – ${job.title} at ${companyName}`,
           emailAccepted(studentName, job.title, companyName, hiredShiftWithTime),
@@ -336,14 +346,14 @@ Deno.serve(async (req: Request) => {
         ).catch(e => console.warn("Acceptance email failed:", e));
       }
       for (const sid of declinedStudentIds) {
-        const em = emailMap[sid]; if (!em || !brevoKey) continue;
+        const em = emailMap[sid]; if (!em) continue;
         sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
           `Update on your ${job.title} application`,
-          emailDeclined(declinedNameMap[sid] || "there", job.title, companyName, hiredShiftWithTime, [])
+          emailDeclined(declinedNameMap[sid] || "there", job.title, companyName, hiredShiftWithTime, remainingShiftsAfterHire)
         ).catch(e => console.warn("Decline email failed:", e));
       }
       for (const o of notifyOnly) {
-        const em = emailMap[o.student_id]; if (!em || !brevoKey) continue;
+        const em = emailMap[o.student_id]; if (!em) continue;
         sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
           `Update on your ${job.title} application`,
           emailDeclined(notifyNameMap[o.student_id] || "there", job.title, companyName, hiredShiftWithTime, remainingShiftsAfterHire)
@@ -363,9 +373,13 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // action === "reject"
-    await adminClient.from("applications").update({ status: "Rejected" }).eq("id", applicationId);
-    if (studentEmail && brevoKey) {
+    // action === "reject" — only update if still Pending
+    const { data: rejectedRows, error: rejectErr } = await adminClient
+      .from("applications").update({ status: "Rejected" })
+      .eq("id", applicationId).eq("status", "Pending").select("id");
+    if (rejectErr) throw rejectErr;
+    if (!rejectedRows?.length) throw new Error("Application already processed");
+    if (studentEmail) {
       const stage = (app.pipeline_stage as string) || "applied";
       const subject = `Update on your ${job.title} application`;
       const html = stage === "interview"

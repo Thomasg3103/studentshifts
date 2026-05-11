@@ -26,6 +26,7 @@ const TermsOfServicePage= lazy(() => import("./pages/TermsOfServicePage"));
 const LandingPage       = lazy(() => import("./pages/LandingPage"));
 const HelpPage          = lazy(() => import("./pages/HelpPage"));
 const ContactPage       = lazy(() => import("./pages/ContactPage"));
+const PendingCompanyPage= lazy(() => import("./pages/PendingCompanyPage"));
 
 function PageSpinner() {
   return (
@@ -359,6 +360,8 @@ export default function StudentShiftsWeb() {
               <Route path="/" element={
                 !currentUser
                   ? <LandingPage />
+                  : currentUser?.role === "company" && currentUser?.verificationStatus !== "verified"
+                  ? <PendingCompanyPage />
                   : currentUser?.role === "student" && !currentUser?.studentIdPath
                   ? <VerifyDocsPage />
                   : <StudentDashboard restoreScrollY={restoreScrollY} />

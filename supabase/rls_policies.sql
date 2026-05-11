@@ -457,6 +457,7 @@ CREATE POLICY "documents: own delete" ON storage.objects
 
 -- Companies can read CVs/cover letters of students who applied to their jobs
 -- (storage paths are structured as userId/cv.ext or userId/cover-letter.ext)
+-- Restricted to Accepted applications only — rejected applicants' docs are not accessible.
 CREATE POLICY "documents: company read applicant docs" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'documents' AND
@@ -466,6 +467,7 @@ CREATE POLICY "documents: company read applicant docs" ON storage.objects
       JOIN jobs j ON j.id = a.job_id
       WHERE j.company_id = auth.uid()
         AND a.student_id::text = (storage.foldername(name))[1]
+        AND a.status = 'Accepted'
     )
   );
 
@@ -572,7 +574,7 @@ BEGIN
   ) THEN
     RAISE EXCEPTION 'Cannot approve: student has not uploaded verification documents';
   END IF;
-  UPDATE students SET status = 'verified' WHERE id = student_id;
+  UPDATE students SET status = 'verified', student_id_url = NULL, gov_id_url = NULL WHERE id = student_id;
   INSERT INTO audit_log (actor_id, action, target_id)
     VALUES (auth.uid(), 'approve_student', student_id);
 END;
@@ -624,6 +626,7 @@ CREATE TABLE IF NOT EXISTS rpc_rate_log (
   rpc_name  TEXT NOT NULL,
   called_at TIMESTAMPTZ DEFAULT NOW()
 );
+ALTER TABLE rpc_rate_log ENABLE ROW LEVEL SECURITY;
 CREATE INDEX IF NOT EXISTS idx_rpc_rate_log_user_rpc ON rpc_rate_log(user_id, rpc_name, called_at);
 
 -- Returns emails only for users who have a relationship with the caller.
@@ -676,6 +679,9 @@ CREATE OR REPLACE FUNCTION get_company_applicant_emails(company_uuid uuid)
 RETURNS TABLE(email text)
 LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
 BEGIN
+  IF company_uuid <> auth.uid() AND NOT is_admin() THEN
+    RAISE EXCEPTION 'Unauthorised';
+  END IF;
   RETURN QUERY
     SELECT u.email::text
     FROM auth.users u
@@ -829,6 +835,29 @@ CREATE POLICY "jobs: company update" ON jobs
 
 -- FIX #17 removed: multi-shift jobs allow multiple Accepted applications (one per shift)
 DROP INDEX IF EXISTS applications_one_accepted_per_job;
+
+-- ================================================================
+-- CONSTRAINT: filled_shifts must be a subset of days
+-- Prevents companies from forging filled_shifts with invalid days.
+-- ================================================================
+CREATE OR REPLACE FUNCTION validate_filled_shifts()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF NEW.filled_shifts IS NOT NULL AND array_length(NEW.filled_shifts, 1) > 0
+     AND NEW.days IS NOT NULL AND array_length(NEW.days, 1) > 0
+  THEN
+    IF NOT (NEW.filled_shifts <@ NEW.days) THEN
+      RAISE EXCEPTION 'filled_shifts must be a subset of days';
+    END IF;
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_validate_filled_shifts ON jobs;
+CREATE TRIGGER trg_validate_filled_shifts
+  BEFORE INSERT OR UPDATE OF filled_shifts ON jobs
+  FOR EACH ROW EXECUTE FUNCTION validate_filled_shifts();
 
 
 -- ================================================================
@@ -992,6 +1021,11 @@ CREATE POLICY "company_liked: own insert" ON company_liked_students
 
 CREATE POLICY "company_liked: own delete" ON company_liked_students
   FOR DELETE USING (auth.uid() = company_id);
+
+DROP POLICY IF EXISTS "company_liked: own update" ON company_liked_students;
+CREATE POLICY "company_liked: own update" ON company_liked_students
+  FOR UPDATE USING (auth.uid() = company_id)
+  WITH CHECK (auth.uid() = company_id);
 
 CREATE POLICY "company_liked: admin all" ON company_liked_students
   FOR ALL USING (is_admin());
