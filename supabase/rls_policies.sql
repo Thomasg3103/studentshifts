@@ -1049,8 +1049,8 @@ LIMIT 25;
 
 DROP FUNCTION IF EXISTS get_job_applicant_counts(uuid[]);
 DROP FUNCTION IF EXISTS get_job_applicant_counts(bigint[]);
-CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids uuid[])
-RETURNS TABLE(job_id uuid, applicant_count bigint)
+CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids bigint[])
+RETURNS TABLE(job_id bigint, applicant_count bigint)
 LANGUAGE sql SECURITY DEFINER STABLE AS $$
   SELECT a.job_id, COUNT(*) AS applicant_count
   FROM applications a
