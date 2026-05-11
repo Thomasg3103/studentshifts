@@ -133,7 +133,10 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", position: "relative" }}>
+      <div aria-live="polite" aria-atomic="true" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0,0,0,0)" }}>
+        {messages.length > 0 && `New message from ${messages[messages.length - 1]?.sender_id === senderId ? "you" : studentName}`}
+      </div>
       <div ref={msgListRef} style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
         {!loading && hasMore && (
           <div style={{ textAlign: "center", marginBottom: "0.5rem" }}>
@@ -184,6 +187,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
       <div style={{ padding: "0.75rem 1rem", borderTop: input ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
         <input
           ref={inputRef}
+          aria-label={`Message ${studentName}`}
           value={input}
           onChange={e => { if (e.target.value.length <= 4000) setInput(e.target.value); }}
           onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
@@ -191,7 +195,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
           maxLength={4000}
           style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
         />
-        <button onClick={send} disabled={!input.trim()} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", opacity: input.trim() ? 1 : 0.5 }}>
+        <button aria-label="Send message" onClick={send} disabled={!input.trim()} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", opacity: input.trim() ? 1 : 0.5 }}>
           Send
         </button>
       </div>
