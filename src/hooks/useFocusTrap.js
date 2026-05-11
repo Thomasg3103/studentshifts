@@ -5,12 +5,15 @@ export function useFocusTrap(ref, onEscape, enabled = true) {
     if (!enabled || !ref.current) return;
     const el = ref.current;
     const prev = document.activeElement;
-    const focusable = el.querySelectorAll('button,input,textarea,select,[tabindex]:not([tabindex="-1"])');
+    // Use the same focusable selector for both initial focus and Tab trapping
+    // so we never land on a disabled element on open.
+    const FOCUSABLE = 'button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])';
+    const focusable = el.querySelectorAll(FOCUSABLE);
     if (focusable.length) focusable[0].focus();
     const onKey = (e) => {
       if (e.key === "Escape") { onEscape?.(); return; }
       if (e.key !== "Tab") return;
-      const els = Array.from(el.querySelectorAll('button:not([disabled]),input:not([disabled]),textarea:not([disabled]),select:not([disabled]),[tabindex]:not([tabindex="-1"])'));
+      const els = Array.from(el.querySelectorAll(FOCUSABLE));
       if (!els.length) return;
       const first = els[0], last = els[els.length - 1];
       if (e.shiftKey) { if (document.activeElement === first) { e.preventDefault(); last.focus(); } }

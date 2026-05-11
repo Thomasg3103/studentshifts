@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
-import { supabase, ensureValidSession } from "../lib/supabase";
+import { supabase, ensureValidSession, withTimeout } from "../lib/supabase";
 import { sendEmail, emailInterviewInvite, emailTrialInvite, updateApplicationStage, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, saveInterviewSchedule } from "../lib/auth";
 
 export function useHiringPipeline({ activePosting, setPostings, setActivePosting, currentUser }) {
@@ -17,9 +17,14 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
     const action = newStatus === "Accepted" ? "accept" : "reject";
     try {
       await ensureValidSession();
-      const { data, error } = await supabase.functions.invoke("hire-applicant", {
-        body: { applicationId, action, idempotencyKey: `${applicationId}:${action}` },
-      });
+      // withTimeout ensures the Edge Function never hangs the UI indefinitely
+      const { data, error } = await withTimeout(
+        () => supabase.functions.invoke("hire-applicant", {
+          body: { applicationId, action, idempotencyKey: `${applicationId}:${action}` },
+        }),
+        15000,
+        "Hire request timed out — please try again."
+      );
       if (error) throw error;
 
       if (action === "accept") {
@@ -122,48 +127,64 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
   };
 
   const getStudentEmail = async (studentId) => {
-    const { data: emailRows, error } = await supabase.rpc("get_user_emails", { user_ids: [studentId] });
+    // ensureValidSession + withTimeout prevent hangs on stale sessions or slow network
+    await ensureValidSession();
+    const { data: emailRows, error } = await withTimeout(
+      () => supabase.rpc("get_user_emails", { user_ids: [studentId] }),
+      10000,
+      "Email lookup timed out — please try again."
+    );
     if (error) throw new Error(`Email lookup failed: ${error.message}`);
     const email = emailRows?.[0]?.email;
-    if (!email) throw new Error(`No email found for student (id: ${studentId}). Make sure the SQL has been updated in Supabase.`);
+    if (!email) throw new Error("Could not find student email. Please try again or contact support.");
     return email;
   };
 
   const handleSendInterviewInvite = async (applicationId, date, time, note, teamsLink) => {
     const applicant = activePosting?.applicants?.find(a => a.id === applicationId);
     if (!applicant) throw new Error("Applicant not found.");
-    const studentEmail = await getStudentEmail(applicant.studentId);
-    const jobTitle = activePosting?.title || "";
-    await Promise.all([
-      sendEmail({
-        to: studentEmail,
-        subject: `Interview Invitation — ${jobTitle ? `${jobTitle} at ` : ""}${currentUser.name}`,
-        html: emailInterviewInvite(applicant.name, currentUser.name, jobTitle, date, time, note, teamsLink),
-        magicLinkEmail: studentEmail,
-        redirectTo: window.location.origin,
-      }),
-      saveInterviewSchedule(applicationId, date, time).catch(() => {}),
-    ]);
-    applyToPosting(p => ({
-      ...p,
-      applicants: p.applicants.map(a => a.id === applicationId
-        ? { ...a, interviewDate: date, interviewTime: time }
-        : a
-      ),
-    }));
+    try {
+      const studentEmail = await getStudentEmail(applicant.studentId);
+      const jobTitle = activePosting?.title || "";
+      await Promise.all([
+        sendEmail({
+          to: studentEmail,
+          subject: `Interview Invitation — ${jobTitle ? `${jobTitle} at ` : ""}${currentUser.name}`,
+          html: emailInterviewInvite(applicant.name, currentUser.name, jobTitle, date, time, note, teamsLink),
+          magicLinkEmail: studentEmail,
+          redirectTo: window.location.origin,
+        }),
+        saveInterviewSchedule(applicationId, date, time).catch(() => {}),
+      ]);
+      applyToPosting(p => ({
+        ...p,
+        applicants: p.applicants.map(a => a.id === applicationId
+          ? { ...a, interviewDate: date, interviewTime: time }
+          : a
+        ),
+      }));
+    } catch (e) {
+      Sentry.captureException(e);
+      throw new Error(e?.message || "Failed to send interview invite. Please try again.");
+    }
   };
 
   const handleSendTrialInvite = async (applicationId, date, time, note) => {
     const applicant = activePosting?.applicants?.find(a => a.id === applicationId);
     if (!applicant) throw new Error("Applicant not found.");
-    const studentEmail = await getStudentEmail(applicant.studentId);
-    await sendEmail({
-      to: studentEmail,
-      subject: `Trial Shift Invitation from ${currentUser.name}`,
-      html: emailTrialInvite(applicant.name, currentUser.name, activePosting.title, date, time, note),
-      magicLinkEmail: studentEmail,
-      redirectTo: window.location.origin,
-    });
+    try {
+      const studentEmail = await getStudentEmail(applicant.studentId);
+      await sendEmail({
+        to: studentEmail,
+        subject: `Trial Shift Invitation from ${currentUser.name}`,
+        html: emailTrialInvite(applicant.name, currentUser.name, activePosting.title, date, time, note),
+        magicLinkEmail: studentEmail,
+        redirectTo: window.location.origin,
+      });
+    } catch (e) {
+      Sentry.captureException(e);
+      throw new Error(e?.message || "Failed to send trial invite. Please try again.");
+    }
   };
 
   const handleSaveTrialSchedule = async (applicationId, date, time) => {
