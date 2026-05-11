@@ -126,9 +126,10 @@ export async function fetchStudentDirectConversations(studentId) {
   }
   const companyIds = Object.keys(lastMsgMap);
 
-  const { data: profiles } = await withTimeout(
-    supabase.from("profiles").select("id, name").in("id", companyIds), 10000
-  ).catch(() => ({ data: [] }));
+  const [{ data: profiles }, photoMap] = await Promise.all([
+    withTimeout(supabase.from("profiles").select("id, name").in("id", companyIds), 10000).catch(() => ({ data: [] })),
+    getProfilePhotos(companyIds),
+  ]);
   const nameMap = Object.fromEntries((profiles || []).map(p => [p.id, p.name]));
 
   return companyIds
@@ -136,10 +137,11 @@ export async function fetchStudentDirectConversations(studentId) {
       const lm = lastMsgMap[cid];
       return {
         jobId: null, companyId: cid,
-        companyName:   nameMap[cid]     || "Company",
-        lastMessage:   lm?.text         || null,
-        lastMessageAt: lm?.created_at   || null,
-        lastSenderId:  lm?.sender_id    || null,
+        companyName:     nameMap[cid]   || "Company",
+        profilePhotoUrl: photoMap[cid]  || null,
+        lastMessage:     lm?.text       || null,
+        lastMessageAt:   lm?.created_at || null,
+        lastSenderId:    lm?.sender_id  || null,
         title: "Direct Message",
       };
     })
@@ -224,9 +226,10 @@ export async function fetchAcceptedConversations(userId) {
   if (jobsErr) throw jobsErr;
 
   const companyIds = [...new Set((jobs || []).map(j => j.company_id))];
-  const { data: profiles } = await withTimeout(
-    supabase.from("profiles").select("id, name").in("id", companyIds), 10000
-  ).catch(() => ({ data: [] }));
+  const [{ data: profiles }, photoMap] = await Promise.all([
+    withTimeout(supabase.from("profiles").select("id, name").in("id", companyIds), 10000).catch(() => ({ data: [] })),
+    getProfilePhotos(companyIds),
+  ]);
 
   const nameMap = Object.fromEntries((profiles || []).map(p => [p.id, p.name]));
   const jobMap  = Object.fromEntries((jobs || []).map(j => [j.id, j]));
@@ -238,15 +241,17 @@ export async function fetchAcceptedConversations(userId) {
 
   return jobIds
     .map(jid => {
-      const lm = lastMsgMap[jid];
+      const cid = jobMap[jid]?.company_id || null;
+      const lm  = lastMsgMap[jid];
       return {
-        jobId:       jid,
-        title:       jobMap[jid]?.title      || "Job",
-        companyId:   jobMap[jid]?.company_id || null,
-        companyName: nameMap[jobMap[jid]?.company_id] || "Company",
-        lastMessage:   lm?.text       || null,
-        lastMessageAt: lm?.created_at || null,
-        lastSenderId:  lm?.sender_id  || null,
+        jobId:           jid,
+        title:           jobMap[jid]?.title || "Job",
+        companyId:       cid,
+        companyName:     nameMap[cid]       || "Company",
+        profilePhotoUrl: photoMap[cid]      || null,
+        lastMessage:     lm?.text           || null,
+        lastMessageAt:   lm?.created_at     || null,
+        lastSenderId:    lm?.sender_id      || null,
       };
     })
     .sort((a, b) => (b.lastMessageAt || "").localeCompare(a.lastMessageAt || ""));

@@ -45,6 +45,7 @@ export const buildDynamicStages = (applicants) => {
 
 function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onToggleSelect, isInvited }) {
   const isDecision = applicant.pipelineStage === "decision" && applicant.status === "Pending";
+  const [hireLoading, setHireLoading] = useState(false);
   const statusColors = {
     Accepted: { cls: "badge-green", label: "Hired" },
     Rejected: { cls: "badge-red",   label: "Declined" },
@@ -98,8 +99,16 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
       </button>
       {isDecision && (
         <div style={{ display: "flex", borderTop: "1px solid #e2e8f0" }}>
-          <button onClick={(e) => { e.stopPropagation(); onHire?.(applicant); }} style={{ flex: 1, padding: "0.6rem", backgroundColor: "white", border: "none", borderRight: "1px solid #e2e8f0", color: "#15803d", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Hire Applicant</button>
-          <button onClick={(e) => { e.stopPropagation(); onDecline?.(applicant); }} style={{ flex: 1, padding: "0.6rem", backgroundColor: "white", border: "none", color: "#b91c1c", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Decline</button>
+          <button
+            disabled={hireLoading}
+            onClick={async (e) => { e.stopPropagation(); setHireLoading(true); try { await onHire?.(applicant); } finally { setHireLoading(false); } }}
+            style={{ flex: 1, padding: "0.6rem", backgroundColor: "white", border: "none", borderRight: "1px solid #e2e8f0", color: "#15803d", fontWeight: "600", fontSize: "0.8rem", cursor: hireLoading ? "default" : "pointer", fontFamily: "inherit", opacity: hireLoading ? 0.6 : 1 }}
+          >{hireLoading ? "Hiring…" : "Hire Applicant"}</button>
+          <button
+            disabled={hireLoading}
+            onClick={async (e) => { e.stopPropagation(); setHireLoading(true); try { await onDecline?.(applicant); } finally { setHireLoading(false); } }}
+            style={{ flex: 1, padding: "0.6rem", backgroundColor: "white", border: "none", color: "#b91c1c", fontWeight: "600", fontSize: "0.8rem", cursor: hireLoading ? "default" : "pointer", fontFamily: "inherit", opacity: hireLoading ? 0.6 : 1 }}
+          >{hireLoading ? "Processing…" : "Decline"}</button>
         </div>
       )}
     </div>

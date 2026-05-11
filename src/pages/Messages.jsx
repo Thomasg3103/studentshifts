@@ -312,7 +312,7 @@ export default function Messages() {
                 : directConvs.map(conv => (
                   <ConvCard
                     key={`direct_${conv.companyId}`}
-                    avatarUrl={null}
+                    avatarUrl={conv.profilePhotoUrl || null}
                     avatarName={conv.companyName}
                     name={conv.companyName}
                     subtitle="Direct message"
@@ -333,7 +333,7 @@ export default function Messages() {
                 : conversations.map(conv => (
                   <ConvCard
                     key={conv.jobId}
-                    avatarUrl={null}
+                    avatarUrl={conv.profilePhotoUrl || null}
                     avatarName={conv.companyName}
                     name={conv.title}
                     subtitle={conv.companyName}

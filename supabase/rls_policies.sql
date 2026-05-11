@@ -739,7 +739,9 @@ BEGIN
     RAISE EXCEPTION 'Unauthorised';
   END IF;
   RETURN QUERY
-    SELECT s.id, s.profile_photo_url FROM students s WHERE s.id = ANY(user_ids);
+    SELECT s.id, s.profile_photo_url FROM students s WHERE s.id = ANY(user_ids)
+    UNION ALL
+    SELECT c.id, c.profile_photo_url FROM companies c WHERE c.id = ANY(user_ids);
 END;
 $$;
 
@@ -1050,6 +1052,21 @@ BEGIN
     WHERE table_name = 'students' AND column_name = 'allow_company_dm'
   ) THEN
     ALTER TABLE students ADD COLUMN allow_company_dm BOOLEAN DEFAULT TRUE;
+  END IF;
+END $$;
+
+-- ================================================================
+-- PROFILE: profile_photo_url on companies
+-- Mirrors the students.profile_photo_url column so company avatars
+-- can be shown in the student-side messaging conversation list.
+-- ================================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'companies' AND column_name = 'profile_photo_url'
+  ) THEN
+    ALTER TABLE companies ADD COLUMN profile_photo_url text;
   END IF;
 END $$;
 
