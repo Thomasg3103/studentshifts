@@ -92,6 +92,7 @@ export default function AccountPage() {
 
   const addSkillFromSuggestion = (s) => {
     if (skills.includes(s)) return;
+    if (skills.length >= 50) { toast.error("You can add up to 50 skills."); return; }
     const next = [...skills, s];
     setSkills(next);
     setSkillInput("");
@@ -575,7 +576,13 @@ export default function AccountPage() {
                     placeholder="https://linkedin.com/in/yourname"
                     value={linkedIn}
                     onChange={e => setLinkedIn(e.target.value)}
-                    onBlur={() => saveField({ linkedin: linkedIn })}
+                    onBlur={() => {
+                      if (linkedIn && !/^https?:\/\//.test(linkedIn)) {
+                        toast.error("LinkedIn URL must start with https://");
+                        return;
+                      }
+                      saveField({ linkedin: linkedIn });
+                    }}
                     style={inputStyle}
                   />
 

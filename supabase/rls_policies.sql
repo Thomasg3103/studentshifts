@@ -23,10 +23,18 @@ $$;
 -- recursive RLS evaluation (42P17) from the INSERT policy.
 -- ----------------------------------------------------------------
 CREATE OR REPLACE FUNCTION count_recent_applications(uid uuid)
-RETURNS bigint LANGUAGE sql SECURITY DEFINER VOLATILE AS $$
-  SELECT COUNT(*) FROM applications
-  WHERE student_id = uid
-    AND created_at > now() - interval '1 hour';
+RETURNS bigint LANGUAGE plpgsql SECURITY DEFINER VOLATILE AS $$
+DECLARE
+  cnt bigint;
+BEGIN
+  -- Serialise concurrent inserts from the same user so the rate-limit check
+  -- is atomic. Without this lock, burst-concurrent requests could all pass
+  -- the < 20 check before any of them commits.
+  PERFORM pg_advisory_xact_lock(hashtext(uid::text));
+  SELECT COUNT(*) INTO cnt FROM applications
+  WHERE student_id = uid AND created_at > now() - interval '1 hour';
+  RETURN cnt;
+END;
 $$;
 
 
@@ -990,7 +998,9 @@ CREATE TABLE IF NOT EXISTS hire_action_log (
   created_at      TIMESTAMPTZ DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_hire_action_log_company ON hire_action_log(company_id, created_at);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_hire_action_log_ikey ON hire_action_log(company_id, idempotency_key, created_at);
+-- created_at intentionally excluded: idempotency must be per-key, not per-key-per-millisecond
+DROP INDEX IF EXISTS idx_hire_action_log_ikey;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_hire_action_log_ikey ON hire_action_log(company_id, idempotency_key);
 
 ALTER TABLE hire_action_log ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "hire_action_log: company insert" ON hire_action_log;
@@ -1092,12 +1102,18 @@ DROP FUNCTION IF EXISTS get_job_applicant_counts(uuid[]);
 DROP FUNCTION IF EXISTS get_job_applicant_counts(bigint[]);
 CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids bigint[])
 RETURNS TABLE(job_id bigint, applicant_count bigint)
-LANGUAGE sql SECURITY DEFINER STABLE AS $$
-  SELECT a.job_id, COUNT(*) AS applicant_count
-  FROM applications a
-  WHERE a.job_id = ANY(job_ids)
-    AND a.status != 'Rejected'
-  GROUP BY a.job_id;
+LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN
+    RAISE EXCEPTION 'Unauthorised';
+  END IF;
+  RETURN QUERY
+    SELECT a.job_id, COUNT(*) AS applicant_count
+    FROM applications a
+    WHERE a.job_id = ANY(job_ids)
+      AND a.status != 'Rejected'
+    GROUP BY a.job_id;
+END;
 $$;
 
 
@@ -1248,14 +1264,22 @@ END $$;
 -- ================================================================
 CREATE OR REPLACE FUNCTION get_availability_heatmap()
 RETURNS TABLE (day text, slot text, student_count bigint)
-LANGUAGE sql SECURITY DEFINER STABLE AS $$
-  SELECT
-    kv.key                    AS day,
-    slot_val                  AS slot,
-    COUNT(*)                  AS student_count
-  FROM students,
-       jsonb_each(availability)                  AS kv,
-       jsonb_array_elements_text(kv.value)       AS slot_val
-  WHERE status = 'verified'
-  GROUP BY 1, 2;
+LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+BEGIN
+  IF NOT is_admin() AND NOT EXISTS (
+    SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified'
+  ) THEN
+    RAISE EXCEPTION 'Unauthorised: verified company or admin required';
+  END IF;
+  RETURN QUERY
+    SELECT
+      kv.key   AS day,
+      slot_val AS slot,
+      COUNT(*) AS student_count
+    FROM students,
+         jsonb_each(availability)              AS kv,
+         jsonb_array_elements_text(kv.value)   AS slot_val
+    WHERE status = 'verified'
+    GROUP BY 1, 2;
+END;
 $$;

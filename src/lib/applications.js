@@ -37,13 +37,14 @@ export async function createApplication(userId, jobId, preferredShift = null) {
   const payload = { student_id: userId, job_id: jobId };
   if (preferredShift) payload.preferred_shift = preferredShift;
   const { error } = await supabase.from("applications").insert(payload);
-  if (!error) return;
+  if (!error) return true;
   if (error.code === "42703" && preferredShift) {
     const { error: e2 } = await supabase.from("applications").insert({ student_id: userId, job_id: jobId });
-    if (!e2 || e2.code === "23505") return;
+    if (!e2) return true;
+    if (e2.code === "23505") return false;
     throw e2;
   }
-  if (error.code === "23505") return;
+  if (error.code === "23505") return false;
   if (error.code === "42501") throw new Error("You've applied to too many jobs this hour. Please try again later.");
   throw error;
 }

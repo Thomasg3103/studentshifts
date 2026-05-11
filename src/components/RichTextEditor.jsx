@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback, useState } from "react";
+import DOMPurify from "dompurify";
 
 export default function RichTextEditor({ value, onChange, placeholder = "Start typing…" }) {
   const editorRef = useRef(null);
@@ -8,7 +9,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "Start t
     const el = editorRef.current;
     if (!el) return;
     if (document.activeElement === el) return;
-    if (el.innerHTML !== (value || "")) el.innerHTML = value || "";
+    const clean = DOMPurify.sanitize(value || "");
+    if (el.innerHTML !== clean) el.innerHTML = clean;
   }, [value]);
 
   const emit = useCallback(() => {

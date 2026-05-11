@@ -377,7 +377,7 @@ export default function StudentShiftsWeb() {
 
               {/* Student pages */}
               <Route path="/account" element={currentUser ? <AccountPage /> : <Navigate to="/login" replace />} />
-              <Route path="/liked"   element={currentUser ? <LikedJobs /> : <Navigate to="/login" replace />} />
+              <Route path="/liked"   element={currentUser?.role === "student" ? <LikedJobs /> : <Navigate to="/" replace />} />
               <Route path="/applied" element={currentUser?.role === "student" ? <AppliedJobs /> : <Navigate to="/" replace />} />
               <Route path="/messages" element={currentUser?.role === "student" ? <Messages /> : <Navigate to="/" replace />} />
               <Route path="/verify"  element={currentUser ? <VerifyDocsPage /> : <Navigate to="/" replace />} />

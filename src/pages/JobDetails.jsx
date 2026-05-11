@@ -88,18 +88,22 @@ export default function JobDetails({ job }) {
         const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
         return timeStr ? `${selectedDay} · ${timeStr}` : selectedDay;
       })() : null;
-      await createApplication(currentUser.id, job.id, preferredShift);
+      const isNew = await createApplication(currentUser.id, job.id, preferredShift);
       setAppliedJobs(prev => prev.some(j => j.id === job.id) ? prev : [...prev, job]);
       setSavedAppliedJobIds?.(prev => [...new Set([...prev, job.id])]);
-      if (isLiked) {
+      if (isNew && isLiked) {
         setLikedJobs(prev => prev.filter(j => j.id !== job.id));
         setSavedLikedJobIds?.(prev => prev.filter(id => id !== job.id));
         unlikeJob(currentUser.id, job.id).catch(console.error);
       }
       setApplyModal(null);
       setApplyCooldown(3);
-      toast.success("Application submitted!");
-      if (window.gtag) window.gtag("event", "submit_application", { item_id: job.id, item_name: job.title, item_category: job.category });
+      if (isNew) {
+        toast.success("Application submitted!");
+        if (window.gtag) window.gtag("event", "submit_application", { item_id: job.id, item_name: job.title, item_category: job.category });
+      } else {
+        toast("You've already applied for this job.", { icon: "ℹ️" });
+      }
     } catch (e) {
       Sentry.captureException(e);
       console.error("Apply error:", e);

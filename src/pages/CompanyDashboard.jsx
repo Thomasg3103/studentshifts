@@ -123,8 +123,8 @@ export default function CompanyDashboard() {
         const today = new Date().toISOString().split("T")[0];
         const expired = data.filter(j => j.status === "Active" && j.deadline && j.deadline < today);
         if (expired.length) {
-          await supabase.from("jobs").update({ status: "Closed" }).in("id", expired.map(j => j.id));
-          expired.forEach(j => { j.status = "Closed"; });
+          await supabase.from("jobs").update({ status: "Expired" }).in("id", expired.map(j => j.id));
+          expired.forEach(j => { j.status = "Expired"; });
         }
         setPostings(data.map(j => ({
           ...normaliseJob(j),

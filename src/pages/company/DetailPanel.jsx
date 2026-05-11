@@ -70,6 +70,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   const [trialInviteOpen, setTrialInviteOpen] = useState(false);
   const [shortlistInviteOpen, setShortlistInviteOpen] = useState(false);
   const [nextRoundInviteOpen, setNextRoundInviteOpen] = useState(false);
+  const [hireLoading, setHireLoading] = useState(false);
 
   const buildRounds = (a) => {
     const stored = Array.isArray(a.interviewRoundsData) ? a.interviewRoundsData : [];
@@ -406,8 +407,24 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
             <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("danger")}>Decline Applicant</button>
           </>)}
           {stage === "decision" && applicant.status === "Pending" && (<>
-            <button onClick={() => onUpdateStatus(applicant.id, "Accepted", applicant)} style={panelActionBtn("accept")}>Hire Applicant</button>
-            <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("danger")}>Decline Applicant</button>
+            <button
+              disabled={hireLoading}
+              onClick={async () => {
+                setHireLoading(true);
+                try { await onUpdateStatus(applicant.id, "Accepted", applicant); }
+                finally { setHireLoading(false); }
+              }}
+              style={{ ...panelActionBtn("accept"), opacity: hireLoading ? 0.6 : 1 }}
+            >{hireLoading ? "Hiring…" : "Hire Applicant"}</button>
+            <button
+              disabled={hireLoading}
+              onClick={async () => {
+                setHireLoading(true);
+                try { await onUpdateStatus(applicant.id, "Rejected", applicant); }
+                finally { setHireLoading(false); }
+              }}
+              style={{ ...panelActionBtn("danger"), opacity: hireLoading ? 0.6 : 1 }}
+            >{hireLoading ? "Processing…" : "Decline Applicant"}</button>
           </>)}
         </div>
       </div>
