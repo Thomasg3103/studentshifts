@@ -461,6 +461,8 @@ export default function StudentDashboard({ restoreScrollY }) {
   const hasActiveFilters = selectedDays.length > 0 || selectedLocations.length > 0 || selectedJobTypes.length > 0 || weekendOnly || allWeekOnly || noWeekends || distanceKm > 0 || searchQuery.trim() !== "";
   const activeFilterCount = (selectedDays.length > 0 ? 1 : 0) + (selectedLocations.length > 0 ? 1 : 0) + (selectedJobTypes.length > 0 ? 1 : 0) + (weekendOnly ? 1 : 0) + (allWeekOnly ? 1 : 0) + (noWeekends ? 1 : 0) + (distanceKm > 0 ? 1 : 0);
 
+  const userPrefs = currentUser?.jobPreferences || [];
+
   const firstBlockingFilter = (() => {
     if (!hasActiveFilters || jobs.length === 0) return null;
     let pool = [...jobs];
@@ -490,8 +492,6 @@ export default function StudentDashboard({ restoreScrollY }) {
     }
     return null;
   })();
-
-  const userPrefs = currentUser?.jobPreferences || [];
 
   // Filter logic (time filter uses >= not exact match)
   const filteredJobs = jobs.filter(job => {

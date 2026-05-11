@@ -115,8 +115,8 @@ export default function LandingPage() {
                 { label: "Login",       path: "/login" },
                 { label: "Sign Up",     path: "/signup" },
                 { label: "About",       path: "/about" },
-                { label: "Help Centre", path: "/about" },
-                { label: "Contact Us",  path: "/about" },
+                { label: "Help Centre", path: "/help" },
+                { label: "Contact Us",  path: "/contact" },
               ].map(item => (
                 <button
                   key={item.label}

@@ -51,7 +51,7 @@ export default function Header() {
   const menuItems = currentUser ? [
     { label: "About",       action: () => { setMenuOpen(false); setPage("about"); } },
     { label: "Help Centre", action: () => { setMenuOpen(false); setPage("help"); } },
-    { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("help"); } },
+    { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("contact"); } },
     { separator: true },
     { label: "Sign Out", action: signOut, danger: true },
   ] : [
@@ -60,7 +60,7 @@ export default function Header() {
     { separator: true },
     { label: "About",       action: () => { setMenuOpen(false); setPage("about"); } },
     { label: "Help Centre", action: () => { setMenuOpen(false); setPage("help"); } },
-    { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("help"); } },
+    { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("contact"); } },
   ];
 
   const Hamburger = () => (

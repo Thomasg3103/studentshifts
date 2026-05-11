@@ -214,6 +214,16 @@ CREATE POLICY "liked_jobs: own delete" ON liked_jobs
 -- ================================================================
 ALTER TABLE applications ENABLE ROW LEVEL SECURITY;
 
+-- S-C3: Prevent duplicate applications via direct SQL (createApplication already guards this,
+-- but the DB constraint is the last line of defence).
+ALTER TABLE applications DROP CONSTRAINT IF EXISTS applications_student_job_unique;
+ALTER TABLE applications ADD CONSTRAINT applications_student_job_unique UNIQUE (student_id, job_id);
+
+-- S-C4: Enforce valid status values at the DB level.
+ALTER TABLE applications DROP CONSTRAINT IF EXISTS applications_status_check;
+ALTER TABLE applications ADD CONSTRAINT applications_status_check
+  CHECK (status IN ('Pending', 'Accepted', 'Rejected'));
+
 DROP POLICY IF EXISTS "applications: student own read"      ON applications;
 DROP POLICY IF EXISTS "applications: student own insert"    ON applications;
 DROP POLICY IF EXISTS "applications: student own delete"    ON applications;

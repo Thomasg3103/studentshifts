@@ -1,17 +1,17 @@
-import { Helmet } from "react-helmet-async";
+﻿import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
 
-const CONTACT_EMAIL = "thomasgallagher3103@gmail.com";
+const CONTACT_EMAIL = "hello@studentshifts.ie";
 const LAST_UPDATED  = "20 April 2026";
 
 export default function TermsOfServicePage() {
   const { setPage } = useApp();
   return (
     <><Helmet>
-        <title>Terms of Service — StudentShifts</title>
-        <meta name="description" content="Read StudentShifts' terms of service — the rules governing use of the platform for students and employers." />
+        <title>Terms of Service â€” StudentShifts</title>
+        <meta name="description" content="Read StudentShifts' terms of service â€” the rules governing use of the platform for students and employers." />
         <link rel="canonical" href="https://studentshifts.ie/terms" />
         <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "Terms of Service", item: "https://studentshifts.ie/terms" }] })}</script>
       </Helmet>
@@ -31,7 +31,7 @@ export default function TermsOfServicePage() {
 
         <Section title="1. Eligibility">
           <ul style={list}>
-            <li><strong>Students</strong> must be aged 17–26 and currently enrolled in a recognised educational institution in Ireland.</li>
+            <li><strong>Students</strong> must be aged 17â€“26 and currently enrolled in a recognised educational institution in Ireland.</li>
             <li><strong>Companies</strong> must be a legitimately registered business operating in Ireland.</li>
             <li>You must provide accurate, truthful information when creating your account.</li>
             <li>One person or entity may hold one account. Creating duplicate accounts is not permitted.</li>
@@ -123,7 +123,7 @@ export default function TermsOfServicePage() {
           <p style={body}>
             To the maximum extent permitted by Irish law, StudentShifts shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service,
             including but not limited to loss of earnings, missed job opportunities, or data loss.
-            Our total liability to you shall not exceed €100.
+            Our total liability to you shall not exceed â‚¬100.
           </p>
         </Section>
 
@@ -148,7 +148,7 @@ export default function TermsOfServicePage() {
 
         <div style={{ borderTop: "1px solid #e2e8f0", marginTop: "2rem", paddingTop: "1.25rem" }}>
           <p style={{ ...body, color: "#94a3b8", fontSize: "0.8rem" }}>
-            StudentShifts · Ireland · <a href={`mailto:${CONTACT_EMAIL}`} style={{ ...link, color: "#94a3b8" }}>{CONTACT_EMAIL}</a>
+            StudentShifts Â· Ireland Â· <a href={`mailto:${CONTACT_EMAIL}`} style={{ ...link, color: "#94a3b8" }}>{CONTACT_EMAIL}</a>
           </p>
         </div>
 

@@ -59,9 +59,9 @@ export default function LikedJobs() {
                     <p style={{ color: "#6b7280", marginBottom: "0.15rem", fontSize: "0.85rem" }}>{job.company} · {job.location}</p>
                     <p style={{ fontWeight: "700", color: "#111827", marginBottom: "0.4rem", fontSize: "0.9rem" }}>{job.pay}</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                      {job.days.map(day => (
+                      {(job.days || []).map(day => (
                         <span key={day} style={{ fontSize: "0.7rem", backgroundColor: "#fce7f3", color: "var(--color-brand)", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600" }}>
-                          {day.slice(0, 3)} · {job.times[day]?.join(", ")}
+                          {day.slice(0, 3)} · {(job.times || {})[day]?.join(", ")}
                         </span>
                       ))}
                     </div>

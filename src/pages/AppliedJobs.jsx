@@ -47,9 +47,9 @@ function AppliedJobCard({ job, status, onRemove }) {
         <p style={{ fontWeight: "700", color: "#111827", marginBottom: "0.35rem", fontSize: "0.9rem" }}>{job.pay}</p>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: status === "Rejected" ? "0.5rem" : 0 }}>
-          {job.days.map(day => (
+          {(job.days || []).map(day => (
             <span key={day} className="badge badge-brand badge-sm">
-              {day.slice(0, 3)} · {job.times[day]?.join(", ")}
+              {day.slice(0, 3)} · {(job.times || {})[day]?.join(", ")}
             </span>
           ))}
         </div>
@@ -69,7 +69,7 @@ function AppliedJobCard({ job, status, onRemove }) {
 }
 
 export default function AppliedJobs() {
-  const { appliedJobs, setAppliedJobs, setSavedAppliedJobIds, currentUser, appStatuses: statuses = {} } = useApp();
+  const { appliedJobs, setAppliedJobs, setSavedAppliedJobIds, currentUser, appStatuses: statuses = {}, setPage } = useApp();
   const handleRemove = async (jobId) => {
     try {
       await removeApplication(currentUser.id, jobId);

@@ -53,6 +53,7 @@ export default function AdminPage() {
           });
         } catch (e) {
           console.warn("Approval email failed:", e.message);
+          toast.error("Approved, but notification email failed to send.");
         }
       }
     } catch (e) {
