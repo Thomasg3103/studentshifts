@@ -42,6 +42,8 @@ CREATE TABLE IF NOT EXISTS email_sends_log (
 );
 CREATE INDEX IF NOT EXISTS idx_email_sends_log_user_time
   ON email_sends_log(user_id, sent_at);
+ALTER TABLE email_sends_log ENABLE ROW LEVEL SECURITY;
+-- No policies: only service_role (Edge Functions) can read/write this table
 
 
 -- ================================================================
@@ -345,7 +347,7 @@ CREATE POLICY "chat_messages: company insert" ON chat_messages
       (
         job_id IS NULL AND
         EXISTS (SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified') AND
-        EXISTS (SELECT 1 FROM students WHERE id = chat_messages.student_id AND status = 'verified')
+        EXISTS (SELECT 1 FROM students WHERE id = chat_messages.student_id AND status = 'verified' AND allow_company_dm = TRUE)
       )
     )
   );
@@ -539,6 +541,8 @@ BEGIN
     RAISE EXCEPTION 'Unauthorised: admin only';
   END IF;
   UPDATE students SET status = 'verified' WHERE id = student_id;
+  INSERT INTO audit_log (actor_id, action, target_id)
+    VALUES (auth.uid(), 'approve_student', student_id);
 END;
 $$;
 
@@ -550,6 +554,8 @@ BEGIN
     RAISE EXCEPTION 'Unauthorised: admin only';
   END IF;
   UPDATE students SET status = 'rejected' WHERE id = student_id;
+  INSERT INTO audit_log (actor_id, action, target_id)
+    VALUES (auth.uid(), 'reject_student', student_id);
 END;
 $$;
 
@@ -588,6 +594,8 @@ $$;
 CREATE OR REPLACE FUNCTION delete_account()
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
+  INSERT INTO audit_log (actor_id, action, target_id)
+    VALUES (auth.uid(), 'delete_account', auth.uid());
   DELETE FROM auth.users WHERE id = auth.uid();
 END;
 $$;
@@ -959,8 +967,8 @@ CREATE POLICY "audit_log: admin read" ON audit_log
   FOR SELECT USING (is_admin());
 
 DROP POLICY IF EXISTS "audit_log: service insert" ON audit_log;
-CREATE POLICY "audit_log: service insert" ON audit_log
-  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
+-- No INSERT policy: only service_role (SECURITY DEFINER RPCs + Edge Functions) can write audit_log
+-- Authenticated users must never be able to self-insert audit entries
 
 
 -- ================================================================
@@ -1033,3 +1041,40 @@ LANGUAGE sql SECURITY DEFINER STABLE AS $$
     AND a.status != 'Rejected'
   GROUP BY a.job_id;
 $$;
+
+
+-- ================================================================
+-- BUG FIX #1: handle_new_user trigger
+-- Creates profiles + students/companies rows when a new auth user
+-- signs up. Without this, getProfile() fails for every new user.
+-- Metadata passed via supabase.auth.signUp options.data:
+--   name, role, cro_number (companies only)
+-- ================================================================
+CREATE OR REPLACE FUNCTION handle_new_user()
+RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  user_role text := NEW.raw_user_meta_data->>'role';
+  user_name text := COALESCE(NEW.raw_user_meta_data->>'name', 'User');
+BEGIN
+  INSERT INTO public.profiles (id, name, role)
+    VALUES (NEW.id, user_name, user_role)
+    ON CONFLICT (id) DO NOTHING;
+
+  IF user_role = 'student' THEN
+    INSERT INTO public.students (id, status)
+      VALUES (NEW.id, 'pending')
+      ON CONFLICT (id) DO NOTHING;
+  ELSIF user_role = 'company' THEN
+    INSERT INTO public.companies (id, cro_number, status)
+      VALUES (NEW.id, NEW.raw_user_meta_data->>'cro_number', 'pending')
+      ON CONFLICT (id) DO NOTHING;
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION handle_new_user();

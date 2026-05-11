@@ -351,6 +351,10 @@ Deno.serve(async (req: Request) => {
       }
 
       const acceptResult = { filledShifts: newFilledShifts, closedJob, declinedIds };
+      await adminClient.from("audit_log").insert({
+        actor_id: user.id, action: "hire_accept", target_id: app.student_id,
+        metadata: { application_id: applicationId, job_id: app.job_id, job_title: job.title },
+      }).catch(() => {});
       await adminClient.from("hire_action_log").insert({
         company_id: user.id, action, idempotency_key: iKey, result: acceptResult,
       }).catch(() => {});
@@ -372,6 +376,10 @@ Deno.serve(async (req: Request) => {
       sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, studentEmail, subject, html)
         .catch(e => console.warn("Rejection email failed:", e));
     }
+    await adminClient.from("audit_log").insert({
+      actor_id: user.id, action: "hire_reject", target_id: app.student_id,
+      metadata: { application_id: applicationId, job_id: app.job_id, stage: app.pipeline_stage },
+    }).catch(() => {});
     await adminClient.from("hire_action_log").insert({
       company_id: user.id, action, idempotency_key: iKey, result: { applicationId },
     }).catch(() => {});
