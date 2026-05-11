@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudentShifts.ie — Coming Soon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #A21D54;
+      --secondary: #C2185B;
+      --gradient: linear-gradient(135deg, #A21D54, #C2185B);
+      --bg: #FAFAFA;
+      --text: #1e293b;
+      --muted: #64748b;
+      --card-shadow: 0 4px 24px rgba(0,0,0,0.07);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    header {
+      background: var(--gradient);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      box-shadow: 0 2px 12px rgba(162,29,84,0.3);
+    }
+
+    .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+
+    .logo-box {
+      width: 44px; height: 44px;
+      background: #fff;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-box svg { width: 26px; height: 26px; }
+    .logo-name { font-size: 1.15rem; font-weight: 800; color: #fff; letter-spacing: -0.3px; }
+
+    .hero {
+      padding: 6rem 2rem 5rem;
+      text-align: center;
+      max-width: 760px;
+      margin: 0 auto;
+    }
+
+    .badge {
+      display: inline-block;
+      background: rgba(162,29,84,0.1);
+      color: var(--primary);
+      font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      padding: 0.35rem 1rem;
+      border-radius: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 1.25rem;
+      letter-spacing: -0.5px;
+    }
+
+    .hero h1 span {
+      background: var(--gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero p { font-size: 1.1rem; color: var(--muted); max-width: 580px; margin: 0 auto 2.5rem; }
+
+    .btn {
+      display: inline-block;
+      background: var(--gradient);
+      color: #fff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1rem; font-weight: 700;
+      padding: 0.85rem 2.25rem;
+      border-radius: 2rem;
+      border: none; cursor: pointer;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+      box-shadow: 0 4px 16px rgba(162,29,84,0.35);
+    }
+
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(162,29,84,0.4); }
+    .btn:active { transform: translateY(0); }
+
+    .features { padding: 4rem 2rem; max-width: 1080px; margin: 0 auto; }
+
+    .section-label {
+      text-align: center;
+      font-size: 0.8rem; font-weight: 700;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      font-weight: 800;
+      margin-bottom: 3rem;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 1.5rem;
+      padding: 2rem;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .card:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(0,0,0,0.1); }
+
+    .card-icon {
+      width: 52px; height: 52px;
+      background: rgba(162,29,84,0.1);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 1.25rem;
+    }
+
+    .card-icon svg { width: 26px; height: 26px; color: var(--primary); }
+    .card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .card p { font-size: 0.95rem; color: var(--muted); }
+
+    #register {
+      padding: 5rem 2rem;
+      background: linear-gradient(135deg, #fdf0f5, #fef2f7);
+    }
+
+    .form-wrap { max-width: 520px; margin: 0 auto; text-align: center; }
+    .form-wrap h2 { font-size: clamp(1.5rem, 3vw, 2rem); font-weight: 800; margin-bottom: 0.75rem; }
+    .form-wrap > p { color: var(--muted); margin-bottom: 2rem; font-size: 0.98rem; }
+
+    .form-card { background: #fff; border-radius: 1.5rem; padding: 2.25rem; box-shadow: var(--card-shadow); }
+
+    .form-group { margin-bottom: 1rem; text-align: left; }
+    .form-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.4rem; }
+
+    .form-group input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 0.75rem;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.98rem;
+      color: var(--text);
+      outline: none;
+      background: #f8fafc;
+      transition: border-color 0.15s;
+    }
+
+    .form-group input:focus { border-color: var(--primary); background: #fff; }
+
+    .form-btn { width: 100%; padding: 0.9rem; margin-top: 0.5rem; font-size: 1rem; font-weight: 700; }
+
+    .form-error { color: #dc2626; font-size: 0.85rem; margin-top: 0.75rem; display: none; }
+
+    .success-msg { display: none; text-align: center; padding: 2rem; }
+
+    .success-msg .tick {
+      width: 56px; height: 56px;
+      background: var(--gradient);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 1rem;
+    }
+
+    .success-msg .tick svg { width: 28px; height: 28px; color: #fff; }
+    .success-msg h3 { font-size: 1.3rem; font-weight: 800; margin-bottom: 0.5rem; }
+    .success-msg p { color: var(--muted); font-size: 0.95rem; }
+
+    footer { background: #0f172a; color: #94a3b8; text-align: center; padding: 2rem; font-size: 0.875rem; }
+
+    @media (max-width: 600px) {
+      .hero { padding: 4rem 1.25rem 3rem; }
+      .features { padding: 3rem 1.25rem; }
+      #register { padding: 3.5rem 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a class="logo" href="#">
+      <div class="logo-box">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z" fill="#A21D54"/>
+          <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" fill="#A21D54"/>
+        </svg>
+      </div>
+      <span class="logo-name">StudentShifts.ie</span>
+    </a>
+  </header>
+
+  <section class="hero">
+    <span class="badge">Coming Soon</span>
+    <h1>Your next shift is just<br/><span>a tap away</span></h1>
+    <p>StudentShifts.ie is coming soon — Ireland's first platform built specifically for students looking for flexible part-time work. Find shifts that fit your college timetable, apply in seconds, and get hired faster.</p>
+    <a class="btn" href="#register" id="hero-cta">Register Your Interest</a>
+  </section>
+
+  <section class="features">
+    <p class="section-label">Why StudentShifts</p>
+    <h2 class="section-title">Built for students, by students</h2>
+    <div class="cards">
+
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
+        <h3>Browse Flexible Shifts</h3>
+        <p>Filter by location, hours, and pay rate. Find shifts that slot perfectly around your lectures and study time.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="13 2 13 9 20 9"/>
+            <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9.34"/>
+            <polygon points="18 2 22 6 12 16 8 16 8 12 18 2"/>
+          </svg>
+        </div>
+        <h3>Apply in Seconds</h3>
+        <p>One-tap applications using your saved student profile. No cover letters, no hassle — just show up and earn.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h3>Built for Irish Students</h3>
+        <p>Designed around Irish college timetables, tax credits, and student rights. Real shifts from verified local employers.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="register">
+    <div class="form-wrap">
+      <h2>Be first to know when we launch</h2>
+      <p>Drop your details below and we'll notify you the moment StudentShifts.ie goes live.</p>
+
+      <div class="form-card">
+        <div id="signup-form">
+          <div class="form-group">
+            <label for="name">Your Name</label>
+            <input type="text" id="name" placeholder="e.g. Aoife Murphy" autocomplete="name" />
+          </div>
+          <div class="form-group">
+            <label for="email">Email Address</label>
+            <input type="email" id="email" placeholder="you@example.com" autocomplete="email" />
+          </div>
+          <button class="btn form-btn" id="submit-btn" onclick="handleSubmit()">Notify Me at Launch</button>
+          <p class="form-error" id="form-error"></p>
+        </div>
+
+        <div class="success-msg" id="success-msg">
+          <div class="tick">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <h3>You're on the list!</h3>
+          <p>We'll email you as soon as StudentShifts.ie launches. Watch your inbox!</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2025 StudentShifts.ie — All rights reserved.</p>
+  </footer>
+
+  <script>
+    const EDGE_URL = 'https://rwzaifqwpxxiyehillqo.supabase.co/functions/v1/register-interest';
+
+    // Returning visitor — already signed up, show under construction instead of form
+    if (localStorage.getItem('ss_registered')) {
+      const cta = document.getElementById('hero-cta');
+      if (cta) cta.style.display = 'none';
+      document.getElementById('register').innerHTML = `
+        <div class="form-wrap">
+          <h2>You're already on the list!</h2>
+          <p>We'll email you the moment StudentShifts.ie goes live. Watch your inbox.</p>
+          <div class="form-card" style="padding:2.5rem;text-align:center;">
+            <div style="font-size:3rem;margin-bottom:1rem;">🚧</div>
+            <h3 style="margin:0 0 0.5rem;font-size:1.05rem;font-weight:700;color:#1e293b;">Website Under Construction</h3>
+            <p style="color:#64748b;margin:0;font-size:0.9rem;line-height:1.6;">We're working hard to get StudentShifts.ie ready. You'll be among the first to know when we launch.</p>
+          </div>
+        </div>`;
+    }
+
+    async function handleSubmit() {
+      const name  = document.getElementById('name').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const errEl = document.getElementById('form-error');
+      const btn   = document.getElementById('submit-btn');
+
+      errEl.style.display = 'none';
+
+      if (!name)                          return showError('Please enter your name.');
+      if (!email || !email.includes('@')) return showError('Please enter a valid email address.');
+
+      btn.disabled    = true;
+      btn.textContent = 'Saving…';
+
+      try {
+        const res  = await fetch(EDGE_URL, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ name, email }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showError(data.error || 'Something went wrong. Please try again.');
+          btn.disabled    = false;
+          btn.textContent = 'Notify Me at Launch';
+          return;
+        }
+
+        localStorage.setItem('ss_registered', '1');
+        document.getElementById('signup-form').style.display = 'none';
+        document.getElementById('success-msg').style.display = 'block';
+      } catch (e) {
+        showError('Could not connect. Please try again later.');
+        btn.disabled    = false;
+        btn.textContent = 'Notify Me at Launch';
+      }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('form-error');
+      el.textContent  = msg;
+      el.style.display = 'block';
+    }
+
+    document.addEventListener('keydown', e => { if (e.key === 'Enter') handleSubmit(); });
+  </script>
+
+</body>
+</html>
