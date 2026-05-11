@@ -69,7 +69,8 @@ export default function SignupPage() {
   };
 
   const handleSignup = async () => {
-    if (!name || !email || !password) { setError("Please fill in all required fields."); return; }
+    if (!name.trim() || !email || !password) { setError("Please fill in all required fields."); return; }
+    if (name.trim().length < 2) { setError("Please enter your full name (at least 2 characters)."); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Please enter a valid email address."); return; }
     if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
     if (role === "company" && !croNumber.trim()) { setError("Please enter your CRO number."); return; }
@@ -77,17 +78,23 @@ export default function SignupPage() {
     setLoading(true);
     setError("");
     try {
-      await signUp({ email, password, name, role, croNumber, industries });
+      await signUp({ email: email.trim().toLowerCase(), password, name: name.trim(), role, croNumber, industries });
       setDone(true);
       if (window.gtag) window.gtag("event", "sign_up", { method: "email" });
     } catch (e) {
       Sentry.captureException(e);
-      const msg = e.message || "";
-      // Normalize errors that reveal whether an email is registered
-      if (msg.toLowerCase().includes("already registered") || msg.toLowerCase().includes("already exists") || msg.toLowerCase().includes("email taken")) {
+      const msg = (e.message || "").toLowerCase();
+      // Normalize all errors that would reveal whether an email is registered
+      if (msg.includes("already registered") || msg.includes("already exists") || msg.includes("email taken") || msg.includes("user already")) {
         setError("Something went wrong. Please try again.");
+      } else if (msg.includes("password should be")) {
+        setError("Password does not meet requirements. Use at least 8 characters.");
+      } else if (msg.includes("invalid email")) {
+        setError("Please enter a valid email address.");
+      } else if (msg.includes("timed out")) {
+        setError(e.message);
       } else {
-        setError(msg || "Something went wrong. Please try again.");
+        setError("Something went wrong. Please try again.");
       }
       setPassword("");
     } finally {
@@ -123,7 +130,14 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <p style={{ fontSize: "0.82rem", color: "#94a3b8", marginBottom: "1.25rem" }}>Didn't get the email? Check your spam folder.</p>
+          <p style={{ fontSize: "0.82rem", color: "#94a3b8", marginBottom: "0.75rem" }}>Didn't get the email? Check your spam folder.</p>
+          <button
+            onClick={handleResend}
+            disabled={resendCooldown > 0}
+            style={{ ...btnPrimary, marginTop: 0, backgroundColor: "transparent", background: "none", border: "1.5px solid var(--color-brand)", color: "var(--color-brand)", boxShadow: "none", opacity: resendCooldown > 0 ? 0.6 : 1 }}
+          >
+            {resendSent && resendCooldown > 0 ? `Resent! Try again in ${resendCooldown}s` : "Resend verification email"}
+          </button>
           <button onClick={() => setPage("login")} style={btnPrimary}>Go to Login →</button>
         </div>
       </PageWrapper>
@@ -184,7 +198,7 @@ export default function SignupPage() {
           {[{ val: "student", label: "🎓 Student" }, { val: "company", label: "🏢 Company" }].map(({ val, label }) => (
             <button
               key={val}
-              onClick={() => setRole(val)}
+              onClick={() => { setRole(val); setError(""); }}
               style={{
                 flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none",
                 fontWeight: "600", fontSize: "0.875rem", cursor: "pointer",
@@ -205,6 +219,8 @@ export default function SignupPage() {
           placeholder={role === "company" ? "Company Name" : "Full Name"}
           value={name}
           onChange={e => setName(e.target.value)}
+          autoComplete={role === "company" ? "organization" : "name"}
+          maxLength={100}
           style={inputStyle}
         />
         <label htmlFor="signup-email" style={srOnly}>Email</label>
@@ -214,6 +230,8 @@ export default function SignupPage() {
           type="email"
           value={email}
           onChange={e => setEmail(e.target.value)}
+          autoComplete="email"
+          maxLength={254}
           style={inputStyle}
         />
         <label htmlFor="signup-password" style={srOnly}>Password</label>
@@ -224,7 +242,9 @@ export default function SignupPage() {
             placeholder="Password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            onKeyDown={e => { if (e.key !== "Enter") return; if (role === "company" && !croNumber) return; handleSignup(); }}
+            onKeyDown={e => { if (e.key === "Enter") handleSignup(); }}
+            autoComplete="new-password"
+            maxLength={128}
             style={{ ...inputStyle, marginBottom: 0, paddingRight: "2.75rem" }}
           />
           <button
@@ -259,8 +279,10 @@ export default function SignupPage() {
               id="signup-cro"
               placeholder="CRO Number (e.g. 123456)"
               value={croNumber}
-              onChange={e => setCroNumber(e.target.value)}
+              onChange={e => setCroNumber(e.target.value.replace(/\D/g, "").slice(0, 8))}
               onKeyDown={e => e.key === "Enter" && handleSignup()}
+              inputMode="numeric"
+              maxLength={8}
               style={{ ...inputStyle, marginBottom: 0 }}
             />
             <p style={{ margin: "0.3rem 0 0", fontSize: "0.76rem", color: "#64748b", lineHeight: 1.4 }}>
@@ -324,9 +346,13 @@ export default function SignupPage() {
         <button onClick={() => setPage("studentDashboard")} style={btnHome}>← Back to Home</button>
         <p style={{ marginTop: "1.25rem", fontSize: "0.875rem", color: "#64748b", textAlign: "center" }}>
           Already have an account?{" "}
-          <span style={{ color: "var(--color-brand)", cursor: "pointer", fontWeight: "700" }} onClick={() => setPage("login")}>
+          <button
+            type="button"
+            onClick={() => setPage("login")}
+            style={{ color: "var(--color-brand)", cursor: "pointer", fontWeight: "700", background: "none", border: "none", padding: 0, fontFamily: "inherit", fontSize: "inherit" }}
+          >
             Sign in
-          </span>
+          </button>
         </p>
 
       </div>
