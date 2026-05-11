@@ -35,6 +35,7 @@ function normaliseJob(j) {
     photos:          j.photos || [],
     photoCrops:      j.photo_crops || [],
     filledShifts:    j.filled_shifts || [],
+    closeReason:     j.close_reason || "",
     applicants:      [],
     applicantCount:  j.applicant_count || 0,
     createdAt:       j.created_at || null,
@@ -221,7 +222,10 @@ export default function CompanyDashboard() {
       supabase.from("jobs").update({ status: newStatus }).eq("id", id),
       10000, "Update timed out."
     );
-    if (!error) setPostings(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+    if (!error) {
+      setPostings(prev => prev.map(p => p.id === id ? { ...p, status: newStatus } : p));
+      if (activePosting?.id === id) setActivePosting(prev => prev ? { ...prev, status: newStatus } : prev);
+    }
   };
 
   const deletePosting = async (id) => {
@@ -229,7 +233,10 @@ export default function CompanyDashboard() {
       supabase.from("jobs").delete().eq("id", id),
       10000, "Delete timed out."
     );
-    if (!error) setPostings(prev => prev.filter(p => p.id !== id));
+    if (!error) {
+      setPostings(prev => prev.filter(p => p.id !== id));
+      if (activePosting?.id === id) { setActivePosting(null); setModal(null); }
+    }
   };
 
   const saveForm = async ({ existingPhotos: keptUrls = [], newFiles = [], allCrops = [] } = {}) => {

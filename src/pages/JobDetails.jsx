@@ -246,7 +246,7 @@ export default function JobDetails({ job }) {
                 <div style={{ width: "144px", height: "144px", borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
                   {photos.length > 0 ? (
                     <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-                      <img loading="lazy" src={photos[idx]} alt={`Photo of ${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                      <img loading="lazy" src={photos[idx] && photos[idx].includes("supabase.co") ? `${photos[idx]}?width=300&quality=80` : photos[idx]} alt={`Photo of ${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                     </div>
                   ) : (
                     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>

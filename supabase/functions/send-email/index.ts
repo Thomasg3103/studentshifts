@@ -78,7 +78,9 @@ Deno.serve(async (req: Request) => {
     // Validate redirectTo against known origins to prevent open redirect
     if (redirectTo) {
       const allowed = [FRONTEND_URL, "https://studentshifts.ie", "https://www.studentshifts.ie"];
-      if (!allowed.some(o => redirectTo.startsWith(o))) {
+      let redirectOrigin: string;
+      try { redirectOrigin = new URL(redirectTo).origin; } catch { throw new Error("Unauthorised: invalid redirectTo"); }
+      if (!allowed.some(o => { try { return new URL(o).origin === redirectOrigin; } catch { return false; } })) {
         throw new Error("Unauthorised: invalid redirectTo");
       }
     }

@@ -50,6 +50,7 @@ export function TrialInviteModal({ applicant, date: initialDate, time: initialTi
               onChange={e => setNote(e.target.value)}
               placeholder="e.g. Please arrive 10 minutes early. Dress code is smart casual."
               rows={3}
+              maxLength={1000}
               style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.5, color: "#374151" }}
             />
           </div>

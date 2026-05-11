@@ -189,7 +189,7 @@ export default function SavedStudents({ students, loading, fetched, likedStudent
             )}
             <StudentAvailabilityRow availability={s.availability} />
             <button
-              onClick={() => { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); }}
+              onClick={() => { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); setChatInput(""); }}
               style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
             >
               Message

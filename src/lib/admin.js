@@ -64,6 +64,7 @@ export async function fetchPendingCompanies() {
 }
 
 export async function approveStudent(studentId) {
+  await ensureValidSession();
   const { data, error } = await withTimeout(
     supabase.rpc("approve_student", { student_id: studentId }),
     10000
@@ -73,6 +74,7 @@ export async function approveStudent(studentId) {
 }
 
 export async function rejectStudent(studentId) {
+  await ensureValidSession();
   const { error } = await withTimeout(
     supabase.rpc("reject_student", { student_id: studentId }),
     10000

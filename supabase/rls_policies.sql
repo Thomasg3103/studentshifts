@@ -1450,6 +1450,27 @@ BEGIN
 END $$;
 
 -- ================================================================
+-- FIX R4: Additional DB CHECK constraints for fields missing server-side limits
+-- ================================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'jobs_holidays_length') THEN
+    ALTER TABLE jobs ADD CONSTRAINT jobs_holidays_length
+      CHECK (holidays IS NULL OR char_length(holidays) <= 500);
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'applications_company_notes_length') THEN
+    ALTER TABLE applications ADD CONSTRAINT applications_company_notes_length
+      CHECK (company_notes IS NULL OR char_length(company_notes) <= 4000);
+  END IF;
+
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'applications_preferred_shift_length') THEN
+    ALTER TABLE applications ADD CONSTRAINT applications_preferred_shift_length
+      CHECK (preferred_shift IS NULL OR char_length(preferred_shift) <= 100);
+  END IF;
+END $$;
+
+-- ================================================================
 -- PERFORMANCE: missing indexes (R3-H15, R3-L1, R3-L2)
 -- ================================================================
 CREATE INDEX IF NOT EXISTS idx_applications_job_id     ON applications(job_id);

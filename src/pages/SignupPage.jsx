@@ -88,6 +88,7 @@ export default function SignupPage() {
       } else {
         setError(msg || "Something went wrong. Please try again.");
       }
+      setPassword("");
     } finally {
       setLoading(false);
     }

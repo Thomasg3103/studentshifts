@@ -104,7 +104,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
     setClUrl(null);
     setCvOpen(false);
     setClOpen(false);
-  }, [applicant.id]);
+  }, [applicant.id, applicant.interviewRoundsData]);
 
   const openCv = async () => {
     if (!cvUrl) {

@@ -303,6 +303,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           value={formData.holidays || ""}
           onChange={e => setFormData(prev => ({ ...prev, holidays: e.target.value }))}
           placeholder="e.g. 20 days per year"
+          maxLength={500}
           style={inputStyle}
         />
       </div>

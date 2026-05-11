@@ -439,7 +439,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
               key={key}
               role="tab"
               aria-selected={active}
-              onClick={() => setActiveStage(key)}
+              onClick={() => { setActiveStage(key); setSelectedIds(new Set()); }}
               style={{
                 flexShrink: 0,
                 padding: "0.55rem 1.1rem",

@@ -30,6 +30,7 @@ export default function LoginPage() {
       Sentry.captureException(e);
       // Always show the same message to prevent email enumeration
       setError("Invalid email or password.");
+      setPassword("");
     } finally {
       setLoading(false);
     }
