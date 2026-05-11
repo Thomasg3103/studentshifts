@@ -385,7 +385,7 @@ function LogoIcon() {
 
 function HomeIcon({ active }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? "var(--color-brand)" : "none"} stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill={active ? "var(--color-brand)" : "none"} stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
@@ -394,7 +394,7 @@ function HomeIcon({ active }) {
 
 function PersonIcon({ color = "white" }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
     </svg>
@@ -403,7 +403,7 @@ function PersonIcon({ color = "white" }) {
 
 function BrowseIcon({ active }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
     </svg>
   );
@@ -411,7 +411,7 @@ function BrowseIcon({ active }) {
 
 function BriefcaseIcon({ active }) {
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
     </svg>
   );
@@ -420,7 +420,7 @@ function BriefcaseIcon({ active }) {
 function HeartIcon({ active, color }) {
   const c = color || (active ? "var(--color-brand)" : "#94a3b8");
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill={active ? c : "none"} stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill={active ? c : "none"} stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
     </svg>
   );
@@ -429,7 +429,7 @@ function HeartIcon({ active, color }) {
 function DocumentIcon({ active, color }) {
   const c = color || (active ? "var(--color-brand)" : "#94a3b8");
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
       <polyline points="14 2 14 8 20 8"/>
       <line x1="16" y1="13" x2="8" y2="13"/>
@@ -442,7 +442,7 @@ function DocumentIcon({ active, color }) {
 function ChatIcon({ active, color }) {
   const c = color || (active ? "var(--color-brand)" : "#94a3b8");
   return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
   );
