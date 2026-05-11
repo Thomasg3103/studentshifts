@@ -27,11 +27,9 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
 
     channel = supabase
       .channel(`msgs_${jobId}_${studentId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `job_id=eq.${jobId}` },
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `job_id=eq.${jobId}&student_id=eq.${studentId}` },
         payload => {
-          if (payload.new.student_id === studentId) {
-            setMessages(prev => [...prev, payload.new]);
-          }
+          setMessages(prev => [...prev, payload.new]);
         })
       .subscribe();
 

@@ -90,6 +90,39 @@ function emailDeclined(studentName: string, jobTitle: string, companyName: strin
 </body></html>`;
 }
 
+function emailShiftFilled(studentName: string, jobTitle: string, companyName: string, filledShift: string, remainingShifts: string[]): string {
+  const sName = escapeHtml(studentName), jTitle = escapeHtml(jobTitle), cName = escapeHtml(companyName);
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafafa;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+        <tr><td align="center" style="background:linear-gradient(135deg,#A21D54,#C2185B);padding:36px 24px 32px;">
+          <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;">StudentShifts</p>
+          <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Find your next shift</p>
+        </td></tr>
+        <tr><td style="padding:36px 32px 28px;">
+          <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">Application update</p>
+          <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
+            Hi ${sName},<br/><br/>
+            Just a quick update on your application for <strong style="color:#1e293b;">${jTitle}</strong> at <strong style="color:#1e293b;">${cName}</strong>.<br/><br/>
+            The <strong style="color:#1e293b;">${escapeHtml(filledShift)}</strong> shift has been filled, but your application is still active for the remaining shift${remainingShifts.length > 1 ? "s" : ""}: <strong style="color:#1e293b;">${remainingShifts.map(s => escapeHtml(s)).join(", ")}</strong>.
+          </p>
+          <table width="100%" cellpadding="0" cellspacing="0"><tr>
+            <td style="background-color:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:16px 20px;">
+              <p style="margin:0;font-size:13px;color:#166534;line-height:1.6;">Keep an eye on your StudentShifts account for updates on your application.</p>
+            </td>
+          </tr></table>
+        </td></tr>
+        <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+}
+
 function emailInterviewRejection(studentName: string, jobTitle: string, companyName: string): string {
   const sName = escapeHtml(studentName), jTitle = escapeHtml(jobTitle), cName = escapeHtml(companyName);
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
@@ -354,9 +387,10 @@ Deno.serve(async (req: Request) => {
       }
       for (const o of notifyOnly) {
         const em = emailMap[o.student_id]; if (!em) continue;
+        const filledLabel = hiredShiftWithTime || (hiredDay || "a shift");
         sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
           `Update on your ${job.title} application`,
-          emailDeclined(notifyNameMap[o.student_id] || "there", job.title, companyName, hiredShiftWithTime, remainingShiftsAfterHire)
+          emailShiftFilled(notifyNameMap[o.student_id] || "there", job.title, companyName, filledLabel, remainingShiftsAfterHire)
         ).catch(e => console.warn("Notify email failed:", e));
       }
 

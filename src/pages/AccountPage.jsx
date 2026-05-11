@@ -65,6 +65,10 @@ export default function AccountPage() {
     return () => window.removeEventListener("resize", h);
   }, []);
 
+  useEffect(() => {
+    return () => { if (availDebounceRef.current) clearTimeout(availDebounceRef.current); };
+  }, []);
+
   const isMobile  = windowWidth < 768;
   const isStudent = currentUser.role === "student";
   const isCompany = currentUser.role === "company";

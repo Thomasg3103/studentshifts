@@ -39,8 +39,16 @@ function daysUntil(dateStr) {
   return Math.floor((new Date(dateStr) - new Date()) / 86400000);
 }
 
+const GEOCODE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 let _geocodeCache = {};
-try { _geocodeCache = JSON.parse(localStorage.getItem("ss_geocode_cache") || "{}"); } catch { _geocodeCache = {}; }
+try {
+  const raw = JSON.parse(localStorage.getItem("ss_geocode_cache") || "{}");
+  const now = Date.now();
+  // Drop entries older than 30 days
+  for (const [k, v] of Object.entries(raw)) {
+    if (v && typeof v === "object" && v.ts && (now - v.ts) < GEOCODE_TTL_MS) _geocodeCache[k] = v;
+  }
+} catch { _geocodeCache = {}; }
 
 const weekdays  = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 const workweek  = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
@@ -340,7 +348,7 @@ export default function StudentDashboard({ restoreScrollY }) {
           const query = /galway|ireland/i.test(loc) ? loc : `${loc}, Galway, Ireland`;
           const result = await geocodeAddress(query);
           if (result && !cancelled) {
-            _geocodeCache[loc] = { lat: result.lat, lng: result.lng };
+            _geocodeCache[loc] = { lat: result.lat, lng: result.lng, ts: Date.now() };
             try { localStorage.setItem("ss_geocode_cache", JSON.stringify(_geocodeCache)); } catch {}
             setExtraCoords(prev => ({ ...prev, [loc]: { lat: result.lat, lng: result.lng } }));
           }

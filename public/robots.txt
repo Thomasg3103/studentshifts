@@ -1,4 +1,9 @@
 User-agent: *
+Disallow: /admin
+Disallow: /verify
+Disallow: /company
+Disallow: /account
+Disallow: /reset-password
 Allow: /
 
 Sitemap: https://studentshifts.ie/sitemap.xml

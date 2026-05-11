@@ -60,6 +60,7 @@ export default function CompanyDashboard() {
   const [likedStudentIds, setLikedStudentIds] = useState(new Set());
   const [applicantStudentIds, setApplicantStudentIds] = useState(new Set());
   const [applicantsViewMode, setApplicantsViewMode] = useState("list");
+  const originalPhotosRef = useRef([]); // tracks photos at edit-open time for H24 storage cleanup
 
   const {
     updateApplicantStatus,
@@ -201,6 +202,7 @@ export default function CompanyDashboard() {
   };
 
   const openEdit = (posting) => {
+    originalPhotosRef.current = (posting.photos || []).filter(p => typeof p === "string" && p.startsWith("http"));
     setFormData({ ...posting, days: [...posting.days], times: { ...posting.times }, photoFiles: [] });
     setModal("form");
   };
@@ -265,6 +267,18 @@ export default function CompanyDashboard() {
           console.warn("Photo upload skipped:", e.message);
         }
       }
+      // Delete any photos that were removed during editing
+      if (formData.id && originalPhotosRef.current.length > 0) {
+        const removed = originalPhotosRef.current.filter(u => !keptUrls.includes(u));
+        if (removed.length > 0) {
+          const paths = removed.flatMap(url => {
+            const m = url.match(/\/storage\/v1\/object\/public\/job-photos\/(.+?)(\?|$)/);
+            return m ? [decodeURIComponent(m[1])] : [];
+          });
+          if (paths.length) supabase.storage.from("job-photos").remove(paths).catch(() => {});
+        }
+      }
+
       const jobData = {
         company_id:      currentUser.id,
         title:           formData.title,
@@ -557,7 +571,7 @@ export default function CompanyDashboard() {
             )}
             {/* Scrollable body */}
             <div style={{ overflowY: "auto", flex: 1, padding: "1.25rem 1.5rem" }}>
-              <ApplicantsView posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewRoundsData={handleSaveInterviewRoundsData} onSendInterviewInvite={handleSendInterviewInvite} onSendTrialInvite={handleSendTrialInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} viewMode={applicantsViewMode} />
+              <ApplicantsView key={activePosting?.id} posting={activePosting} onUpdateStatus={updateApplicantStatus} onStageChange={handleStageChange} onNotesSaved={handleNotesSaved} onCloseJob={handleCloseJob} onIncrementRound={handleIncrementRound} onSaveTrialSchedule={handleSaveTrialSchedule} onSaveInterviewRoundsData={handleSaveInterviewRoundsData} onSendInterviewInvite={handleSendInterviewInvite} onSendTrialInvite={handleSendTrialInvite} likedStudents={students.filter(s => likedStudentIds.has(s.id))} companyId={currentUser?.id} viewMode={applicantsViewMode} />
             </div>
           </div>
         </div>

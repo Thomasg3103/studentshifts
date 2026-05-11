@@ -295,6 +295,13 @@ export default function JobDetails({ job }) {
                       )}
                     </button>
                     {(() => {
+                      if (job.status === "Closed" || job.status === "Expired") {
+                        return (
+                          <div style={{ ...btn, background: "#e2e8f0", color: "#94a3b8", cursor: "default", textAlign: "center" }}>
+                            {job.status === "Closed" ? "Position Filled" : "Expired"}
+                          </div>
+                        );
+                      }
                       const noCv = currentUser?.verificationStatus === "verified" && !currentUser?.cvName;
                       return (
                         <button
