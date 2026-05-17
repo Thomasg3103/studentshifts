@@ -23,6 +23,7 @@ export default function AdminPage() {
   const [signups, setSignups]             = useState(null); // null = not yet fetched
   const [signupsLoading, setSignupsLoading] = useState(false);
   const [launchSending, setLaunchSending] = useState(false);
+  const [testSending, setTestSending]     = useState(false);
 
   // F-M10: extracted so the Refresh button can re-call it
   const loadData = useCallback(() => {
@@ -54,6 +55,18 @@ export default function AdminPage() {
   useEffect(() => {
     if (tab === "signups" && signups === null) loadSignups();
   }, [tab, signups, loadSignups]);
+
+  const handleTestLaunchEmail = async () => {
+    setTestSending(true);
+    try {
+      await sendLaunchEmails({ test: true });
+      toast.success("Test email sent to your inbox!");
+    } catch (e) {
+      toast.error(e.message || "Failed to send test email.");
+    } finally {
+      setTestSending(false);
+    }
+  };
 
   const handleSendLaunchEmails = async () => {
     const unsent = (signups || []).filter(s => !s.launch_email_sent_at).length;
@@ -289,8 +302,10 @@ export default function AdminPage() {
             signups={signups}
             loading={signupsLoading}
             launchSending={launchSending}
+            testSending={testSending}
             onRefresh={loadSignups}
             onSendLaunch={handleSendLaunchEmails}
+            onTestLaunch={handleTestLaunchEmail}
           />
         ) : loading ? (
           <p style={{ color: "#64748b" }}>Loading…</p>
@@ -467,7 +482,7 @@ function EmptyState({ label }) {
   );
 }
 
-function SignupsPanel({ signups, loading, launchSending, onRefresh, onSendLaunch }) {
+function SignupsPanel({ signups, loading, launchSending, testSending, onRefresh, onSendLaunch, onTestLaunch }) {
   const [search, setSearch] = useState("");
 
   if (loading || signups === null) {
@@ -520,6 +535,14 @@ function SignupsPanel({ signups, loading, launchSending, onRefresh, onSendLaunch
           style={{ padding: "0.55rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
         >
           ↺ Refresh
+        </button>
+        <button
+          onClick={onTestLaunch}
+          disabled={testSending}
+          title="Sends one test launch email to your own address only — no signups affected"
+          style={{ padding: "0.55rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#0369a1", fontWeight: "600", fontSize: "0.82rem", cursor: testSending ? "default" : "pointer", fontFamily: "inherit", opacity: testSending ? 0.6 : 1 }}
+        >
+          {testSending ? "Sending…" : "Send Test Email"}
         </button>
         <button
           onClick={onSendLaunch}

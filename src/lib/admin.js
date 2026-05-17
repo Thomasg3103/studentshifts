@@ -110,8 +110,10 @@ export async function getSignups() {
   return data || [];
 }
 
-export async function sendLaunchEmails() {
-  const { data, error } = await supabase.functions.invoke("send-launch-emails");
+export async function sendLaunchEmails({ test = false } = {}) {
+  const { data, error } = await supabase.functions.invoke("send-launch-emails", {
+    body: { test },
+  });
   if (error) throw error;
-  return data; // { sent, skipped, total, errors }
+  return data; // { sent, skipped, total, errors } or { test: true, sent: 1 }
 }

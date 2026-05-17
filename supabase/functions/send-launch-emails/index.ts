@@ -49,6 +49,29 @@ Deno.serve(async (req: Request) => {
     const apiKey = Deno.env.get("BREVO_API_KEY");
     if (!apiKey) throw new Error("BREVO_API_KEY not set");
 
+    // Test mode — send one email to the admin, don't touch any signups
+    const body   = await req.json().catch(() => ({}));
+    if (body.test === true) {
+      const signupUrl = `${FRONTEND_URL}/signup?email=${encodeURIComponent(user.email!)}`;
+      const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: { "api-key": apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sender:      { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
+          to:          [{ email: user.email!, name: "Admin" }],
+          subject:     "[TEST] StudentShifts.ie is live — find your first shift!",
+          htmlContent: launchEmailHtml("Test User", signupUrl),
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(`Brevo error: ${err.message ?? res.status}`);
+      }
+      return new Response(JSON.stringify({ test: true, sent: 1 }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // Fetch all signups that haven't been sent a launch email yet
     const { data: pending, error: fetchError } = await db
       .from("signups")
