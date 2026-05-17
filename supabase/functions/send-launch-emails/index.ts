@@ -158,11 +158,15 @@ function launchEmailHtml(name: string, signupUrl: string): string {
     <div style="padding:2rem 2.5rem;">
       <h2 style="margin:0 0 0.75rem;color:#1e293b;font-size:1.3rem;font-weight:800;">Hey ${esc(name)}, we're live!</h2>
       <p style="color:#64748b;line-height:1.7;margin:0 0 1rem;">The wait is over — StudentShifts.ie is now live and you're one of the first to know. Find flexible shifts that fit around your college timetable, apply in seconds, and get hired faster.</p>
-      <p style="color:#64748b;line-height:1.7;margin:0 0 1.5rem;">Your email is already saved — just set a password and you're ready to go. You'll need to upload your student ID to start applying, but it only takes a minute.</p>
+      <p style="color:#64748b;line-height:1.7;margin:0 0 1rem;">Before you log in, make sure you have the following ready to upload:</p>
+      <ul style="color:#64748b;line-height:1.9;margin:0 0 1.5rem;padding-left:1.25rem;">
+        <li><strong style="color:#1e293b;">Student ID</strong> — your college/university student card</li>
+        <li><strong style="color:#1e293b;">Government ID</strong> — passport or driving licence</li>
+      </ul>
       <div style="text-align:center;margin-bottom:1.5rem;">
         <a href="${esc(signupUrl)}"
            style="display:inline-block;background:linear-gradient(135deg,#A21D54,#C2185B);color:#fff;font-weight:700;font-size:1rem;padding:0.85rem 2rem;border-radius:2rem;text-decoration:none;box-shadow:0 4px 16px rgba(162,29,84,0.35);">
-          Create My Account &rarr;
+          Login to Account &rarr;
         </a>
       </div>
       <p style="color:#94a3b8;font-size:0.8rem;margin:0;text-align:center;">The StudentShifts Team &middot; studentshifts.ie</p>
