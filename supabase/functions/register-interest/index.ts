@@ -97,8 +97,9 @@ Deno.serve(async (req: Request) => {
         body: JSON.stringify({
           sender:      { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
           to:          [{ email, name }],
-          subject:     "You're on the list — StudentShifts.ie",
+          subject:     `Thanks for registering, ${name}`,
           htmlContent: confirmationEmailHtml(name),
+          textContent: `Hi ${name},\n\nThanks for registering your interest in StudentShifts.ie!\n\nWe'll email you the moment we launch so you can be one of the first to find flexible shifts around your college timetable.\n\nTalk soon,\nThomas\nStudentShifts.ie`,
         }),
       }).catch(e => console.error("Brevo error:", e));
     }
