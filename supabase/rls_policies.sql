@@ -734,12 +734,23 @@ $$;
 -- Returns emails for all students who have applied to any of a company's jobs.
 -- Called server-side from the send-email Edge Function to validate recipients.
 -- SECURITY DEFINER + explicit company_uuid param (no auth.uid() dependency).
+-- R3-C8: Rate-limited to 20 calls/hour per company to prevent bulk email harvesting.
 CREATE OR REPLACE FUNCTION get_company_applicant_emails(company_uuid uuid)
 RETURNS TABLE(email text)
-LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+LANGUAGE plpgsql SECURITY DEFINER VOLATILE AS $$
+DECLARE call_count bigint;
 BEGIN
   IF company_uuid <> auth.uid() AND NOT is_admin() THEN
     RAISE EXCEPTION 'Unauthorised';
+  END IF;
+  IF NOT is_admin() THEN
+    SELECT COUNT(*) INTO call_count FROM rpc_rate_log
+    WHERE user_id = auth.uid() AND rpc_name = 'get_company_applicant_emails'
+      AND called_at > now() - interval '1 hour';
+    IF call_count >= 20 THEN
+      RAISE EXCEPTION 'Rate limit exceeded — too many email lookup requests';
+    END IF;
+    INSERT INTO rpc_rate_log (user_id, rpc_name) VALUES (auth.uid(), 'get_company_applicant_emails');
   END IF;
   RETURN QUERY
     SELECT u.email::text
@@ -749,6 +760,34 @@ BEGIN
       JOIN jobs j ON j.id = a.job_id
       WHERE j.company_id = company_uuid
     );
+END;
+$$;
+
+-- Atomically appends a day to jobs.filled_shifts, or fills all shifts when p_day is NULL.
+-- FOR UPDATE lock prevents the concurrent same-shift double-hire race condition (R3-H30).
+-- Called only by the hire-applicant Edge Function (service role).
+CREATE OR REPLACE FUNCTION add_filled_shift(p_job_id uuid, p_day text)
+RETURNS TABLE(new_filled text[], all_filled boolean)
+LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_days    text[];
+  v_current text[];
+  v_result  text[];
+BEGIN
+  SELECT days, COALESCE(filled_shifts, ARRAY[]::text[])
+  INTO v_days, v_current
+  FROM jobs WHERE id = p_job_id FOR UPDATE;
+
+  IF p_day IS NULL THEN
+    v_result := v_days;
+  ELSIF p_day = ANY(v_current) THEN
+    v_result := v_current;
+  ELSE
+    v_result := array_append(v_current, p_day);
+  END IF;
+
+  UPDATE jobs SET filled_shifts = v_result WHERE id = p_job_id;
+  RETURN QUERY SELECT v_result, array_length(v_result, 1) >= array_length(v_days, 1);
 END;
 $$;
 

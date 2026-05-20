@@ -334,6 +334,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           value={formData.deadline || ""}
           onChange={set("deadline")}
           min={new Date().toISOString().split("T")[0]}
+          max={new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
           style={inputStyle}
         />
       </div>

@@ -318,26 +318,34 @@ Deno.serve(async (req: Request) => {
       if (acceptErr) throw acceptErr;
       if (!acceptedRows?.length) throw new Error("Application already processed");
 
-      // 2. Calculate and persist new filled_shifts
-      const hiredDay = app.preferred_shift ? (app.preferred_shift as string).split(" · ")[0].trim() : null;
-      const currentFilled: string[] = job.filled_shifts || [];
-      const newFilledShifts: string[] = hiredDay
-        ? (!currentFilled.includes(hiredDay) ? [...currentFilled, hiredDay] : currentFilled)
-        : [...(job.days || [])];
-      const hiredShiftWithTime: string | null = app.preferred_shift
+      // 2. Write idempotency key — after accept confirmed, before secondary effects
+      //    so any retry on email/shift failure correctly returns success (app already accepted).
+      await adminClient.from("hire_action_log").insert({
+        company_id: user.id, action, idempotency_key: iKey, result: null,
+      }).catch(() => {});
+
+      // 3. Atomically update filled_shifts via RPC (prevents concurrent same-shift double-hire race)
+      const hiredDay = (app.preferred_shift as string | null)?.trim()
+        ? (app.preferred_shift as string).split(" · ")[0].trim()
+        : null;
+      const { data: shiftResult } = await adminClient.rpc("add_filled_shift", {
+        p_job_id: job.id, p_day: hiredDay,
+      });
+      const newFilledShifts: string[] =
+        (shiftResult as { new_filled: string[]; all_filled: boolean }[] | null)?.[0]?.new_filled
+        || (hiredDay ? [...(job.filled_shifts || []), hiredDay] : [...(job.days || [])]);
+      const allShiftsFilled: boolean =
+        (shiftResult as { new_filled: string[]; all_filled: boolean }[] | null)?.[0]?.all_filled
+        ?? ((job.days?.length || 0) > 0 && newFilledShifts.length >= (job.days?.length || 0));
+      const hiredShiftWithTime: string | null = (app.preferred_shift as string | null)?.trim()
         || (hiredDay && job.times?.[hiredDay] ? `${hiredDay} · ${job.times[hiredDay]}` : hiredDay)
         || null;
-      const needsWrite = hiredDay ? !currentFilled.includes(hiredDay) : true;
-      if (needsWrite) {
-        await adminClient.from("jobs").update({ filled_shifts: newFilledShifts }).eq("id", job.id);
-      }
 
       // 3. Find and auto-decline competing applicants
       const { data: others } = await adminClient
         .from("applications")
         .select("id, student_id, preferred_shift")
         .eq("job_id", job.id).eq("status", "Pending").neq("id", applicationId);
-      const allShiftsFilled = (job.days?.length || 0) > 0 && newFilledShifts.length >= (job.days?.length || 0);
       const declinedIds: string[] = ((others || []) as { id: string; student_id: string; preferred_shift: string | null }[])
         .filter(o => {
           if (!hiredDay) return true;
@@ -404,7 +412,7 @@ Deno.serve(async (req: Request) => {
       }
       for (const o of notifyOnly) {
         const em = emailMap[o.student_id]; if (!em) continue;
-        const filledLabel = hiredShiftWithTime || (hiredDay || "a shift");
+        const filledLabel = hiredShiftWithTime ?? hiredDay ?? "a shift";
         sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
           `Update on your ${job.title} application`,
           emailShiftFilled(notifyNameMap[o.student_id] || "there", job.title, companyName, filledLabel, remainingShiftsAfterHire)
@@ -416,9 +424,9 @@ Deno.serve(async (req: Request) => {
         actor_id: user.id, action: "hire_accept", target_id: app.student_id,
         metadata: { application_id: applicationId, job_id: app.job_id, job_title: job.title },
       }).catch(() => {});
-      await adminClient.from("hire_action_log").insert({
-        company_id: user.id, action, idempotency_key: iKey, result: acceptResult,
-      }).catch(() => {});
+      // Update idempotency log with final result now that all side effects are complete
+      await adminClient.from("hire_action_log").update({ result: acceptResult })
+        .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
       return new Response(JSON.stringify({ success: true, ...acceptResult }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -430,6 +438,10 @@ Deno.serve(async (req: Request) => {
       .eq("id", applicationId).eq("status", "Pending").select("id");
     if (rejectErr) throw rejectErr;
     if (!rejectedRows?.length) throw new Error("Application already processed");
+    // Write idempotency key after reject confirmed, before email side effect
+    await adminClient.from("hire_action_log").insert({
+      company_id: user.id, action, idempotency_key: iKey, result: { applicationId },
+    }).catch(() => {});
     if (studentEmail) {
       const stage = (app.pipeline_stage as string) || "applied";
       const subject = `Update on your ${job.title} application`;
@@ -444,9 +456,6 @@ Deno.serve(async (req: Request) => {
     await adminClient.from("audit_log").insert({
       actor_id: user.id, action: "hire_reject", target_id: app.student_id,
       metadata: { application_id: applicationId, job_id: app.job_id, stage: app.pipeline_stage },
-    }).catch(() => {});
-    await adminClient.from("hire_action_log").insert({
-      company_id: user.id, action, idempotency_key: iKey, result: { applicationId },
     }).catch(() => {});
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

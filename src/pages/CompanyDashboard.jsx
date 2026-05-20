@@ -412,6 +412,14 @@ export default function CompanyDashboard() {
       10000, "Update timed out."
     );
     if (error) { toast.error("Failed to close job. Please try again."); return; }
+    if (!foundStudent) {
+      // Auto-decline all remaining Pending applicants and notify them
+      await withTimeout(
+        supabase.from("applications").update({ status: "Rejected" }).eq("job_id", jobId).eq("status", "Pending"),
+        10000
+      ).catch(e => console.warn("[CompanyDashboard] auto-decline on close failed:", e.message));
+      supabase.functions.invoke("send-email", { body: { type: "job-closed", jobId } }).catch(() => {});
+    }
     setPostings(prev => prev.map(p => p.id === jobId ? { ...p, status: "Closed" } : p));
     closeModal();
   };

@@ -132,7 +132,10 @@ export async function deleteAccount() {
     if (photoRes.status === "fulfilled" && photoRes.value.data?.length) {
       deletes.push(supabase.storage.from("job-photos").remove(photoRes.value.data.map(f => `${uid}/${f.name}`)));
     }
-    await Promise.allSettled(deletes);
+    const deleteResults = await Promise.allSettled(deletes);
+    for (const r of deleteResults) {
+      if (r.status === "rejected") console.warn("Storage delete failed before account deletion:", r.reason);
+    }
   }
 
   const { error } = await withTimeout(

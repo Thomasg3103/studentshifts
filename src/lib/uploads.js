@@ -19,6 +19,14 @@ export async function uploadDocument(userId, file, bucket, fileName) {
   if (!allowedMimes.has(file.type)) throw new Error(`File content type "${file.type}" is not allowed.`);
   if (file.size > MAX_DOC_BYTES) throw new Error("File is too large. Maximum size is 10 MB.");
   const path = `${userId}/${fileName}.${ext}`;
+  // Delete old version with a different extension so orphaned files don't accumulate
+  const { data: existing } = await supabase.storage.from(bucket).list(userId).catch(() => ({ data: null }));
+  if (existing?.length) {
+    const toDelete = existing
+      .filter(f => f.name.startsWith(fileName + ".") && f.name !== `${fileName}.${ext}`)
+      .map(f => `${userId}/${f.name}`);
+    if (toDelete.length) await supabase.storage.from(bucket).remove(toDelete).catch(() => {});
+  }
   const { error } = await withTimeout(
     supabase.storage.from(bucket).upload(path, file, { upsert: true }),
     15000, `${fileName} upload timed out — please try again.`
@@ -49,6 +57,11 @@ export async function uploadAvatar(userId, file) {
   if (!ALLOWED_IMAGE_MIMES.has(file.type)) throw new Error(`File content type "${file.type}" is not allowed. Please upload a JPG, PNG, WebP or GIF.`);
   if (file.size > MAX_IMAGE_BYTES) throw new Error("Photo is too large. Maximum size is 5 MB.");
   const path = `${userId}/avatar.${ext}`;
+  // Remove existing avatar files so only one copy exists (different extensions accumulate otherwise)
+  const { data: existing } = await supabase.storage.from("avatars").list(userId).catch(() => ({ data: null }));
+  if (existing?.length) {
+    await supabase.storage.from("avatars").remove(existing.map(f => `${userId}/${f.name}`)).catch(() => {});
+  }
   const { error } = await withTimeout(
     supabase.storage.from("avatars").upload(path, file, { upsert: true }),
     10000, "Photo upload timed out — profile saved without new photo."

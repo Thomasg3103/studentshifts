@@ -206,6 +206,75 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // ── job-closed notification (company caller) ──
+    if (body.type === "job-closed") {
+      if (profile?.role !== "company") throw new Error("Unauthorised");
+      const { jobId } = body;
+      if (!jobId || typeof jobId !== "string" || !UUID_RE.test(jobId)) {
+        throw new Error("Missing required field: jobId");
+      }
+      const { data: job } = await adminClient.from("jobs")
+        .select("title").eq("id", jobId).eq("company_id", user.id).single();
+      if (!job) throw new Error("Unauthorised");
+
+      const { data: apps } = await adminClient.from("applications")
+        .select("student_id").eq("job_id", jobId).eq("status", "Rejected");
+      const studentIds = [...new Set((apps || []).map((a: { student_id: string }) => a.student_id))];
+      if (!studentIds.length) {
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: emailRows } = await adminClient.rpc("get_user_emails", { user_ids: studentIds.slice(0, 50) });
+      const emails: string[] = (emailRows || []).map((r: { email: string }) => r.email).filter(Boolean);
+      if (!emails.length) {
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const apiKey = Deno.env.get("BREVO_API_KEY");
+      if (!apiKey) throw new Error("BREVO_API_KEY not set");
+      const jobTitle = escapeHtml(String(job.title));
+      const closedHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/></head>
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafafa;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+        <tr><td align="center" style="background:linear-gradient(135deg,#A21D54,#C2185B);padding:36px 24px 32px;">
+          <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;">StudentShifts</p>
+        </td></tr>
+        <tr><td style="padding:36px 32px 28px;">
+          <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">Application update</p>
+          <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
+            Thank you for applying for <strong style="color:#1e293b;">${jobTitle}</strong>.<br/><br/>
+            Unfortunately this position is no longer available. We appreciate your interest and encourage you to keep applying — new shifts are posted every day on StudentShifts.
+          </p>
+        </td></tr>
+        <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body></html>`;
+      await Promise.allSettled(emails.map((email: string) =>
+        fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
+          method: "POST",
+          headers: { "api-key": apiKey, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" },
+            to: [{ email }],
+            subject: `Update on your ${String(job.title).replace(/[\r\n]/g, "")} application`,
+            htmlContent: closedHtml,
+          }),
+        }).catch(e => console.warn("job-closed email failed:", e))
+      ));
+      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     // ── standard email send (company/admin caller) ──
     if (!["admin", "company"].includes(profile?.role)) throw new Error("Unauthorised");
 
