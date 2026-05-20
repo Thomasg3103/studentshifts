@@ -62,18 +62,13 @@ export async function saveCompanyIndustries(userId, industries) {
 
 /** Exports all personal data as a JSON-serialisable object (GDPR Art. 20). */
 export async function exportMyData(userId, role = "student") {
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data: recent } = await supabase
-    .from("export_log")
-    .select("id")
-    .eq("user_id", userId)
-    .gte("exported_at", since)
-    .limit(1);
-  if (recent && recent.length > 0) {
-    throw new Error("You can only export your data once every 24 hours.");
+  // F15: use RPC to atomically check + insert the rate-limit row, preventing a race
+  // where two concurrent requests both pass the 24-hr check before either inserts.
+  const { error: rateErr } = await supabase.rpc("check_and_log_export", { p_user_id: userId });
+  if (rateErr) {
+    if (rateErr.message?.includes("once every 24")) throw new Error("You can only export your data once every 24 hours.");
+    throw rateErr;
   }
-
-  await supabase.from("export_log").insert({ user_id: userId });
 
   if (role === "company") {
     const [profileRes, companyRes, jobsRes, messagesRes] = await Promise.all([
@@ -82,6 +77,10 @@ export async function exportMyData(userId, role = "student") {
       supabase.from("jobs").select("id, title, category, pay, location, days, status, deadline, created_at").eq("company_id", userId).order("created_at"),
       supabase.from("chat_messages").select("text, created_at, sender_id, student_id").eq("company_id", userId).order("created_at"),
     ]);
+    // F14: surface any query errors rather than silently returning partial data
+    const errors = [profileRes, companyRes, jobsRes, messagesRes]
+      .map(r => r.error).filter(Boolean);
+    if (errors.length) throw new Error(`Export failed: ${errors[0].message}`);
     return {
       exportedAt: new Date().toISOString(),
       profile:    profileRes.data  || {},
@@ -93,11 +92,17 @@ export async function exportMyData(userId, role = "student") {
 
   const [profileRes, studentRes, applicationsRes, likedRes, messagesRes] = await Promise.all([
     supabase.from("profiles").select("id, name, role, created_at").eq("id", userId).single(),
-    supabase.from("students").select("bio, skills, linkedin, location_display, cv_url, cover_letter_url, status").eq("id", userId).single(),
-    supabase.from("applications").select("job_id, status, created_at, jobs(title)").eq("student_id", userId),
+    // F8: include all application pipeline fields + availability
+    supabase.from("students").select("bio, skills, linkedin, location_display, cv_url, cover_letter_url, status, availability, job_preferences").eq("id", userId).single(),
+    // F8: include pipeline_stage, company_notes, preferred_shift
+    supabase.from("applications").select("job_id, status, pipeline_stage, preferred_shift, company_notes, created_at, jobs(title)").eq("student_id", userId),
     supabase.from("liked_jobs").select("job_id, jobs(title)").eq("student_id", userId),
     supabase.from("chat_messages").select("text, created_at, sender_id").eq("student_id", userId).order("created_at"),
   ]);
+  // F14: surface any query errors
+  const errors = [profileRes, studentRes, applicationsRes, likedRes, messagesRes]
+    .map(r => r.error).filter(Boolean);
+  if (errors.length) throw new Error(`Export failed: ${errors[0].message}`);
   return {
     exportedAt:   new Date().toISOString(),
     profile:      profileRes.data  || {},

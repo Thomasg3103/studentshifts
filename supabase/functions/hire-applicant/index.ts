@@ -198,14 +198,19 @@ async function sendBrevoEmail(
 ): Promise<void> {
   let finalHtml = html;
   if (magicLinkEmail) {
-    const linkRes = await fetchWithTimeout(`${supabaseUrl}/auth/v1/admin/generate_link`, {
-      method: "POST",
-      headers: { "apikey": serviceKey, "Authorization": `Bearer ${serviceKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "magiclink", email: magicLinkEmail, options: { redirect_to: FRONTEND_URL } }),
-    });
-    const linkData = await linkRes.json();
-    if (!linkData.action_link) throw new Error("Failed to generate magic link");
-    finalHtml = html.replaceAll("MAGIC_LINK_PLACEHOLDER", linkData.action_link);
+    // F2: wrap in try-catch so email is always sent — fall back to direct frontend URL
+    // if magic link generation fails rather than dropping the email entirely.
+    try {
+      const linkRes = await fetchWithTimeout(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+        method: "POST",
+        headers: { "apikey": serviceKey, "Authorization": `Bearer ${serviceKey}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "magiclink", email: magicLinkEmail, options: { redirect_to: FRONTEND_URL } }),
+      });
+      const linkData = await linkRes.json();
+      finalHtml = html.replaceAll("MAGIC_LINK_PLACEHOLDER", linkData.action_link || FRONTEND_URL);
+    } catch {
+      finalHtml = html.replaceAll("MAGIC_LINK_PLACEHOLDER", FRONTEND_URL);
+    }
   }
   const safeSubject = String(subject).replace(/[\r\n]/g, "");
   const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {

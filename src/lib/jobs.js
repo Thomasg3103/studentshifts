@@ -53,8 +53,9 @@ export async function fetchJobBySlug(titleSlug, companySlug) {
   const title   = fromJobSlug(titleSlug);
   const company = fromJobSlug(companySlug);
 
+  // F16: allow Closed/Expired so deep links to filled/expired jobs resolve instead of 404
   const { data: jobs, error } = await withTimeout(
-    supabase.from("jobs").select("*").ilike("title", escapeIlike(title)).eq("status", "Active"),
+    supabase.from("jobs").select("*").ilike("title", escapeIlike(title)),
     10000
   );
   if (error) throw error;

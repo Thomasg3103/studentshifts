@@ -42,7 +42,7 @@ export async function signOut() {
 export async function sendPasswordReset(email) {
   const { error } = await withTimeout(
     supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin,
+      redirectTo: import.meta.env.VITE_SITE_URL || "https://studentshifts.ie",
     }),
     15000, "Password reset timed out — please try again."
   );

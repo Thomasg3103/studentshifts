@@ -58,6 +58,27 @@ ALTER TABLE email_sends_log ENABLE ROW LEVEL SECURITY;
 -- No policies: only service_role (Edge Functions) can read/write this table
 
 
+-- F15: Atomic rate-limit check + insert for GDPR data export.
+-- Raises if the user has already exported within the last 24 hours.
+-- SECURITY DEFINER so it can write to export_log without an INSERT policy.
+CREATE OR REPLACE FUNCTION check_and_log_export(p_user_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER VOLATILE AS $$
+BEGIN
+  IF p_user_id <> auth.uid() THEN
+    RAISE EXCEPTION 'Unauthorised';
+  END IF;
+  PERFORM pg_advisory_xact_lock(hashtext(p_user_id::text || '_export'));
+  IF EXISTS (
+    SELECT 1 FROM export_log
+    WHERE user_id = p_user_id AND exported_at > now() - interval '24 hours'
+  ) THEN
+    RAISE EXCEPTION 'You can only export your data once every 24 hours.';
+  END IF;
+  INSERT INTO export_log (user_id) VALUES (p_user_id);
+END;
+$$;
+
+
 -- ================================================================
 -- TABLE: profiles
 -- Stores: id, name, role, created_at
@@ -315,6 +336,10 @@ CREATE OR REPLACE FUNCTION check_chat_rate_limit()
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER VOLATILE AS $$
 DECLARE cnt bigint;
 BEGIN
+  -- S1: advisory lock serialises concurrent sends from the same user so the
+  -- COUNT + INSERT are atomic — without this two concurrent requests can both
+  -- pass the < 20 check before either row commits.
+  PERFORM pg_advisory_xact_lock(hashtext(auth.uid()::text));
   SELECT COUNT(*) INTO cnt
   FROM chat_messages
   WHERE sender_id = auth.uid() AND created_at > now() - interval '1 minute';
@@ -791,6 +816,29 @@ BEGIN
 END;
 $$;
 
+-- Deletes a company's job and all dependent records in one transaction.
+-- F5: Cascades to applications, chat_messages, liked_jobs (no DB-level FK CASCADE).
+-- S14: Blocks deletion if any applicant has been Accepted (hired) for this job.
+DROP FUNCTION IF EXISTS delete_job_cascade(uuid);
+CREATE FUNCTION delete_job_cascade(p_job_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM jobs WHERE id = p_job_id AND company_id = auth.uid()) THEN
+    RAISE EXCEPTION 'Unauthorised';
+  END IF;
+  IF EXISTS (SELECT 1 FROM applications WHERE job_id = p_job_id AND status = 'Accepted') THEN
+    RAISE EXCEPTION 'Cannot delete: this job has accepted applicants';
+  END IF;
+  DELETE FROM chat_messages WHERE job_id = p_job_id;
+  DELETE FROM liked_jobs    WHERE job_id = p_job_id;
+  DELETE FROM applications  WHERE job_id = p_job_id;
+  DELETE FROM jobs          WHERE id = p_job_id;
+  INSERT INTO audit_log (actor_id, action, target_id)
+    VALUES (auth.uid(), 'delete_job', p_job_id);
+END;
+$$;
+
+
 -- Delete the currently authenticated user's own account.
 -- R3-C1: Explicitly cascades all tables for GDPR Art. 17 compliance.
 -- FK cascades alone are not reliable across all schemas; belt-and-suspenders approach.
@@ -809,6 +857,7 @@ BEGIN
   DELETE FROM liked_jobs             WHERE student_id = uid;
   DELETE FROM company_liked_students WHERE company_id  = uid OR student_id = uid;
   DELETE FROM applications           WHERE student_id  = uid;
+  DELETE FROM hire_action_log        WHERE company_id  = uid;
   DELETE FROM jobs                   WHERE company_id  = uid;
   DELETE FROM export_log             WHERE user_id     = uid;
   DELETE FROM email_sends_log        WHERE user_id     = uid;

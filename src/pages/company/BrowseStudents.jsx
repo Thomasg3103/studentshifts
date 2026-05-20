@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import { supabase } from "../../lib/supabase";
-import { fetchAllMessagesWithStudent, sendMessage, sendEmail, emailCompanyInterested } from "../../lib/auth";
+import { fetchAllMessagesWithStudent, sendMessage, sendEmail } from "../../lib/auth";
 import { StudentAvailabilityRow, weekdays } from "./shared";
 
 const PAGE_SIZE = 20;
@@ -74,10 +74,9 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
         if (studentEmail) {
           sendEmail({
             to: studentEmail,
-            subject: `${companyName} is interested in hiring you`,
-            html: emailCompanyInterested(chatStudent.name, companyName),
+            templateType: "company_interested",
             magicLinkEmail: studentEmail,
-            redirectTo: window.location.origin,
+            redirectTo: import.meta.env.VITE_SITE_URL || "https://studentshifts.ie",
           }).catch(console.warn);
         }
       }

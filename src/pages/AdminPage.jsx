@@ -103,6 +103,16 @@ export default function AdminPage() {
       const isNew = await approveStudent(student.id);
       setStudents(prev => prev.filter(s => s.id !== student.id));
       if (isNew) {
+        // S7: delete verification doc files from storage now that they've been reviewed.
+        // The RPC already nulls the URLs; here we remove the actual files so they
+        // don't accumulate indefinitely in the verification-docs bucket.
+        const { supabase: sb } = await import("../lib/supabase");
+        const { data: verifyFiles } = await sb.storage.from("verification-docs").list(student.id).catch(() => ({ data: null }));
+        if (verifyFiles?.length) {
+          await sb.storage.from("verification-docs")
+            .remove(verifyFiles.map(f => `${student.id}/${f.name}`))
+            .catch(e => console.warn("Verification doc cleanup failed:", e.message));
+        }
         if (student.email) {
           try {
             await sendEmail({
@@ -110,7 +120,7 @@ export default function AdminPage() {
               subject: "Your StudentShifts account has been approved!",
               html: emailStudentApproved(student.name),
               magicLinkEmail: student.email,
-              redirectTo: window.location.origin,
+              redirectTo: import.meta.env.VITE_SITE_URL || "https://studentshifts.ie",
             });
             toast.success(`${student.name} approved and notified.`);
           } catch (e) {
@@ -177,7 +187,7 @@ export default function AdminPage() {
             await sendEmail({
               to: company.email,
               subject: "Your StudentShifts company account has been verified!",
-              html: emailCompanyApproved(company.name, window.location.origin),
+              html: emailCompanyApproved(company.name, import.meta.env.VITE_SITE_URL || "https://studentshifts.ie"),
             });
             toast.success(`${company.name} approved and notified.`);
           } catch (e) {

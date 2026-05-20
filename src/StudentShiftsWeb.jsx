@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useRef, useCallback, useContext, lazy, Suspense } from "react";
 import * as Sentry from "@sentry/react";
 import { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -185,8 +186,11 @@ export default function StudentShiftsWeb() {
           try {
             const profile = await getProfile(session.user.id);
             if (!profile) {
-              // DB trigger failed at signup — profile row missing; log and leave on landing page
+              // F1: DB trigger failed at signup — profile row missing. Sign out so the user
+              // isn't stuck in a half-created state; the same email can then re-register.
               console.warn("Profile missing (DB trigger failed?) for user", session.user.id);
+              await supabase.auth.signOut().catch(() => {});
+              toast.error("Your account setup didn't complete. Please sign up again or contact support@studentshifts.ie.");
             } else {
               const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
               setCurrentUser(user);
@@ -216,8 +220,10 @@ export default function StudentShiftsWeb() {
         try {
           const profile = await getProfile(session.user.id);
           if (!profile) {
-            // DB trigger failed — profile row missing; can't proceed without role/data
+            // F1: same as INITIAL_SESSION — sign out and let user re-register
             console.warn("Profile missing on SIGNED_IN (DB trigger failed?) for user", session.user.id);
+            await supabase.auth.signOut().catch(() => {});
+            navigate("/?signup_error=1", { replace: true });
             return;
           }
           const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });

@@ -240,8 +240,10 @@ export default function CompanyDashboard() {
 
   const deletePosting = async (id) => {
     try {
+      // F5/S14: use RPC that cascades applications+chat_messages and blocks deletion
+      // if there are any Accepted applicants (would orphan hired students).
       const { error } = await withTimeout(
-        supabase.from("jobs").delete().eq("id", id),
+        supabase.rpc("delete_job_cascade", { p_job_id: id }),
         10000, "Delete timed out."
       );
       if (error) throw error;
@@ -249,7 +251,12 @@ export default function CompanyDashboard() {
       if (activePosting?.id === id) { setActivePosting(null); setModal(null); }
     } catch (e) {
       console.error("[CompanyDashboard] deletePosting error:", e);
-      toast.error("Failed to delete job. Please try again.");
+      const msg = e.message || "";
+      if (msg.includes("accepted applicants")) {
+        toast.error("This job has accepted applicants and cannot be deleted. Close it instead.");
+      } else {
+        toast.error("Failed to delete job. Please try again.");
+      }
     }
   };
 

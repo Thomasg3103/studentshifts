@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import { supabase } from "../../lib/supabase";
-import { fetchAllMessagesWithStudent, sendMessage, sendEmail, emailCompanyInterested } from "../../lib/auth";
+import { fetchAllMessagesWithStudent, sendMessage, sendEmail } from "../../lib/auth";
 import { StudentAvailabilityRow } from "./shared";
 
 export default function SavedStudents({ students, loading, fetched, error, likedStudentIds, applicantStudentIds, onToggleLike, chatStudent, setChatStudent, companyId, companyName }) {
@@ -33,7 +33,7 @@ export default function SavedStudents({ students, loading, fetched, error, liked
       .channel(`saved_direct_${companyId}_${chatStudent.id}`)
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "chat_messages",
-        filter: `company_id=eq.${companyId}&student_id=eq.${chatStudent.id}`,
+        filter: `and(company_id=eq.${companyId},student_id=eq.${chatStudent.id})`,
       }, payload => {
         setChatMessages(prev => [...prev, payload.new]);
       })
@@ -60,10 +60,9 @@ export default function SavedStudents({ students, loading, fetched, error, liked
         if (studentEmail) {
           sendEmail({
             to: studentEmail,
-            subject: `${companyName} is interested in hiring you`,
-            html: emailCompanyInterested(chatStudent.name, companyName),
+            templateType: "company_interested",
             magicLinkEmail: studentEmail,
-            redirectTo: window.location.origin,
+            redirectTo: import.meta.env.VITE_SITE_URL || "https://studentshifts.ie",
           }).catch(console.warn);
         }
       }

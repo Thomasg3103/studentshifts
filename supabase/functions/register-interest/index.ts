@@ -32,6 +32,14 @@ Deno.serve(async (req: Request) => {
   const origin  = req.headers.get("origin");
   const headers = corsHeaders(origin);
 
+  // S13: kill switch — set DISABLE_REGISTER_INTEREST=true in Supabase secrets to shut down
+  if (Deno.env.get("DISABLE_REGISTER_INTEREST") === "true") {
+    return new Response(JSON.stringify({ error: "Registration is now closed." }), {
+      status: 410,
+      headers: { ...headers, "Content-Type": "application/json" },
+    });
+  }
+
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers });
   }
