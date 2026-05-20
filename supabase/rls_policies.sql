@@ -816,6 +816,114 @@ BEGIN
 END;
 $$;
 
+-- ================================================================
+-- S3: Atomic accept + filled_shifts + auto-decline in one DB transaction.
+-- Replaces three separate DB calls in the hire-applicant Edge Function.
+-- Called by hire-applicant Edge Function with service role (no auth.uid()).
+-- p_company_id validated against job.company_id for defense in depth.
+-- ================================================================
+DROP FUNCTION IF EXISTS accept_and_decline_applicants(uuid, uuid);
+CREATE FUNCTION accept_and_decline_applicants(p_application_id uuid, p_company_id uuid)
+RETURNS TABLE (
+  winner_student_id     uuid,
+  winner_preferred_shift text,
+  declined_student_ids  uuid[],
+  notify_student_ids    uuid[],
+  all_shifts_filled     boolean,
+  new_filled_shifts     text[],
+  out_job_id            uuid,
+  out_job_title         text
+)
+LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE
+  v_app           RECORD;
+  v_job           RECORD;
+  v_hired_day     text;
+  v_new_filled    text[];
+  v_all_filled    boolean;
+  v_declined_ids  uuid[];
+  v_notify_ids    uuid[];
+  v_rows_accepted int;
+BEGIN
+  SELECT id, student_id, job_id, preferred_shift, status
+  INTO v_app FROM applications WHERE id = p_application_id;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Application not found'; END IF;
+
+  -- Lock job row to serialise concurrent hire actions for the same job
+  SELECT id, company_id, title, days, COALESCE(filled_shifts, '{}') AS filled_shifts
+  INTO v_job FROM jobs WHERE id = v_app.job_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Job not found'; END IF;
+
+  IF v_job.company_id <> p_company_id THEN RAISE EXCEPTION 'Unauthorised'; END IF;
+
+  UPDATE applications SET status = 'Accepted'
+  WHERE id = p_application_id AND status = 'Pending';
+  GET DIAGNOSTICS v_rows_accepted = ROW_COUNT;
+  IF v_rows_accepted = 0 THEN RAISE EXCEPTION 'Application already processed'; END IF;
+
+  -- Extract day from preferred_shift (e.g. "Monday · 09:00" → "Monday")
+  v_hired_day := CASE
+    WHEN v_app.preferred_shift IS NOT NULL AND trim(v_app.preferred_shift) != ''
+    THEN split_part(v_app.preferred_shift, ' · ', 1)
+    ELSE NULL
+  END;
+
+  -- Compute new filled_shifts
+  IF v_hired_day IS NULL THEN
+    v_new_filled := v_job.days;
+  ELSIF v_hired_day = ANY(v_job.filled_shifts) THEN
+    v_new_filled := v_job.filled_shifts;
+  ELSE
+    v_new_filled := array_append(v_job.filled_shifts, v_hired_day);
+  END IF;
+
+  v_all_filled := array_length(v_job.days, 1) > 0
+               AND array_length(v_new_filled, 1) >= array_length(v_job.days, 1);
+
+  -- Collect declined student IDs before updating status
+  SELECT array_agg(a.student_id) INTO v_declined_ids
+  FROM applications a
+  WHERE a.job_id = v_job.id AND a.status = 'Pending' AND a.id != p_application_id
+    AND (
+      v_hired_day IS NULL
+      OR split_part(COALESCE(a.preferred_shift, ''), ' · ', 1) = v_hired_day
+      OR ((a.preferred_shift IS NULL OR trim(a.preferred_shift) = '') AND v_all_filled)
+    );
+
+  -- Collect notify-only student IDs (no preferred shift, some shifts still open)
+  SELECT array_agg(a.student_id) INTO v_notify_ids
+  FROM applications a
+  WHERE a.job_id = v_job.id AND a.status = 'Pending' AND a.id != p_application_id
+    AND (a.preferred_shift IS NULL OR trim(a.preferred_shift) = '')
+    AND v_hired_day IS NOT NULL AND NOT v_all_filled
+    AND NOT (a.student_id = ANY(COALESCE(v_declined_ids, '{}')));
+
+  -- Decline competitors
+  IF v_declined_ids IS NOT NULL AND array_length(v_declined_ids, 1) > 0 THEN
+    UPDATE applications SET status = 'Rejected'
+    WHERE job_id = v_job.id AND status = 'Pending' AND student_id = ANY(v_declined_ids);
+  END IF;
+
+  -- Update job (close if all shifts filled)
+  IF v_all_filled THEN
+    UPDATE jobs SET filled_shifts = v_new_filled, status = 'Closed' WHERE id = v_job.id;
+  ELSE
+    UPDATE jobs SET filled_shifts = v_new_filled WHERE id = v_job.id;
+  END IF;
+
+  RETURN QUERY SELECT
+    v_app.student_id,
+    v_app.preferred_shift,
+    COALESCE(v_declined_ids, '{}'),
+    COALESCE(v_notify_ids, '{}'),
+    v_all_filled,
+    v_new_filled,
+    v_job.id,
+    v_job.title;
+END;
+$$;
+
+
 -- Deletes a company's job and all dependent records in one transaction.
 -- F5: Cascades to applications, chat_messages, liked_jobs (no DB-level FK CASCADE).
 -- S14: Blocks deletion if any applicant has been Accepted (hired) for this job.
@@ -929,7 +1037,8 @@ RETURNS TABLE (
   profile_photo_url text,
   location_display  text,
   availability      jsonb,
-  job_preferences   text[]
+  job_preferences   text[],
+  allow_company_dm  boolean
 )
 LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
 DECLARE call_count bigint;
@@ -954,7 +1063,8 @@ BEGIN
   END IF;
   RETURN QUERY
     SELECT p.id, p.name, s.bio, s.skills, s.linkedin, s.profile_photo_url,
-           s.location_display, s.availability, s.job_preferences
+           s.location_display, s.availability, s.job_preferences,
+           COALESCE(s.allow_company_dm, TRUE)
     FROM students s
     JOIN profiles p ON p.id = s.id
     WHERE s.status = 'verified'

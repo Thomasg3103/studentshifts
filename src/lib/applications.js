@@ -58,11 +58,15 @@ export async function createApplication(userId, jobId, preferredShift = null) {
 export async function fetchApplicationStatuses(userId) {
   await ensureValidSession();
   const { data, error } = await withTimeout(
-    supabase.from("applications").select("job_id, status").eq("student_id", userId),
+    supabase.from("applications").select("job_id, status, pipeline_stage, preferred_shift").eq("student_id", userId),
     10000
   );
   if (error) throw error;
-  return Object.fromEntries((data || []).map(r => [r.job_id, r.status]));
+  return Object.fromEntries((data || []).map(r => [r.job_id, {
+    status: r.status,
+    pipeline_stage: r.pipeline_stage || "applied",
+    preferred_shift: r.preferred_shift || null,
+  }]));
 }
 
 export async function removeApplication(userId, jobId) {

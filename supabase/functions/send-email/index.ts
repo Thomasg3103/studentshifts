@@ -215,6 +215,9 @@ Deno.serve(async (req: Request) => {
       // Strip newlines from job title to prevent SMTP header injection
       const safeSubject = `New applicant for ${String(job.title).replace(/[\r\n]/g, "")}`;
 
+      // L4: log BEFORE send so Brevo timeout can't skip the rate-limit increment
+      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+
       const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
@@ -228,9 +231,6 @@ Deno.serve(async (req: Request) => {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Brevo API error");
-
-      // Log this send so the rate-limit counter is accurate
-      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -293,6 +293,9 @@ Deno.serve(async (req: Request) => {
         finalHtml = html.replaceAll("MAGIC_LINK_PLACEHOLDER", FRONTEND_URL);
       }
 
+      // L4: log BEFORE send
+      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+
       const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
@@ -307,7 +310,6 @@ Deno.serve(async (req: Request) => {
         const err = await res.json().catch(() => ({}));
         throw new Error(`Brevo API error ${res.status}: ${(err as { message?: string }).message || "unknown"}`);
       }
-      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -364,6 +366,9 @@ Deno.serve(async (req: Request) => {
     </td></tr>
   </table>
 </body></html>`;
+      // L4: log BEFORE send
+      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+
       await Promise.allSettled(emails.map((email: string) =>
         fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
           method: "POST",
@@ -376,7 +381,6 @@ Deno.serve(async (req: Request) => {
           }),
         }).catch(e => console.warn("job-closed email failed:", e))
       ));
-      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -465,6 +469,9 @@ Deno.serve(async (req: Request) => {
     // Strip newlines from subject to prevent SMTP header injection
     const safeSubject = String(subject).replace(/[\r\n]/g, "");
 
+    // L4: log BEFORE send
+    await adminClient.from("email_sends_log").insert({ user_id: user.id });
+
     const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
       method: "POST",
       headers: {
@@ -481,7 +488,6 @@ Deno.serve(async (req: Request) => {
 
     const data = await res.json();
     if (!res.ok) throw new Error(data.message || "Brevo API error");
-    await adminClient.from("email_sends_log").insert({ user_id: user.id });
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

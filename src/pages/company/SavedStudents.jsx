@@ -35,7 +35,11 @@ export default function SavedStudents({ students, loading, fetched, error, liked
         event: "INSERT", schema: "public", table: "chat_messages",
         filter: `and(company_id=eq.${companyId},student_id=eq.${chatStudent.id})`,
       }, payload => {
-        setChatMessages(prev => [...prev, payload.new]);
+        const msg = payload.new;
+        setChatMessages(prev => {
+          if (prev.some(m => m.id === msg.id)) return prev;
+          return [...prev, msg];
+        });
       })
       .subscribe();
 

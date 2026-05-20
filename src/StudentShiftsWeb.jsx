@@ -324,7 +324,11 @@ export default function StudentShiftsWeb() {
       .on("postgres_changes",
         { event: "UPDATE", schema: "public", table: "applications", filter: `student_id=eq.${currentUser.id}` },
         ({ new: row }) => {
-          setAppStatuses(prev => ({ ...prev, [row.job_id]: row.status }));
+          setAppStatuses(prev => ({ ...prev, [row.job_id]: {
+            status: row.status,
+            pipeline_stage: row.pipeline_stage || "applied",
+            preferred_shift: row.preferred_shift || null,
+          } }));
         }
       )
       .subscribe();
@@ -335,7 +339,7 @@ export default function StudentShiftsWeb() {
   useEffect(() => {
     if (!currentUser || currentUser.role !== "student") { setNotifCount(0); return; }
     const count = appliedJobs.reduce((acc, job) => {
-      const status = appStatuses[job.id] || "Pending";
+      const status = appStatuses[job.id]?.status || "Pending";
       return acc + (status !== "Pending" ? 1 : 0);
     }, 0);
     setNotifCount(count);

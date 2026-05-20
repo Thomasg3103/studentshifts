@@ -39,7 +39,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       .channel(`direct_${companyId}_${chatStudent.id}`)
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "chat_messages",
-        filter: `company_id=eq.${companyId}&student_id=eq.${chatStudent.id}`,
+        filter: `and(company_id=eq.${companyId},student_id=eq.${chatStudent.id})`,
       }, payload => {
         const msg = payload.new;
         setChatMessages(prev => {
@@ -300,10 +300,12 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
             )}
             <StudentAvailabilityRow availability={s.availability} />
             <button
-              onClick={() => { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); }}
-              style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
+              onClick={s.allow_company_dm !== false ? () => { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); } : undefined}
+              disabled={s.allow_company_dm === false}
+              title={s.allow_company_dm === false ? "This student has turned off direct messages from companies" : undefined}
+              style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: s.allow_company_dm === false ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: s.allow_company_dm === false ? 0.4 : 1 }}
             >
-              Message
+              {s.allow_company_dm === false ? "DMs Off" : "Message"}
             </button>
           </div>
         </div>

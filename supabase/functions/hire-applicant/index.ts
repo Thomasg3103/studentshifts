@@ -278,20 +278,20 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // Idempotency: reject duplicate (applicationId + action) within 60s
+    // S2: INSERT-first idempotency — the unique index idx_hire_action_log_ikey serialises
+    // duplicate requests at the DB level, eliminating the SELECT-first TOCTOU race.
     const iKey = idempotencyKey || `${applicationId}:${action}`;
-    const { data: existing } = await adminClient
-      .from("hire_action_log")
-      .select("id, result")
-      .eq("company_id", user.id)
-      .eq("idempotency_key", iKey)
-      .gte("created_at", new Date(Date.now() - 60_000).toISOString())
-      .single();
-    if (existing) {
-      return new Response(JSON.stringify({ success: true, idempotent: true, cached: existing.result }), {
+    const { error: iKeyErr } = await adminClient.from("hire_action_log").insert({
+      company_id: user.id, action, idempotency_key: iKey, result: null,
+    });
+    if (iKeyErr?.code === "23505") {
+      const { data: cached } = await adminClient.from("hire_action_log")
+        .select("result").eq("company_id", user.id).eq("idempotency_key", iKey).single();
+      return new Response(JSON.stringify({ success: true, idempotent: true, cached: cached?.result ?? null }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    if (iKeyErr) throw iKeyErr;
 
     // Fetch application
     const { data: app } = await adminClient
@@ -316,120 +316,83 @@ Deno.serve(async (req: Request) => {
     const studentEmail: string | undefined = emailRows?.[0]?.email;
 
     if (action === "accept") {
-      // 1. Accept the winner — only if still Pending (guards against re-accept and concurrent double-hire)
-      const { data: acceptedRows, error: acceptErr } = await adminClient
-        .from("applications").update({ status: "Accepted" })
-        .eq("id", applicationId).eq("status", "Pending").select("id");
-      if (acceptErr) throw acceptErr;
-      if (!acceptedRows?.length) throw new Error("Application already processed");
-
-      // 2. Write idempotency key — after accept confirmed, before secondary effects
-      //    so any retry on email/shift failure correctly returns success (app already accepted).
-      await adminClient.from("hire_action_log").insert({
-        company_id: user.id, action, idempotency_key: iKey, result: null,
-      }).catch(() => {});
-
-      // 3. Atomically update filled_shifts via RPC (prevents concurrent same-shift double-hire race)
-      const hiredDay = (app.preferred_shift as string | null)?.trim()
-        ? (app.preferred_shift as string).split(" · ")[0].trim()
-        : null;
-      const { data: shiftResult } = await adminClient.rpc("add_filled_shift", {
-        p_job_id: job.id, p_day: hiredDay,
-      });
-      const newFilledShifts: string[] =
-        (shiftResult as { new_filled: string[]; all_filled: boolean }[] | null)?.[0]?.new_filled
-        || (hiredDay ? [...(job.filled_shifts || []), hiredDay] : [...(job.days || [])]);
-      const allShiftsFilled: boolean =
-        (shiftResult as { new_filled: string[]; all_filled: boolean }[] | null)?.[0]?.all_filled
-        ?? ((job.days?.length || 0) > 0 && newFilledShifts.length >= (job.days?.length || 0));
-      const hiredShiftWithTime: string | null = (app.preferred_shift as string | null)?.trim()
-        || (hiredDay && job.times?.[hiredDay] ? `${hiredDay} · ${job.times[hiredDay]}` : hiredDay)
-        || null;
-
-      // 3. Find and auto-decline competing applicants
-      const { data: others } = await adminClient
-        .from("applications")
-        .select("id, student_id, preferred_shift")
-        .eq("job_id", job.id).eq("status", "Pending").neq("id", applicationId);
-      const declinedIds: string[] = ((others || []) as { id: string; student_id: string; preferred_shift: string | null }[])
-        .filter(o => {
-          if (!hiredDay) return true;
-          const oDay = o.preferred_shift ? o.preferred_shift.split(" · ")[0].trim() : null;
-          if (oDay === hiredDay) return true;
-          if (!oDay) return allShiftsFilled;
-          return false;
-        }).map(o => o.id);
-      if (declinedIds.length) {
-        await adminClient.from("applications").update({ status: "Rejected" }).in("id", declinedIds);
+      // S3: atomic accept + filled_shifts + auto-decline in one DB transaction
+      type RpcRow = {
+        winner_student_id: string; winner_preferred_shift: string | null;
+        declined_student_ids: string[]; notify_student_ids: string[];
+        all_shifts_filled: boolean; new_filled_shifts: string[];
+        out_job_id: string; out_job_title: string;
+      };
+      let rpcRow: RpcRow;
+      try {
+        const { data: rpcData, error: rpcErr } = await adminClient.rpc("accept_and_decline_applicants", {
+          p_application_id: applicationId,
+          p_company_id: user.id,
+        });
+        if (rpcErr) throw rpcErr;
+        if (!rpcData?.[0]) throw new Error("Application not found");
+        rpcRow = rpcData[0] as RpcRow;
+      } catch (rpcEx) {
+        // Clean up idempotency key so client can retry with a fresh request
+        await adminClient.from("hire_action_log").delete()
+          .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+        throw rpcEx;
       }
 
-      // 4. Close job if all shifts filled
-      let closedJob = false;
-      if (allShiftsFilled) {
-        await adminClient.from("jobs").update({ status: "Closed" }).eq("id", job.id);
-        closedJob = true;
-      }
+      const { winner_student_id, winner_preferred_shift, declined_student_ids,
+        notify_student_ids, all_shifts_filled, new_filled_shifts } = rpcRow;
 
-      // 5. Send emails best-effort
+      const hiredShiftWithTime = (winner_preferred_shift as string | null)?.trim() || null;
+      const hiredDay = hiredShiftWithTime?.split(" · ")[0]?.trim() ?? null;
       const remainingShiftsAfterHire = ((job.days as string[]) || [])
-        .filter(d => !newFilledShifts.includes(d))
-        .map(d => { const t = job.times?.[d]; return t ? `${d} · ${t}` : d; });
+        .filter(d => !(new_filled_shifts as string[]).includes(d))
+        .map(d => {
+          const t = (job.times as Record<string, string | string[]> | null)?.[d];
+          const tLabel = Array.isArray(t) ? t[0] : t;
+          return tLabel ? `${d} · ${tLabel}` : d;
+        });
 
-      const notifyOnly = (hiredDay && others)
-        ? (others as { id: string; student_id: string; preferred_shift: string | null }[])
-            .filter(o => !declinedIds.includes(o.id) && !o.preferred_shift)
-        : [];
-
-      const declinedStudentIds = (others || [])
-        .filter((o: { id: string }) => declinedIds.includes(o.id))
-        .map((o: { student_id: string }) => o.student_id);
-
-      const allStudentIds = [...new Set([app.student_id, ...declinedStudentIds, ...notifyOnly.map(o => o.student_id)])];
-      const { data: emailProfiles } = await adminClient.rpc("get_user_emails", { user_ids: allStudentIds });
-      const emailMap: Record<string, string> = Object.fromEntries((emailProfiles || []).map((p: { id: string; email: string }) => [p.id, p.email]));
-
-      const declinedProfilesRes = declinedStudentIds.length
-        ? await adminClient.from("profiles").select("id, name").in("id", declinedStudentIds)
-        : { data: [] };
-      const declinedNameMap: Record<string, string> = Object.fromEntries(
-        ((declinedProfilesRes.data || []) as { id: string; name: string }[]).map(p => [p.id, p.name])
+      // Fetch emails + names for winner, declined, and notify students in one batch
+      const uniqStudentIds = [...new Set([winner_student_id, ...(declined_student_ids || []), ...(notify_student_ids || [])])];
+      const { data: emailProfiles } = await adminClient.rpc("get_user_emails", { user_ids: uniqStudentIds.slice(0, 50) });
+      const emailMap: Record<string, string> = Object.fromEntries(
+        ((emailProfiles || []) as { id: string; email: string }[]).map(p => [p.id, p.email])
       );
-      const notifyProfilesRes = notifyOnly.length
-        ? await adminClient.from("profiles").select("id, name").in("id", notifyOnly.map(o => o.student_id))
-        : { data: [] };
-      const notifyNameMap: Record<string, string> = Object.fromEntries(
-        ((notifyProfilesRes.data || []) as { id: string; name: string }[]).map(p => [p.id, p.name])
+      const { data: nameProfiles } = await adminClient.from("profiles").select("id, name").in("id", uniqStudentIds);
+      const nameMap: Record<string, string> = Object.fromEntries(
+        ((nameProfiles || []) as { id: string; name: string }[]).map(p => [p.id, p.name || "there"])
       );
 
-      if (studentEmail) {
-        sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, studentEmail,
+      // Send emails best-effort
+      const winnerEmail = emailMap[winner_student_id] || studentEmail;
+      if (winnerEmail) {
+        sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, winnerEmail,
           `You've been hired – ${job.title} at ${companyName}`,
-          emailAccepted(studentName, job.title, companyName, hiredShiftWithTime),
-          studentEmail
+          emailAccepted(nameMap[winner_student_id] || studentName, job.title, companyName, hiredShiftWithTime),
+          winnerEmail
         ).catch(e => console.warn("Acceptance email failed:", e));
       }
-      for (const sid of declinedStudentIds) {
+      for (const sid of (declined_student_ids || [])) {
         const em = emailMap[sid]; if (!em) continue;
         sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
           `Update on your ${job.title} application`,
-          emailDeclined(declinedNameMap[sid] || "there", job.title, companyName, hiredShiftWithTime, remainingShiftsAfterHire)
+          emailDeclined(nameMap[sid] || "there", job.title, companyName, hiredShiftWithTime, remainingShiftsAfterHire)
         ).catch(e => console.warn("Decline email failed:", e));
       }
-      for (const o of notifyOnly) {
-        const em = emailMap[o.student_id]; if (!em) continue;
+      for (const sid of (notify_student_ids || [])) {
+        const em = emailMap[sid]; if (!em) continue;
         const filledLabel = hiredShiftWithTime ?? hiredDay ?? "a shift";
         sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
           `Update on your ${job.title} application`,
-          emailShiftFilled(notifyNameMap[o.student_id] || "there", job.title, companyName, filledLabel, remainingShiftsAfterHire)
+          emailShiftFilled(nameMap[sid] || "there", job.title, companyName, filledLabel, remainingShiftsAfterHire)
         ).catch(e => console.warn("Notify email failed:", e));
       }
 
-      const acceptResult = { filledShifts: newFilledShifts, closedJob, declinedIds };
+      const acceptResult = { filledShifts: new_filled_shifts, closedJob: all_shifts_filled, declinedIds: declined_student_ids };
       await adminClient.from("audit_log").insert({
-        actor_id: user.id, action: "hire_accept", target_id: app.student_id,
+        actor_id: user.id, action: "hire_accept", target_id: winner_student_id,
         metadata: { application_id: applicationId, job_id: app.job_id, job_title: job.title },
       }).catch(() => {});
-      // Update idempotency log with final result now that all side effects are complete
       await adminClient.from("hire_action_log").update({ result: acceptResult })
         .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
       return new Response(JSON.stringify({ success: true, ...acceptResult }), {
@@ -441,12 +404,17 @@ Deno.serve(async (req: Request) => {
     const { data: rejectedRows, error: rejectErr } = await adminClient
       .from("applications").update({ status: "Rejected" })
       .eq("id", applicationId).eq("status", "Pending").select("id");
-    if (rejectErr) throw rejectErr;
-    if (!rejectedRows?.length) throw new Error("Application already processed");
-    // Write idempotency key after reject confirmed, before email side effect
-    await adminClient.from("hire_action_log").insert({
-      company_id: user.id, action, idempotency_key: iKey, result: { applicationId },
-    }).catch(() => {});
+    if (rejectErr) {
+      await adminClient.from("hire_action_log").delete()
+        .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+      throw rejectErr;
+    }
+    if (!rejectedRows?.length) {
+      await adminClient.from("hire_action_log").delete()
+        .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+      throw new Error("Application already processed");
+    }
+    // (idempotency key already inserted at the start — no second INSERT needed)
     if (studentEmail) {
       const stage = (app.pipeline_stage as string) || "applied";
       const subject = `Update on your ${job.title} application`;
@@ -462,6 +430,8 @@ Deno.serve(async (req: Request) => {
       actor_id: user.id, action: "hire_reject", target_id: app.student_id,
       metadata: { application_id: applicationId, job_id: app.job_id, stage: app.pipeline_stage },
     }).catch(() => {});
+    await adminClient.from("hire_action_log").update({ result: { applicationId } })
+      .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

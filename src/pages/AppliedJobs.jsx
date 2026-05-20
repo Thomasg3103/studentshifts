@@ -13,6 +13,14 @@ const STATUS_STYLE = {
   Rejected: { cls: "badge-red",    icon: "❌", label: "Declined" },
 };
 
+const STAGE_LABEL = {
+  applied:     null,
+  shortlisted: "Shortlisted",
+  interview:   "Interview",
+  trial:       "Trial Shift",
+  decision:    "Final Decision",
+};
+
 // Sort order: Accepted first, Rejected second, Pending last
 const STATUS_ORDER = { Accepted: 0, Rejected: 1, Pending: 2 };
 
@@ -47,9 +55,10 @@ function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, 
   );
 }
 
-function AppliedJobCard({ job, status, onRemove, onMessage }) {
+function AppliedJobCard({ job, status, pipelineStage, preferredShift, onRemove, onMessage }) {
   const { setSelectedJob, setPage } = useApp();
   const s = STATUS_STYLE[status] || STATUS_STYLE.Pending;
+  const stageLabel = status === "Pending" ? (STAGE_LABEL[pipelineStage] ?? null) : null;
   const photo = job.photos?.[0] || null;
   const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
@@ -81,6 +90,17 @@ function AppliedJobCard({ job, status, onRemove, onMessage }) {
             <button aria-label={`View ${job.title}`} onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View</button>
           </div>
         </div>
+
+        {stageLabel && (
+          <span className="badge badge-sm badge-blue" style={{ marginBottom: "0.3rem", display: "inline-block" }}>
+            {stageLabel}
+          </span>
+        )}
+        {preferredShift && status === "Pending" && (
+          <p style={{ fontSize: "0.75rem", color: "#6b7280", margin: "0 0 0.2rem" }}>
+            Applied for: <strong>{preferredShift}</strong>
+          </p>
+        )}
 
         <p style={{ color: "#6b7280", fontSize: "0.85rem", marginBottom: "0.15rem" }}>{job.company} · {job.location}</p>
         <p style={{ fontWeight: "700", color: "#111827", marginBottom: "0.35rem", fontSize: "0.9rem" }}>{job.pay}</p>
@@ -155,10 +175,14 @@ export default function AppliedJobs() {
     setPage("messages");
   };
 
+  const getStatus = (jobId) => statuses[jobId]?.status || "Pending";
+  const getStage  = (jobId) => statuses[jobId]?.pipeline_stage || "applied";
+  const getShift  = (jobId) => statuses[jobId]?.preferred_shift || null;
+
   // Sort: Accepted → Rejected → Pending; ties keep original order
   const sorted = [...appliedJobs].sort((a, b) => {
-    const sa = STATUS_ORDER[statuses[a.id] ?? "Pending"] ?? 2;
-    const sb = STATUS_ORDER[statuses[b.id] ?? "Pending"] ?? 2;
+    const sa = STATUS_ORDER[getStatus(a.id)] ?? 2;
+    const sb = STATUS_ORDER[getStatus(b.id)] ?? 2;
     return sa - sb;
   });
 
@@ -186,7 +210,9 @@ export default function AppliedJobs() {
               <AppliedJobCard
                 key={job.id}
                 job={job}
-                status={statuses[job.id] || "Pending"}
+                status={getStatus(job.id)}
+                pipelineStage={getStage(job.id)}
+                preferredShift={getShift(job.id)}
                 onRemove={handleRemoveRequest}
                 onMessage={handleMessage}
               />
