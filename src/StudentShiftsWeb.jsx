@@ -227,6 +227,11 @@ export default function StudentShiftsWeb() {
             return;
           }
           const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
+          if (!session.user.email_confirmed_at) {
+            await supabase.auth.signOut().catch(() => {});
+            navigate("/?unverified=1", { replace: true });
+            return;
+          }
           setCurrentUser(user);
           // GA4 User ID
           if (window.gtag && import.meta.env.VITE_GA_MEASUREMENT_ID) {
@@ -243,7 +248,7 @@ export default function StudentShiftsWeb() {
           if (user.role === "admin") { navigate("/admin", { replace: true }); }
           else if (user.role === "company" && user.verificationStatus === "verified") { navigate("/company", { replace: true }); }
           else if (user.role === "company") { navigate("/", { replace: true }); }
-          else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected")) { navigate("/verify", { replace: true }); }
+          else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected" || user.verificationStatus === "pending_review")) { navigate("/verify", { replace: true }); }
           else { navigate("/", { replace: true }); }
           if (user.role === "student") await loadStudentData(user.id);
         } catch (e) {
