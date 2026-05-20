@@ -212,7 +212,7 @@ async function sendBrevoEmail(
     method: "POST",
     headers: { "api-key": apiKey, "Content-Type": "application/json" },
     body: JSON.stringify({
-      sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
+      sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" },
       to: [{ email: to }],
       subject: safeSubject,
       htmlContent: finalHtml,

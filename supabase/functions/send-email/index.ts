@@ -188,7 +188,7 @@ Deno.serve(async (req: Request) => {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
         body: JSON.stringify({
-          sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
+          sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" },
           to: [{ email: companyEmail }],
           subject: safeSubject,
           htmlContent: html,
@@ -294,7 +294,7 @@ Deno.serve(async (req: Request) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
+        sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" },
         to: Array.isArray(to) ? to.map((email: string) => ({ email })) : [{ email: to }],
         subject: safeSubject,
         htmlContent: finalHtml,

@@ -45,8 +45,34 @@ Deno.serve(async (req: Request) => {
 
   try {
     const body = await req.json().catch(() => ({}));
+    // Survey update — patch existing signup row
+    if (body.survey === true) {
+      const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+      if (!email) {
+        return new Response(JSON.stringify({ error: "Email required" }), {
+          status: 400, headers: { ...headers, "Content-Type": "application/json" },
+        });
+      }
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const serviceKey  = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const db          = createClient(supabaseUrl, serviceKey);
+      const update: Record<string, string> = {};
+      if (body.heard_about)    update.heard_about    = String(body.heard_about).slice(0, 200);
+      if (body.frustration)    update.frustration    = String(body.frustration).slice(0, 500);
+      if (body.work_type)      update.work_type      = String(body.work_type).slice(0, 200);
+      if (body.hire_platforms) update.hire_platforms = String(body.hire_platforms).slice(0, 200);
+      if (body.hire_roles)     update.hire_roles     = String(body.hire_roles).slice(0, 200);
+      if (Object.keys(update).length) {
+        await db.from("signups").update(update).eq("email", email);
+      }
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...headers, "Content-Type": "application/json" },
+      });
+    }
+
     const name  = typeof body.name  === "string" ? body.name.trim()  : "";
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
+    const type  = body.type === "employer" ? "employer" : "student";
 
     if (!name || name.length < 2 || name.length > 100) {
       return new Response(JSON.stringify({ error: "Please enter your name." }), {
@@ -81,7 +107,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { error: insertError } = await db.from("signups").insert([{ name, email }]);
+    const { error: insertError } = await db.from("signups").insert([{ name, email, type }]);
 
     if (insertError && insertError.code !== "23505") {
       // 23505 = unique violation (email already registered) — treat as success
@@ -95,7 +121,7 @@ Deno.serve(async (req: Request) => {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
         body: JSON.stringify({
-          sender:      { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
+          sender:      { name: "StudentShifts", email: "hello@studentshifts.ie" },
           to:          [{ email, name }],
           subject:     `Thanks for registering, ${name}`,
           htmlContent: confirmationEmailHtml(name),
@@ -129,19 +155,21 @@ function confirmationEmailHtml(name: string): string {
 <html>
 <head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/></head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:'Helvetica Neue',Arial,sans-serif;">
-  <div style="max-width:560px;margin:2rem auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
-    <div style="background:linear-gradient(135deg,#A21D54,#C2185B);padding:2rem;text-align:center;">
-      <h1 style="margin:0;color:#fff;font-size:1.5rem;font-weight:800;letter-spacing:-0.3px;">StudentShifts.ie</h1>
-      <p style="margin:0.5rem 0 0;color:rgba(255,255,255,0.85);font-size:0.9rem;">Ireland's student job platform</p>
+  <div style="max-width:560px;margin:2rem auto;background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);">
+    <div style="background:#A21D54;padding:1.75rem 2.5rem;display:flex;align-items:center;gap:0.75rem;">
+      <img src="https://www.studentshifts.ie/favicon.svg" width="40" height="40" alt="StudentShifts" style="border-radius:8px;display:block;" />
+      <div>
+        <p style="margin:0;font-size:1.2rem;font-weight:800;color:#ffffff;letter-spacing:-0.3px;">StudentShifts.ie</p>
+        <p style="margin:0.2rem 0 0;font-size:0.8rem;color:rgba(255,255,255,0.8);">Ireland's student job platform</p>
+      </div>
     </div>
     <div style="padding:2rem 2.5rem;">
-      <h2 style="margin:0 0 0.75rem;color:#1e293b;font-size:1.3rem;font-weight:800;">You're on the list, ${esc(name)}!</h2>
-      <p style="color:#64748b;line-height:1.7;margin:0 0 1rem;">Thanks for registering your interest in StudentShifts.ie — Ireland's first platform built specifically for students looking for flexible part-time work.</p>
-      <p style="color:#64748b;line-height:1.7;margin:0 0 1.5rem;">We'll send you an email the moment we launch, so you can be one of the first to start finding shifts that fit perfectly around your college timetable.</p>
-      <div style="background:#fdf0f5;border-left:4px solid #A21D54;border-radius:0 10px 10px 0;padding:1rem 1.25rem;margin-bottom:1.5rem;">
-        <p style="margin:0;color:#A21D54;font-size:0.9rem;font-weight:600;">Watch this space — we're launching very soon.</p>
-      </div>
-      <p style="color:#94a3b8;font-size:0.8rem;margin:0;">The StudentShifts Team &middot; studentshifts.ie</p>
+      <h2 style="margin:0 0 1rem;font-size:1.2rem;font-weight:700;color:#1e293b;">You're on the list, ${esc(name)}!</h2>
+      <p style="font-size:0.97rem;color:#374151;line-height:1.75;margin:0 0 1rem;">Thanks for signing up. We're putting the finishing touches on StudentShifts.ie — Ireland's first platform built for students to find flexible part-time work around their college timetable.</p>
+      <p style="font-size:0.97rem;color:#374151;line-height:1.75;margin:0 0 1.5rem;">We'll email you the moment we go live. In the meantime, feel free to reply if you have any questions.</p>
+      <p style="font-size:0.97rem;color:#1e293b;margin:0 0 2rem;">Talk soon,<br/><strong>StudentShifts Team</strong><br/><a href="https://www.studentshifts.ie" style="color:#A21D54;text-decoration:none;">StudentShifts.ie</a></p>
+      <hr style="border:none;border-top:1px solid #e2e8f0;margin:0 0 1rem;"/>
+      <p style="font-size:0.75rem;color:#94a3b8;margin:0;">© 2025 StudentShifts.ie</p>
     </div>
   </div>
 </body>
