@@ -870,6 +870,7 @@ BEGIN
 
   -- Compute new filled_shifts
   IF v_hired_day IS NULL THEN
+    -- No preferred shift: student fills all shifts, mark entire days array as filled
     v_new_filled := v_job.days;
   ELSIF v_hired_day = ANY(v_job.filled_shifts) THEN
     v_new_filled := v_job.filled_shifts;
@@ -877,8 +878,14 @@ BEGIN
     v_new_filled := array_append(v_job.filled_shifts, v_hired_day);
   END IF;
 
-  v_all_filled := array_length(v_job.days, 1) > 0
-               AND array_length(v_new_filled, 1) >= array_length(v_job.days, 1);
+  -- When no preferred shift, all shifts are considered filled immediately
+  v_all_filled := CASE
+    WHEN v_hired_day IS NULL THEN
+      COALESCE(array_length(v_job.days, 1), 0) > 0
+    ELSE
+      array_length(v_job.days, 1) > 0
+      AND array_length(v_new_filled, 1) >= array_length(v_job.days, 1)
+  END;
 
   -- Collect declined student IDs before updating status
   SELECT array_agg(a.student_id) INTO v_declined_ids
@@ -890,7 +897,10 @@ BEGIN
       OR ((a.preferred_shift IS NULL OR trim(a.preferred_shift) = '') AND v_all_filled)
     );
 
-  -- Collect notify-only student IDs (no preferred shift, some shifts still open)
+  -- Collect notify-only student IDs (no preferred shift, some shifts still open).
+  -- Gated on v_hired_day IS NOT NULL intentionally: when v_hired_day IS NULL all
+  -- shifts are filled (v_all_filled = true) and every pending applicant is already
+  -- in v_declined_ids, so there is nobody left to notify.
   SELECT array_agg(a.student_id) INTO v_notify_ids
   FROM applications a
   WHERE a.job_id = v_job.id AND a.status = 'Pending' AND a.id != p_application_id
@@ -1084,14 +1094,30 @@ DROP FUNCTION IF EXISTS get_profile_photos(uuid[]);
 CREATE OR REPLACE FUNCTION get_profile_photos(user_ids uuid[])
 RETURNS TABLE (id uuid, profile_photo_url text)
 LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+DECLARE
+  uid uuid := auth.uid();
 BEGIN
-  IF auth.uid() IS NULL THEN
+  IF uid IS NULL THEN
     RAISE EXCEPTION 'Unauthorised';
   END IF;
+  -- Only return photos for users the caller has exchanged messages with,
+  -- preventing enumeration of arbitrary user IDs.
   RETURN QUERY
-    SELECT s.id, s.profile_photo_url FROM students s WHERE s.id = ANY(user_ids)
+    SELECT s.id, s.profile_photo_url FROM students s
+    WHERE s.id = ANY(user_ids)
+      AND EXISTS (
+        SELECT 1 FROM chat_messages cm
+        WHERE cm.student_id = s.id
+          AND (cm.company_id = uid OR cm.student_id = uid)
+      )
     UNION ALL
-    SELECT c.id, c.profile_photo_url FROM companies c WHERE c.id = ANY(user_ids);
+    SELECT c.id, c.profile_photo_url FROM companies c
+    WHERE c.id = ANY(user_ids)
+      AND EXISTS (
+        SELECT 1 FROM chat_messages cm
+        WHERE cm.company_id = c.id
+          AND (cm.company_id = uid OR cm.student_id = uid)
+      );
 END;
 $$;
 

@@ -29,7 +29,11 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
       .channel(`msgs_${jobId}_${studentId}`)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `and(job_id=eq.${jobId},student_id=eq.${studentId})` },
         payload => {
-          setMessages(prev => [...prev, payload.new]);
+          const msg = payload.new;
+          setMessages(prev => {
+            if (prev.some(m => m.id === msg.id)) return prev;
+            return [...prev, msg];
+          });
         })
       .subscribe();
 

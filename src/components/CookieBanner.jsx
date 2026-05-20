@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { initGA } from "../main";
+import { initGA, initSentry } from "../main";
 
 const STORAGE_KEY = "ss_cookie_notice_dismissed";
 
@@ -16,7 +16,8 @@ export default function CookieBanner() {
   const dismiss = () => {
     localStorage.setItem(STORAGE_KEY, "1");
     setDismissed(true);
-    initGA(); // R3-C6: only start GA4 after the user has acknowledged the cookie notice
+    initGA();
+    initSentry();
   };
 
   return (

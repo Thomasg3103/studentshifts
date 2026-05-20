@@ -30,13 +30,19 @@ if (localStorage.getItem("ss_cookie_notice_dismissed") === "1") {
   initGA();
 }
 
-if (import.meta.env.VITE_SENTRY_DSN) {
+export function initSentry() {
+  if (!import.meta.env.VITE_SENTRY_DSN || window.__sentry_initialised) return;
+  window.__sentry_initialised = true;
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.MODE,
     integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.2,
   });
+}
+
+if (localStorage.getItem("ss_cookie_notice_dismissed") === "1") {
+  initSentry();
 }
 
 createRoot(document.getElementById("root")).render(

@@ -240,6 +240,15 @@ export default function CompanyDashboard() {
 
   const deletePosting = async (id) => {
     try {
+      // Delete job photos from storage before removing the DB row
+      const posting = postings.find(p => p.id === id);
+      const photoPaths = (posting?.photos || []).flatMap(url => {
+        const m = url.match(/\/storage\/v1\/object\/public\/job-photos\/(.+?)(\?|$)/);
+        return m ? [decodeURIComponent(m[1])] : [];
+      });
+      if (photoPaths.length) {
+        await supabase.storage.from("job-photos").remove(photoPaths).catch(e => console.warn("Photo cleanup failed:", e));
+      }
       // F5/S14: use RPC that cascades applications+chat_messages and blocks deletion
       // if there are any Accepted applicants (would orphan hired students).
       const { error } = await withTimeout(
