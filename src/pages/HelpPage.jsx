@@ -75,10 +75,10 @@ export default function HelpPage() {
               Can't find what you're looking for? We're happy to help.
             </p>
             <a
-              href="mailto:hello@studentshifts.ie"
+              href="mailto:support@studentshifts.ie"
               style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", padding: "0.7rem 1.5rem", borderRadius: "999px", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: 700, fontSize: "0.9rem", textDecoration: "none" }}
             >
-              Email hello@studentshifts.ie
+              Email support@studentshifts.ie
             </a>
             <p style={{ margin: "1rem 0 0", fontSize: "0.78rem", color: "#94a3b8" }}>We aim to respond within one business day.</p>
           </div>

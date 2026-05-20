@@ -3,7 +3,7 @@ import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
 
-const CONTACT_EMAIL = "hello@studentshifts.ie";
+const CONTACT_EMAIL = "privacy@studentshifts.ie";
 const LAST_UPDATED  = "20 April 2026";
 
 export default function TermsOfServicePage() {

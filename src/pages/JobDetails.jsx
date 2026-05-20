@@ -372,7 +372,7 @@ export default function JobDetails({ job }) {
                 onClick={() => {
                   const subject = encodeURIComponent(`Job Report: ${job.title} at ${job.company}`);
                   const body = encodeURIComponent(`Job ID: ${job.id}\nTitle: ${job.title}\nCompany: ${job.company}\n\nReason:\n${reportReason}`);
-                  window.open(`mailto:hello@studentshifts.ie?subject=${subject}&body=${body}`);
+                  window.open(`mailto:support@studentshifts.ie?subject=${subject}&body=${body}`);
                   setReportOpen(false);
                   setReportReason("");
                 }}

@@ -226,7 +226,7 @@ export function emailStudentRejected(name) {
             <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
               Hi ${safeName},<br/><br/>
               We were unable to verify your StudentShifts student account at this time. This may be because the documents provided were unclear, expired, or did not match our requirements.<br/><br/>
-              You can re-submit your documents by logging into your account. If you believe this is an error, please contact us at hello@studentshifts.ie.
+              You can re-submit your documents by logging into your account. If you believe this is an error, please contact us at support@studentshifts.ie.
             </p>
           </td>
         </tr>
@@ -263,7 +263,7 @@ export function emailCompanyRejected(name) {
             <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
               Hi ${safeName},<br/><br/>
               We were unable to verify your company account on StudentShifts at this time. We could not confirm the provided company details against the Companies Registration Office (CRO).<br/><br/>
-              If you believe this is an error or would like to provide additional information, please contact us at hello@studentshifts.ie.
+              If you believe this is an error or would like to provide additional information, please contact us at support@studentshifts.ie.
             </p>
           </td>
         </tr>

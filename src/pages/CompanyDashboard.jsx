@@ -444,7 +444,7 @@ export default function CompanyDashboard() {
           <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>âŒ</span>
           <div>
             <p style={{ margin: 0, fontWeight: "700", color: "#991b1b", fontSize: "0.95rem" }}>Verification declined</p>
-            <p style={{ margin: "0.2rem 0 0", color: "#b91c1c", fontSize: "0.85rem" }}>Your company account was not approved. Please contact support at hello@studentshifts.ie for assistance.</p>
+            <p style={{ margin: "0.2rem 0 0", color: "#b91c1c", fontSize: "0.85rem" }}>Your company account was not approved. Please contact support at support@studentshifts.ie for assistance.</p>
           </div>
         </div>
       )}

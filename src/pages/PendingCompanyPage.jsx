@@ -26,7 +26,7 @@ export default function PendingCompanyPage() {
         </h1>
         <p style={{ margin: "0 0 1.75rem", fontSize: "0.9rem", color: "#64748b", lineHeight: 1.6 }}>
           {isRejected
-            ? "Your company account could not be verified. This may be due to an invalid CRO number or unclear details. Please contact us at hello@studentshifts.ie to resolve this."
+            ? "Your company account could not be verified. This may be due to an invalid CRO number or unclear details. Please contact us at support@studentshifts.ie to resolve this."
             : "Your company account is under review. We typically verify accounts within 1–2 business days. You'll receive an email once approved."}
         </p>
         <button
