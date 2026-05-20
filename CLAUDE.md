@@ -76,18 +76,6 @@ ThomasGallagher1 / thomasgallagher3103@gmail.com
 - Rate limiting, JWT sessions, encryption — verify these are in place
 - RLS audit — students can't read each other's data
 
-### Student Dashboard
-- Move distance badge to below Days & Times on job card
-- Filters sidebar (desktop) / toggle button (mobile)
-- Sort by: Best Match, Pay H→L, Pay L→H, Date Newest/Oldest, Distance Near/Far
-- Saved searches feature
-- Job card: horizontal layout, square image left, info middle, view+like right
-- Back button below header on all inner screens
-- Time filter fix: use >= not exact match
-
-### Company Dashboard
-- Email revamp: Interview stage sends email with company note + timeslot + optional Teams invite
-- Layout revamp / CSS update
 
 ### Later (before full launch)
 - Send all emails from Brevo account (not thomasgallagher3103@gmail.com) — waiting on Brevo login
