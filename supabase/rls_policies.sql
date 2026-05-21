@@ -140,8 +140,9 @@ CREATE POLICY "students: own update" ON students
       )
     ) AND
     -- Prevent cv_url/cover_letter_url path injection (R3-C13 / FIX #14)
-    (cv_url IS NULL OR cv_url LIKE auth.uid()::text || '/%') AND
-    (cover_letter_url IS NULL OR cover_letter_url LIKE auth.uid()::text || '/%')
+    -- H2: single-segment path regex prevents subdirectory traversal (e.g. uid/../../other)
+    (cv_url IS NULL OR (cv_url ~ ('^' || auth.uid()::text || '/[^/]+$') AND cv_url NOT LIKE '%..%')) AND
+    (cover_letter_url IS NULL OR (cover_letter_url ~ ('^' || auth.uid()::text || '/[^/]+$') AND cover_letter_url NOT LIKE '%..%'))
   );
 
 -- Admin can read all students (pending review list, verification, etc.)
@@ -306,13 +307,17 @@ CREATE POLICY "applications: company read" ON applications
 -- Self-referencing subqueries (to freeze student_id/job_id) are omitted: they trigger recursive RLS
 -- evaluation that causes the subquery to return NULL, making WITH CHECK fail silently.
 -- The USING clause already limits updates to the company's own job applications.
+-- B5-C2/C3: 'Accepted' removed from WITH CHECK — status can only be set to Accepted via the
+-- accept_and_decline_applicants RPC (service role). Direct PATCH can only set Pending/Rejected.
+-- B5-L9: USING also requires company to still be verified (demoted companies lose update rights).
 CREATE POLICY "applications: company update status" ON applications
   FOR UPDATE USING (
     EXISTS (
       SELECT 1 FROM jobs
       WHERE jobs.id = applications.job_id
         AND jobs.company_id = auth.uid()
-    )
+    ) AND
+    EXISTS (SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified')
   )
   WITH CHECK (
     EXISTS (
@@ -320,7 +325,7 @@ CREATE POLICY "applications: company update status" ON applications
       WHERE jobs.id = applications.job_id
         AND jobs.company_id = auth.uid()
     ) AND
-    status IN ('Pending', 'Accepted', 'Rejected') AND
+    status IN ('Pending', 'Rejected') AND
     pipeline_stage IN ('applied', 'shortlisted', 'interview', 'trial', 'decision')
   );
 
@@ -528,7 +533,7 @@ CREATE POLICY "documents: own delete" ON storage.objects
 
 -- Companies can read CVs/cover letters of students who applied to their jobs
 -- (storage paths are structured as userId/cv.ext or userId/cover-letter.ext)
--- Restricted to Accepted applications only — rejected applicants' docs are not accessible.
+-- B5-C1: any application status allowed — companies need to review CVs before deciding to accept.
 CREATE POLICY "documents: company read applicant docs" ON storage.objects
   FOR SELECT USING (
     bucket_id = 'documents' AND
@@ -538,7 +543,6 @@ CREATE POLICY "documents: company read applicant docs" ON storage.objects
       JOIN jobs j ON j.id = a.job_id
       WHERE j.company_id = auth.uid()
         AND a.student_id::text = (storage.foldername(name))[1]
-        AND a.status = 'Accepted'
     )
   );
 
@@ -586,6 +590,14 @@ CREATE POLICY "verification-docs: admin read" ON storage.objects
     is_admin()
   );
 
+-- B5-L1: Admin can delete verification docs post-approval (GDPR Art. 5(1)(e) storage limitation)
+DROP POLICY IF EXISTS "verification-docs: admin delete" ON storage.objects;
+CREATE POLICY "verification-docs: admin delete" ON storage.objects
+  FOR DELETE USING (
+    bucket_id = 'verification-docs' AND
+    is_admin()
+  );
+
 
 -- ================================================================
 -- STORAGE: job-photos bucket
@@ -600,11 +612,13 @@ CREATE POLICY "job-photos: public read" ON storage.objects
   FOR SELECT USING (bucket_id = 'job-photos');
 
 -- Companies can only upload/update/delete photos in their own folder (folder = their user ID)
+-- B5-M12: verification check prevents rejected/pending companies from uploading photos
 CREATE POLICY "job-photos: own upload" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'job-photos' AND
     auth.uid()::text = (storage.foldername(name))[1] AND
-    name NOT LIKE '%..%'
+    name NOT LIKE '%..%' AND
+    EXISTS (SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified')
   );
 
 CREATE POLICY "job-photos: own update" ON storage.objects
@@ -880,6 +894,11 @@ BEGIN
     ELSE NULL
   END;
 
+  -- B5-M6: prevent a second hire for the same shift day (transaction rolls back the Accepted update above)
+  IF v_hired_day IS NOT NULL AND v_hired_day = ANY(v_job.filled_shifts) THEN
+    RAISE EXCEPTION 'Shift % is already filled', v_hired_day;
+  END IF;
+
   -- Compute new filled_shifts
   IF v_hired_day IS NULL THEN
     -- No preferred shift: student fills all shifts, mark entire days array as filled
@@ -1093,6 +1112,7 @@ BEGIN
     FROM students s
     JOIN profiles p ON p.id = s.id
     WHERE s.status = 'verified'
+      AND COALESCE(s.allow_company_dm, TRUE) = TRUE  -- B5-M5: hide opted-out students from browse
     ORDER BY p.id
     LIMIT p_limit OFFSET p_offset;
 END;
@@ -1748,3 +1768,63 @@ BEGIN
     GROUP BY 1, 2;
 END;
 $$;
+
+
+-- ================================================================
+-- B5-C2/C3: Prevent Accepted → non-Accepted status transitions.
+-- The RLS WITH CHECK no longer includes 'Accepted', so companies can't
+-- self-accept via PostgREST. This trigger adds a belt-and-suspenders
+-- guard that also catches any service-role UPDATE that tries to un-accept.
+-- ================================================================
+CREATE OR REPLACE FUNCTION prevent_accepted_status_change()
+RETURNS trigger LANGUAGE plpgsql AS $$
+BEGIN
+  IF OLD.status = 'Accepted' AND NEW.status <> 'Accepted' THEN
+    RAISE EXCEPTION 'Cannot change status of an Accepted application';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS applications_accepted_lock ON applications;
+CREATE TRIGGER applications_accepted_lock
+  BEFORE UPDATE ON applications
+  FOR EACH ROW EXECUTE FUNCTION prevent_accepted_status_change();
+
+
+-- ================================================================
+-- B5-L4/L5: Constrain time/schedule fields to prevent oversized input
+-- and schema-less JSONB bloat on application rows.
+-- ================================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'applications_trial_time_length') THEN
+    ALTER TABLE applications ADD CONSTRAINT applications_trial_time_length
+      CHECK (trial_time IS NULL OR char_length(trial_time) <= 50);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'applications_interview_time_length') THEN
+    ALTER TABLE applications ADD CONSTRAINT applications_interview_time_length
+      CHECK (interview_time IS NULL OR char_length(interview_time) <= 50);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'applications_interview_rounds_size') THEN
+    ALTER TABLE applications ADD CONSTRAINT applications_interview_rounds_size
+      CHECK (octet_length(interview_rounds_data::text) <= 65536);
+  END IF;
+END $$;
+
+
+-- ================================================================
+-- B5-M4: Profile photo URL constraints — must be HTTPS, max 500 chars.
+-- Prevents storing arbitrary tracker pixels or phishing image URLs.
+-- ================================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'students_profile_photo_url_https') THEN
+    ALTER TABLE students ADD CONSTRAINT students_profile_photo_url_https
+      CHECK (profile_photo_url IS NULL OR (profile_photo_url ~ '^https://' AND char_length(profile_photo_url) <= 500));
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'companies_profile_photo_url_https') THEN
+    ALTER TABLE companies ADD CONSTRAINT companies_profile_photo_url_https
+      CHECK (profile_photo_url IS NULL OR (profile_photo_url ~ '^https://' AND char_length(profile_photo_url) <= 500));
+  END IF;
+END $$;

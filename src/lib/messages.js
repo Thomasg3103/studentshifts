@@ -54,7 +54,9 @@ export async function fetchAllMessagesWithStudent(studentId, companyId) {
       .select("id, sender_id, text, created_at")
       .eq("student_id", studentId)
       .eq("company_id", companyId)
-      .order("created_at", { ascending: true }),
+      .is("job_id", null)      // DM context only — exclude job-thread messages
+      .order("created_at", { ascending: true })
+      .limit(200),             // B5-M13: cap response size
     10000
   );
   if (error) throw error;

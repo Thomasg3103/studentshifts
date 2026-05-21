@@ -98,7 +98,8 @@ export async function exportMyData(userId, role = "student") {
     // F8: include all application pipeline fields + availability
     supabase.from("students").select("bio, skills, linkedin, location_display, cv_url, cover_letter_url, status, availability, job_preferences").eq("id", userId).single(),
     // F8: include pipeline_stage, company_notes, preferred_shift
-    supabase.from("applications").select("job_id, status, pipeline_stage, preferred_shift, created_at, jobs(title)").eq("student_id", userId),
+    // B5-M8: include pipeline schedule fields — these are the student's own data under GDPR Art. 20
+    supabase.from("applications").select("job_id, status, pipeline_stage, preferred_shift, interview_round, trial_date, trial_time, created_at, jobs(title)").eq("student_id", userId),
     supabase.from("liked_jobs").select("job_id, jobs(title)").eq("student_id", userId),
     supabase.from("chat_messages").select("text, created_at, sender_id").eq("student_id", userId).order("created_at"),
   ]);

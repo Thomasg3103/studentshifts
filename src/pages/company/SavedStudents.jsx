@@ -124,6 +124,7 @@ export default function SavedStudents({ students, loading, fetched, error, liked
             value={chatInput}
             onChange={e => setChatInput(e.target.value)}
             onKeyDown={e => e.key === "Enter" && sendDM()}
+            maxLength={4000}
             placeholder={`Message ${chatStudent.name}…`}
             style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
           />

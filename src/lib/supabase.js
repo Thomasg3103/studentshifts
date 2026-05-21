@@ -52,7 +52,15 @@ export function ensureValidSession() {
   if (Date.now() - _sessionCheckedAt < 30_000) return Promise.resolve();
   if (!_sessionCheckInFlight) {
     _sessionCheckInFlight = supabase.auth.getSession()
-      .then(() => { _sessionCheckedAt = Date.now(); })
+      .then(({ data, error }) => {
+        // B5-H3: sign out on auth error or missing session so callers aren't silently
+        // operating with a stale/invalid JWT rather than being redirected to login.
+        if (error || !data.session) {
+          supabase.auth.signOut().catch(() => {});
+          return;
+        }
+        _sessionCheckedAt = Date.now();
+      })
       .catch(() => {})
       .finally(() => { _sessionCheckInFlight = null; });
   }
@@ -62,3 +70,12 @@ export function ensureValidSession() {
 export function invalidateSessionCache() {
   _sessionCheckedAt = 0;
 }
+
+// B5-L12: reset session cache when the user signs out so the next call always
+// re-checks instead of returning a cached "valid" result from before sign-out.
+supabase.auth.onAuthStateChange((event) => {
+  if (event === "SIGNED_OUT") {
+    _sessionCheckedAt = 0;
+    _lockChain = Promise.resolve();
+  }
+});

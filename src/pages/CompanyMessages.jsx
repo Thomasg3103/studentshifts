@@ -115,7 +115,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
 
     const channelName = isDirect ? `direct_${companyId}_${studentId}` : `msgs_${jobId}_${studentId}`;
     const filter = isDirect
-      ? `and(company_id=eq.${companyId},student_id=eq.${studentId})`
+      ? `and(company_id=eq.${companyId},student_id=eq.${studentId},job_id=is.null)`
       : `and(job_id=eq.${jobId},student_id=eq.${studentId})`;
 
     const channel = supabase

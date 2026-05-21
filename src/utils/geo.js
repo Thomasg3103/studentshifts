@@ -12,15 +12,24 @@ const HEADERS = { "Accept-Language": "en", "User-Agent": "StudentShifts-Demo/1.0
 // Ireland bounding box for Photon (left, bottom, right, top)
 const IE_BBOX = "-10.56,51.39,-5.43,55.43";
 
+// B5-M3: return city/county level only — full street address would expose
+// student locations more precisely than needed for job-distance display.
+function buildSafeDisplayName(address = {}) {
+  const locality = address.city || address.town || address.village || address.suburb || address.hamlet;
+  const region   = address.county || address.state_district || address.state;
+  const parts    = [locality, region].filter(Boolean);
+  return parts.length ? parts.join(", ") : "Ireland";
+}
+
 async function nominatimFetch(params) {
-  const qs = new URLSearchParams({ format: "json", limit: "1", countrycodes: "ie", ...params });
+  const qs = new URLSearchParams({ format: "json", limit: "1", countrycodes: "ie", addressdetails: "1", ...params });
   const res = await fetch(`https://nominatim.openstreetmap.org/search?${qs}`, { headers: HEADERS });
   const data = await res.json();
   if (!data.length) return null;
   return {
     lat: parseFloat(data[0].lat),
     lng: parseFloat(data[0].lon),
-    displayName: data[0].display_name,
+    displayName: buildSafeDisplayName(data[0].address || {}),
   };
 }
 
@@ -32,7 +41,7 @@ async function photonFetch(query) {
   if (!data.features?.length) return null;
   const feat = data.features[0];
   const p = feat.properties;
-  const parts = [p.name, p.street, p.city || p.town || p.village, p.state, "Ireland"].filter(Boolean);
+  const parts = [p.city || p.town || p.village, p.state, "Ireland"].filter(Boolean); // B5-M3: city-level only
   return {
     lat: feat.geometry.coordinates[1],
     lng: feat.geometry.coordinates[0],

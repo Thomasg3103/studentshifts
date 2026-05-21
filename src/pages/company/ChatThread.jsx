@@ -20,7 +20,7 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
   useEffect(() => {
     let channel;
     import("../../lib/auth").then(({ fetchMessages }) => {
-      fetchMessages(jobId, studentId)
+      fetchMessages(jobId, studentId, companyId)
         .then(msgs => { setMessages(msgs); setLoading(false); })
         .catch(() => setLoading(false));
     });

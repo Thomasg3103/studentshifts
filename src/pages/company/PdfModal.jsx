@@ -120,7 +120,10 @@ export function PdfModal({ url, label, fileName, onClose }) {
               <p style={{ color: "#e11d48", textAlign: "center", marginTop: "2rem" }}>{docxError}</p>
             ) : (
               <div
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(docxHtml || "") }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(docxHtml || "", {
+                  ALLOWED_TAGS: ["p","br","strong","em","u","s","b","i","ul","ol","li","h1","h2","h3","h4","h5","h6","span","div","table","thead","tbody","tr","th","td"],
+                  ALLOWED_ATTR: [],
+                }) }}
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "0.9rem", lineHeight: 1.7, color: "#1e293b", maxWidth: "680px", margin: "0 auto", padding: "1rem" }}
               />
             )
