@@ -33,19 +33,24 @@ if (localStorage.getItem("ss_cookie_notice_dismissed") === "1") {
 export function initSentry() {
   if (!import.meta.env.VITE_SENTRY_DSN || window.__sentry_initialised) return;
   window.__sentry_initialised = true;
-  const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+  const UUID_RE  = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
+  const EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g;
+  const scrub = (s) => typeof s === "string" ? s.replace(UUID_RE, "[id]").replace(EMAIL_RE, "[email]") : s;
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.MODE,
     integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.2,
     beforeSend(event) {
+      // Strip user PII — keep only anonymised id
+      if (event.user) event.user = { id: event.user.id };
+      // Scrub UUIDs and email addresses from breadcrumb messages and data
       if (event.breadcrumbs?.values) {
         event.breadcrumbs.values = event.breadcrumbs.values.map(b => ({
           ...b,
-          message: b.message?.replace(UUID_RE, "[id]"),
+          message: scrub(b.message),
           data: b.data ? Object.fromEntries(
-            Object.entries(b.data).map(([k, v]) => [k, typeof v === "string" ? v.replace(UUID_RE, "[id]") : v])
+            Object.entries(b.data).map(([k, v]) => [k, scrub(v)])
           ) : b.data,
         }));
       }
