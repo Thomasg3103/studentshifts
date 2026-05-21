@@ -61,7 +61,7 @@ export function ensureValidSession() {
         }
         _sessionCheckedAt = Date.now();
       })
-      .catch(() => {})
+      .catch(() => { supabase.auth.signOut().catch(() => {}); })
       .finally(() => { _sessionCheckInFlight = null; });
   }
   return _sessionCheckInFlight;

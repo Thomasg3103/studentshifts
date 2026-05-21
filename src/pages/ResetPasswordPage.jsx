@@ -39,6 +39,7 @@ export default function ResetPasswordPage() {
   const handleSubmit = async () => {
     if (!password || !confirm) { setError("Please fill in both fields."); return; }
     if (password.length < 8)   { setError("Password must be at least 8 characters."); return; }
+    if (!/[A-Za-z]/.test(password) || !/[0-9]/.test(password)) { setError("Password must include at least one letter and one number."); return; }
     if (password !== confirm)  { setError("Passwords do not match."); return; }
     setLoading(true);
     setError("");
@@ -112,7 +113,7 @@ export default function ResetPasswordPage() {
               style={fieldStyle}
             />
             <p style={{ fontSize: "0.78rem", color: "#9ca3af", textAlign: "left", margin: "0.1rem 0 0.5rem" }}>
-              Minimum 8 characters
+              Minimum 8 characters, must include a letter and a number
             </p>
             <button onClick={handleSubmit} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>
               {loading ? "Updating…" : "Update Password →"}

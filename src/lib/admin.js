@@ -80,6 +80,11 @@ export async function rejectStudent(studentId) {
     10000
   );
   if (error) throw error;
+  // Revoke active sessions so the rejected user is force-signed-out immediately.
+  // Fire-and-forget: rejection is DB-committed even if revoke fails.
+  supabase.functions.invoke("admin-actions", {
+    body: { action: "revoke_session", userId: studentId },
+  }).catch(() => {});
 }
 
 export async function approveCompany(companyId) {
@@ -99,6 +104,9 @@ export async function rejectCompany(companyId) {
     10000
   );
   if (error) throw error;
+  supabase.functions.invoke("admin-actions", {
+    body: { action: "revoke_session", userId: companyId },
+  }).catch(() => {});
 }
 
 export async function getSignups() {

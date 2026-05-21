@@ -1829,3 +1829,15 @@ BEGIN
       CHECK (profile_photo_url IS NULL OR (profile_photo_url ~ '^https://' AND char_length(profile_photo_url) <= 500)) NOT VALID;
   END IF;
 END $$;
+
+
+-- ================================================================
+-- SECURITY: Column-level privilege — prevent students from reading
+-- company_notes on their own application rows via direct PostgREST.
+-- company_notes are the company's private hiring notes; students have
+-- no UI pathway to see them and this blocks direct API scraping.
+-- The RLS policies allow students to SELECT their own application
+-- rows, so without this column-level REVOKE the field is readable
+-- via a raw .select("company_notes") call.
+-- ================================================================
+REVOKE SELECT (company_notes) ON applications FROM authenticated;

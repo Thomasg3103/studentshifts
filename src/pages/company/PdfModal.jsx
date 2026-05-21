@@ -123,6 +123,8 @@ export function PdfModal({ url, label, fileName, onClose }) {
                 dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(docxHtml || "", {
                   ALLOWED_TAGS: ["p","br","strong","em","u","s","b","i","ul","ol","li","h1","h2","h3","h4","h5","h6","span","div","table","thead","tbody","tr","th","td"],
                   ALLOWED_ATTR: [],
+                  FORBID_TAGS: ["script","form","iframe","object","embed","svg","math"],
+                  FORBID_ATTR: ["style","action","onerror","onload","onclick","onmouseover"],
                 }) }}
                 style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "0.9rem", lineHeight: 1.7, color: "#1e293b", maxWidth: "680px", margin: "0 auto", padding: "1rem" }}
               />
