@@ -12,6 +12,13 @@ export default function ContactPage() {
         <title>Contact Us — StudentShifts</title>
         <meta name="description" content="Get in touch with the StudentShifts team. We're a small team based in Ireland and aim to reply within one working day." />
         <link rel="canonical" href="https://studentshifts.ie/contact" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Contact Us — StudentShifts" />
+        <meta property="og:description" content="Get in touch with the StudentShifts team. We're a small team based in Ireland and aim to reply within one working day." />
+        <meta property="og:url" content="https://studentshifts.ie/contact" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Contact Us — StudentShifts" />
+        <meta name="twitter:description" content="Get in touch with the StudentShifts team. We're a small team based in Ireland and aim to reply within one working day." />
         <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "Contact", item: "https://studentshifts.ie/contact" }] })}</script>
       </Helmet>
       <BackButton />

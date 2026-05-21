@@ -10,9 +10,16 @@ export default function TermsOfServicePage() {
   const { setPage } = useApp();
   return (
     <><Helmet>
-        <title>Terms of Service â€” StudentShifts</title>
-        <meta name="description" content="Read StudentShifts' terms of service â€” the rules governing use of the platform for students and employers." />
-        <link rel="canonical" href="https://studentshifts.ie/terms" />
+        <title>Terms of Service — StudentShifts</title>
+        <meta name=”description” content=”Read StudentShifts' terms of service — the rules governing use of the platform for students and employers.” />
+        <link rel=”canonical” href=”https://studentshifts.ie/terms” />
+        <meta property=”og:type” content=”website” />
+        <meta property=”og:title” content=”Terms of Service — StudentShifts” />
+        <meta property=”og:description” content=”Read StudentShifts' terms of service — the rules governing use of the platform for students and employers.” />
+        <meta property=”og:url” content=”https://studentshifts.ie/terms” />
+        <meta name=”twitter:card” content=”summary_large_image” />
+        <meta name=”twitter:title” content=”Terms of Service — StudentShifts” />
+        <meta name=”twitter:description” content=”Read StudentShifts' terms of service — the rules governing use of the platform for students and employers.” />
         <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "Terms of Service", item: "https://studentshifts.ie/terms" }] })}</script>
       </Helmet>
       <BackButton />

@@ -13,6 +13,13 @@ export default function PrivacyPolicyPage() {
         <title>Privacy Policy - StudentShifts</title>
         <meta name="description" content="Read StudentShifts privacy policy - how we collect, use, and protect your personal data under GDPR." />
         <link rel="canonical" href="https://studentshifts.ie/privacy" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Privacy Policy — StudentShifts" />
+        <meta property="og:description" content="Read StudentShifts privacy policy — how we collect, use, and protect your personal data under GDPR." />
+        <meta property="og:url" content="https://studentshifts.ie/privacy" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Privacy Policy — StudentShifts" />
+        <meta name="twitter:description" content="Read StudentShifts privacy policy — how we collect, use, and protect your personal data under GDPR." />
         <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "Privacy Policy", item: "https://studentshifts.ie/privacy" }] })}</script>
       </Helmet>
       <BackButton />

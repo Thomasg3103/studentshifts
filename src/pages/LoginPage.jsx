@@ -123,6 +123,13 @@ export default function LoginPage() {
         <title>Log In — StudentShifts</title>
         <meta name="description" content="Sign in to your StudentShifts account to find and apply for part-time jobs." />
         <link rel="canonical" href="https://studentshifts.ie/login" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Log In — StudentShifts" />
+        <meta property="og:description" content="Sign in to your StudentShifts account to find and apply for part-time jobs." />
+        <meta property="og:url" content="https://studentshifts.ie/login" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Log In — StudentShifts" />
+        <meta name="twitter:description" content="Sign in to your StudentShifts account to find and apply for part-time jobs." />
       </Helmet>
       <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
 

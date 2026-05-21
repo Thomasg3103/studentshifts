@@ -188,17 +188,27 @@ export default function JobDetails({ job }) {
 
   const canonicalUrl = `https://studentshifts.ie/jobs/${toJobSlug(job.title)}/${toJobSlug(job.company)}`;
 
+  const plainDescription = DOMPurify.sanitize(job.description || "", { ALLOWED_TAGS: [] }) || `${job.title} at ${job.company} in ${job.location}.`;
+  const payNums = (job.pay || "").match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
+  const baseSalary = payNums.length > 0 ? {
+    "@type": "MonetaryAmount", "currency": "EUR",
+    "value": { "@type": "QuantitativeValue", "unitText": "HOUR",
+      ...(payNums.length >= 2 ? { minValue: payNums[0], maxValue: payNums[payNums.length - 1] } : { value: payNums[0] }) },
+  } : undefined;
+
   const jsonLd = {
     "@context": "https://schema.org/",
     "@type": "JobPosting",
     "title": job.title,
-    "description": job.description || `${job.title} at ${job.company} in ${job.location}.`,
+    "description": plainDescription,
+    "identifier": { "@type": "PropertyValue", "name": "StudentShifts", "value": job.id },
+    "directApply": true,
     "hiringOrganization": { "@type": "Organization", "name": job.company },
     "jobLocation": { "@type": "Place", "address": { "@type": "PostalAddress", "addressLocality": job.location, "addressCountry": "IE" } },
-    "baseSalary": { "@type": "MonetaryAmount", "currency": "EUR", "value": { "@type": "QuantitativeValue", "value": job.pay, "unitText": "HOUR" } },
     "employmentType": "PART_TIME",
     "datePosted": job.createdAt?.split("T")[0] || new Date().toISOString().split("T")[0],
     ...(job.deadline ? { "validThrough": job.deadline } : {}),
+    ...(baseSalary ? { baseSalary } : {}),
   };
 
   return (
@@ -207,6 +217,15 @@ export default function JobDetails({ job }) {
         <title>{job.title} at {job.company} — StudentShifts</title>
         <meta name="description" content={`${job.title} in ${job.location}. Pay: ${job.pay}. Apply now on StudentShifts.`} />
         <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={`${job.title} at ${job.company} — StudentShifts`} />
+        <meta property="og:description" content={`${job.title} in ${job.location}. Pay: ${job.pay}. Apply on StudentShifts.`} />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content={job.photos?.[0] || "https://studentshifts.ie/og-image.png"} />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${job.title} at ${job.company} — StudentShifts`} />
+        <meta name="twitter:description" content={`${job.title} in ${job.location}. Pay: ${job.pay}. Apply on StudentShifts.`} />
+        <meta name="twitter:image" content={job.photos?.[0] || "https://studentshifts.ie/og-image.png"} />
         <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
         <script type="application/ld+json">{JSON.stringify({
           "@context": "https://schema.org",

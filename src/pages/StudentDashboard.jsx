@@ -595,6 +595,13 @@ export default function StudentDashboard({ restoreScrollY }) {
         <title>Find Your Shift — StudentShifts</title>
         <meta name="description" content="Browse student-friendly part-time jobs across Ireland. Filter by day, time, location and more." />
         <link rel="canonical" href="https://studentshifts.ie/" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Find Your Shift — StudentShifts" />
+        <meta property="og:description" content="Browse student-friendly part-time jobs across Ireland. Filter by day, time, location and more." />
+        <meta property="og:url" content="https://studentshifts.ie/" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Find Your Shift — StudentShifts" />
+        <meta name="twitter:description" content="Browse student-friendly part-time jobs across Ireland. Filter by day, time, location and more." />
       </Helmet>
       <div style={{ maxWidth: "1300px", margin: "0 auto", padding: "1.5rem 1.25rem" }}>
 

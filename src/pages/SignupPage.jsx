@@ -177,6 +177,13 @@ export default function SignupPage() {
         <title>Create Account — StudentShifts</title>
         <meta name="description" content="Join StudentShifts for free. Students can browse and apply for part-time jobs; companies can post shifts and find verified student workers." />
         <link rel="canonical" href="https://studentshifts.ie/signup" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content="Create Account — StudentShifts" />
+        <meta property="og:description" content="Join StudentShifts for free. Students browse and apply for part-time jobs; companies post shifts and find verified student workers." />
+        <meta property="og:url" content="https://studentshifts.ie/signup" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Create Account — StudentShifts" />
+        <meta name="twitter:description" content="Join StudentShifts for free. Students browse and apply for part-time jobs; companies post shifts and find verified student workers." />
       </Helmet>
       <div style={{ maxWidth: "440px", margin: "0 auto" }}>
 
