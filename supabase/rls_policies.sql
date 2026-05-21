@@ -1820,11 +1820,12 @@ END $$;
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'students_profile_photo_url_https') THEN
+    -- NOT VALID: skips existing rows (some may have http:// URLs) but enforces on all future writes
     ALTER TABLE students ADD CONSTRAINT students_profile_photo_url_https
-      CHECK (profile_photo_url IS NULL OR (profile_photo_url ~ '^https://' AND char_length(profile_photo_url) <= 500));
+      CHECK (profile_photo_url IS NULL OR (profile_photo_url ~ '^https://' AND char_length(profile_photo_url) <= 500)) NOT VALID;
   END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'companies_profile_photo_url_https') THEN
     ALTER TABLE companies ADD CONSTRAINT companies_profile_photo_url_https
-      CHECK (profile_photo_url IS NULL OR (profile_photo_url ~ '^https://' AND char_length(profile_photo_url) <= 500));
+      CHECK (profile_photo_url IS NULL OR (profile_photo_url ~ '^https://' AND char_length(profile_photo_url) <= 500)) NOT VALID;
   END IF;
 END $$;
