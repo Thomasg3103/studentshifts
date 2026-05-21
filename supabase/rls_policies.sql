@@ -34,7 +34,8 @@ BEGIN
   -- Serialise concurrent inserts from the same user so the rate-limit check
   -- is atomic. Without this lock, burst-concurrent requests could all pass
   -- the < 20 check before any of them commits.
-  PERFORM pg_advisory_xact_lock(hashtext(uid::text));
+  -- M3: prefix disambiguates from check_chat_rate_limit which uses 'chat_rl:' prefix.
+  PERFORM pg_advisory_xact_lock(hashtext('app_rl:' || uid::text));
   SELECT COUNT(*) INTO cnt FROM applications
   WHERE student_id = uid AND created_at > now() - interval '1 hour';
   RETURN cnt;
@@ -132,9 +133,9 @@ CREATE POLICY "students: own update" ON students
     (
       status = (SELECT status FROM students WHERE id = auth.uid())
       OR
-      -- F-H18 + R3-C13: allow rejected students to re-submit verification docs
+      -- F-H18 + R3-C13: allow rejected or new students to submit verification docs
       (
-        (SELECT status FROM students WHERE id = auth.uid()) = 'rejected'
+        (SELECT status FROM students WHERE id = auth.uid()) IN ('rejected', 'pending')
         AND status = 'pending_review'
       )
     ) AND
@@ -339,7 +340,8 @@ BEGIN
   -- S1: advisory lock serialises concurrent sends from the same user so the
   -- COUNT + INSERT are atomic — without this two concurrent requests can both
   -- pass the < 20 check before either row commits.
-  PERFORM pg_advisory_xact_lock(hashtext(auth.uid()::text));
+  -- M3: prefix disambiguates from count_recent_applications which uses 'app_rl:' prefix.
+  PERFORM pg_advisory_xact_lock(hashtext('chat_rl:' || auth.uid()::text));
   SELECT COUNT(*) INTO cnt
   FROM chat_messages
   WHERE sender_id = auth.uid() AND created_at > now() - interval '1 minute';
@@ -799,6 +801,11 @@ DECLARE
   v_current text[];
   v_result  text[];
 BEGIN
+  -- C2: this RPC is called only by the hire-applicant Edge Function with service role.
+  -- Authenticated user calls (auth.uid() IS NOT NULL) must be rejected.
+  IF auth.uid() IS NOT NULL THEN
+    RAISE EXCEPTION 'Unauthorised';
+  END IF;
   SELECT days, COALESCE(filled_shifts, ARRAY[]::text[])
   INTO v_days, v_current
   FROM jobs WHERE id = p_job_id FOR UPDATE;
@@ -845,6 +852,11 @@ DECLARE
   v_notify_ids    uuid[];
   v_rows_accepted int;
 BEGIN
+  -- C1: this RPC is called only by the hire-applicant Edge Function with service role.
+  -- Authenticated user calls (auth.uid() IS NOT NULL) must be rejected.
+  IF auth.uid() IS NOT NULL THEN
+    RAISE EXCEPTION 'Unauthorised';
+  END IF;
   SELECT id, student_id, job_id, preferred_shift, status
   INTO v_app FROM applications WHERE id = p_application_id;
   IF NOT FOUND THEN RAISE EXCEPTION 'Application not found'; END IF;
@@ -976,6 +988,9 @@ BEGIN
   DELETE FROM company_liked_students WHERE company_id  = uid OR student_id = uid;
   DELETE FROM applications           WHERE student_id  = uid;
   DELETE FROM hire_action_log        WHERE company_id  = uid;
+  -- L8: cascade applications + liked_jobs for the company's own jobs before deleting jobs
+  DELETE FROM applications WHERE job_id IN (SELECT id FROM jobs WHERE company_id = uid);
+  DELETE FROM liked_jobs   WHERE job_id IN (SELECT id FROM jobs WHERE company_id = uid);
   DELETE FROM jobs                   WHERE company_id  = uid;
   DELETE FROM export_log             WHERE user_id     = uid;
   DELETE FROM email_sends_log        WHERE user_id     = uid;

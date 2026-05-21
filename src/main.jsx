@@ -33,11 +33,24 @@ if (localStorage.getItem("ss_cookie_notice_dismissed") === "1") {
 export function initSentry() {
   if (!import.meta.env.VITE_SENTRY_DSN || window.__sentry_initialised) return;
   window.__sentry_initialised = true;
+  const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi;
   Sentry.init({
     dsn: import.meta.env.VITE_SENTRY_DSN,
     environment: import.meta.env.MODE,
     integrations: [Sentry.browserTracingIntegration()],
     tracesSampleRate: 0.2,
+    beforeSend(event) {
+      if (event.breadcrumbs?.values) {
+        event.breadcrumbs.values = event.breadcrumbs.values.map(b => ({
+          ...b,
+          message: b.message?.replace(UUID_RE, "[id]"),
+          data: b.data ? Object.fromEntries(
+            Object.entries(b.data).map(([k, v]) => [k, typeof v === "string" ? v.replace(UUID_RE, "[id]") : v])
+          ) : b.data,
+        }));
+      }
+      return event;
+    },
   });
 }
 

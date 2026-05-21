@@ -20,6 +20,7 @@ function fetchWithTimeout(url: string, init: RequestInit, ms = 10_000): Promise<
 const corsHeaders = {
   "Access-Control-Allow-Origin":  FRONTEND_URL,
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
 Deno.serve(async (req: Request) => {

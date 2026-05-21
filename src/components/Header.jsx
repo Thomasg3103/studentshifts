@@ -1,6 +1,7 @@
 ﻿import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { signOut as authSignOut } from "../lib/authOps";
 import { useApp } from "../context/AppContext";
 
 export default function Header() {
@@ -42,7 +43,7 @@ export default function Header() {
   const signOut = async () => {
     setMenuOpen(false);
     try {
-      await supabase.auth.signOut();
+      await authSignOut();
     } catch (e) {
       console.warn("Sign out failed:", e?.message);
     }

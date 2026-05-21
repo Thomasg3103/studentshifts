@@ -134,7 +134,7 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
       10000,
       "Email lookup timed out — please try again."
     );
-    if (error) throw new Error(`Email lookup failed: ${error.message}`);
+    if (error) throw new Error("Email lookup failed — please try again.");
     const email = emailRows?.[0]?.email;
     if (!email) throw new Error("Could not find student email. Please try again or contact support.");
     return email;

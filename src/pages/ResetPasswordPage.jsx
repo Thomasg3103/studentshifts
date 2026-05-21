@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { updatePassword } from "../lib/auth";
+import { signOut as authSignOut } from "../lib/authOps";
 import { supabase } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
 
@@ -43,8 +44,8 @@ export default function ResetPasswordPage() {
     setError("");
     try {
       await updatePassword(password);
-      // Sign out so the old session/token is invalidated after password change
-      await supabase.auth.signOut();
+      // Sign out all sessions so the old token is fully invalidated after password change
+      await authSignOut({ scope: "global" });
       // Clear the recovery guard so the route becomes inaccessible again
       setPasswordRecoveryMode(false);
       setSuccess(true);

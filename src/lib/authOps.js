@@ -29,10 +29,10 @@ export async function signIn({ email, password }) {
   return data.user;
 }
 
-export async function signOut() {
+export async function signOut(options = {}) {
   invalidateSessionCache();
   const { error } = await withTimeout(
-    supabase.auth.signOut(),
+    supabase.auth.signOut(options),
     10000, "Sign out timed out."
   );
   if (error) throw error;

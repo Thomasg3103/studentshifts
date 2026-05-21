@@ -64,7 +64,10 @@ export async function saveCompanyIndustries(userId, industries) {
 export async function exportMyData(userId, role = "student") {
   // F15: use RPC to atomically check + insert the rate-limit row, preventing a race
   // where two concurrent requests both pass the 24-hr check before either inserts.
-  const { error: rateErr } = await supabase.rpc("check_and_log_export", { p_user_id: userId });
+  const { error: rateErr } = await withTimeout(
+    supabase.rpc("check_and_log_export", { p_user_id: userId }),
+    10000, "Export rate-limit check timed out — please try again."
+  );
   if (rateErr) {
     if (rateErr.message?.includes("once every 24")) throw new Error("You can only export your data once every 24 hours.");
     throw rateErr;
@@ -95,7 +98,7 @@ export async function exportMyData(userId, role = "student") {
     // F8: include all application pipeline fields + availability
     supabase.from("students").select("bio, skills, linkedin, location_display, cv_url, cover_letter_url, status, availability, job_preferences").eq("id", userId).single(),
     // F8: include pipeline_stage, company_notes, preferred_shift
-    supabase.from("applications").select("job_id, status, pipeline_stage, preferred_shift, company_notes, created_at, jobs(title)").eq("student_id", userId),
+    supabase.from("applications").select("job_id, status, pipeline_stage, preferred_shift, created_at, jobs(title)").eq("student_id", userId),
     supabase.from("liked_jobs").select("job_id, jobs(title)").eq("student_id", userId),
     supabase.from("chat_messages").select("text, created_at, sender_id").eq("student_id", userId).order("created_at"),
   ]);
@@ -119,10 +122,10 @@ export async function deleteAccount() {
   const uid = user?.id;
   if (uid) {
     const [avatarRes, docRes, verifyRes, photoRes] = await Promise.allSettled([
-      supabase.storage.from("avatars").list(uid),
-      supabase.storage.from("documents").list(uid),
-      supabase.storage.from("verification-docs").list(uid),
-      supabase.storage.from("job-photos").list(uid),
+      supabase.storage.from("avatars").list(uid, { limit: 1000 }),
+      supabase.storage.from("documents").list(uid, { limit: 1000 }),
+      supabase.storage.from("verification-docs").list(uid, { limit: 1000 }),
+      supabase.storage.from("job-photos").list(uid, { limit: 1000 }),
     ]);
     const deletes = [];
     if (avatarRes.status === "fulfilled" && avatarRes.value.data?.length) {

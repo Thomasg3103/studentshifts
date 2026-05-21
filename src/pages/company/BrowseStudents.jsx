@@ -39,7 +39,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       .channel(`direct_${companyId}_${chatStudent.id}`)
       .on("postgres_changes", {
         event: "INSERT", schema: "public", table: "chat_messages",
-        filter: `and(company_id=eq.${companyId},student_id=eq.${chatStudent.id})`,
+        filter: `and(company_id=eq.${companyId},student_id=eq.${chatStudent.id},job_id=is.null)`,
       }, payload => {
         const msg = payload.new;
         setChatMessages(prev => {

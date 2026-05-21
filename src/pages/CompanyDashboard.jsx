@@ -433,7 +433,7 @@ export default function CompanyDashboard() {
       await withTimeout(
         supabase.from("applications").update({ status: "Rejected" }).eq("job_id", jobId).eq("status", "Pending"),
         10000
-      ).catch(e => console.warn("[CompanyDashboard] auto-decline on close failed:", e.message));
+      ).catch(e => { Sentry.captureException(e); toast.error("Some applicants could not be notified — please check and retry."); });
       supabase.functions.invoke("send-email", { body: { type: "job-closed", jobId } }).catch(() => {});
     }
     setPostings(prev => prev.map(p => p.id === jobId ? { ...p, status: "Closed" } : p));

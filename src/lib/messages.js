@@ -36,6 +36,7 @@ export async function fetchMessages(jobId, studentId, companyId = null, { limit 
     query = query.is("job_id", null).eq("student_id", studentId).eq("company_id", companyId);
   } else {
     query = query.eq("job_id", jobId).eq("student_id", studentId);
+    if (companyId) query = query.eq("company_id", companyId);
   }
   if (before) query = query.lt("created_at", before);
   const { data, error } = await withTimeout(

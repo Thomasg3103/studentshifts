@@ -14,7 +14,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Start t
   }, [value]);
 
   const emit = useCallback(() => {
-    onChange(editorRef.current?.innerHTML || "");
+    onChange(DOMPurify.sanitize(editorRef.current?.innerHTML || ""));
   }, [onChange]);
 
   const refreshActive = () => {

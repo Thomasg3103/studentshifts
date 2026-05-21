@@ -31,7 +31,7 @@ export async function uploadDocument(userId, file, bucket, fileName) {
     supabase.storage.from(bucket).upload(path, file, { upsert: true }),
     15000, `${fileName} upload timed out — please try again.`
   );
-  if (error) throw error;
+  if (error) throw new Error("Upload failed — please try again.");
   return path;
 }
 
@@ -48,7 +48,11 @@ export async function uploadVerificationDocs(userId, studentIdFile, governmentId
     }).eq("id", userId),
     10000, "Failed to save document details — please try again."
   );
-  if (error) throw error;
+  if (error) {
+    // L16: roll back uploaded files so the bucket doesn't accumulate orphaned docs
+    await supabase.storage.from("verification-docs").remove([studentIdPath, govIdPath]).catch(() => {});
+    throw error;
+  }
 }
 
 export async function uploadAvatar(userId, file) {
@@ -85,6 +89,6 @@ export async function getSignedDocumentUrl(bucket, path) {
     throw new Error("Invalid document path.");
   }
   const { data, error } = await supabase.storage.from(bucket).createSignedUrl(cleanPath, 60);
-  if (error) throw new Error(`Could not load document: ${error.message}`);
+  if (error) throw new Error("Could not load document — please try again.");
   return data.signedUrl;
 }
