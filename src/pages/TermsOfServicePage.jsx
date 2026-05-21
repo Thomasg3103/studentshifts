@@ -1,4 +1,4 @@
-﻿import { Helmet } from "react-helmet-async";
+import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
@@ -10,16 +10,16 @@ export default function TermsOfServicePage() {
   const { setPage } = useApp();
   return (
     <><Helmet>
-        <title>Terms of Service — StudentShifts</title>
-        <meta name=”description” content=”Read StudentShifts' terms of service — the rules governing use of the platform for students and employers.” />
-        <link rel=”canonical” href=”https://studentshifts.ie/terms” />
-        <meta property=”og:type” content=”website” />
-        <meta property=”og:title” content=”Terms of Service — StudentShifts” />
-        <meta property=”og:description” content=”Read StudentShifts' terms of service — the rules governing use of the platform for students and employers.” />
-        <meta property=”og:url” content=”https://studentshifts.ie/terms” />
-        <meta name=”twitter:card” content=”summary_large_image” />
-        <meta name=”twitter:title” content=”Terms of Service — StudentShifts” />
-        <meta name=”twitter:description” content=”Read StudentShifts' terms of service — the rules governing use of the platform for students and employers.” />
+        <title>Terms of Service &mdash; StudentShifts</title>
+        <meta name="description" content={"Read StudentShifts’ terms of service — the rules governing use of the platform for students and employers."} />
+        <link rel="canonical" href="https://studentshifts.ie/terms" />
+        <meta property="og:type" content="website" />
+        <meta property="og:title" content={"Terms of Service — StudentShifts"} />
+        <meta property="og:description" content={"Read StudentShifts’ terms of service — the rules governing use of the platform for students and employers."} />
+        <meta property="og:url" content="https://studentshifts.ie/terms" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={"Terms of Service — StudentShifts"} />
+        <meta name="twitter:description" content={"Read StudentShifts’ terms of service — the rules governing use of the platform for students and employers."} />
         <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "Terms of Service", item: "https://studentshifts.ie/terms" }] })}</script>
       </Helmet>
       <BackButton />
@@ -38,7 +38,7 @@ export default function TermsOfServicePage() {
 
         <Section title="1. Eligibility">
           <ul style={list}>
-            <li><strong>Students</strong> must be aged 17â€“26 and currently enrolled in a recognised educational institution in Ireland.</li>
+            <li><strong>Students</strong> must be aged 17&ndash;26 and currently enrolled in a recognised educational institution in Ireland.</li>
             <li><strong>Companies</strong> must be a legitimately registered business operating in Ireland.</li>
             <li>You must provide accurate, truthful information when creating your account.</li>
             <li>One person or entity may hold one account. Creating duplicate accounts is not permitted.</li>
@@ -56,7 +56,7 @@ export default function TermsOfServicePage() {
 
         <Section title="3. Student Verification">
           <ul style={list}>
-            <li>Students must submit a valid Student ID and Government-issued ID (Age Card, Passport, or Driver's Licence) for verification.</li>
+            <li>Students must submit a valid Student ID and Government-issued ID (Age Card, Passport, or Driver&apos;s Licence) for verification.</li>
             <li>You confirm that all submitted documents are genuine and belong to you. Submitting false or fraudulent documents is a serious violation and may result in immediate account suspension and referral to the appropriate authorities.</li>
             <li>Until your account is verified by our team, you may not apply for jobs.</li>
             <li>We reserve the right to reject applications where documents are unclear, expired, or do not meet our requirements.</li>
@@ -69,10 +69,10 @@ export default function TermsOfServicePage() {
             <li>Use the Service for any unlawful purpose or in violation of any applicable laws.</li>
             <li>Submit false, misleading, or fraudulent information including fake CVs or job postings.</li>
             <li>Harass, abuse, or harm other users through the messaging feature.</li>
-            <li>Attempt to gain unauthorised access to other users' accounts or data.</li>
+            <li>Attempt to gain unauthorised access to other users&apos; accounts or data.</li>
             <li>Scrape, copy, or reproduce any content from the Service without permission.</li>
             <li>Use the Service to send unsolicited commercial communications (spam).</li>
-            <li>Attempt to reverse-engineer, decompile, or interfere with the platform's operation.</li>
+            <li>Attempt to reverse-engineer, decompile, or interfere with the platform&apos;s operation.</li>
           </ul>
         </Section>
 
@@ -96,7 +96,7 @@ export default function TermsOfServicePage() {
         <Section title="7. Messaging &amp; Direct Contact">
           <ul style={list}>
             <li>The messaging feature is available to students who have been accepted for a job by a company, and to verified students who may be contacted directly by companies.</li>
-            <li><strong>By creating a verified student account, you agree that registered companies on StudentShifts may contact you directly through the platform's messaging feature, without you having applied for a job with them first.</strong> This allows companies to reach out about opportunities that match your job preferences and availability.</li>
+            <li><strong>By creating a verified student account, you agree that registered companies on StudentShifts may contact you directly through the platform&apos;s messaging feature, without you having applied for a job with them first.</strong> This allows companies to reach out about opportunities that match your job preferences and availability.</li>
             <li>You can manage what companies see by updating your job preferences and availability in your Account settings at any time.</li>
             <li>All messages must be professional, lawful, and relevant to employment opportunities.</li>
             <li>Companies must not use direct messaging to send unsolicited promotional content, spam, or communications unrelated to job opportunities.</li>
@@ -130,7 +130,7 @@ export default function TermsOfServicePage() {
           <p style={body}>
             To the maximum extent permitted by Irish law, StudentShifts shall not be liable for any indirect, incidental, or consequential damages arising from your use of the Service,
             including but not limited to loss of earnings, missed job opportunities, or data loss.
-            Our total liability to you shall not exceed â‚¬100.
+            Our total liability to you shall not exceed &euro;100.
           </p>
         </Section>
 
@@ -155,7 +155,7 @@ export default function TermsOfServicePage() {
 
         <div style={{ borderTop: "1px solid #e2e8f0", marginTop: "2rem", paddingTop: "1.25rem" }}>
           <p style={{ ...body, color: "#94a3b8", fontSize: "0.8rem" }}>
-            StudentShifts Â· Ireland Â· <a href={`mailto:${CONTACT_EMAIL}`} style={{ ...link, color: "#94a3b8" }}>{CONTACT_EMAIL}</a>
+            StudentShifts &middot; Ireland &middot; <a href={`mailto:${CONTACT_EMAIL}`} style={{ ...link, color: "#94a3b8" }}>{CONTACT_EMAIL}</a>
           </p>
         </div>
 
