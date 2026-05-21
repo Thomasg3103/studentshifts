@@ -4,7 +4,7 @@ import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
 
 const CONTACT_EMAIL = "privacy@studentshifts.ie";
-const LAST_UPDATED  = "15 April 2026";
+const LAST_UPDATED  = "21 May 2026";
 
 export default function PrivacyPolicyPage() {
   const { setPage } = useApp();
@@ -47,7 +47,7 @@ export default function PrivacyPolicyPage() {
             ["CV / Cover letter", "Job applications", "Contract"],
             ["Profile photo", "Account display (optional)", "Consent"],
             ["LinkedIn URL, bio, skills", "Profile completeness (optional)", "Consent"],
-            ["Location (lat/lng)", "Distance-to-job display (optional)", "Consent"],
+            ["Location (address text + coordinates)", "Distance-to-job display; address geocoded via OpenStreetMap Nominatim (optional)", "Consent"],
             ["Job applications", "Connecting students with employers", "Contract"],
             ["Messages", "Communication between students and companies", "Contract"],
             ["IP address / device info", "Security and fraud prevention", "Legitimate interests"],
@@ -80,6 +80,8 @@ export default function PrivacyPolicyPage() {
           <ul style={list}>
             <li><strong>Companies you apply to</strong> - when you apply for a job, the company can see your name, CV, and cover letter.</li>
             <li><strong>Supabase</strong> - our infrastructure provider stores your data on secure EU-based servers. Supabase acts as a data processor under a Data Processing Agreement.</li>
+            <li><strong>OpenStreetMap Nominatim &amp; Photon (geocoding)</strong> - if you set a location on your profile, your address text is sent to these third-party geocoding APIs to convert it to map coordinates. No personal account is created and the address is not retained by them beyond the request. For more information, see the <a href="https://osmfoundation.org/wiki/Privacy_Policy" style={link} target="_blank" rel="noopener noreferrer">OpenStreetMap Privacy Policy</a>.</li>
+            <li><strong>Brevo (email delivery)</strong> - transactional emails (email confirmation, password reset, application updates) are delivered via Brevo, which acts as a data processor. Your email address is transmitted to Brevo solely to send these emails.</li>
             <li><strong>Legal requirements</strong> - we may disclose data if required by law or to protect the rights, property, or safety of StudentShifts, our users, or others.</li>
           </ul>
           <p style={body}>Your verification documents (Student ID, Government ID) are only accessible to StudentShifts administrators for verification purposes and are never shared with employers.</p>

@@ -93,7 +93,7 @@ export async function exportMyData(userId, role = "student") {
     };
   }
 
-  const [profileRes, studentRes, applicationsRes, likedRes, messagesRes] = await Promise.all([
+  const [profileRes, studentRes, applicationsRes, likedRes, messagesRes, notesRes] = await Promise.all([
     supabase.from("profiles").select("id, name, role, created_at").eq("id", userId).single(),
     // F8: include all application pipeline fields + availability
     supabase.from("students").select("bio, skills, linkedin, location_display, cv_url, cover_letter_url, status, availability, job_preferences").eq("id", userId).single(),
@@ -102,16 +102,23 @@ export async function exportMyData(userId, role = "student") {
     supabase.from("applications").select("job_id, status, pipeline_stage, preferred_shift, interview_round, trial_date, trial_time, created_at, jobs(title)").eq("student_id", userId),
     supabase.from("liked_jobs").select("job_id, jobs(title)").eq("student_id", userId),
     supabase.from("chat_messages").select("text, created_at, sender_id").eq("student_id", userId).order("created_at"),
+    // GDPR Art. 15: company_notes are personal data about the student — included via SECURITY DEFINER
+    // RPC because the column-level REVOKE blocks PostgREST from returning it directly.
+    supabase.rpc("get_student_application_notes", { p_student_id: userId }),
   ]);
   // F14: surface any query errors
   const errors = [profileRes, studentRes, applicationsRes, likedRes, messagesRes]
     .map(r => r.error).filter(Boolean);
   if (errors.length) throw new Error(`Export failed: ${errors[0].message}`);
+  const notesMap = {};
+  for (const n of (notesRes.data || [])) {
+    if (n.company_notes != null) notesMap[n.job_id] = n.company_notes;
+  }
   return {
     exportedAt:   new Date().toISOString(),
     profile:      profileRes.data  || {},
     student:      studentRes.data  || {},
-    applications: applicationsRes.data || [],
+    applications: (applicationsRes.data || []).map(a => ({ ...a, company_notes: notesMap[a.job_id] ?? null })),
     likedJobs:    likedRes.data    || [],
     messages:     messagesRes.data || [],
   };

@@ -288,8 +288,16 @@ Deno.serve(async (req: Request) => {
     if (iKeyErr?.code === "23505") {
       const { data: cached } = await adminClient.from("hire_action_log")
         .select("result").eq("company_id", user.id).eq("idempotency_key", iKey).single();
-      return new Response(JSON.stringify({ success: true, idempotent: true, cached: cached?.result ?? null }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (cached?.result !== null) {
+        return new Response(JSON.stringify({ success: true, idempotent: true, cached: cached?.result ?? null }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      // result is null — previous attempt crashed before recording. Delete orphan so client can retry.
+      await adminClient.from("hire_action_log").delete()
+        .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+      return new Response(JSON.stringify({ success: false, error: "Previous request did not complete — please retry." }), {
+        status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (iKeyErr) throw iKeyErr;

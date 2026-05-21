@@ -1841,3 +1841,26 @@ END $$;
 -- via a raw .select("company_notes") call.
 -- ================================================================
 REVOKE SELECT (company_notes) ON applications FROM authenticated;
+
+
+-- ================================================================
+-- GDPR Art. 15: student access to their own company_notes via export
+-- The column-level REVOKE above prevents PostgREST from returning
+-- company_notes to authenticated users directly (blocks live UI
+-- leakage). This SECURITY DEFINER RPC bypasses the REVOKE for the
+-- legitimate case of a GDPR data export — company hiring notes about
+-- a student are personal data about that student under Art. 4(1).
+-- ================================================================
+CREATE OR REPLACE FUNCTION get_student_application_notes(p_student_id uuid)
+RETURNS TABLE(job_id uuid, company_notes text)
+LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+BEGIN
+  IF p_student_id <> auth.uid() THEN
+    RAISE EXCEPTION 'Unauthorised';
+  END IF;
+  RETURN QUERY
+    SELECT a.job_id, a.company_notes
+    FROM applications a
+    WHERE a.student_id = p_student_id;
+END;
+$$;
