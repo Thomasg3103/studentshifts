@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, lazy, Suspense } from "react";
+import { supabaseImg } from "../../utils/img";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { saveApplicationNotes } from "../../lib/auth";
@@ -184,7 +185,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
         <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "flex-start", gap: "0.85rem", flexShrink: 0 }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {applicant.profilePhoto
-              ? <img loading="lazy" src={applicant.profilePhoto} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ? <img loading="lazy" src={supabaseImg(applicant.profilePhoto, 88)} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             }
           </div>

@@ -6,6 +6,7 @@ import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
 import { removeApplication } from "../lib/auth";
 import { useApp } from "../context/AppContext";
+import { supabaseImg } from "../utils/img";
 
 const STATUS_STYLE = {
   Pending:  { cls: "badge-yellow", icon: "🕐", label: "Pending" },
@@ -59,7 +60,7 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, onRemove, 
   const { setSelectedJob, setPage } = useApp();
   const s = STATUS_STYLE[status] || STATUS_STYLE.Pending;
   const stageLabel = status === "Pending" ? (STAGE_LABEL[pipelineStage] ?? null) : null;
-  const photo = job.photos?.[0] || null;
+  const photo = supabaseImg(job.photos?.[0] || null, 240);
   const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
   const showMessage = status === "Accepted";

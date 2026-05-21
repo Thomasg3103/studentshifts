@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { signOut as authSignOut } from "../lib/authOps";
 import { useApp } from "../context/AppContext";
+import { supabaseImg } from "../utils/img";
 
 export default function Header() {
   const { currentUser, setPage, likedJobs, appliedJobs, notifCount, msgCount } = useApp();
@@ -160,7 +161,7 @@ export default function Header() {
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
                           {currentUser.profilePhoto
-                            ? <img loading="lazy" src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid var(--color-brand)" : "none" }} />
+                            ? <img loading="lazy" src={supabaseImg(currentUser.profilePhoto, 64)} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid var(--color-brand)" : "none" }} />
                             : <PersonIcon color={isAccount ? "var(--color-brand)" : "white"} />
                           }
                           <span className="nav-label">Account</span>
@@ -191,7 +192,7 @@ export default function Header() {
                       <div style={{ position: "relative", display: "inline-block" }}>
                         <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
                           {currentUser.profilePhoto
-                            ? <img loading="lazy" src={currentUser.profilePhoto} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid var(--color-brand)" : "none" }} />
+                            ? <img loading="lazy" src={supabaseImg(currentUser.profilePhoto, 64)} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid var(--color-brand)" : "none" }} />
                             : <PersonIcon color={isAccount ? "var(--color-brand)" : "white"} />
                           }
                           <span className="nav-label">Account</span>
@@ -313,7 +314,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, notifCount
       <div style={{ flex: 1, position: "relative" }}>
         <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={{ ...tab(isAccount), width: "100%", height: "100%" }}>
           {currentUser?.profilePhoto
-            ? <img loading="lazy" src={currentUser.profilePhoto} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
+            ? <img loading="lazy" src={supabaseImg(currentUser.profilePhoto, 64)} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
             : <PersonIcon color={isAccount ? "var(--color-brand)" : "#94a3b8"} />
           }
           Account
@@ -362,7 +363,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
       </button>
       <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={tab(isAccount)}>
         {currentUser?.profilePhoto
-          ? <img loading="lazy" src={currentUser.profilePhoto} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
+          ? <img loading="lazy" src={supabaseImg(currentUser.profilePhoto, 64)} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
           : <PersonIcon color={isAccount ? "var(--color-brand)" : "#94a3b8"} />
         }
         Account

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { supabaseImg } from "../../utils/img";
 
 function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }) {
   const ref = useRef(null);
@@ -29,7 +30,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
   const today     = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Expired";
   const rawPhoto  = posting.photos?.[0] || null;
-  const photo     = rawPhoto ? `${rawPhoto}?width=400&quality=75` : null;
+  const photo     = supabaseImg(rawPhoto, 400);
   const crop      = posting.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
   const postedAgo = (() => {
     if (!posting.createdAt) return null;

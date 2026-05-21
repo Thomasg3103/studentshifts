@@ -7,6 +7,7 @@ import { geocodeAddress, getCurrentPosition } from "../utils/geo";
 import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData, sendPasswordReset } from "../lib/auth";
 import { jobCategories } from "../data/jobCategories";
 import { useApp } from "../context/AppContext";
+import { supabaseImg } from "../utils/img";
 
 const PART_TIME_SKILLS = [
   "Customer Service", "Cash Handling", "Till Operation", "Retail Sales", "Stock Management",
@@ -551,7 +552,7 @@ export default function AccountPage() {
               <div style={{ position: "relative", width: "88px", height: "88px", margin: "0 auto" }}>
                 <div style={{ width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: "3px solid #fce7f3", backgroundColor: "#fafafa", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 3px var(--color-brand)22" }}>
                   {profilePhoto
-                    ? <img loading="lazy" src={profilePhoto} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ? <img loading="lazy" src={supabaseImg(profilePhoto, 176)} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     : <PersonIcon />}
                 </div>
                 {/* Uploading spinner overlay */}

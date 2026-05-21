@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
+import { supabaseImg } from "../../utils/img";
 
 const closeOptBtn = (color, bg, border) => ({
   display: "flex", flexDirection: "column", alignItems: "flex-start",
@@ -74,7 +75,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
                 >
                   <div style={{ width: "32px", height: "32px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {a.profilePhoto
-                      ? <img loading="lazy" src={a.profilePhoto} alt={a.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ? <img loading="lazy" src={supabaseImg(a.profilePhoto, 64)} alt={a.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                       : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                     }
                   </div>

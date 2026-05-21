@@ -6,6 +6,7 @@ import { haversineDistance, formatDistance, coordsForLocation, geocodeAddress } 
 import { supabase, withTimeout } from "../lib/supabase";
 import { likeJob, unlikeJob } from "../lib/auth";
 import { useApp } from "../context/AppContext";
+import { supabaseImg } from "../utils/img";
 
 const DESC = {
   "Bar Staff":           "Join our bar team serving drinks and looking after customers. Some experience preferred — full training provided.",
@@ -804,7 +805,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                 const dlDays    = daysUntil(dl);
                 const dlSoon    = dlDays !== null && dlDays <= 7 && dlDays >= 0;
                 const rawPhoto  = job.photos?.[0] || null;
-                const photo     = rawPhoto && rawPhoto.includes("supabase.co") ? `${rawPhoto}?width=200&quality=75` : rawPhoto;
+                const photo     = supabaseImg(rawPhoto, 400);
                 const crop      = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
                 const openJob = () => {

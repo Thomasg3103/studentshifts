@@ -4,6 +4,7 @@ import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
 import { unlikeJob } from "../lib/auth";
 import { useApp } from "../context/AppContext";
+import { supabaseImg } from "../utils/img";
 
 export default function LikedJobs() {
   const { likedJobs, setLikedJobs, setSavedLikedJobIds, setSelectedJob, setPage, currentUser, savedAppliedJobIds = [] } = useApp();
@@ -38,7 +39,7 @@ export default function LikedJobs() {
         <>
           <div role="list" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem" }}>
             {likedJobs.map((job) => {
-              const photo = job.photos?.[0] || null;
+              const photo = supabaseImg(job.photos?.[0] || null, 240);
               const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
               const isClosed = job.status === "Closed" || job.status === "Expired";
               const isApplied = savedAppliedJobIds.includes(job.id);
