@@ -162,7 +162,7 @@ export default function LoginPage() {
             type="button"
             aria-label={showPassword ? "Hide password" : "Show password"}
             onClick={() => setShowPassword(p => !p)}
-            style={{ position: "absolute", right: "0.75rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", padding: 0, cursor: "pointer", color: "#94a3b8", fontSize: "1.1rem", lineHeight: 1 }}
+            style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", padding: 0, cursor: "pointer", color: "#64748b", fontSize: "1.1rem", lineHeight: 1, minWidth: "44px", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
             {showPassword ? "🙈" : "👁"}
           </button>

@@ -62,7 +62,7 @@ export default function AboutPage() {
           ].map(({ n, label }) => (
             <div key={label} style={{ backgroundColor: "#fce7f3", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
               <p style={{ fontWeight: "800", fontSize: "1.6rem", color: "var(--color-brand)", margin: 0 }}>{n}</p>
-              <p style={{ fontSize: "0.8rem", color: "#64748b", margin: "0.3rem 0 0", fontWeight: "600" }}>{label}</p>
+              <p style={{ fontSize: "0.8rem", color: "#475569", margin: "0.3rem 0 0", fontWeight: "600" }}>{label}</p>
             </div>
           ))}
         </div>

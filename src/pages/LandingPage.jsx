@@ -91,6 +91,8 @@ export default function LandingPage() {
             <PersonIcon />
           </button>
           <button
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
             onClick={() => setMenuOpen(o => !o)}
             style={{ background: "transparent", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.5rem", width: "38px", height: "38px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px", cursor: "pointer" }}
           >
@@ -216,7 +218,7 @@ export default function LandingPage() {
           ].map(({ n, label }) => (
             <div key={label} style={{ backgroundColor: "#fce7f3", borderRadius: "1rem", padding: "1.75rem 1rem", textAlign: "center" }}>
               <p style={{ fontWeight: 800, fontSize: "2rem", color: "var(--color-brand)", margin: 0 }}>{n ?? "..."}</p>
-              <p style={{ fontSize: "0.82rem", color: "#64748b", margin: "0.3rem 0 0", fontWeight: 600 }}>{label}</p>
+              <p style={{ fontSize: "0.82rem", color: "#475569", margin: "0.3rem 0 0", fontWeight: 600 }}>{label}</p>
             </div>
           ))}
         </div>
@@ -229,15 +231,15 @@ export default function LandingPage() {
             <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.75, margin: "0 0 1.25rem" }}>
               Browse and apply for jobs on the go. Get real-time notifications when employers respond. Coming soon to iOS and Android.
             </p>
-            <span style={{ backgroundColor: "#fef3c7", color: "#d97706", fontWeight: 700, fontSize: "0.78rem", padding: "0.3rem 0.9rem", borderRadius: "999px" }}>
+            <span style={{ backgroundColor: "#fef3c7", color: "#92400e", fontWeight: 700, fontSize: "0.78rem", padding: "0.3rem 0.9rem", borderRadius: "999px" }}>
               Coming Soon
             </span>
           </div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ width: "120px", height: "120px", border: "3px dashed #cbd5e1", borderRadius: "1rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#f8fafc", color: "#94a3b8", fontSize: "0.72rem", fontWeight: 600, lineHeight: 1.6, margin: "0 auto 0.6rem" }}>
+            <div style={{ width: "120px", height: "120px", border: "3px dashed #cbd5e1", borderRadius: "1rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#f8fafc", color: "#64748b", fontSize: "0.72rem", fontWeight: 600, lineHeight: 1.6, margin: "0 auto 0.6rem" }}>
               📱<br />QR Code<br />Coming Soon
             </div>
-            <p style={{ fontSize: "0.72rem", color: "#94a3b8", margin: 0 }}>Scan to download</p>
+            <p style={{ fontSize: "0.72rem", color: "#64748b", margin: 0 }}>Scan to download</p>
           </div>
         </div>
 
@@ -261,7 +263,7 @@ export default function LandingPage() {
                 >
                   <div style={{ fontSize: "1.5rem", marginBottom: "0.4rem" }}>📍</div>
                   <p style={{ fontWeight: 700, fontSize: "0.9rem", margin: "0 0 0.2rem" }}>{city}</p>
-                  <p style={{ fontSize: "0.74rem", color: "rgba(255,255,255,0.45)", margin: 0 }}>
+                  <p style={{ fontSize: "0.74rem", color: "rgba(255,255,255,0.7)", margin: 0 }}>
                     {count} job{count !== 1 ? "s" : ""}
                   </p>
                 </button>
