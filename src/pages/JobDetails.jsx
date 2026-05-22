@@ -1,5 +1,6 @@
-﻿import { useState, useEffect } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 import toast from "react-hot-toast";
 import DOMPurify from "dompurify";
 import { Helmet } from "react-helmet-async";
@@ -29,6 +30,12 @@ export default function JobDetails({ job }) {
   const [fullscreenIdx, setFullscreenIdx] = useState(null);
   const [selectedDay, setSelectedDay]     = useState(null);
   const [reportOpen, setReportOpen]       = useState(false);
+  const applyModalRef   = useRef(null);
+  const reportModalRef  = useRef(null);
+  const lightboxRef     = useRef(null);
+  useFocusTrap(applyModalRef,  () => setApplyModal(null),        !!applyModal);
+  useFocusTrap(reportModalRef, () => setReportOpen(false),       reportOpen);
+  useFocusTrap(lightboxRef,    () => setFullscreenIdx(null),     fullscreenIdx !== null);
   const [reportReason, setReportReason]   = useState("");
   const [windowWidth, setWindowWidth]     = useState(window.innerWidth);
   const [applyCooldown, setApplyCooldown] = useState(0);
@@ -277,8 +284,8 @@ export default function JobDetails({ job }) {
                   {/* Prev / Next arrows overlaid on image */}
                   {photos.length > 1 && (
                     <>
-                      <button onClick={e => { e.stopPropagation(); setPhotoIdx((idx - 1 + photos.length) % photos.length); }} style={{ position: "absolute", left: "4px", top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.45)", border: "none", color: "white", borderRadius: "50%", width: "24px", height: "24px", fontSize: "0.85rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>‹</button>
-                      <button onClick={e => { e.stopPropagation(); setPhotoIdx((idx + 1) % photos.length); }} style={{ position: "absolute", right: "4px", top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.45)", border: "none", color: "white", borderRadius: "50%", width: "24px", height: "24px", fontSize: "0.85rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>›</button>
+                      <button aria-label="Previous photo" onClick={e => { e.stopPropagation(); setPhotoIdx((idx - 1 + photos.length) % photos.length); }} style={{ position: "absolute", left: "4px", top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.45)", border: "none", color: "white", borderRadius: "50%", width: "24px", height: "24px", fontSize: "0.85rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>‹</button>
+                      <button aria-label="Next photo" onClick={e => { e.stopPropagation(); setPhotoIdx((idx + 1) % photos.length); }} style={{ position: "absolute", right: "4px", top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.45)", border: "none", color: "white", borderRadius: "50%", width: "24px", height: "24px", fontSize: "0.85rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>›</button>
                     </>
                   )}
                 </div>
@@ -375,8 +382,8 @@ export default function JobDetails({ job }) {
       {/* Report modal */}
       {reportOpen && (
         <div onClick={() => setReportOpen(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
-            <h3 style={{ fontWeight: 800, fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Report Job</h3>
+          <div ref={reportModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="report-modal-title" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+            <h3 id="report-modal-title" style={{ fontWeight: 800, fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Report Job</h3>
             <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1rem", lineHeight: 1.5 }}>Let us know what's wrong with this listing and we'll look into it.</p>
             <textarea
               value={reportReason}
@@ -405,7 +412,7 @@ export default function JobDetails({ job }) {
       {/* Apply modal */}
       {applyModal && (
         <div onClick={() => setApplyModal(null)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-          <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+          <div ref={applyModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Apply for job" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
             {applyModal === "noCV" ? (
         <>
           <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fef9c3", border: "2px solid #fde047", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>📄</div>
@@ -493,11 +500,15 @@ export default function JobDetails({ job }) {
       {/* Fullscreen photo lightbox */}
       {fullscreenIdx !== null && (
         <div
+          ref={lightboxRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Photo lightbox"
           onClick={() => setFullscreenIdx(null)}
           style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.92)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1rem" }}
         >
           {/* Close */}
-          <button onClick={() => setFullscreenIdx(null)} style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: "50%", width: "40px", height: "40px", fontSize: "1.3rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>✕</button>
+          <button aria-label="Close photo lightbox" onClick={() => setFullscreenIdx(null)} style={{ position: "absolute", top: "1rem", right: "1rem", background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: "50%", width: "40px", height: "40px", fontSize: "1.3rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>✕</button>
 
           {/* Cropped image — same transform as thumbnail */}
           {(() => {
@@ -517,8 +528,8 @@ export default function JobDetails({ job }) {
           {/* Arrows */}
           {photos.length > 1 && (
             <>
-              <button onClick={e => { e.stopPropagation(); setFullscreenIdx((fullscreenIdx - 1 + photos.length) % photos.length); }} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: "50%", width: "44px", height: "44px", fontSize: "1.5rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
-              <button onClick={e => { e.stopPropagation(); setFullscreenIdx((fullscreenIdx + 1) % photos.length); }} style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: "50%", width: "44px", height: "44px", fontSize: "1.5rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
+              <button aria-label="Previous photo" onClick={e => { e.stopPropagation(); setFullscreenIdx((fullscreenIdx - 1 + photos.length) % photos.length); }} style={{ position: "absolute", left: "1rem", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: "50%", width: "44px", height: "44px", fontSize: "1.5rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>‹</button>
+              <button aria-label="Next photo" onClick={e => { e.stopPropagation(); setFullscreenIdx((fullscreenIdx + 1) % photos.length); }} style={{ position: "absolute", right: "1rem", top: "50%", transform: "translateY(-50%)", background: "rgba(255,255,255,0.15)", border: "none", color: "white", borderRadius: "50%", width: "44px", height: "44px", fontSize: "1.5rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>›</button>
               <div style={{ position: "absolute", bottom: "1.25rem", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "6px" }}>
                 {photos.map((_, i) => <div key={i} onClick={e => { e.stopPropagation(); setFullscreenIdx(i); }} style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: i === fullscreenIdx ? "white" : "rgba(255,255,255,0.35)", cursor: "pointer" }} />)}
               </div>

@@ -8,6 +8,7 @@ import "../StudentShiftWeb.css";
 import { supabase, withTimeout } from "../lib/supabase";
 import { fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
 import { useHiringPipeline } from "../hooks/useHiringPipeline";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 import BrowseStudents from "./company/BrowseStudents";
 import SavedStudents from "./company/SavedStudents";
 import JobPostingCard from "./company/JobPostingCard";
@@ -50,6 +51,7 @@ export default function CompanyDashboard() {
   const [loadRetryKey, setLoadRetryKey] = useState(0);
   const [formSaving, setFormSaving] = useState(false);
   const [modal, setModal]         = useState(null);
+  const applicantsModalRef = useRef(null);
   const [activePosting, setActivePosting] = useState(null);
   const [formData, setFormData]   = useState(null);
   const [heatmap, setHeatmap]     = useState(null);
@@ -219,6 +221,7 @@ export default function CompanyDashboard() {
     setActivePosting(null);
     setFormData(null);
   };
+  useFocusTrap(applicantsModalRef, closeModal, modal === "applicants");
 
 
   const toggleStatus = async (id) => {
@@ -618,11 +621,11 @@ export default function CompanyDashboard() {
       {/* Applicants Modal â€" wide overlay */}
       {modal === "applicants" && activePosting && (
         <div onClick={closeModal} className="applicants-modal-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)", animation: "fadeInOverlay 0.18s ease" }}>
-          <div onClick={e => e.stopPropagation()} className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "0.85rem", width: "100%", maxWidth: "min(96vw, 1500px)", minHeight: "88vh", maxHeight: "96vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid #e2e8f0" }}>
+          <div ref={applicantsModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="applicants-modal-title" className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "0.85rem", width: "100%", maxWidth: "min(96vw, 1500px)", minHeight: "88vh", maxHeight: "96vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid #e2e8f0" }}>
             {/* Header */}
             <div style={{ height: "60px", padding: "0 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: "1rem" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: "0.65rem", flex: 1, minWidth: 0 }}>
-                <h2 style={{ margin: 0, fontWeight: "700", fontSize: "1.05rem", color: "#0f172a", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>{activePosting.title}</h2>
+                <h2 id="applicants-modal-title" style={{ margin: 0, fontWeight: "700", fontSize: "1.05rem", color: "#0f172a", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>{activePosting.title}</h2>
                 <span style={{ fontSize: "0.78rem", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.location} Â· {activePosting.pay}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>

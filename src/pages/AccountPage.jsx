@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 import toast from "react-hot-toast";
 import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
@@ -51,6 +52,10 @@ export default function AccountPage() {
   const [saveError, setSaveError]               = useState("");
   const [showLogoutModal, setShowLogoutModal]   = useState(false);
   const [showDeleteModal, setShowDeleteModal]   = useState(false);
+  const deleteModalRef = useRef(null);
+  const logoutModalRef = useRef(null);
+  useFocusTrap(deleteModalRef, () => setShowDeleteModal(false), showDeleteModal);
+  useFocusTrap(logoutModalRef, () => setShowLogoutModal(false), showLogoutModal);
   const [deleteConfirm, setDeleteConfirm]       = useState("");
   const [deletePassword, setDeletePassword]     = useState("");
   const [deleting, setDeleting]                 = useState(false);
@@ -712,7 +717,7 @@ export default function AccountPage() {
                       {skills.map(s => (
                         <span key={s} style={{ fontSize: "0.8rem", backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1.5px solid #bfdbfe", borderRadius: "999px", padding: "0.2rem 0.6rem", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                           {s}
-                          <button onClick={() => removeSkill(s)} style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: "0.75rem", padding: 0, lineHeight: 1 }}>✕</button>
+                          <button aria-label={`Remove skill: ${s}`} onClick={() => removeSkill(s)} style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: "0.75rem", padding: 0, lineHeight: 1 }}>✕</button>
                         </span>
                       ))}
                     </div>
@@ -837,9 +842,9 @@ export default function AccountPage() {
         {/* ── Delete modal ── */}
         {showDeleteModal && (
           <div onClick={() => setShowDeleteModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-            <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+            <div ref={deleteModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fff1f2", border: "2px solid #fecdd3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>⚠️</div>
-              <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Delete your account?</h3>
+              <h3 id="delete-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Delete your account?</h3>
               <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1.25rem" }}>This is permanent. Your profile, CV, and all data will be deleted.</p>
               <p style={{ fontSize: "0.8rem", fontWeight: "600", color: "#374151", margin: "0 0 0.4rem", textAlign: "left" }}>Enter your password to confirm</p>
               <input type="password" value={deletePassword} onChange={e => setDeletePassword(e.target.value)} placeholder="Password" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
@@ -859,9 +864,9 @@ export default function AccountPage() {
         {/* ── Logout modal ── */}
         {showLogoutModal && (
           <div onClick={() => setShowLogoutModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-            <div onClick={e => e.stopPropagation()} style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+            <div ref={logoutModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="logout-modal-title" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fff1f2", border: "2px solid #fecdd3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>👋</div>
-              <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Log out?</h3>
+              <h3 id="logout-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Log out?</h3>
               <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.5rem" }}>You'll need to sign back in to access your account.</p>
               <div style={{ display: "flex", gap: "0.75rem" }}>
                 <button onClick={() => setShowLogoutModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Stay</button>

@@ -116,8 +116,8 @@ button {
 
 /* ─── Global focus ring ──────────────────────────────── */
 *:focus-visible {
-  outline: 3px solid var(--color-brand);
-  outline-offset: 2px;
+  outline: 3px solid var(--color-brand) !important;
+  outline-offset: 2px !important;
   border-radius: 3px;
 }
 

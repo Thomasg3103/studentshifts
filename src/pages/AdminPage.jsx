@@ -10,6 +10,7 @@ import {
   getSignups, sendLaunchEmails,
 } from "../lib/auth";
 import { emailStudentRejected, emailCompanyRejected } from "../lib/emails";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 
 export default function AdminPage() {
   const [tab, setTab]           = useState("students");
@@ -19,6 +20,8 @@ export default function AdminPage() {
   const [error, setError]       = useState("");
   const [actionLoading, setActionLoading] = useState(null);
   const [rejectConfirm, setRejectConfirm] = useState(null); // { type: "student"|"company", item }
+  const rejectModalRef = useRef(null);
+  useFocusTrap(rejectModalRef, () => setRejectConfirm(null), !!rejectConfirm);
   const inFlight = useRef(new Set()); // F-C6: prevent double-approval across renders
   const [signups, setSignups]             = useState(null); // null = not yet fetched
   const [signupsLoading, setSignupsLoading] = useState(false);
@@ -446,8 +449,8 @@ export default function AdminPage() {
       {/* F-M8: Reject confirmation modal */}
       {rejectConfirm && (
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }}>
-          <div style={{ backgroundColor: "white", borderRadius: "1rem", padding: "1.5rem 1.75rem", maxWidth: "380px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
-            <p style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>
+          <div ref={rejectModalRef} role="dialog" aria-modal="true" aria-labelledby="reject-modal-title" style={{ backgroundColor: "white", borderRadius: "1rem", padding: "1.5rem 1.75rem", maxWidth: "380px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+            <p id="reject-modal-title" style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>
               Reject {rejectConfirm.type === "student" ? "Student" : "Company"}?
             </p>
             <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.5 }}>

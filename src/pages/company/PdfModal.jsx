@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
+import { useFocusTrap } from "../../hooks/useFocusTrap";
 import DOMPurify from "dompurify";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
@@ -12,6 +13,7 @@ const cvHeaderBtn = { background: "none", border: "1.5px solid rgba(255,255,255,
 export function PdfModal({ url, label, fileName, onClose }) {
   const modalRef  = useRef(null);
   const scrollRef = useRef(null);
+  useFocusTrap(modalRef, onClose);
   const [numPages, setNumPages] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [docxHtml, setDocxHtml] = useState(null);
@@ -95,7 +97,7 @@ export function PdfModal({ url, label, fileName, onClose }) {
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1300, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-      <div ref={modalRef} onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: "720px", height: "85vh", display: "flex", flexDirection: "column", borderRadius: "1rem", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.4)" }}>
+      <div ref={modalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={label} style={{ width: "100%", maxWidth: "720px", height: "85vh", display: "flex", flexDirection: "column", borderRadius: "1rem", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.4)" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "#1e293b", padding: "0.65rem 1rem", flexShrink: 0 }}>
           <span style={{ color: "white", fontWeight: "700", fontSize: "0.9rem" }}>📄 {label}</span>
           <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>

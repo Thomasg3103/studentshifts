@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import PageWrapper from "../components/PageWrapper";
@@ -26,16 +27,22 @@ const STAGE_LABEL = {
 const STATUS_ORDER = { Accepted: 0, Rejected: 1, Pending: 2 };
 
 function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, onCancel }) {
+  const panelRef = useRef(null);
+  useFocusTrap(panelRef, onCancel);
   return (
     <div
       onClick={onCancel}
       style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)" }}
     >
       <div
+        ref={panelRef}
         onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="confirm-dialog-title"
         style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "1.75rem 1.5rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
       >
-        <h3 style={{ fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.4rem", color: "#1e293b" }}>{title}</h3>
+        <h3 id="confirm-dialog-title" style={{ fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.4rem", color: "#1e293b" }}>{title}</h3>
         <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1.5rem", lineHeight: 1.55 }}>{message}</p>
         <div style={{ display: "flex", gap: "0.75rem" }}>
           <button
