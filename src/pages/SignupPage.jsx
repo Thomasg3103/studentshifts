@@ -40,7 +40,7 @@ export default function SignupPage() {
   const [name, setName]         = useState(params.get("name") || "");
   const [email, setEmail]       = useState(params.get("email") || "");
   const [password, setPassword] = useState("");
-  const [role, setRole]         = useState("student");
+  const [role, setRole]         = useState(params.get("role") === "company" ? "company" : "student");
   const [croNumber, setCroNumber] = useState("");
   const [industries, setIndustries] = useState([]);
   const [error, setError]       = useState("");

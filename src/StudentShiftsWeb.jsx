@@ -301,6 +301,7 @@ export default function StudentShiftsWeb() {
             const updated = normaliseProfile({ ...profile, email: profile.email || currentUser.email });
             if (updated.verificationStatus === "verified") {
               setCurrentUser(updated);
+              if (window.gtag) window.gtag("event", "verification_complete", { user_role: "student" });
               navigate("/", { replace: true });
             } else if (updated.verificationStatus === "rejected") {
               setCurrentUser(updated);

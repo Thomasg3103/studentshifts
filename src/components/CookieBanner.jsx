@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { initGA, initSentry } from "../main";
+import { initGA, initSentry, initClarity } from "../main";
 
 const STORAGE_KEY = "ss_cookie_notice_dismissed";
 
@@ -18,6 +18,7 @@ export default function CookieBanner() {
     setDismissed(true);
     initGA();
     initSentry();
+    initClarity();
   };
 
   return (

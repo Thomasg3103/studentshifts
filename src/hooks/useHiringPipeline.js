@@ -41,6 +41,7 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
           }),
         }));
         toast.success("Applicant hired!");
+        if (window.gtag) window.gtag("event", "hire_confirmed", { posting_id: posting?.id, application_id: applicationId });
       } else {
         applyToPosting(p => ({
           ...p,

@@ -30,6 +30,23 @@ if (localStorage.getItem("ss_cookie_notice_dismissed") === "1") {
   initGA();
 }
 
+// Microsoft Clarity — heatmaps + session recordings (consent-gated, same as GA4)
+const CLARITY_ID = import.meta.env.VITE_CLARITY_PROJECT_ID;
+export function initClarity() {
+  if (!CLARITY_ID || window.__clarity_initialised) return;
+  window.__clarity_initialised = true;
+  /* eslint-disable */
+  (function(c, l, a, r, i, t, y) {
+    c[a] = c[a] || function() { (c[a].q = c[a].q || []).push(arguments); };
+    t = l.createElement(r); t.async = 1; t.src = "https://www.bing.com/clarity/tag/" + i;
+    y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
+  })(window, document, "clarity", "script", CLARITY_ID);
+  /* eslint-enable */
+}
+if (localStorage.getItem("ss_cookie_notice_dismissed") === "1") {
+  initClarity();
+}
+
 export function initSentry() {
   if (!import.meta.env.VITE_SENTRY_DSN || window.__sentry_initialised) return;
   window.__sentry_initialised = true;

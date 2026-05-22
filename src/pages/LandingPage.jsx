@@ -17,7 +17,6 @@ const HOW_IT_WORKS = [
 export default function LandingPage() {
   const { currentUser } = useApp();
   const navigate  = useNavigate();
-  const [search,    setSearch]    = useState("");
   const [locations, setLocations] = useState([]);
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [stats,     setStats]     = useState({ students: null, jobs: null, companies: null });
@@ -55,21 +54,19 @@ export default function LandingPage() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const handleSearch = () => navigate("/signup");
-
   return (
     <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
       <Helmet>
-        <title>StudentShifts — Find Part-Time Jobs in Ireland</title>
-        <meta name="description" content="StudentShifts connects Irish students with flexible part-time and short-term jobs. Browse verified employers, apply in minutes." />
+        <title>StudentShifts — Part-Time Jobs for Irish Students</title>
+        <meta name="description" content="Find flexible part-time work that fits your college timetable. Apply to verified Irish employers in one click — no cover letter, no experience needed. Free to join." />
         <link rel="canonical" href="https://studentshifts.ie/" />
         <meta property="og:type" content="website" />
-        <meta property="og:title" content="StudentShifts — Find Part-Time Jobs in Ireland" />
-        <meta property="og:description" content="StudentShifts connects Irish students with flexible part-time and short-term jobs. Browse verified employers, apply in minutes." />
+        <meta property="og:title" content="StudentShifts — Part-Time Jobs for Irish Students" />
+        <meta property="og:description" content="Find flexible part-time work that fits your college timetable. Apply to verified Irish employers in one click — free to join." />
         <meta property="og:url" content="https://studentshifts.ie/" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="StudentShifts — Find Part-Time Jobs in Ireland" />
-        <meta name="twitter:description" content="StudentShifts connects Irish students with flexible part-time and short-term jobs. Browse verified employers, apply in minutes." />
+        <meta name="twitter:title" content="StudentShifts — Part-Time Jobs for Irish Students" />
+        <meta name="twitter:description" content="Find flexible part-time work that fits your college timetable. Apply to verified Irish employers in one click — free to join." />
       </Helmet>
 
       {/* ── Header ── */}
@@ -141,64 +138,39 @@ export default function LandingPage() {
         background: "linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #7b0d2e 100%)",
         color: "white", textAlign: "center", padding: "5rem 1.5rem 4.5rem",
       }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "999px", padding: "0.3rem 0.9rem", marginBottom: "1.5rem", fontSize: "0.78rem", fontWeight: 600, color: "rgba(255,255,255,0.75)", letterSpacing: "0.03em" }}>
+          🇮🇪 Built for Irish Students
+        </div>
         <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.6rem)", fontWeight: 900, lineHeight: 1.12, margin: "0 0 1rem", letterSpacing: "-0.03em" }}>
-          Find Flexible Shifts That<br />
+          Find Part-Time Work That<br />
           <span style={{ background: "linear-gradient(90deg,var(--color-brand),var(--color-brand-dark),#E57399)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
-            Fit Your Student Life
+            Fits Your Timetable
           </span>
         </h1>
-        <p style={{ fontSize: "1.05rem", color: "rgba(255,255,255,0.65)", margin: "0 auto 2.5rem", maxWidth: "500px", lineHeight: 1.75 }}>
-          Connecting students across Ireland with part-time work that fits around college — no experience needed.
+        <p style={{ fontSize: "1.05rem", color: "rgba(255,255,255,0.65)", margin: "0 auto 2.5rem", maxWidth: "480px", lineHeight: 1.75 }}>
+          Apply to verified employers in one click. No cover letter. No faff.
+          Start earning around your college schedule.
         </p>
 
-        {/* Primary CTAs */}
-        <div style={{ display: "flex", gap: "0.75rem", maxWidth: "400px", margin: "0 auto 1.25rem", flexWrap: "wrap", justifyContent: "center" }}>
+        {/* Primary CTAs — student + employer */}
+        <div style={{ display: "flex", gap: "0.75rem", maxWidth: "420px", margin: "0 auto 1rem", flexWrap: "wrap", justifyContent: "center" }}>
           <button
             onClick={() => navigate("/signup")}
-            style={{ flex: 1, minWidth: "160px", padding: "0.9rem 2rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)", whiteSpace: "nowrap" }}
+            style={{ flex: 1, minWidth: "170px", padding: "0.95rem 1.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)", whiteSpace: "nowrap" }}
           >
-            Get Started Free →
+            Find Shifts — It's Free →
           </button>
           <button
-            onClick={() => navigate("/login")}
-            style={{ flex: 1, minWidth: "130px", padding: "0.9rem 2rem", borderRadius: "2rem", border: "1.5px solid rgba(255,255,255,0.35)", background: "transparent", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+            onClick={() => navigate("/signup?role=company")}
+            style={{ flex: 1, minWidth: "170px", padding: "0.95rem 1.75rem", borderRadius: "2rem", border: "1.5px solid rgba(255,255,255,0.35)", background: "transparent", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
           >
-            Log In
+            I'm Hiring Students →
           </button>
         </div>
 
-        {/* Search bar */}
-        <div style={{ display: "flex", gap: "0.75rem", maxWidth: "560px", margin: "0 auto 1.5rem", flexWrap: "wrap", justifyContent: "center" }}>
-          <label htmlFor="landing-search" style={{ position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" }}>Search jobs, shifts, locations</label>
-          <input
-            id="landing-search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handleSearch()}
-            placeholder="Search jobs, shifts, locations…"
-            style={{
-              flex: 1, minWidth: "220px", padding: "0.9rem 1.4rem",
-              borderRadius: "2rem", border: "none", fontSize: "0.95rem",
-              fontFamily: "inherit", outline: "none",
-              boxShadow: "0 2px 16px rgba(0,0,0,0.25)",
-            }}
-          />
-          <button
-            onClick={handleSearch}
-            style={{ padding: "0.9rem 2rem", borderRadius: "2rem", border: "1.5px solid rgba(255,255,255,0.3)", background: "rgba(255,255,255,0.1)", color: "white", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
-          >
-            Browse Jobs
-          </button>
-        </div>
-
-        <p style={{ margin: 0, fontSize: "0.82rem", color: "rgba(255,255,255,0.4)" }}>
-          For employers —{" "}
-          <span
-            onClick={() => navigate("/signup")}
-            style={{ color: "rgba(255,255,255,0.65)", cursor: "pointer", textDecoration: "underline", fontWeight: 600 }}
-          >
-            post a job free
-          </span>
+        {/* Trust line */}
+        <p style={{ margin: "0.75rem 0 0", fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", letterSpacing: "0.02em" }}>
+          {stats.students ? `${stats.students} verified students` : "Hundreds of students"} · {stats.companies ? `${stats.companies} verified employers` : "Verified employers"} · 100% free to join
         </p>
       </section>
 
@@ -232,24 +204,41 @@ export default function LandingPage() {
           ))}
         </div>
 
-        {/* Download App */}
-        <SectionHeading>Get the App</SectionHeading>
-        <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1.25rem", padding: "2.5rem 2rem", display: "flex", gap: "3rem", alignItems: "center", flexWrap: "wrap", marginBottom: "3.5rem" }}>
+        {/* Employer pitch */}
+        <SectionHeading>Hiring Students?</SectionHeading>
+        <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1.25rem", padding: "2rem 2rem", display: "flex", gap: "2.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "3.5rem" }}>
           <div style={{ flex: 1, minWidth: "220px" }}>
-            <h3 style={{ fontWeight: 800, fontSize: "1.4rem", color: "#1e293b", margin: "0 0 0.6rem" }}>StudentShifts on Mobile</h3>
+            <h3 style={{ fontWeight: 800, fontSize: "1.3rem", color: "#1e293b", margin: "0 0 0.6rem" }}>Post shifts, find reliable students</h3>
             <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.75, margin: "0 0 1.25rem" }}>
-              Browse and apply for jobs on the go. Get real-time notifications when employers respond. Coming soon to iOS and Android.
+              StudentShifts gives you access to a pool of verified, motivated students looking for exactly the flexible work you're offering.
+              Post a shift in minutes — no recruitment agency fees, ever.
             </p>
-            <span style={{ backgroundColor: "#fef3c7", color: "#92400e", fontWeight: 700, fontSize: "0.78rem", padding: "0.3rem 0.9rem", borderRadius: "999px" }}>
-              Coming Soon
-            </span>
+            <button
+              onClick={() => navigate("/signup?role=company")}
+              style={{ padding: "0.75rem 1.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(162,29,84,0.3)" }}
+            >
+              Post Your First Job Free →
+            </button>
           </div>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ width: "120px", height: "120px", border: "3px dashed #cbd5e1", borderRadius: "1rem", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", backgroundColor: "#f8fafc", color: "#64748b", fontSize: "0.72rem", fontWeight: 600, lineHeight: 1.6, margin: "0 auto 0.6rem" }}>
-              📱<br />QR Code<br />Coming Soon
-            </div>
-            <p style={{ fontSize: "0.72rem", color: "#64748b", margin: 0 }}>Scan to download</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", flexShrink: 0 }}>
+            {["✅ Verified student profiles", "📋 One-click application review", "💬 Direct message candidates", "🆓 Free to post — always"].map(point => (
+              <div key={point} style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.88rem", fontWeight: 600, color: "#374151" }}>{point}</div>
+            ))}
           </div>
+        </div>
+
+        {/* Bottom CTA band */}
+        <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #7b0d2e 100%)", borderRadius: "1.25rem", padding: "3rem 2rem", textAlign: "center", marginBottom: "0.5rem" }}>
+          <h2 style={{ fontWeight: 800, fontSize: "1.6rem", color: "white", margin: "0 0 0.6rem", letterSpacing: "-0.02em" }}>Ready to start earning?</h2>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.95rem", margin: "0 0 1.75rem", lineHeight: 1.6 }}>
+            Sign up free in under 2 minutes. No experience needed.
+          </p>
+          <button
+            onClick={() => navigate("/signup")}
+            style={{ padding: "0.9rem 2.5rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)" }}
+          >
+            Create My Free Account →
+          </button>
         </div>
 
       </div>
