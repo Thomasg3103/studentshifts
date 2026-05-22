@@ -176,11 +176,11 @@ export default function JobDetails({ job }) {
         {distanceKm !== null
           ? formatDistance(distanceKm)
           : !loc
-          ? <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Set your location in Account</span>
-          : <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Not available for this job</span>}
+          ? <span style={{ color: "#64748b", fontWeight: 500, fontSize: "0.82rem" }}>Set your location in Account</span>
+          : <span style={{ color: "#64748b", fontWeight: 500, fontSize: "0.82rem" }}>Not available for this job</span>}
       </DetailCard>
       {job.sickPay !== undefined && <DetailCard label="🏥 Sick Pay">{job.sickPay ? "Yes" : "No"}</DetailCard>}
-      <DetailCard label="🏖️ Holidays">{job.holidays || <span style={{ color: "#94a3b8", fontWeight: 500, fontSize: "0.82rem" }}>Not specified</span>}</DetailCard>
+      <DetailCard label="🏖️ Holidays">{job.holidays || <span style={{ color: "#64748b", fontWeight: 500, fontSize: "0.82rem" }}>Not specified</span>}</DetailCard>
       {job.weekendRequired && <DetailCard label="📆 Schedule">Weekend availability required</DetailCard>}
       {deadlineStr && <DetailCard label="⏰ Apply By">{deadlineStr}</DetailCard>}
     </div>
@@ -238,7 +238,7 @@ export default function JobDetails({ job }) {
       </Helmet>
 
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" style={{ padding: "0.6rem 1.25rem", fontSize: "0.8rem", color: "#94a3b8", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <nav aria-label="Breadcrumb" style={{ padding: "0.6rem 1.25rem", fontSize: "0.8rem", color: "#64748b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
           <li><a href="/" style={{ color: "var(--color-brand)", fontWeight: 600, textDecoration: "none" }}>Jobs</a></li>
           <li aria-hidden="true">/</li>
@@ -318,7 +318,7 @@ export default function JobDetails({ job }) {
                     {(() => {
                       if (job.status === "Closed" || job.status === "Expired") {
                         return (
-                          <div style={{ ...btn, background: "#e2e8f0", color: "#94a3b8", cursor: "default", textAlign: "center" }}>
+                          <div style={{ ...btn, background: "#e2e8f0", color: "#64748b", cursor: "default", textAlign: "center" }}>
                             {job.status === "Closed" ? "Position Filled" : "Expired"}
                           </div>
                         );
@@ -328,7 +328,7 @@ export default function JobDetails({ job }) {
                         <button
                           onClick={noCv ? undefined : handleApply}
                           disabled={noCv}
-                          style={{ ...btn, background: noCv ? "#e2e8f0" : "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: noCv ? "#94a3b8" : "white", boxShadow: noCv ? "none" : "0 3px 10px rgba(162,29,84,0.35)", cursor: noCv ? "not-allowed" : "pointer" }}
+                          style={{ ...btn, background: noCv ? "#e2e8f0" : "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: noCv ? "#64748b" : "white", boxShadow: noCv ? "none" : "0 3px 10px rgba(162,29,84,0.35)", cursor: noCv ? "not-allowed" : "pointer" }}
                         >
                           Apply Now
                         </button>
@@ -353,7 +353,7 @@ export default function JobDetails({ job }) {
             {/* About This Role */}
             {job.description && (
               <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.1rem", marginBottom: "1.5rem" }}>
-                <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.45rem" }}>About This Role</p>
+                <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.45rem" }}>About This Role</p>
                 {/<[a-z]/i.test(job.description)
                   ? <div className="rte-content" style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0 }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(job.description, { ALLOWED_TAGS: ["p","br","strong","em","b","i","ul","ol","li","a","h2","h3"], ALLOWED_ATTR: ["href","rel"] }) }} />
                   : <p style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0, whiteSpace: "pre-wrap" }}>{job.description}</p>
@@ -455,8 +455,8 @@ export default function JobDetails({ job }) {
                     const isFilled = (job.filledShifts || []).includes(day);
                     return (
                       <button key={day} onClick={() => !isFilled && setSelectedDay(sel ? null : day)}
-                        style={{ padding: "0.6rem 0.9rem", borderRadius: "0.65rem", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, cursor: isFilled ? "not-allowed" : "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", border: isFilled ? "1.5px solid #e2e8f0" : sel ? "2px solid var(--color-brand)" : "1.5px solid #e2e8f0", background: isFilled ? "#f1f5f9" : sel ? "#fce7f3" : "#fafafa", color: isFilled ? "#94a3b8" : sel ? "var(--color-brand)" : "#374151", textDecoration: isFilled ? "line-through" : "none", opacity: isFilled ? 0.7 : 1 }}>
-                        <span>{day}{timeStr ? (<span style={{ fontWeight: 500, color: isFilled ? "#94a3b8" : sel ? "var(--color-brand-dark)" : "#64748b" }}> · {timeStr}</span>) : null}</span>
+                        style={{ padding: "0.6rem 0.9rem", borderRadius: "0.65rem", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, cursor: isFilled ? "not-allowed" : "pointer", textAlign: "left", display: "flex", justifyContent: "space-between", alignItems: "center", border: isFilled ? "1.5px solid #e2e8f0" : sel ? "2px solid var(--color-brand)" : "1.5px solid #e2e8f0", background: isFilled ? "#f1f5f9" : sel ? "#fce7f3" : "#fafafa", color: isFilled ? "#64748b" : sel ? "var(--color-brand)" : "#374151", textDecoration: isFilled ? "line-through" : "none", opacity: isFilled ? 0.7 : 1 }}>
+                        <span>{day}{timeStr ? (<span style={{ fontWeight: 500, color: isFilled ? "#64748b" : sel ? "var(--color-brand-dark)" : "#64748b" }}> · {timeStr}</span>) : null}</span>
                         {isFilled ? <span style={{ fontSize: "0.72rem", fontWeight: 700, textDecoration: "none" }}>Filled</span> : sel ? <span style={{ fontSize: "0.72rem", fontWeight: 700 }}>✓</span> : null}
                       </button>
                     );
@@ -464,7 +464,7 @@ export default function JobDetails({ job }) {
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <button onClick={() => setApplyModal("shifts")} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
-                  <button onClick={() => { if (selectedDay) setApplyModal("confirm"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: selectedDay ? "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))" : "#e2e8f0", color: selectedDay ? "white" : "#94a3b8", fontWeight: "700", cursor: selectedDay ? "pointer" : "default", fontFamily: "inherit" }}>Apply →</button>
+                  <button onClick={() => { if (selectedDay) setApplyModal("confirm"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: selectedDay ? "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))" : "#e2e8f0", color: selectedDay ? "white" : "#64748b", fontWeight: "700", cursor: selectedDay ? "pointer" : "default", fontFamily: "inherit" }}>Apply →</button>
                 </div>
               </>
             ) : applyModal === "confirm" ? (
@@ -474,7 +474,7 @@ export default function JobDetails({ job }) {
                 <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: selectedDay ? "0.6rem" : "1.5rem" }}>{job.company} — your CV will be shared with the employer.</p>
                 {selectedDay && (
                   <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.65rem 0.9rem", marginBottom: "1.25rem", textAlign: "left" }}>
-                    <p style={{ fontSize: "0.72rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.25rem" }}>Preferred shift</p>
+                    <p style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.25rem" }}>Preferred shift</p>
                     <p style={{ fontSize: "0.88rem", color: "#374151", fontWeight: "600", margin: 0 }}>
                       {selectedDay}{(() => { const t = job.times?.[selectedDay]; const s = Array.isArray(t) ? t.join(", ") : t; return s ? ` · ${s}` : ""; })()}
                     </p>

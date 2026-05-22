@@ -633,7 +633,7 @@ export default function AccountPage() {
                         </div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
                           {profileFields.map(f => (
-                            <span key={f.label} style={{ fontSize: "0.7rem", fontWeight: "600", padding: "0.15rem 0.5rem", borderRadius: "999px", backgroundColor: f.done ? "#dcfce7" : "#f3f4f6", color: f.done ? "#16a34a" : "#9ca3af" }}>
+                            <span key={f.label} style={{ fontSize: "0.7rem", fontWeight: "600", padding: "0.15rem 0.5rem", borderRadius: "999px", backgroundColor: f.done ? "#dcfce7" : "#f3f4f6", color: f.done ? "#16a34a" : "#64748b" }}>
                               {f.done ? "✓" : "○"} {f.label}
                             </span>
                           ))}
@@ -645,7 +645,7 @@ export default function AccountPage() {
                   <FileUpload label="CV" hint=".pdf or .docx — required to apply" accept=".pdf,.doc,.docx" onUpload={handleCvUpload} existingName={currentUser.cvName} required />
                   <FileUpload label="Cover Letter" hint=".pdf or .docx — optional" accept=".pdf,.doc,.docx" onUpload={handleCoverLetterUpload} existingName={currentUser.coverLetterName} />
 
-                  <label htmlFor="linkedin-url" style={labelStyle}>LinkedIn URL <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
+                  <label htmlFor="linkedin-url" style={labelStyle}>LinkedIn URL <span style={{ fontWeight: "400", color: "#64748b" }}>(optional)</span></label>
                   <input
                     id="linkedin-url"
                     placeholder="https://linkedin.com/in/yourname"
@@ -663,7 +663,7 @@ export default function AccountPage() {
                   />
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                    <label htmlFor="short-bio" style={labelStyle}>Short Bio <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
+                    <label htmlFor="short-bio" style={labelStyle}>Short Bio <span style={{ fontWeight: "400", color: "#64748b" }}>(optional)</span></label>
                     <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#64748b" }}>{bio.length}/500</span>
                   </div>
                   <textarea
@@ -677,7 +677,7 @@ export default function AccountPage() {
                     style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
                   />
 
-                  <label htmlFor="skills-input" style={labelStyle}>Skills <span style={{ fontWeight: "400", color: "#9ca3af" }}>(type to search, click to add)</span></label>
+                  <label htmlFor="skills-input" style={labelStyle}>Skills <span style={{ fontWeight: "400", color: "#64748b" }}>(type to search, click to add)</span></label>
                   <div ref={skillWrapRef} style={{ position: "relative", marginBottom: "0.5rem" }}>
                     <input
                       id="skills-input"
@@ -703,7 +703,7 @@ export default function AccountPage() {
                     )}
                     {showSkillSuggestions && skillInput.trim().length > 0 && skillSuggestions.length === 0 && (
                       <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20, backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", padding: "0.6rem 0.85rem", marginTop: "0.25rem" }}>
-                        <p style={{ margin: 0, fontSize: "0.82rem", color: "#9ca3af" }}>No matching skills found</p>
+                        <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>No matching skills found</p>
                       </div>
                     )}
                   </div>
@@ -769,7 +769,7 @@ export default function AccountPage() {
               </Collapsible>
 
               <Section title="Company Profile">
-                <label style={labelStyle}>Company Bio <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
+                <label style={labelStyle}>Company Bio <span style={{ fontWeight: "400", color: "#64748b" }}>(optional)</span></label>
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-0.25rem", marginBottom: "0.25rem" }}>
                   <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#64748b" }}>{bio.length}/500</span>
                 </div>
@@ -782,7 +782,7 @@ export default function AccountPage() {
                   rows={4}
                   style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
                 />
-                <label style={labelStyle}>Website <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
+                <label style={labelStyle}>Website <span style={{ fontWeight: "400", color: "#64748b" }}>(optional)</span></label>
                 <input
                   placeholder="https://yourcompany.ie"
                   value={website}
@@ -904,7 +904,7 @@ function Section({ title, children }) {
 
 function PersonIcon() {
   return (
-    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="8" r="4" />
       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
     </svg>
@@ -968,11 +968,11 @@ function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
       </label>
       <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem" }}>{hint}</p>
       <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", border: `1.5px dashed ${uploadError ? "#fca5a5" : existingName || uploaded ? "#22c55e" : "#d1d5db"}`, borderRadius: "0.5rem", padding: "0.5rem 0.75rem", backgroundColor: uploadError ? "#fff1f2" : existingName || uploaded ? "#f0fdf4" : "white", overflow: "hidden" }}>
-        <label style={{ cursor: uploading ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: "600", color: uploading ? "#9ca3af" : "#3b82f6", whiteSpace: "nowrap", flexShrink: 0 }}>
+        <label style={{ cursor: uploading ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: "600", color: uploading ? "#64748b" : "#3b82f6", whiteSpace: "nowrap", flexShrink: 0 }}>
           {uploading ? "Uploading…" : existingName ? "Change" : "Choose file"}
           <input type="file" accept={accept} style={{ display: "none" }} onChange={handleChange} disabled={uploading} />
         </label>
-        <span style={{ fontSize: "0.8rem", color: uploadError ? "#dc2626" : existingName || uploaded ? "#16a34a" : "#9ca3af", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+        <span style={{ fontSize: "0.8rem", color: uploadError ? "#dc2626" : existingName || uploaded ? "#16a34a" : "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
           {uploadError ? uploadError : uploaded ? `✓ ${displayName}` : existingName ? `✓ ${displayName || "Uploaded"}` : "No file chosen"}
         </span>
       </div>

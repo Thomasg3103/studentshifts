@@ -58,7 +58,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
           <h3 style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Who did you hire?</h3>
           <p style={{ margin: "0 0 1rem", fontSize: "0.82rem", color: "#64748b" }}>They'll get an acceptance email. Everyone else will be declined.</p>
           {decisionApplicants.length === 0 ? (
-            <p style={{ fontSize: "0.85rem", color: "#94a3b8", fontStyle: "italic", marginBottom: "1rem" }}>No applicants in the Decision stage yet — advance candidates first.</p>
+            <p style={{ fontSize: "0.85rem", color: "#64748b", fontStyle: "italic", marginBottom: "1rem" }}>No applicants in the Decision stage yet — advance candidates first.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1rem" }}>
               {decisionApplicants.map(a => (
@@ -76,7 +76,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
                   <div style={{ width: "32px", height: "32px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                     {a.profilePhoto
                       ? <img loading="lazy" src={supabaseImg(a.profilePhoto, 64)} alt={a.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                      : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                     }
                   </div>
                   <span style={{ fontWeight: "600", fontSize: "0.875rem", color: "#1e293b" }}>{a.name}</span>
@@ -88,7 +88,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
           <button
             disabled={!winner || confirming}
             onClick={() => confirm({ foundStudent: true, winnerId: winner.id, winnerApplicant: winner, closeReason: "found_student" })}
-            style={{ width: "100%", padding: "0.7rem", borderRadius: "0.6rem", border: "none", backgroundColor: winner ? "var(--color-brand)" : "#e2e8f0", color: winner ? "white" : "#94a3b8", fontWeight: "700", fontSize: "0.875rem", cursor: winner ? "pointer" : "default", fontFamily: "inherit", opacity: confirming ? 0.7 : 1 }}
+            style={{ width: "100%", padding: "0.7rem", borderRadius: "0.6rem", border: "none", backgroundColor: winner ? "var(--color-brand)" : "#e2e8f0", color: winner ? "white" : "#64748b", fontWeight: "700", fontSize: "0.875rem", cursor: winner ? "pointer" : "default", fontFamily: "inherit", opacity: confirming ? 0.7 : 1 }}
           >
             {confirming ? "Processing…" : "Confirm Hire & Close Job"}
           </button>

@@ -130,7 +130,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <p style={{ fontSize: "0.82rem", color: "#94a3b8", marginBottom: "0.75rem" }}>Didn't get the email? Check your spam folder.</p>
+          <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "0.75rem" }}>Didn't get the email? Check your spam folder.</p>
           <button
             onClick={handleResend}
             disabled={resendCooldown > 0}
@@ -157,7 +157,7 @@ export default function SignupPage() {
           <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #86efac", borderRadius: "0.75rem", padding: "0.85rem 1rem", marginBottom: "1.5rem", color: "#16a34a", fontSize: "0.85rem", fontWeight: "500" }}>
             ✅ Once confirmed you'll be able to log in.
           </div>
-          <p style={{ fontSize: "0.82rem", color: "#94a3b8", marginBottom: "0.75rem" }}>Didn't get it? Check your spam folder.</p>
+          <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "0.75rem" }}>Didn't get it? Check your spam folder.</p>
           <button
             onClick={handleResend}
             disabled={resendCooldown > 0}
@@ -304,7 +304,7 @@ export default function SignupPage() {
         {role === "company" && (
           <div style={{ marginBottom: "0.75rem" }}>
             <p style={{ fontWeight: "700", fontSize: "0.875rem", color: "#374151", marginBottom: "0.35rem" }}>
-              Industries <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional — select all that apply)</span>
+              Industries <span style={{ fontWeight: "400", color: "#64748b" }}>(optional — select all that apply)</span>
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
               {Object.keys(jobCategories).map(cat => (

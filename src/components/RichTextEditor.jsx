@@ -47,7 +47,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Start t
 
       <div style={{ position: "relative" }}>
         {isEmpty && (
-          <div style={{ position: "absolute", top: "0.85rem", left: "1rem", color: "#9ca3af", fontSize: "0.9rem", pointerEvents: "none", lineHeight: 1.65, userSelect: "none" }}>
+          <div style={{ position: "absolute", top: "0.85rem", left: "1rem", color: "#64748b", fontSize: "0.9rem", pointerEvents: "none", lineHeight: 1.65, userSelect: "none" }}>
             {placeholder}
           </div>
         )}

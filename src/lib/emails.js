@@ -51,7 +51,7 @@ export function emailStudentApproved(name) {
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -97,7 +97,7 @@ export function emailCompanyApproved(name, appUrl) {
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -146,7 +146,7 @@ export function emailApplicantAccepted(studentName, jobTitle, companyName, shift
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -195,7 +195,7 @@ export function emailApplicantDeclined(studentName, jobTitle, companyName, shift
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -232,7 +232,7 @@ export function emailStudentRejected(name) {
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -269,7 +269,7 @@ export function emailCompanyRejected(name) {
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -312,12 +312,12 @@ export function emailCompanyInterested(studentName, companyName) {
                 </td>
               </tr>
             </table>
-            <p style="margin:0;font-size:13px;color:#94a3b8;text-align:center;">You're receiving this because your profile is visible to verified companies on StudentShifts.</p>
+            <p style="margin:0;font-size:13px;color:#64748b;text-align:center;">You're receiving this because your profile is visible to verified companies on StudentShifts.</p>
           </td>
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -381,7 +381,7 @@ export function emailInterviewInvite(studentName, companyName, jobTitle, date, t
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -427,7 +427,7 @@ export function emailInterviewRejection(studentName, jobTitle, companyName) {
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -488,7 +488,7 @@ export function emailTrialInvite(studentName, companyName, jobTitle, date, time,
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -536,7 +536,7 @@ export function emailNewApplicant(companyName, jobTitle, applicantName, dashboar
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>
@@ -582,7 +582,7 @@ export function emailTrialRejection(studentName, jobTitle, companyName) {
         </tr>
         <tr>
           <td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
-            <p style="margin:0;font-size:12px;color:#94a3b8;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+            <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
           </td>
         </tr>
       </table>

@@ -53,7 +53,7 @@ function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMess
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.4rem" }}>
           <p style={{ margin: 0, fontWeight: isUnread ? "800" : "700", fontSize: "0.92rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
-          {timeStr && <p style={{ margin: 0, fontSize: "0.7rem", color: isUnread ? "var(--color-brand)" : "#9ca3af", flexShrink: 0 }}>{timeStr}</p>}
+          {timeStr && <p style={{ margin: 0, fontSize: "0.7rem", color: isUnread ? "var(--color-brand)" : "#64748b", flexShrink: 0 }}>{timeStr}</p>}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
           <p style={{ margin: "0.1rem 0 0", fontSize: "0.8rem", color: isUnread ? "#374151" : "#6b7280", fontWeight: isUnread ? "600" : "400", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>
@@ -182,7 +182,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
           </div>
         )}
         {loading
-          ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
+          ? <p style={{ color: "#64748b", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
           : loadError
             ? (
               <div style={{ textAlign: "center", marginTop: "2rem" }}>
@@ -201,7 +201,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
               </div>
             )
           : messages.length === 0
-            ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Start the conversation!</p>
+            ? <p style={{ color: "#64748b", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Start the conversation!</p>
             : messages.map(m => (
               <div key={m.id} style={{ alignSelf: m.sender_id === senderId ? "flex-end" : "flex-start", maxWidth: "80%" }}>
                 <div style={{
@@ -210,7 +210,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
                   padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45,
                   wordBreak: "break-word", whiteSpace: "pre-wrap",
                 }}>{m.text}</div>
-                <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
+                <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
                   {formatMsgTime(m.created_at)}
                 </p>
               </div>
@@ -219,7 +219,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
       </div>
       {!input && !loading && !loadError && messages.length === 0 && (
         <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
-          <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+          <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
             {quickReplies.map(qr => (
               <button
@@ -376,7 +376,7 @@ export default function CompanyMessages() {
           {tab === "direct" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
               {directConvs.length === 0
-                ? <p style={{ textAlign: "center", color: "#9ca3af", padding: "2rem 1rem", fontSize: "0.875rem" }}>No direct messages yet.</p>
+                ? <p style={{ textAlign: "center", color: "#64748b", padding: "2rem 1rem", fontSize: "0.875rem" }}>No direct messages yet.</p>
                 : directConvs.map(conv => (
                   <ConvCard
                     key={`direct_${conv.studentId}`}
@@ -397,7 +397,7 @@ export default function CompanyMessages() {
           {tab === "jobs" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
               {conversations.length === 0
-                ? <p style={{ textAlign: "center", color: "#9ca3af", padding: "2rem 1rem", fontSize: "0.875rem" }}>No job chats yet. Accept a student to start chatting!</p>
+                ? <p style={{ textAlign: "center", color: "#64748b", padding: "2rem 1rem", fontSize: "0.875rem" }}>No job chats yet. Accept a student to start chatting!</p>
                 : conversations.map(conv => (
                   <ConvCard
                     key={`${conv.jobId}_${conv.studentId}`}

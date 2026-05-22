@@ -66,15 +66,15 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
       <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", marginBottom: "0.5rem" }}>💬 Messages</p>
       <div style={{ maxHeight: "200px", overflowY: "auto", marginBottom: "0.5rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
         {loading
-          ? <p style={{ fontSize: "0.8rem", color: "#9ca3af", textAlign: "center", padding: "0.5rem 0" }}>Loading…</p>
+          ? <p style={{ fontSize: "0.8rem", color: "#64748b", textAlign: "center", padding: "0.5rem 0" }}>Loading…</p>
           : messages.length === 0
-            ? <p style={{ fontSize: "0.8rem", color: "#9ca3af", textAlign: "center", padding: "0.5rem 0" }}>No messages yet.</p>
+            ? <p style={{ fontSize: "0.8rem", color: "#64748b", textAlign: "center", padding: "0.5rem 0" }}>No messages yet.</p>
             : messages.map((m) => (
               <div key={m.id} style={{ alignSelf: m.sender_id === senderId ? "flex-end" : "flex-start", maxWidth: "85%" }}>
                 <div style={{ backgroundColor: m.sender_id === senderId ? "#3b82f6" : "#e5e7eb", color: m.sender_id === senderId ? "white" : "#111827", padding: "0.4rem 0.65rem", borderRadius: "0.55rem", fontSize: "0.8rem", lineHeight: 1.4 }}>
                   {m.text}
                 </div>
-                <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
+                <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
                   {new Date(m.created_at).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
                 </p>
               </div>
@@ -87,7 +87,7 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
       </div>
       {!input && !loading && messages.length === 0 && (
         <div style={{ marginBottom: "0.4rem" }}>
-          <p style={{ margin: "0 0 0.3rem", fontSize: "0.65rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+          <p style={{ margin: "0 0 0.3rem", fontSize: "0.65rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
           <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", scrollbarWidth: "none" }}>
             {quickReplies.map(qr => (
               <button key={qr.label} onMouseDown={e => { e.preventDefault(); setInput(qr.text); setTimeout(() => inputRef.current?.focus(), 0); }}

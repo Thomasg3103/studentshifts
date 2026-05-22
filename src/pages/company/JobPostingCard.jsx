@@ -133,13 +133,13 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
           </button>
 
           {deadlineLabel && (
-            <span style={{ fontSize: "0.75rem", fontWeight: "600", color: deadlineClose ? "#d97706" : "#94a3b8", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: "0.75rem", fontWeight: "600", color: deadlineClose ? "#d97706" : "#64748b", whiteSpace: "nowrap" }}>
               {deadlineClose ? "⚠ " : ""}Closes {deadlineLabel}
             </span>
           )}
 
           {postedAgo && (
-            <span style={{ fontSize: "0.72rem", color: "#94a3b8", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: "0.72rem", color: "#64748b", whiteSpace: "nowrap" }}>
               Posted {postedAgo}
             </span>
           )}

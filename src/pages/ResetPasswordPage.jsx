@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
               onKeyDown={e => e.key === "Enter" && handleSubmit()}
               style={fieldStyle}
             />
-            <p style={{ fontSize: "0.78rem", color: "#9ca3af", textAlign: "left", margin: "0.1rem 0 0.5rem" }}>
+            <p style={{ fontSize: "0.78rem", color: "#64748b", textAlign: "left", margin: "0.1rem 0 0.5rem" }}>
               Minimum 8 characters, must include a letter and a number
             </p>
             <button onClick={handleSubmit} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>

@@ -186,7 +186,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {applicant.profilePhoto
               ? <img loading="lazy" src={supabaseImg(applicant.profilePhoto, 88)} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             }
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -251,14 +251,14 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "0.55rem 0.85rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", backgroundColor: profileOpen ? "#f8fafc" : "white", color: "#374151", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
             >
               <span>{profileOpen ? "Hide Profile" : "View Profile"}</span>
-              <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{profileOpen ? "▲" : "▼"}</span>
+              <span style={{ fontSize: "0.7rem", color: "#64748b" }}>{profileOpen ? "▲" : "▼"}</span>
             </button>
           )}
 
           {/* Bio + Skills + LinkedIn + Documents — always visible for applied, toggleable otherwise */}
           {(stage === "applied" || profileOpen) && (<>
             <Section label="Bio">
-              <p style={{ margin: 0, fontSize: "0.85rem", color: applicant.bio ? "#374151" : "#9ca3af", fontStyle: applicant.bio ? "normal" : "italic", lineHeight: 1.6 }}>
+              <p style={{ margin: 0, fontSize: "0.85rem", color: applicant.bio ? "#374151" : "#64748b", fontStyle: applicant.bio ? "normal" : "italic", lineHeight: 1.6 }}>
                 {applicant.bio || "Not provided"}
               </p>
             </Section>
@@ -270,13 +270,13 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                     <span key={s} className="badge badge-sm badge-blue">{s}</span>
                   ))}
                 </div>
-              ) : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not listed</p>}
+              ) : <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b", fontStyle: "italic" }}>Not listed</p>}
             </Section>
 
             <Section label="LinkedIn">
               {applicant.linkedin && /^https?:\/\//i.test(applicant.linkedin)
                 ? <a href={applicant.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: "0.85rem", color: "#0a66c2", fontWeight: "600", textDecoration: "underline", display: "flex", alignItems: "center", gap: "0.3rem" }}>🔗 View LinkedIn Profile</a>
-                : <p style={{ margin: 0, fontSize: "0.85rem", color: "#9ca3af", fontStyle: "italic" }}>Not provided</p>
+                : <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b", fontStyle: "italic" }}>Not provided</p>
               }
             </Section>
 
@@ -285,14 +285,14 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                 <button
                   onClick={openCv}
                   disabled={!applicant.cvName || cvLoading}
-                  style={{ flex: 1, padding: "0.55rem 0.75rem", borderRadius: "0.4rem", border: `1px solid ${applicant.cvName ? "#d1d5db" : "#e2e8f0"}`, backgroundColor: "white", color: applicant.cvName ? "#374151" : "#9ca3af", fontWeight: "600", fontSize: "0.82rem", cursor: applicant.cvName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
+                  style={{ flex: 1, padding: "0.55rem 0.75rem", borderRadius: "0.4rem", border: `1px solid ${applicant.cvName ? "#d1d5db" : "#e2e8f0"}`, backgroundColor: "white", color: applicant.cvName ? "#374151" : "#64748b", fontWeight: "600", fontSize: "0.82rem", cursor: applicant.cvName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
                 >
                   {cvLoading ? "Loading…" : "View CV"}
                 </button>
                 <button
                   onClick={openCoverLetter}
                   disabled={!applicant.coverLetterName || clLoading}
-                  style={{ flex: 1, padding: "0.55rem 0.75rem", borderRadius: "0.4rem", border: `1px solid ${applicant.coverLetterName ? "#d1d5db" : "#e2e8f0"}`, backgroundColor: "white", color: applicant.coverLetterName ? "#374151" : "#9ca3af", fontWeight: "600", fontSize: "0.82rem", cursor: applicant.coverLetterName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
+                  style={{ flex: 1, padding: "0.55rem 0.75rem", borderRadius: "0.4rem", border: `1px solid ${applicant.coverLetterName ? "#d1d5db" : "#e2e8f0"}`, backgroundColor: "white", color: applicant.coverLetterName ? "#374151" : "#64748b", fontWeight: "600", fontSize: "0.82rem", cursor: applicant.coverLetterName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
                 >
                   {clLoading ? "Loading…" : "Cover Letter"}
                 </button>
@@ -312,7 +312,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               autoComplete="off"
               style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.5, color: "#374151" }}
             />
-            <div style={{ textAlign: "right", fontSize: "0.72rem", color: notes.length >= 3800 ? "#ef4444" : "#94a3b8", marginTop: "0.2rem" }}>{notes.length}/4000</div>
+            <div style={{ textAlign: "right", fontSize: "0.72rem", color: notes.length >= 3800 ? "#ef4444" : "#64748b", marginTop: "0.2rem" }}>{notes.length}/4000</div>
           </Section>
 
           {/* Interview rounds — shortlisted and interview stages */}

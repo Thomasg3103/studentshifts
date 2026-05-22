@@ -68,7 +68,7 @@ export default function HelpPage() {
             {FAQS.map(({ q, a }) => (
               <details key={q} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "0.85rem 1rem" }}>
                 <summary style={{ fontWeight: 700, fontSize: "0.92rem", color: "#1e293b", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  {q} <span style={{ color: "#94a3b8", fontSize: "0.75rem" }}>▾</span>
+                  {q} <span style={{ color: "#64748b", fontSize: "0.75rem" }}>▾</span>
                 </summary>
                 <p style={{ margin: "0.6rem 0 0", fontSize: "0.88rem", color: "#64748b", lineHeight: 1.6 }}>{a}</p>
               </details>
@@ -87,7 +87,7 @@ export default function HelpPage() {
             >
               Email support@studentshifts.ie
             </a>
-            <p style={{ margin: "1rem 0 0", fontSize: "0.78rem", color: "#94a3b8" }}>We aim to respond within one business day.</p>
+            <p style={{ margin: "1rem 0 0", fontSize: "0.78rem", color: "#64748b" }}>We aim to respond within one business day.</p>
           </div>
 
         </div>

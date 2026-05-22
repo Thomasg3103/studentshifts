@@ -265,7 +265,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, notifCount
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
     gap: "2px", flex: 1, padding: "0.35rem 0", minHeight: "48px",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-    color: active ? "var(--color-brand)" : "#94a3b8",
+    color: active ? "var(--color-brand)" : "#64748b",
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
   });
 
@@ -315,7 +315,7 @@ function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, notifCount
         <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={{ ...tab(isAccount), width: "100%", height: "100%" }}>
           {currentUser?.profilePhoto
             ? <img loading="lazy" src={supabaseImg(currentUser.profilePhoto, 64)} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
-            : <PersonIcon color={isAccount ? "var(--color-brand)" : "#94a3b8"} />
+            : <PersonIcon color={isAccount ? "var(--color-brand)" : "#64748b"} />
           }
           Account
         </button>
@@ -335,7 +335,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
     gap: "2px", flex: 1, padding: "0.35rem 0", minHeight: "48px",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-    color: active ? "var(--color-brand)" : "#94a3b8",
+    color: active ? "var(--color-brand)" : "#64748b",
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
   });
 
@@ -364,7 +364,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
       <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={tab(isAccount)}>
         {currentUser?.profilePhoto
           ? <img loading="lazy" src={supabaseImg(currentUser.profilePhoto, 64)} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
-          : <PersonIcon color={isAccount ? "var(--color-brand)" : "#94a3b8"} />
+          : <PersonIcon color={isAccount ? "var(--color-brand)" : "#64748b"} />
         }
         Account
       </button>
@@ -387,7 +387,7 @@ function LogoIcon() {
 
 function HomeIcon({ active }) {
   return (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill={active ? "var(--color-brand)" : "none"} stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill={active ? "var(--color-brand)" : "none"} stroke={active ? "var(--color-brand)" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <polyline points="9 22 9 12 15 12 15 22" />
     </svg>
@@ -405,7 +405,7 @@ function PersonIcon({ color = "white" }) {
 
 function BrowseIcon({ active }) {
   return (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
     </svg>
   );
@@ -413,14 +413,14 @@ function BrowseIcon({ active }) {
 
 function BriefcaseIcon({ active }) {
   return (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#94a3b8"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
     </svg>
   );
 }
 
 function HeartIcon({ active, color }) {
-  const c = color || (active ? "var(--color-brand)" : "#94a3b8");
+  const c = color || (active ? "var(--color-brand)" : "#64748b");
   return (
     <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill={active ? c : "none"} stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
@@ -429,7 +429,7 @@ function HeartIcon({ active, color }) {
 }
 
 function DocumentIcon({ active, color }) {
-  const c = color || (active ? "var(--color-brand)" : "#94a3b8");
+  const c = color || (active ? "var(--color-brand)" : "#64748b");
   return (
     <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
@@ -442,7 +442,7 @@ function DocumentIcon({ active, color }) {
 }
 
 function ChatIcon({ active, color }) {
-  const c = color || (active ? "var(--color-brand)" : "#94a3b8");
+  const c = color || (active ? "var(--color-brand)" : "#64748b");
   return (
     <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>

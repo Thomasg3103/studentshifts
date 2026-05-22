@@ -476,7 +476,7 @@ export default function CompanyDashboard() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", gap: "1rem", flexWrap: "wrap" }}>
         <div>
-          <p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>Company Dashboard</p>
+          <p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>Company Dashboard</p>
           <h1 style={{ fontSize: "1.65rem", fontWeight: "800", margin: 0, color: "#0f172a", letterSpacing: "-0.02em" }}>{currentUser?.name || "Company"}</h1>
         </div>
         {isVerified && activeTab === "jobs" && <button onClick={openCreate} style={{ ...btnGreen, borderRadius: "2rem", padding: "0.55rem 1.4rem", fontSize: "0.9rem" }}>+ New Job</button>}
@@ -594,7 +594,7 @@ export default function CompanyDashboard() {
           <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
             <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>ðŸ"‹</div>
             <p style={{ fontSize: "1.15rem", fontWeight: "700", color: "#1e293b", marginBottom: "0.4rem" }}>No job postings yet</p>
-            <p style={{ marginBottom: "1.75rem", fontSize: "0.9rem", color: "#94a3b8" }}>
+            <p style={{ marginBottom: "1.75rem", fontSize: "0.9rem", color: "#64748b" }}>
               {isVerified ? "Create your first posting to start receiving applicants." : "Your account must be verified before you can post jobs."}
             </p>
             {isVerified && <button onClick={openCreate} style={{ ...btnGreen, borderRadius: "2rem", padding: "0.55rem 1.4rem" }}>+ Create Job Posting</button>}
@@ -623,7 +623,7 @@ export default function CompanyDashboard() {
             <div style={{ height: "60px", padding: "0 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: "1rem" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: "0.65rem", flex: 1, minWidth: 0 }}>
                 <h2 style={{ margin: 0, fontWeight: "700", fontSize: "1.05rem", color: "#0f172a", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>{activePosting.title}</h2>
-                <span style={{ fontSize: "0.78rem", color: "#94a3b8", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.location} Â· {activePosting.pay}</span>
+                <span style={{ fontSize: "0.78rem", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.location} Â· {activePosting.pay}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
                 {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (

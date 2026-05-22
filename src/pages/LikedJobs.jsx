@@ -73,10 +73,10 @@ export default function LikedJobs() {
                       </div>
                     </div>
                     <p style={{ color: "#6b7280", marginBottom: "0.15rem", fontSize: "0.85rem" }}>{job.company} · {job.location}</p>
-                    <p style={{ fontWeight: "700", color: isClosed ? "#94a3b8" : "#111827", marginBottom: "0.4rem", fontSize: "0.9rem" }}>{job.pay}</p>
+                    <p style={{ fontWeight: "700", color: isClosed ? "#64748b" : "#111827", marginBottom: "0.4rem", fontSize: "0.9rem" }}>{job.pay}</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: (!isClosed && !isApplied) ? "0.5rem" : 0 }}>
                       {(job.days || []).map(day => (
-                        <span key={day} style={{ fontSize: "0.7rem", backgroundColor: isClosed ? "#f1f5f9" : "#fce7f3", color: isClosed ? "#94a3b8" : "var(--color-brand)", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600", textDecoration: isClosed ? "line-through" : "none" }}>
+                        <span key={day} style={{ fontSize: "0.7rem", backgroundColor: isClosed ? "#f1f5f9" : "#fce7f3", color: isClosed ? "#64748b" : "var(--color-brand)", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600", textDecoration: isClosed ? "line-through" : "none" }}>
                           {day.slice(0, 3)} · {(job.times || {})[day]?.join(", ")}
                         </span>
                       ))}
@@ -95,7 +95,7 @@ export default function LikedJobs() {
                       <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#10b981" }}>✅ Applied</span>
                     )}
                     {isClosed && (
-                      <span style={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: 600 }}>
+                      <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>
                         {job.status === "Expired" ? "This listing has expired" : "This position has been filled"}
                       </span>
                     )}

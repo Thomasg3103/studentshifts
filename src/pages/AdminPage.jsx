@@ -559,7 +559,7 @@ function SignupsPanel({ signups, loading, launchSending, testSending, onRefresh,
         <button
           onClick={onSendLaunch}
           disabled={launchSending || unsent === 0}
-          style={{ padding: "0.55rem 1rem", borderRadius: "0.5rem", border: "none", background: unsent === 0 ? "#e2e8f0" : "linear-gradient(135deg,var(--color-brand),#C2185B)", color: unsent === 0 ? "#94a3b8" : "white", fontWeight: "700", fontSize: "0.82rem", cursor: (launchSending || unsent === 0) ? "default" : "pointer", fontFamily: "inherit", opacity: launchSending ? 0.6 : 1 }}
+          style={{ padding: "0.55rem 1rem", borderRadius: "0.5rem", border: "none", background: unsent === 0 ? "#e2e8f0" : "linear-gradient(135deg,var(--color-brand),#C2185B)", color: unsent === 0 ? "#64748b" : "white", fontWeight: "700", fontSize: "0.82rem", cursor: (launchSending || unsent === 0) ? "default" : "pointer", fontFamily: "inherit", opacity: launchSending ? 0.6 : 1 }}
         >
           {launchSending ? "Sending…" : unsent === 0 ? "All emailed" : `Send Launch Emails (${unsent})`}
         </button>

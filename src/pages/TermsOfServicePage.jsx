@@ -154,8 +154,8 @@ export default function TermsOfServicePage() {
         </Section>
 
         <div style={{ borderTop: "1px solid #e2e8f0", marginTop: "2rem", paddingTop: "1.25rem" }}>
-          <p style={{ ...body, color: "#94a3b8", fontSize: "0.8rem" }}>
-            StudentShifts &middot; Ireland &middot; <a href={`mailto:${CONTACT_EMAIL}`} style={{ ...link, color: "#94a3b8" }}>{CONTACT_EMAIL}</a>
+          <p style={{ ...body, color: "#64748b", fontSize: "0.8rem" }}>
+            StudentShifts &middot; Ireland &middot; <a href={`mailto:${CONTACT_EMAIL}`} style={{ ...link, color: "#64748b" }}>{CONTACT_EMAIL}</a>
           </p>
         </div>
 
@@ -175,7 +175,7 @@ function Section({ title, children }) {
 
 const h1     = { margin: "0.5rem 0 0.25rem", fontWeight: "800", fontSize: "2rem", color: "#1e293b" };
 const h2     = { margin: "0 0 0.6rem", fontWeight: "700", fontSize: "1.1rem", color: "#1e293b" };
-const meta   = { margin: "0 0 2rem", fontSize: "0.82rem", color: "#94a3b8" };
+const meta   = { margin: "0 0 2rem", fontSize: "0.82rem", color: "#64748b" };
 const body   = { margin: "0 0 0.75rem", fontSize: "0.9rem", color: "#475569", lineHeight: 1.7 };
 const list   = { paddingLeft: "1.25rem", margin: "0 0 0.75rem", fontSize: "0.9rem", color: "#475569", lineHeight: 1.8 };
 const link   = { color: "var(--color-brand)", textDecoration: "none", fontWeight: "600" };

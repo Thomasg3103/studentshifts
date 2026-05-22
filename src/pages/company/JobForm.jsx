@@ -203,7 +203,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           value={formData.title || ""}
           onChange={set("title")}
           disabled={!formData.category}
-          style={{ ...inputStyle, color: formData.category ? "#111827" : "#9ca3af", cursor: formData.category ? "pointer" : "not-allowed" }}
+          style={{ ...inputStyle, color: formData.category ? "#111827" : "#64748b", cursor: formData.category ? "pointer" : "not-allowed" }}
         >
           <option value="">{formData.category ? "Select a title…" : "Select a category first"}</option>
           {titlesForCategory.map(t => (
@@ -214,7 +214,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
 
       {/* Location with geocoding */}
       <div>
-        <label htmlFor="form-location" style={labelStyle}>Location * <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(Eircode or full address)</span></label>
+        <label htmlFor="form-location" style={labelStyle}>Location * <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem" }}>(Eircode or full address)</span></label>
         <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
           <input
             id="form-location"
@@ -286,12 +286,12 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
             placeholder="12.50"
             style={{ ...inputStyle, paddingLeft: "1.8rem", paddingRight: "2.8rem" }}
           />
-          <span style={{ position: "absolute", right: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "#9ca3af", fontSize: "0.82rem", pointerEvents: "none" }}>/hr</span>
+          <span style={{ position: "absolute", right: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "#64748b", fontSize: "0.82rem", pointerEvents: "none" }}>/hr</span>
         </div>
       </div>
 
       <div>
-        <label style={labelStyle}>Job Description <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(optional)</span></label>
+        <label style={labelStyle}>Job Description <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem" }}>(optional)</span></label>
         <RichTextEditor
           value={formData.description || ""}
           onChange={html => setFormData(prev => ({ ...prev, description: html }))}
@@ -314,7 +314,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
 
       {/* Holidays */}
       <div>
-        <label htmlFor="form-holidays" style={labelStyle}>Holiday Entitlement <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(optional)</span></label>
+        <label htmlFor="form-holidays" style={labelStyle}>Holiday Entitlement <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem" }}>(optional)</span></label>
         <input
           id="form-holidays"
           type="text"
@@ -327,7 +327,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       </div>
 
       <div>
-        <label htmlFor="form-deadline" style={labelStyle}>Application Deadline <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem" }}>(optional)</span></label>
+        <label htmlFor="form-deadline" style={labelStyle}>Application Deadline <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem" }}>(optional)</span></label>
         <input
           id="form-deadline"
           type="date"
@@ -363,7 +363,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         />
         <span style={{ fontWeight: "600", fontSize: "0.875rem", color: "#374151" }}>
           Weekend work required
-          <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem", display: "block" }}>Automatically selects Saturday & Sunday below</span>
+          <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem", display: "block" }}>Automatically selects Saturday & Sunday below</span>
         </span>
       </label>
 
@@ -418,7 +418,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       <div>
         <label style={labelStyle}>
           Photos *
-          <span style={{ fontWeight: "400", color: "#9ca3af", fontSize: "0.8rem", marginLeft: "0.4rem" }}>
+          <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem", marginLeft: "0.4rem" }}>
             {totalPhotos}/10 — at least 1 required
           </span>
         </label>

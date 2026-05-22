@@ -51,7 +51,7 @@ export function StudentAvailabilityRow({ availability }) {
 const STAT_ACCENT = {
   "Total Postings":   { border: "#6366f1", bg: "#eef2ff" },
   "Active":           { border: "#10b981", bg: "#ecfdf5" },
-  "Closed":           { border: "#94a3b8", bg: "#f8fafc" },
+  "Closed":           { border: "#64748b", bg: "#f8fafc" },
   "Total Applicants": { border: "var(--color-brand)", bg: "#fce7f3" },
 };
 
@@ -65,7 +65,7 @@ export function StatCard({ label, value }) {
       borderRadius: "0.75rem", padding: "1rem 1.25rem",
       boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
     }}>
-      <p style={{ fontSize: "0.65rem", color: "#94a3b8", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.4rem" }}>{label}</p>
+      <p style={{ fontSize: "0.65rem", color: "#64748b", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.4rem" }}>{label}</p>
       <p style={{ fontSize: "1.85rem", fontWeight: "800", color: "#0f172a", margin: 0, lineHeight: 1, letterSpacing: "-0.02em" }}>{value}</p>
     </div>
   );
@@ -74,7 +74,7 @@ export function StatCard({ label, value }) {
 export function Section({ label, children }) {
   return (
     <div>
-      <p style={{ margin: "0 0 0.5rem", fontSize: "0.65rem", fontWeight: "700", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</p>
+      <p style={{ margin: "0 0 0.5rem", fontSize: "0.65rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</p>
       {children}
     </div>
   );
@@ -122,9 +122,9 @@ export function AvailabilityHeatmap({ data }) {
       <table style={{ borderCollapse: "collapse", fontSize: "0.65rem", width: "100%", minWidth: "480px" }}>
         <thead>
           <tr>
-            <th style={{ padding: "0 0.4rem 0.4rem 0", textAlign: "left", color: "#94a3b8", fontWeight: "600", minWidth: "72px" }}></th>
+            <th style={{ padding: "0 0.4rem 0.4rem 0", textAlign: "left", color: "#64748b", fontWeight: "600", minWidth: "72px" }}></th>
             {SLOTS.map(s => (
-              <th key={s} style={{ padding: "0 2px 0.4rem", textAlign: "center", color: "#94a3b8", fontWeight: "600", whiteSpace: "nowrap" }}>
+              <th key={s} style={{ padding: "0 2px 0.4rem", textAlign: "center", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap" }}>
                 {s.slice(0,2)}
               </th>
             ))}
@@ -158,7 +158,7 @@ export function AvailabilityHeatmap({ data }) {
           })}
         </tbody>
       </table>
-      <p style={{ fontSize: "0.7rem", color: "#94a3b8", marginTop: "0.5rem", marginBottom: 0 }}>
+      <p style={{ fontSize: "0.7rem", color: "#64748b", marginTop: "0.5rem", marginBottom: 0 }}>
         Numbers show how many verified students are free at each time. Hover a cell for details.
       </p>
     </div>

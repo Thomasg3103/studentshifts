@@ -68,6 +68,6 @@ export default function ContactPage() {
   );
 }
 
-const labelStyle = { margin: "0 0 0.2rem", fontWeight: 700, fontSize: "0.78rem", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.06em" };
+const labelStyle = { margin: "0 0 0.2rem", fontWeight: 700, fontSize: "0.78rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" };
 const linkStyle  = { display: "block", color: "var(--color-brand)", fontWeight: 700, fontSize: "1rem", textDecoration: "none", marginBottom: "0.3rem" };
 const hintStyle  = { margin: 0, fontSize: "0.8rem", color: "#64748b" };

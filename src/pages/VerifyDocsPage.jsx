@@ -7,7 +7,7 @@ import { useApp } from "../context/AppContext";
 function StepBar({ step, total, label }) {
   return (
     <div style={{ marginBottom: "1.5rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", fontSize: "0.74rem", fontWeight: "600", color: "#94a3b8" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", fontSize: "0.74rem", fontWeight: "600", color: "#64748b" }}>
         <span>Step {step} of {total}</span>
         <span>{label}</span>
       </div>

@@ -73,7 +73,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
         <div style={{ width: "40px", height: "40px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
           {applicant.profilePhoto
             ? <img loading="lazy" src={supabaseImg(applicant.profilePhoto, 88)} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
           }
         </div>
         {/* Info */}
@@ -216,7 +216,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
                       <div style={{ width: "38px", height: "38px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         {applicant.profilePhoto
                           ? <img loading="lazy" src={supabaseImg(applicant.profilePhoto, 88)} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                          : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                         }
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
@@ -243,7 +243,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
 
                     {/* Bio fallback if no skills */}
                     {!applicant.skills?.length && applicant.bio && (
-                      <p style={{ margin: 0, fontSize: "0.72rem", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.bio}</p>
+                      <p style={{ margin: 0, fontSize: "0.72rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.bio}</p>
                     )}
                   </button>
                 );
@@ -279,7 +279,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
     return <div style={{ textAlign: "center", padding: "2rem 1rem", backgroundColor: "#fff1f2", borderRadius: "0.75rem", border: "1.5px solid #fca5a5" }}><div style={{ fontSize: "1.5rem", marginBottom: "0.35rem" }}>⚠️</div><p style={{ color: "#e11d48", fontWeight: "600", margin: 0 }}>Error loading applicants. Please try again.</p></div>;
   }
   if (posting.applicants.length === 0) {
-    return <div style={{ textAlign: "center", padding: "3.5rem 1rem" }}><div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>📭</div><p style={{ color: "#1e293b", fontWeight: "700", fontSize: "1rem", margin: "0 0 0.35rem" }}>No applicants yet</p><p style={{ color: "#94a3b8", fontSize: "0.875rem", margin: 0 }}>Share this job posting to start receiving applications.</p></div>;
+    return <div style={{ textAlign: "center", padding: "3.5rem 1rem" }}><div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>📭</div><p style={{ color: "#1e293b", fontWeight: "700", fontSize: "1rem", margin: "0 0 0.35rem" }}>No applicants yet</p><p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0 }}>Share this job posting to start receiving applications.</p></div>;
   }
 
   const dynamicStages = buildDynamicStages(posting.applicants);
@@ -397,7 +397,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
       {/* Search + sort bar */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: "180px", position: "relative" }}>
-          <span style={{ position: "absolute", left: "0.65rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.85rem", pointerEvents: "none", color: "#94a3b8" }}>🔍</span>
+          <span style={{ position: "absolute", left: "0.65rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.85rem", pointerEvents: "none", color: "#64748b" }}>🔍</span>
           <input
             value={search}
             onChange={e => setSearch(e.target.value)}
@@ -406,7 +406,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
             style={{ width: "100%", padding: "0.45rem 0.75rem 0.45rem 2rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151", boxSizing: "border-box", outline: "none" }}
           />
           {search && (
-            <button onClick={() => setSearch("")} aria-label="Clear search" style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "0.8rem", lineHeight: 1, padding: "0.1rem" }}>✕</button>
+            <button onClick={() => setSearch("")} aria-label="Clear search" style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: "0.8rem", lineHeight: 1, padding: "0.1rem" }}>✕</button>
           )}
         </div>
         <select
@@ -467,7 +467,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
               {count > 0 && (
                 <span style={{
                   fontSize: "0.68rem", fontWeight: "700",
-                  backgroundColor: active ? "var(--color-brand)" : "#94a3b8",
+                  backgroundColor: active ? "var(--color-brand)" : "#64748b",
                   color: "white", borderRadius: "999px",
                   padding: "0.05rem 0.4rem", minWidth: "16px", textAlign: "center",
                 }}>
@@ -480,7 +480,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
       </div>
 
       {/* Stage summary */}
-      <p style={{ margin: "0 0 0.85rem", fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>
+      <p style={{ margin: "0 0 0.85rem", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>
         {search.trim()
           ? `${visible.length} of ${stageApplicants.length} match${visible.length !== 1 ? "" : "es"} "${search}" · ${posting.applicants.length} total`
           : stageApplicants.length === 0 ? "No applicants in this stage"
@@ -506,7 +506,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
               }}
               style={{ cursor: "pointer", accentColor: "var(--color-brand)", width: "15px", height: "15px" }}
             />
-            <span style={{ fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>
+            <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>
               {allSelected ? "Deselect all" : `Select all ${pendingInStage.length} pending`}
             </span>
           </div>
@@ -517,7 +517,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
       {visible.length === 0 ? (
         <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
           <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>👤</div>
-          <p style={{ color: "#94a3b8", fontSize: "0.875rem", margin: 0, fontWeight: "500" }}>No applicants in this stage yet.</p>
+          <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0, fontWeight: "500" }}>No applicants in this stage yet.</p>
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -541,7 +541,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
         <div style={{ position: "sticky", bottom: 0, backgroundColor: "white", borderTop: "1.5px solid #e2e8f0", padding: "0.7rem 0", marginTop: "0.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", zIndex: 10, boxShadow: "0 -4px 16px rgba(0,0,0,0.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <span style={{ fontSize: "0.82rem", fontWeight: "800", color: "#1e293b" }}>{selectedIds.size} selected</span>
-            <button onClick={() => setSelectedIds(new Set())} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", padding: 0 }}>Clear</button>
+            <button onClick={() => setSelectedIds(new Set())} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", padding: 0 }}>Clear</button>
           </div>
           <button
             onClick={bulkDecline}
@@ -568,7 +568,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
                 <div style={{ width: "42px", height: "42px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {s.profile_photo_url
                     ? <img loading="lazy" src={s.profile_photo_url} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                    : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                   }
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
@@ -592,7 +592,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
           >
             Close this Job
           </button>
-          <p style={{ margin: "0.5rem 0 0", fontSize: "0.74rem", color: "#94a3b8", textAlign: "center" }}>
+          <p style={{ margin: "0.5rem 0 0", fontSize: "0.74rem", color: "#64748b", textAlign: "center" }}>
             This will close the listing and notify all pending applicants.
           </p>
         </div>

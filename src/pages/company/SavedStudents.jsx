@@ -88,15 +88,15 @@ export default function SavedStudents({ students, loading, fetched, error, liked
         </div>
         <div ref={msgAreaRef} style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
           {chatLoading
-            ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
+            ? <p style={{ color: "#64748b", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
             : chatMessages.length === 0
-              ? <p style={{ color: "#9ca3af", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Introduce yourself!</p>
+              ? <p style={{ color: "#64748b", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Introduce yourself!</p>
               : chatMessages.map(m => (
                 <div key={m.id} style={{ alignSelf: m.sender_id === companyId ? "flex-end" : "flex-start", maxWidth: "80%" }}>
                   <div style={{ backgroundColor: m.sender_id === companyId ? "var(--color-brand)" : "#e5e7eb", color: m.sender_id === companyId ? "white" : "#111827", padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45 }}>
                     {m.text}
                   </div>
-                  <p style={{ fontSize: "0.65rem", color: "#9ca3af", margin: "0.1rem 0 0", textAlign: m.sender_id === companyId ? "right" : "left" }}>
+                  <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: m.sender_id === companyId ? "right" : "left" }}>
                     {new Date(m.created_at).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
@@ -108,7 +108,7 @@ export default function SavedStudents({ students, loading, fetched, error, liked
         )}
         {!chatInput && !chatLoading && chatMessages.length === 0 && (
           <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
-            <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#9ca3af", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+            <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
             <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
               {savedQuickReplies.map(qr => (
                 <button key={qr.label} onMouseDown={e => { e.preventDefault(); setChatInput(qr.text); setTimeout(() => chatInputRef.current?.focus(), 0); }}
@@ -157,7 +157,7 @@ export default function SavedStudents({ students, loading, fetched, error, liked
       <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280" }}>
         <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>♡</div>
         <p style={{ fontWeight: "700", fontSize: "1rem", color: "#1e293b", marginBottom: "0.4rem" }}>No saved students yet</p>
-        <p style={{ fontSize: "0.875rem", color: "#94a3b8" }}>Browse Students and tap the heart icon to save students here.</p>
+        <p style={{ fontSize: "0.875rem", color: "#64748b" }}>Browse Students and tap the heart icon to save students here.</p>
       </div>
     );
   }
@@ -174,7 +174,7 @@ export default function SavedStudents({ students, loading, fetched, error, liked
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {s.profile_photo_url
               ? <img loading="lazy" src={`${s.profile_photo_url}?width=100&quality=75`} alt={`${s.name} profile`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+              : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             }
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
@@ -214,7 +214,7 @@ export default function SavedStudents({ students, loading, fetched, error, liked
               onClick={() => { if (s.allow_company_dm !== false) { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); setChatInput(""); } }}
               disabled={s.allow_company_dm === false}
               title={s.allow_company_dm === false ? "This student has disabled direct messages" : undefined}
-              style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: s.allow_company_dm === false ? "#e5e7eb" : "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: s.allow_company_dm === false ? "#9ca3af" : "white", fontWeight: "700", fontSize: "0.85rem", cursor: s.allow_company_dm === false ? "not-allowed" : "pointer", fontFamily: "inherit" }}
+              style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: s.allow_company_dm === false ? "#e5e7eb" : "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: s.allow_company_dm === false ? "#64748b" : "white", fontWeight: "700", fontSize: "0.85rem", cursor: s.allow_company_dm === false ? "not-allowed" : "pointer", fontFamily: "inherit" }}
             >
               {s.allow_company_dm === false ? "DMs disabled" : "Message"}
             </button>
