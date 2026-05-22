@@ -107,9 +107,10 @@ function FilterPanel({
             <input type="checkbox" id={`sd-${day}`} checked={selectedDays.includes(day)} onChange={() => toggleDay(day)} style={{ cursor: "pointer", width: "14px", height: "14px", accentColor: "var(--color-brand)" }} />
             <label htmlFor={`sd-${day}`} style={{ fontWeight: 500, minWidth: "85px", cursor: "pointer", fontSize: "0.83rem" }}>{day}</label>
             <select
+              aria-label={`${day} preferred time`}
               value={dayTimes[day] || ""} onChange={e => updateTime(day, e.target.value)}
               disabled={!selectedDays.includes(day)}
-              style={{ padding: "0.15rem 0.3rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.75rem", color: selectedDays.includes(day) ? "#111827" : "#9ca3af", cursor: selectedDays.includes(day) ? "pointer" : "not-allowed", backgroundColor: selectedDays.includes(day) ? "white" : "#f9fafb", flex: 1 }}
+              style={{ padding: "0.15rem 0.3rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.75rem", color: selectedDays.includes(day) ? "#111827" : "#64748b", cursor: selectedDays.includes(day) ? "pointer" : "not-allowed", backgroundColor: selectedDays.includes(day) ? "white" : "#f9fafb", flex: 1 }}
             >
               <option value="">Any time</option>
               {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
@@ -125,7 +126,7 @@ function FilterPanel({
           {studentLocation ? (
             <>
               <SmoothSlider value={distanceKm} onChange={setDistanceKm} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.68rem", color: "#9ca3af" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.68rem", color: "#64748b" }}>
                 <span>0 km</span><span>25 km</span><span>50 km</span>
               </div>
               {distanceKm > 0 && (
@@ -135,7 +136,7 @@ function FilterPanel({
               )}
             </>
           ) : (
-            <p style={{ fontSize: "0.78rem", color: "#9ca3af", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
+            <p style={{ fontSize: "0.78rem", color: "#64748b", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
           )}
         </div>
       </FilterSection>
@@ -651,6 +652,7 @@ export default function StudentDashboard({ restoreScrollY }) {
               <input
                 ref={searchInputRef}
                 placeholder="Search by job title or company…"
+                aria-label="Search by job title or company"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{ width: "100%", padding: "0.7rem 2.5rem 0.7rem 1rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white", outline: "none" }}
@@ -661,7 +663,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                 <button
                   aria-label="Clear search"
                   onClick={() => { setSearchQuery(""); searchInputRef.current?.focus(); }}
-                  style={{ position: "absolute", right: "0.6rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#9ca3af", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: "1.1rem", lineHeight: 1, borderRadius: "50%" }}
+                  style={{ position: "absolute", right: "0.6rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#64748b", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: "1.1rem", lineHeight: 1, borderRadius: "50%" }}
                 >
                   ×
                 </button>
@@ -689,15 +691,15 @@ export default function StudentDashboard({ restoreScrollY }) {
                   {sortedJobs.length} job{sortedJobs.length !== 1 ? "s" : ""}
                 </span>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", backgroundColor: "#fafafa", borderRadius: "0.6rem", padding: "0.2rem" }}>
-                  <button onClick={() => setGridCols(1)} aria-label="Single column layout" aria-pressed={gridCols === 1} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
-                  <button onClick={() => setGridCols(2)} aria-label="Two column layout" aria-pressed={gridCols === 2} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
+                  <button onClick={() => setGridCols(1)} aria-label="Single column layout" aria-pressed={gridCols === 1} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "var(--color-brand)" : "#64748b", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
+                  <button onClick={() => setGridCols(2)} aria-label="Two column layout" aria-pressed={gridCols === 2} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "var(--color-brand)" : "#64748b", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
                 </div>
                 {/* Save search button — auto-saves using search bar text as name */}
                 <button
                   onClick={saveSearch}
                   aria-label={justSaved ? "Search saved" : "Save current search"}
                   title="Save current search"
-                  style={{ padding: "0.28rem 0.55rem", border: `1.5px solid ${justSaved ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", backgroundColor: justSaved ? "#fce7f3" : "white", color: justSaved ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, fontFamily: "inherit" }}
+                  style={{ padding: "0.28rem 0.55rem", border: `1.5px solid ${justSaved ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", backgroundColor: justSaved ? "#fce7f3" : "white", color: justSaved ? "var(--color-brand)" : "#64748b", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, fontFamily: "inherit" }}
                 >⭐</button>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
@@ -875,7 +877,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                           </span>
                         )}
                         {job.updatedAt && (
-                          <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#94a3b8", marginLeft: "auto" }}>
+                          <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#64748b", marginLeft: "auto" }}>
                             Updated {new Date(job.updatedAt).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}
                           </span>
                         )}
@@ -887,7 +889,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                             👥 {applicantCounts[job.id]} applicant{applicantCounts[job.id] !== 1 ? "s" : ""}
                           </span>
                         )}
-                        <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#94a3b8" }}>
+                        <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#64748b" }}>
                           ⚡ Responds within 24h (Mon–Fri)
                         </span>
                       </div>
@@ -964,7 +966,7 @@ function FilterSection({ title, open, onToggle, onClear, children }) {
           style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "none", border: "none", padding: "0.2rem 0", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", color: "#1e293b", fontFamily: "inherit", textAlign: "left", flex: 1 }}
         >
           <span>{title}</span>
-          <span style={{ fontSize: "0.7rem", color: "#94a3b8", marginLeft: "0.2rem" }}>{open ? "▲" : "▼"}</span>
+          <span style={{ fontSize: "0.7rem", color: "#64748b", marginLeft: "0.2rem" }}>{open ? "▲" : "▼"}</span>
         </button>
         {onClear && (
           <button onClick={e => { e.stopPropagation(); onClear(); }} style={{ fontSize: "0.7rem", color: "#e11d48", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: "0.1rem 0.25rem", fontFamily: "inherit" }}>
