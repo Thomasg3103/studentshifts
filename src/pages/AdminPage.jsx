@@ -248,7 +248,7 @@ export default function AdminPage() {
 
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem", gap: "1rem" }}>
           <div>
-            <h2 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Admin Dashboard</h2>
+            <h1 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Admin Dashboard</h1>
             <p style={{ margin: 0, color: "#64748b", fontSize: "0.9rem" }}>Pending verification requests</p>
           </div>
           {/* F-M10: refresh button */}
@@ -298,7 +298,7 @@ export default function AdminPage() {
               >
                 {label}
                 {count > 0 && (
-                  <span style={{ fontSize: "0.7rem", fontWeight: "700", backgroundColor: active ? "var(--color-brand)" : "#94a3b8", color: "white", borderRadius: "999px", padding: "0.1rem 0.45rem", minWidth: "18px", textAlign: "center" }}>
+                  <span style={{ fontSize: "0.7rem", fontWeight: "700", backgroundColor: active ? "var(--color-brand)" : "#64748b", color: "white", borderRadius: "999px", padding: "0.1rem 0.45rem", minWidth: "18px", textAlign: "center" }}>
                     {count}
                   </span>
                 )}
@@ -485,7 +485,7 @@ export default function AdminPage() {
 
 function EmptyState({ label }) {
   return (
-    <div style={{ textAlign: "center", padding: "3rem 0", color: "#94a3b8" }}>
+    <div style={{ textAlign: "center", padding: "3rem 0", color: "#64748b" }}>
       <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>✅</div>
       <p style={{ fontWeight: "600", margin: 0 }}>{label}</p>
     </div>
@@ -525,7 +525,7 @@ function SignupsPanel({ signups, loading, launchSending, testSending, onRefresh,
           { label: "Not emailed", value: unsent },
         ].map(({ label, value }) => (
           <div key={label} style={{ background: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem 1.25rem" }}>
-            <p style={{ margin: "0 0 0.25rem", fontSize: "0.72rem", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8" }}>{label}</p>
+            <p style={{ margin: "0 0 0.25rem", fontSize: "0.72rem", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>{label}</p>
             <p style={{ margin: 0, fontSize: "2rem", fontWeight: "800", background: "linear-gradient(135deg,var(--color-brand),#C2185B)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{value}</p>
           </div>
         ))}
@@ -533,7 +533,9 @@ function SignupsPanel({ signups, loading, launchSending, testSending, onRefresh,
 
       {/* Actions row */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap", alignItems: "center" }}>
+        <label htmlFor="signup-search" style={{ position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" }}>Search signups by name or email</label>
         <input
+          id="signup-search"
           type="text"
           placeholder="Search name or email…"
           value={search}
@@ -581,9 +583,9 @@ function SignupsPanel({ signups, loading, launchSending, testSending, onRefresh,
                   <p style={{ margin: 0, fontSize: "0.78rem", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.email}</p>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <p style={{ margin: 0, fontSize: "0.75rem", color: "#94a3b8" }}>{date}</p>
+                  <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>{date}</p>
                   {s.launch_email_sent_at && (
-                    <p style={{ margin: "0.1rem 0 0", fontSize: "0.68rem", color: "#22c55e", fontWeight: "600" }}>✓ Emailed</p>
+                    <p style={{ margin: "0.1rem 0 0", fontSize: "0.68rem", color: "#16a34a", fontWeight: "600" }}>✓ Emailed</p>
                   )}
                 </div>
               </div>

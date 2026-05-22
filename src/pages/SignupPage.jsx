@@ -107,7 +107,7 @@ export default function SignupPage() {
       <PageWrapper narrow>
         <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📬</div>
-          <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Almost there!</h2>
+          <h1 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Almost there!</h1>
           <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
             We sent a confirmation link to <strong style={{ color: "#1e293b" }}>{email}</strong>.
           </p>
@@ -149,7 +149,7 @@ export default function SignupPage() {
       <PageWrapper narrow>
         <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📬</div>
-          <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Check your email</h2>
+          <h1 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Check your email</h1>
           <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
             We sent a confirmation link to <strong style={{ color: "#1e293b" }}>{email}</strong>.<br />
             Click it to activate your account.
@@ -190,7 +190,7 @@ export default function SignupPage() {
         {role === "student" && <StepBar step={1} total={2} label="Create account" />}
 
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
-          <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Create account</h2>
+          <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Create account</h1>
           <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Join StudentShifts — it's free</p>
         </div>
 

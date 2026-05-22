@@ -72,7 +72,7 @@ export default function LoginPage() {
       <PageWrapper narrow>
         <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
           <div style={{ marginBottom: "1.75rem" }}>
-            <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Reset password</h2>
+            <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Reset password</h1>
             <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>
               {resetSent ? "Check your email for a reset link." : "Enter your email and we'll send you a reset link."}
             </p>
@@ -134,7 +134,7 @@ export default function LoginPage() {
       <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
 
         <div style={{ marginBottom: "1.75rem" }}>
-          <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Welcome back</h2>
+          <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Welcome back</h1>
           <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Sign in to find your next shift</p>
         </div>
 

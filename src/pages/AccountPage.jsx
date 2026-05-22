@@ -416,7 +416,7 @@ export default function AccountPage() {
 
   const SidebarPrefs = () => (
     <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.85rem 0.9rem" }}>
-      <p style={{ margin: "0 0 0.5rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8" }}>Job Preferences</p>
+      <p style={{ margin: "0 0 0.5rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>Job Preferences</p>
       <p style={{ fontSize: "0.73rem", color: "#6b7280", marginBottom: "0.65rem", lineHeight: 1.4 }}>Industries you're interested in.</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
         {Object.keys(jobCategories).map(cat => {
@@ -440,7 +440,7 @@ export default function AccountPage() {
   // ── Right column content (shared pieces) ─────────────────────────────────
   const LocationSection = () => (
     <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.75rem" }}>My Location</p>
+      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.75rem" }}>My Location</p>
       <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.85rem", lineHeight: 1.4 }}>
         Set your address so we can show job distances. Never shared publicly.
       </p>
@@ -458,6 +458,7 @@ export default function AccountPage() {
       </div>
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
         <input
+          aria-label="Enter Eircode or address"
           placeholder="Eircode"
           value={locationAddress}
           onChange={e => { setLocationAddress(e.target.value); setLocationCoords(null); setShowManual(false); }}
@@ -521,10 +522,10 @@ export default function AccountPage() {
         <button onClick={() => { setDeleteConfirm(""); setDeletePassword(""); setDeleteError(""); setShowDeleteModal(true); }} style={{ ...btnBase, flex: 1, backgroundColor: "transparent", border: "1.5px solid #fca5a5", color: "#dc2626", boxShadow: "none" }}>Delete Account</button>
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: "1.25rem", marginTop: "0.25rem", flexWrap: "wrap" }}>
-        <button onClick={handleChangePassword} disabled={changingPw} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
+        <button onClick={handleChangePassword} disabled={changingPw} style={{ background: "none", border: "none", color: "#64748b", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
           {changingPw ? "Sending…" : "Change Password"}
         </button>
-        <button onClick={handleExport} disabled={exporting} style={{ background: "none", border: "none", color: "#94a3b8", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
+        <button onClick={handleExport} disabled={exporting} style={{ background: "none", border: "none", color: "#64748b", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
           {exporting ? "Exporting…" : "Download My Data"}
         </button>
       </div>
@@ -567,9 +568,9 @@ export default function AccountPage() {
                 <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={handlePhotoChange} disabled={photoUploading} />
               </label>
             </div>
-            <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "#94a3b8", fontWeight: "500" }}>Welcome back,</p>
+            <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "#64748b", fontWeight: "500" }}>Welcome back,</p>
             <p style={{ margin: "0.1rem 0 0.1rem", fontWeight: "800", fontSize: "1.15rem", color: "#1e293b" }}>👋 {firstName}</p>
-            <p style={{ margin: 0, fontSize: "0.78rem", color: "#94a3b8" }}>{currentUser.email}</p>
+            <p style={{ margin: 0, fontSize: "0.78rem", color: "#64748b" }}>{currentUser.email}</p>
           </div>
 
           {isStudent ? (
@@ -594,7 +595,7 @@ export default function AccountPage() {
 
               {/* Job Preferences */}
                 <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.5rem" }}>Job Preferences</p>
+                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.5rem" }}>Job Preferences</p>
                   <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.65rem" }}>Industries you're interested in.</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
                     {Object.keys(jobCategories).map(cat => {
@@ -616,7 +617,7 @@ export default function AccountPage() {
 
                 {/* My Profile */}
                 <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1.25rem", marginBottom: "1rem" }}>
-                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 1rem" }}>My Profile</p>
+                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 1rem" }}>My Profile</p>
 
                   {/* Completeness bar */}
                   {(() => {
@@ -644,8 +645,9 @@ export default function AccountPage() {
                   <FileUpload label="CV" hint=".pdf or .docx — required to apply" accept=".pdf,.doc,.docx" onUpload={handleCvUpload} existingName={currentUser.cvName} required />
                   <FileUpload label="Cover Letter" hint=".pdf or .docx — optional" accept=".pdf,.doc,.docx" onUpload={handleCoverLetterUpload} existingName={currentUser.coverLetterName} />
 
-                  <label style={labelStyle}>LinkedIn URL <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
+                  <label htmlFor="linkedin-url" style={labelStyle}>LinkedIn URL <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
                   <input
+                    id="linkedin-url"
                     placeholder="https://linkedin.com/in/yourname"
                     value={linkedIn}
                     onChange={e => { setLinkedIn(e.target.value); setDirtyFields(true); }}
@@ -661,10 +663,11 @@ export default function AccountPage() {
                   />
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                    <label style={labelStyle}>Short Bio <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
-                    <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#94a3b8" }}>{bio.length}/500</span>
+                    <label htmlFor="short-bio" style={labelStyle}>Short Bio <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
+                    <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#64748b" }}>{bio.length}/500</span>
                   </div>
                   <textarea
+                    id="short-bio"
                     placeholder="Tell employers a bit about yourself…"
                     value={bio}
                     maxLength={500}
@@ -674,9 +677,10 @@ export default function AccountPage() {
                     style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
                   />
 
-                  <label style={labelStyle}>Skills <span style={{ fontWeight: "400", color: "#9ca3af" }}>(type to search, click to add)</span></label>
+                  <label htmlFor="skills-input" style={labelStyle}>Skills <span style={{ fontWeight: "400", color: "#9ca3af" }}>(type to search, click to add)</span></label>
                   <div ref={skillWrapRef} style={{ position: "relative", marginBottom: "0.5rem" }}>
                     <input
+                      id="skills-input"
                       placeholder="e.g. Customer Service"
                       value={skillInput}
                       onChange={e => { setSkillInput(e.target.value); setShowSkillSuggestions(true); }}
@@ -717,7 +721,7 @@ export default function AccountPage() {
 
               {/* DM Consent */}
               <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8", margin: "0 0 0.5rem" }}>Messaging</p>
+                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.5rem" }}>Messaging</p>
                 <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
                   <input
                     type="checkbox"
@@ -733,7 +737,7 @@ export default function AccountPage() {
                     Allow verified companies to send me messages before I apply
                   </span>
                 </label>
-                <p style={{ margin: "0.4rem 0 0", fontSize: "0.77rem", color: "#94a3b8", paddingLeft: "1.75rem" }}>
+                <p style={{ margin: "0.4rem 0 0", fontSize: "0.77rem", color: "#64748b", paddingLeft: "1.75rem" }}>
                   Companies can only contact you if they have been verified by StudentShifts.
                 </p>
               </div>
@@ -741,7 +745,7 @@ export default function AccountPage() {
               {/* Save status — above logout/delete */}
               {(saving || saved || saveError) && (
                 <div style={{ textAlign: "center", padding: "0.6rem 1rem", marginBottom: "0.75rem", borderRadius: "0.6rem", backgroundColor: saveError ? "#fff1f2" : saved ? "#f0fdf4" : "#f8fafc", border: `1.5px solid ${saveError ? "#fca5a5" : saved ? "#86efac" : "#e2e8f0"}` }}>
-                  {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8", fontWeight: 600 }}>Saving…</p>}
+                  {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>Saving…</p>}
                   {saved  && <p style={{ margin: 0, fontSize: "0.8rem", color: "#16a34a", fontWeight: 700 }}>✓ Saved</p>}
                   {saveError && <p style={{ margin: 0, fontSize: "0.8rem", color: "#ef4444", fontWeight: 600 }}>{saveError}</p>}
                 </div>
@@ -767,7 +771,7 @@ export default function AccountPage() {
               <Section title="Company Profile">
                 <label style={labelStyle}>Company Bio <span style={{ fontWeight: "400", color: "#9ca3af" }}>(optional)</span></label>
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-0.25rem", marginBottom: "0.25rem" }}>
-                  <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#94a3b8" }}>{bio.length}/500</span>
+                  <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#64748b" }}>{bio.length}/500</span>
                 </div>
                 <textarea
                   placeholder="Tell students about your company, culture, and the kinds of roles you hire for…"
@@ -795,7 +799,7 @@ export default function AccountPage() {
                 />
                 {(saving || saved || saveError) && (
                   <div style={{ textAlign: "center", padding: "0.4rem 0.75rem", borderRadius: "0.5rem", backgroundColor: saveError ? "#fff1f2" : saved ? "#f0fdf4" : "#f8fafc", border: `1.5px solid ${saveError ? "#fca5a5" : saved ? "#86efac" : "#e2e8f0"}` }}>
-                    {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8", fontWeight: 600 }}>Saving…</p>}
+                    {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>Saving…</p>}
                     {saved  && <p style={{ margin: 0, fontSize: "0.8rem", color: "#16a34a", fontWeight: 700 }}>✓ Saved</p>}
                     {saveError && <p style={{ margin: 0, fontSize: "0.8rem", color: "#ef4444", fontWeight: 600 }}>{saveError}</p>}
                   </div>
@@ -881,8 +885,8 @@ function Collapsible({ title, defaultOpen = false, children }) {
   return (
     <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", marginBottom: "0.75rem", overflow: "hidden" }}>
       <button type="button" onClick={() => setOpen(o => !o)} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.85rem 1.1rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
-        <span style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#94a3b8" }}>{title}</span>
-        <span style={{ color: "#94a3b8", fontSize: "0.85rem", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▾</span>
+        <span style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>{title}</span>
+        <span style={{ color: "#64748b", fontSize: "0.85rem", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▾</span>
       </button>
       {open && <div style={{ padding: "0 1.1rem 1rem" }}>{children}</div>}
     </div>
@@ -892,7 +896,7 @@ function Collapsible({ title, defaultOpen = false, children }) {
 function Section({ title, children }) {
   return (
     <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#94a3b8", marginBottom: "0.75rem" }}>{title}</p>
+      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", marginBottom: "0.75rem" }}>{title}</p>
       {children}
     </div>
   );
@@ -1001,7 +1005,7 @@ function AvailabilityPicker({ value, onChange }) {
                     padding: "0.18rem 0.4rem", borderRadius: "0.3rem", fontSize: "0.65rem", fontWeight: "600", cursor: "pointer",
                     border: `1.5px solid ${active ? (isWeekend ? "#f59e0b" : "var(--color-brand)") : "#e2e8f0"}`,
                     backgroundColor: active ? (isWeekend ? "#fef3c7" : "#fce7f3") : "white",
-                    color: active ? (isWeekend ? "#d97706" : "var(--color-brand)") : "#94a3b8",
+                    color: active ? (isWeekend ? "#d97706" : "var(--color-brand)") : "#64748b",
                     fontFamily: "inherit",
                   }}>
                     {slot}

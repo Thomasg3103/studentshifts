@@ -169,7 +169,9 @@ export default function LandingPage() {
 
         {/* Search bar */}
         <div style={{ display: "flex", gap: "0.75rem", maxWidth: "560px", margin: "0 auto 1.5rem", flexWrap: "wrap", justifyContent: "center" }}>
+          <label htmlFor="landing-search" style={{ position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" }}>Search jobs, shifts, locations</label>
           <input
+            id="landing-search"
             value={search}
             onChange={e => setSearch(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleSearch()}
