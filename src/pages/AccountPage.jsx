@@ -452,12 +452,13 @@ export default function AccountPage() {
       <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
         {[["home", "🏠 Home"], ["college", "🎓 College"], ["local", "📍 Local"]].map(([val, label]) => (
           <button key={val} type="button" onClick={() => setLocationType(val)} style={{
-            padding: "0.3rem 0.8rem", borderRadius: "0.5rem", cursor: "pointer",
+            padding: "0.5rem 0.9rem", borderRadius: "0.5rem", cursor: "pointer",
+            minHeight: "44px", display: "inline-flex", alignItems: "center",
             border: `1.5px solid ${locationType === val ? "#3b82f6" : "#d1d5db"}`,
             backgroundColor: locationType === val ? "#eff6ff" : "white",
             color: locationType === val ? "#1d4ed8" : "#374151",
             fontWeight: locationType === val ? "700" : "500",
-            fontSize: "0.8rem", fontFamily: "inherit",
+            fontSize: "0.9rem", fontFamily: "inherit",
           }}>{label}</button>
         ))}
       </div>
@@ -607,8 +608,9 @@ export default function AccountPage() {
                       const active = jobPreferences.includes(cat);
                       return (
                         <button key={cat} type="button" onClick={() => handlePrefToggle(cat)} style={{
-                          padding: "0.25rem 0.6rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600",
+                          padding: "0.45rem 0.8rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600",
                           cursor: "pointer", fontFamily: "inherit",
+                          minHeight: "44px", display: "inline-flex", alignItems: "center",
                           border: `1.5px solid ${active ? "var(--color-brand)" : "#e2e8f0"}`,
                           backgroundColor: active ? "#fce7f3" : "#f8fafc",
                           color: active ? "var(--color-brand)" : "#64748b",
@@ -717,7 +719,7 @@ export default function AccountPage() {
                       {skills.map(s => (
                         <span key={s} style={{ fontSize: "0.8rem", backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1.5px solid #bfdbfe", borderRadius: "999px", padding: "0.2rem 0.6rem", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                           {s}
-                          <button aria-label={`Remove skill: ${s}`} onClick={() => removeSkill(s)} style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: "0.75rem", padding: 0, lineHeight: 1 }}>✕</button>
+                          <button aria-label={`Remove skill: ${s}`} onClick={() => removeSkill(s)} style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: "0.8rem", padding: "0.25rem", lineHeight: 1, minWidth: "28px", minHeight: "28px", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>✕</button>
                         </span>
                       ))}
                     </div>
@@ -1007,7 +1009,8 @@ function AvailabilityPicker({ value, onChange }) {
                 const active = selected.includes(slot);
                 return (
                   <button key={slot} type="button" onClick={() => toggle(day, slot)} style={{
-                    padding: "0.18rem 0.4rem", borderRadius: "0.3rem", fontSize: "0.65rem", fontWeight: "600", cursor: "pointer",
+                    padding: "0.4rem 0.55rem", borderRadius: "0.3rem", fontSize: "0.72rem", fontWeight: "600", cursor: "pointer",
+                    minHeight: "36px", display: "inline-flex", alignItems: "center", justifyContent: "center",
                     border: `1.5px solid ${active ? (isWeekend ? "#f59e0b" : "var(--color-brand)") : "#e2e8f0"}`,
                     backgroundColor: active ? (isWeekend ? "#fef3c7" : "#fce7f3") : "white",
                     color: active ? (isWeekend ? "#d97706" : "var(--color-brand)") : "#64748b",

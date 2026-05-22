@@ -376,7 +376,7 @@ export default function CompanyMessages() {
           {tab === "direct" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
               {directConvs.length === 0
-                ? <p style={{ textAlign: "center", color: "#64748b", padding: "2rem 1rem", fontSize: "0.875rem" }}>No direct messages yet.</p>
+                ? <p style={{ textAlign: "center", color: "#64748b", padding: "2rem 1rem", fontSize: "0.875rem" }}>No direct messages yet. Go to Browse Students and tap Message to start a conversation.</p>
                 : directConvs.map(conv => (
                   <ConvCard
                     key={`direct_${conv.studentId}`}

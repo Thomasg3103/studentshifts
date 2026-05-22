@@ -251,9 +251,19 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
         </div>
       </div>
       {displayStudents.length === 0 && (
-        <p style={{ textAlign: "center", color: "#6b7280", padding: "2rem 1rem", fontSize: "0.875rem" }}>
-          No students match your industries yet. Students need to set matching job preferences in their account.
-        </p>
+        <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "0.65rem" }}>🔍</div>
+          <p style={{ margin: "0 0 0.35rem", fontWeight: "700", fontSize: "1rem", color: "#1e293b" }}>No students match your industries</p>
+          <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.5 }}>
+            Students need to set matching job preferences in their account.<br />You can browse all students instead.
+          </p>
+          <button
+            onClick={() => setFilterByIndustries(false)}
+            style={{ padding: "0.6rem 1.5rem", borderRadius: "999px", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.88rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(162,29,84,0.3)" }}
+          >
+            Browse All Students
+          </button>
+        </div>
       )}
       {visibleStudents.map(s => {
         const isLiked   = likedStudentIds?.has(s.id);
@@ -305,7 +315,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
               title={s.allow_company_dm === false ? "This student has turned off direct messages from companies" : undefined}
               style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: s.allow_company_dm === false ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: s.allow_company_dm === false ? 0.4 : 1 }}
             >
-              {s.allow_company_dm === false ? "DMs Off" : "Message"}
+              {s.allow_company_dm === false ? "DMs Off" : "Message Student"}
             </button>
           </div>
         </div>

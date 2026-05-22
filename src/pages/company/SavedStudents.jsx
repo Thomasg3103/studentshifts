@@ -216,7 +216,7 @@ export default function SavedStudents({ students, loading, fetched, error, liked
               title={s.allow_company_dm === false ? "This student has disabled direct messages" : undefined}
               style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: s.allow_company_dm === false ? "#e5e7eb" : "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: s.allow_company_dm === false ? "#64748b" : "white", fontWeight: "700", fontSize: "0.85rem", cursor: s.allow_company_dm === false ? "not-allowed" : "pointer", fontFamily: "inherit" }}
             >
-              {s.allow_company_dm === false ? "DMs disabled" : "Message"}
+              {s.allow_company_dm === false ? "DMs disabled" : "Message Student"}
             </button>
           </div>
         </div>

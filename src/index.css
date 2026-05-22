@@ -249,6 +249,28 @@ input[type="password"]::-ms-clear {
   }
 }
 
+/* ─── iOS input zoom prevention ──────────────────────────
+   iOS Safari auto-zooms when a focused input has font-size < 16px.
+   Enforce 16px minimum on all text inputs on mobile. */
+@media (max-width: 1023px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* ─── Touch target minimums ──────────────────────────────
+   Pill/chip toggle buttons and small utility buttons need at
+   least 44px in one dimension for comfortable mobile tapping. */
+@media (max-width: 1023px) {
+  .touch-target {
+    min-height: 44px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+}
+
 /* ─── Mobile layout fixes ─── */
 @media (max-width: 640px) {
   /* Job posting card: stack buttons below info */

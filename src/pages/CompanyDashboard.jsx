@@ -15,6 +15,7 @@ import JobPostingCard from "./company/JobPostingCard";
 import ApplicantsView from "./company/ApplicantsView";
 import JobForm from "./company/JobForm";
 import { StatCard, Modal, AvailabilityHeatmap, weekdays, timeSlots } from "./company/shared";
+import CompanyOnboardingBanner from "../components/CompanyOnboardingBanner";
 
 function normaliseJob(j) {
   return {
@@ -682,6 +683,8 @@ export default function CompanyDashboard() {
       )}
 
       </div>
+
+      <CompanyOnboardingBanner onPostJob={openCreate} />
     </div>
   );
 }

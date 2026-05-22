@@ -516,8 +516,16 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
       {/* Compact applicant rows for active stage */}
       {visible.length === 0 ? (
         <div style={{ textAlign: "center", padding: "2.5rem 1rem" }}>
-          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>👤</div>
-          <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0, fontWeight: "500" }}>No applicants in this stage yet.</p>
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>{search.trim() ? "🔍" : "👤"}</div>
+          {search.trim() ? (
+            <>
+              <p style={{ color: "#1e293b", fontSize: "0.9rem", margin: "0 0 0.3rem", fontWeight: "700" }}>No results for "{search}"</p>
+              <p style={{ color: "#64748b", fontSize: "0.8rem", margin: "0 0 1rem" }}>Try a different name or clear the search.</p>
+              <button onClick={() => setSearch("")} style={{ padding: "0.45rem 1.2rem", borderRadius: "999px", border: "1.5px solid #e2e8f0", background: "white", color: "#374151", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}>Clear Search</button>
+            </>
+          ) : (
+            <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0, fontWeight: "500" }}>No applicants in this stage yet.</p>
+          )}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>

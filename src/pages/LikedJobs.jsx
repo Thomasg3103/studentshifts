@@ -68,8 +68,8 @@ export default function LikedJobs() {
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.2rem" }}>
                       <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: isClosed ? "#64748b" : "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title}</h2>
                       <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
-                        <button aria-label={`View ${job.title}`} onClick={() => viewJob(job)} style={btnBlue}>View</button>
-                        <button aria-label={`Remove ${job.title} from liked jobs`} onClick={() => removeLike(job)} style={btnRed}>Remove</button>
+                        <button aria-label={`View ${job.title}`} onClick={() => viewJob(job)} style={btnBlue}>View Job</button>
+                        <button aria-label={`Remove ${job.title} from liked jobs`} onClick={() => removeLike(job)} style={btnRed}>Unsave</button>
                       </div>
                     </div>
                     <p style={{ color: "#6b7280", marginBottom: "0.15rem", fontSize: "0.85rem" }}>{job.company} · {job.location}</p>

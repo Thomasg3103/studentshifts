@@ -7,6 +7,7 @@ import { supabase, withTimeout } from "../lib/supabase";
 import { likeJob, unlikeJob } from "../lib/auth";
 import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
+import StudentOnboarding from "../components/StudentOnboarding";
 
 const DESC = {
   "Bar Staff":           "Join our bar team serving drinks and looking after customers. Some experience preferred — full training provided.",
@@ -950,6 +951,8 @@ export default function StudentDashboard({ restoreScrollY }) {
           ↑
         </button>
       )}
+
+      <StudentOnboarding />
     </div>
   );
 }

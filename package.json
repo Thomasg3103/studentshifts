@@ -12,7 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@sentry/react": "^10.52.0",
+    "@sentry/react": "^10.53.1",
     "@supabase/supabase-js": "^2.102.1",
     "dompurify": "^3.4.2",
     "mammoth": "^1.12.0",

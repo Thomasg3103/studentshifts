@@ -176,7 +176,7 @@ export default function VerifyDocsPage() {
               onClick={() => { setShowAvailabilityPrompt(false); setPage("studentDashboard"); }}
               style={{ padding: "0.75rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
             >
-              Maybe Later
+              Skip for Now
             </button>
           </div>
         </div>

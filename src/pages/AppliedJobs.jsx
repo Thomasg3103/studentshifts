@@ -49,7 +49,7 @@ function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, 
             onClick={onCancel}
             style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
           >
-            Keep it
+            Keep Application
           </button>
           <button
             onClick={onConfirm}
@@ -95,7 +95,7 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, onRemove, 
             <span className={`badge badge-sm ${s.cls}`} style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>
               {s.icon} {s.label}
             </span>
-            <button aria-label={`View ${job.title}`} onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View</button>
+            <button aria-label={`View ${job.title}`} onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View Job</button>
           </div>
         </div>
 
