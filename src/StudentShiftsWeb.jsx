@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import ErrorBoundary from "./components/ErrorBoundary";
 import CookieBanner from "./components/CookieBanner";
 import AppFooter from "./components/AppFooter";
+import { PageSkeleton } from "./components/Skeleton";
 
 const StudentDashboard  = lazy(() => import("./pages/StudentDashboard"));
 const CompanyDashboard  = lazy(() => import("./pages/CompanyDashboard"));
@@ -29,13 +30,6 @@ const HelpPage          = lazy(() => import("./pages/HelpPage"));
 const ContactPage       = lazy(() => import("./pages/ContactPage"));
 const PendingCompanyPage= lazy(() => import("./pages/PendingCompanyPage"));
 
-function PageSpinner() {
-  return (
-    <div style={{ minHeight: "50vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-      <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-    </div>
-  );
-}
 import { supabase } from "./lib/supabase";
 import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug, fetchJobsByIds, fetchMessageCount } from "./lib/auth";
 import { AppContext } from "./context/AppContext";
@@ -407,7 +401,7 @@ export default function StudentShiftsWeb() {
       {!isLanding && <Header />}
       <main id="main-content">
         <ErrorBoundary>
-          <Suspense fallback={<PageSpinner />}>
+          <Suspense fallback={<PageSkeleton />}>
             <Routes>
               {/* Home / Student Dashboard / Landing */}
               <Route path="/" element={

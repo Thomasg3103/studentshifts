@@ -1011,6 +1011,7 @@ BEGIN
   DELETE FROM applications WHERE job_id IN (SELECT id FROM jobs WHERE company_id = uid);
   DELETE FROM liked_jobs   WHERE job_id IN (SELECT id FROM jobs WHERE company_id = uid);
   DELETE FROM jobs                   WHERE company_id  = uid;
+  DELETE FROM push_subscriptions     WHERE user_id     = uid;
   DELETE FROM export_log             WHERE user_id     = uid;
   DELETE FROM email_sends_log        WHERE user_id     = uid;
   DELETE FROM rpc_rate_log           WHERE user_id     = uid;

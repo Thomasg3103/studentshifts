@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
 import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData, sendPasswordReset } from "../lib/auth";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 import { jobCategories } from "../data/jobCategories";
 import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
@@ -35,6 +36,7 @@ const PART_TIME_SKILLS = [
 
 export default function AccountPage() {
   const { currentUser, setCurrentUser, setPage, setLikedJobs, setAppliedJobs, setStudentLocation } = useApp();
+  const { supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: subscribePush, unsubscribe: unsubscribePush } = usePushNotifications(currentUser?.id);
   const [availability, setAvailability]         = useState(currentUser.availability || {});
   const [jobPreferences, setJobPreferences]     = useState(currentUser.jobPreferences || []);
   const [industries, setIndustries]             = useState(currentUser.industries || []);
@@ -534,6 +536,15 @@ export default function AccountPage() {
         <button onClick={handleExport} disabled={exporting} style={{ background: "none", border: "none", color: "#64748b", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
           {exporting ? "Exporting…" : "Download My Data"}
         </button>
+        {pushSupported && pushPermission !== "denied" && (
+          <button
+            onClick={pushSubscribed ? unsubscribePush : subscribePush}
+            disabled={pushLoading}
+            style={{ background: "none", border: "none", color: pushSubscribed ? "var(--color-brand)" : "#64748b", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}
+          >
+            {pushLoading ? "…" : pushSubscribed ? "🔔 Notifications on" : "🔕 Enable Notifications"}
+          </button>
+        )}
       </div>
     </>
   );

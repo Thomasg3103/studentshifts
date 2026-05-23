@@ -8,6 +8,7 @@ import { likeJob, unlikeJob } from "../lib/auth";
 import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
 import StudentOnboarding from "../components/StudentOnboarding";
+import { JobCardsSkeleton } from "../components/Skeleton";
 
 const DESC = {
   "Bar Staff":           "Join our bar team serving drinks and looking after customers. Some experience preferred — full training provided.",
@@ -774,12 +775,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                 </button>
               </div>
             )}
-            {jobsLoading && (
-              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
-                <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
-                <p style={{ fontWeight: 600 }}>Loading jobs…</p>
-              </div>
-            )}
+            {jobsLoading && <JobCardsSkeleton />}
             {!jobsLoading && !jobsError && sortedJobs.length === 0 && (
               <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
                 {hasActiveFilters ? (

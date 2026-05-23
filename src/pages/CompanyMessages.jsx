@@ -6,6 +6,7 @@ import { fetchCompanyConversations, fetchCompanyDirectConversations, fetchMessag
 import { supabase } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
+import { JobRowsSkeleton } from "../components/Skeleton";
 
 function formatConvTime(isoStr) {
   if (!isoStr) return "";
@@ -334,10 +335,7 @@ export default function CompanyMessages() {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
-          <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
-          <p style={{ fontWeight: 600 }}>Loading conversations…</p>
-        </div>
+        <JobRowsSkeleton count={4} />
       ) : fetchError && conversations.length === 0 && directConvs.length === 0 ? (
         <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
           <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</p>

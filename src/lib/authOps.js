@@ -4,6 +4,7 @@ import { supabase, withTimeout, invalidateSessionCache } from "./supabase";
 export async function signUp({ email, password, name, role, croNumber, industries }) {
   if (role !== 'student' && role !== 'company') throw new Error('Invalid role');
   const meta = { name, role };
+  if (role === "company") meta.company_name = name.trim();
   if (role === "company" && croNumber) meta.cro_number = croNumber.trim();
   if (role === "company" && industries?.length) meta.industries = industries;
   const { data, error } = await withTimeout(

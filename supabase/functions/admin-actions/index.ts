@@ -21,7 +21,9 @@ Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   const jwt = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
-  if (!jwt) return new Response("Unauthorised", { status: 401, headers: corsHeaders });
+  if (!jwt) return new Response(JSON.stringify({ error: "Unauthorised" }), {
+    status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
   // Validate caller is an admin using their own JWT (anon key enforces RLS)
   const anonClient = createClient(
@@ -30,14 +32,20 @@ Deno.serve(async (req: Request) => {
     { global: { headers: { Authorization: `Bearer ${jwt}` } } }
   );
   const { data: { user }, error: authErr } = await anonClient.auth.getUser();
-  if (authErr || !user) return new Response("Unauthorised", { status: 401, headers: corsHeaders });
+  if (authErr || !user) return new Response(JSON.stringify({ error: "Unauthorised" }), {
+    status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
   const { data: profile } = await anonClient.from("profiles").select("role").eq("id", user.id).single();
-  if (profile?.role !== "admin") return new Response("Forbidden", { status: 403, headers: corsHeaders });
+  if (profile?.role !== "admin") return new Response(JSON.stringify({ error: "Forbidden" }), {
+    status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 
   const body = await req.json().catch(() => null);
   if (!body?.action || !body?.userId) {
-    return new Response("Missing action or userId", { status: 400, headers: corsHeaders });
+    return new Response(JSON.stringify({ error: "Missing required fields: action, userId" }), {
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 
   // Service role client for admin auth operations
@@ -55,10 +63,12 @@ Deno.serve(async (req: Request) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    return new Response(JSON.stringify({ ok: true }), {
+    return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
-  return new Response("Unknown action", { status: 400, headers: corsHeaders });
+  return new Response(JSON.stringify({ error: "Unknown action" }), {
+    status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 });

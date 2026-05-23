@@ -1,5 +1,5 @@
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
+import { createRoot, hydrateRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
@@ -80,7 +80,8 @@ if (localStorage.getItem("ss_cookie_notice_dismissed") === "1") {
   initSentry();
 }
 
-createRoot(document.getElementById("root")).render(
+const rootEl = document.getElementById("root");
+const app = (
   <StrictMode>
     <HelmetProvider>
       <BrowserRouter>
@@ -91,3 +92,9 @@ createRoot(document.getElementById("root")).render(
     </HelmetProvider>
   </StrictMode>
 );
+
+if (rootEl.hasChildNodes()) {
+  hydrateRoot(rootEl, app);
+} else {
+  createRoot(rootEl).render(app);
+}

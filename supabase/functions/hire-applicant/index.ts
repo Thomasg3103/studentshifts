@@ -230,7 +230,15 @@ async function sendBrevoEmail(
   }
 }
 
-Deno.serve(async (req: Request) => {
+async function sendPush(supabaseUrl: string, serviceKey: string, userId: string, title: string, body: string, url = "/"): Promise<void> {
+  await fetchWithTimeout(`${supabaseUrl}/functions/v1/send-push`, {
+    method: "POST",
+    headers: { "Authorization": `Bearer ${serviceKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ user_id: userId, title, body, url }),
+  }, 8_000);
+}
+
+export async function handler(req: Request): Promise<Response> {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -296,7 +304,7 @@ Deno.serve(async (req: Request) => {
       // result is null — previous attempt crashed before recording. Delete orphan so client can retry.
       await adminClient.from("hire_action_log").delete()
         .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
-      return new Response(JSON.stringify({ success: false, error: "Previous request did not complete — please retry." }), {
+      return new Response(JSON.stringify({ error: "Previous request did not complete — please retry." }), {
         status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
@@ -372,7 +380,7 @@ Deno.serve(async (req: Request) => {
         ((nameProfiles || []) as { id: string; name: string }[]).map(p => [p.id, p.name || "there"])
       );
 
-      // Send emails best-effort
+      // Send emails + push best-effort
       const winnerEmail = emailMap[winner_student_id] || studentEmail;
       if (winnerEmail) {
         sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, winnerEmail,
@@ -381,12 +389,22 @@ Deno.serve(async (req: Request) => {
           winnerEmail
         ).catch(e => console.warn("Acceptance email failed:", e));
       }
+      sendPush(supabaseUrl, serviceKey, winner_student_id,
+        "You got the job! 🎉",
+        `${companyName} hired you for ${job.title}.`,
+        "/"
+      ).catch(() => {});
       for (const sid of (declined_student_ids || [])) {
         const em = emailMap[sid]; if (!em) continue;
         sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
           `Update on your ${job.title} application`,
           emailDeclined(nameMap[sid] || "there", job.title, companyName, hiredShiftWithTime, remainingShiftsAfterHire)
         ).catch(e => console.warn("Decline email failed:", e));
+        sendPush(supabaseUrl, serviceKey, sid,
+          "Application update",
+          `Your ${job.title} application was unsuccessful.`,
+          "/"
+        ).catch(() => {});
       }
       for (const sid of (notify_student_ids || [])) {
         const em = emailMap[sid]; if (!em) continue;
@@ -435,6 +453,11 @@ Deno.serve(async (req: Request) => {
       sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, studentEmail, subject, html)
         .catch(e => console.warn("Rejection email failed:", e));
     }
+    sendPush(supabaseUrl, serviceKey, app.student_id,
+      "Application update",
+      `Your ${job.title} application was unsuccessful.`,
+      "/"
+    ).catch(() => {});
     await adminClient.from("audit_log").insert({
       actor_id: user.id, action: "hire_reject", target_id: app.student_id,
       metadata: { application_id: applicationId, job_id: app.job_id, stage: app.pipeline_stage },
@@ -447,12 +470,20 @@ Deno.serve(async (req: Request) => {
 
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    const safe = ["Unauthorised", "Missing required fields", "Application not found"]
+    const safe = ["Unauthorised", "Missing required fields", "Application not found", "Application already processed"]
       .some(p => msg.startsWith(p)) ? msg : "Internal server error";
+    const status = safe.startsWith("Unauthorised") ? 401
+      : safe.startsWith("Application not found") ? 404
+      : safe === "Internal server error" ? 500
+      : 400;
     console.error("hire-applicant error:", msg);
     return new Response(JSON.stringify({ error: safe }), {
-      status: safe === "Internal server error" ? 500 : 400,
+      status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
-});
+}
+
+if (import.meta.main) {
+  Deno.serve(handler);
+}

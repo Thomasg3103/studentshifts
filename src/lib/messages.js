@@ -72,6 +72,12 @@ export async function sendMessage(jobId, studentId, companyId, senderId, text) {
     10000
   );
   if (error) throw error;
+  const recipientId = senderId === studentId ? companyId : studentId;
+  if (recipientId) {
+    supabase.functions.invoke("send-push", {
+      body: { user_id: recipientId, title: "New message", body: text.slice(0, 100), url: "/" },
+    }).catch(() => {});
+  }
 }
 
 export async function fetchCompanyDirectConversations(companyId) {

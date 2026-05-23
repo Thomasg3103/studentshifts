@@ -35,19 +35,13 @@ export default function AppFooter() {
             <p style={fHead}>Legal</p>
             <FLink onClick={() => navigate("/privacy")}>Privacy Policy</FLink>
             <FLink onClick={() => navigate("/terms")}>Terms &amp; Conditions</FLink>
-            <FLink onClick={() => {}}>Cookies</FLink>
-            <FLink onClick={() => {}}>Ad Choices</FLink>
+            <FLink onClick={() => navigate("/privacy")}>Cookies</FLink>
           </div>
 
           <div>
             <p style={fHead}>Let's Connect</p>
-            <FLink onClick={() => {}}>Instagram</FLink>
-            <FLink onClick={() => {}}>TikTok</FLink>
-            <FLink onClick={() => {}}>LinkedIn</FLink>
-            <FLink onClick={() => {}}>Twitter / X</FLink>
-            <button style={{ marginTop: "0.9rem", padding: "0.5rem 1.2rem", borderRadius: "2rem", background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: "white", border: "none", cursor: "pointer", fontFamily: "inherit", fontWeight: 700, fontSize: "0.78rem" }}>
-              Download App
-            </button>
+            <FLink href="https://www.instagram.com/studentshifts/">Instagram</FLink>
+            <FLink href="https://www.linkedin.com/company/studentshifts/">LinkedIn</FLink>
           </div>
 
         </div>
@@ -61,14 +55,19 @@ export default function AppFooter() {
   );
 }
 
-function FLink({ onClick, children }) {
+function FLink({ onClick, href, children }) {
+  const style = { margin: "0.45rem 0", fontSize: "0.83rem", cursor: "pointer", color: "rgba(255,255,255,0.5)", textDecoration: "none", display: "block" };
+  const hover = e => e.currentTarget.style.color = "white";
+  const unhover = e => e.currentTarget.style.color = "rgba(255,255,255,0.5)";
+  if (href) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" style={style} onMouseEnter={hover} onMouseLeave={unhover}>
+        {children}
+      </a>
+    );
+  }
   return (
-    <p
-      onClick={onClick}
-      style={{ margin: "0.45rem 0", fontSize: "0.83rem", cursor: "pointer", color: "rgba(255,255,255,0.5)" }}
-      onMouseEnter={e => e.currentTarget.style.color = "white"}
-      onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.5)"}
-    >
+    <p onClick={onClick} style={style} onMouseEnter={hover} onMouseLeave={unhover}>
       {children}
     </p>
   );

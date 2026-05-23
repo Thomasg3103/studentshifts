@@ -506,9 +506,10 @@ Deno.serve(async (req: Request) => {
       "Invalid email address",
     ];
     const safe = SAFE_PREFIXES.some(prefix => msg.startsWith(prefix)) ? msg : "Internal server error";
+    const status = safe === "Internal server error" ? 500 : safe.startsWith("Unauthorised") ? 401 : 400;
     console.error("send-email error:", msg);
     return new Response(JSON.stringify({ error: safe }), {
-      status: safe === "Internal server error" ? 500 : 400,
+      status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }

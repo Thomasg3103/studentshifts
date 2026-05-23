@@ -2,10 +2,36 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { visualizer } from 'rollup-plugin-visualizer'
+import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   plugins: [
     react(),
+    VitePWA({
+      registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
+      includeAssets: ['favicon.svg', 'og-image.png'],
+      manifest: {
+        name: 'StudentShifts',
+        short_name: 'StudentShifts',
+        description: 'Find part-time work that fits your college timetable',
+        theme_color: '#A21D54',
+        background_color: '#ffffff',
+        display: 'standalone',
+        scope: '/',
+        start_url: '/',
+        icons: [
+          { src: 'favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          { src: 'maskable_icon_x192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
+          { src: 'maskable_icon_x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
+      },
+      injectManifest: {
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+      },
+    }),
     process.env.ANALYZE && visualizer({ open: true, gzipSize: true, brotliSize: true, filename: "dist/stats.html" }),
   ].filter(Boolean),
   build: {

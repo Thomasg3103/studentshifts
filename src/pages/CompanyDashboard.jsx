@@ -12,6 +12,7 @@ import { useFocusTrap } from "../hooks/useFocusTrap";
 import BrowseStudents from "./company/BrowseStudents";
 import SavedStudents from "./company/SavedStudents";
 import JobPostingCard from "./company/JobPostingCard";
+import { PostingsSkeleton } from "../components/Skeleton";
 import ApplicantsView from "./company/ApplicantsView";
 import JobForm from "./company/JobForm";
 import { StatCard, Modal, AvailabilityHeatmap, weekdays, timeSlots } from "./company/shared";
@@ -580,10 +581,7 @@ export default function CompanyDashboard() {
       {/* Postings â€" jobs tab only */}
       {activeTab === "jobs" && (
         loading ? (
-          <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#64748b", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
-            <div style={{ width: "36px", height: "36px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
-            <p style={{ fontWeight: "600" }}>Loading your job postings…</p>
-          </div>
+          <PostingsSkeleton />
         ) : loadError ? (
           <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "#fff1f2", borderRadius: "1rem", border: "1.5px solid #fca5a5" }}>
             <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⚠️</div>
