@@ -1,4 +1,5 @@
 import React from "react";
+import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
@@ -21,7 +22,8 @@ export default function LikedJobs() {
   };
 
   return (
-    <><BackButton />
+    <><Helmet><title>Liked Jobs — StudentShifts</title><meta name="robots" content="noindex" /></Helmet>
+    <BackButton />
     <PageWrapper>
       <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>❤️ Liked Jobs</h1>

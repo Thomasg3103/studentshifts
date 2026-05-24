@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useApp } from "../context/AppContext";
 import { signOut } from "../lib/auth";
 
@@ -12,6 +13,7 @@ export default function PendingCompanyPage() {
 
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#fafafa", padding: "1rem" }}>
+      <Helmet><title>Application Under Review — StudentShifts</title><meta name="robots" content="noindex" /></Helmet>
       <div style={{ maxWidth: "480px", width: "100%", backgroundColor: "#fff", borderRadius: "1rem", boxShadow: "0 4px 24px rgba(0,0,0,0.07)", padding: "2.5rem 2rem", textAlign: "center" }}>
         <div style={{
           width: "56px", height: "56px", borderRadius: "50%",

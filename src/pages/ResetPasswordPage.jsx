@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { updatePassword } from "../lib/auth";
@@ -67,6 +68,7 @@ export default function ResetPasswordPage() {
 
   return (
     <PageWrapper narrow>
+      <Helmet><title>Reset Password — StudentShifts</title><meta name="robots" content="noindex" /></Helmet>
       <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
         <div style={{ marginBottom: "1.75rem" }}>
           <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Set new password</h2>

@@ -1,4 +1,5 @@
 ﻿import { useState, useRef } from "react";
+import { Helmet } from "react-helmet-async";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
@@ -94,6 +95,7 @@ export default function VerifyDocsPage() {
 
   return (
     <>
+    <Helmet><title>Verify Your Identity — StudentShifts</title><meta name="robots" content="noindex" /></Helmet>
     <PageWrapper narrow>
       <div style={{ maxWidth: "440px", margin: "0 auto" }}>
 

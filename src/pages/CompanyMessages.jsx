@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import PageWrapper from "../components/PageWrapper";
@@ -320,6 +321,7 @@ export default function CompanyMessages() {
   const jobsUnread   = conversations.filter(c => c.lastSenderId && c.lastSenderId !== currentUser?.id).length;
 
   return (
+    <><Helmet><title>Messages — StudentShifts</title><meta name="robots" content="noindex" /></Helmet>
     <PageWrapper>
       <div style={{ position: "relative", textAlign: "center", marginBottom: "1.5rem" }}>
         <button
@@ -415,6 +417,7 @@ export default function CompanyMessages() {
         </>
       )}
     </PageWrapper>
+    </>
   );
 }
 

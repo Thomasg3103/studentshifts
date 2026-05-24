@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { Helmet } from "react-helmet-async";
 import toast from "react-hot-toast";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
@@ -319,7 +320,8 @@ export default function Messages() {
   const jobsUnread   = conversations.filter(c => c.lastSenderId && c.lastSenderId !== currentUser?.id).length;
 
   return (
-    <><BackButton />
+    <><Helmet><title>Messages — StudentShifts</title><meta name="robots" content="noindex" /></Helmet>
+    <BackButton />
     <PageWrapper>
       <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>💬 Messages</h1>

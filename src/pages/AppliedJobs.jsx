@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Helmet } from "react-helmet-async";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
@@ -197,7 +198,8 @@ export default function AppliedJobs() {
   const confirmingJob = confirm ? appliedJobs.find(j => j.id === confirm.jobId) : null;
 
   return (
-    <><BackButton />
+    <><Helmet><title>Applied Jobs — StudentShifts</title><meta name="robots" content="noindex" /></Helmet>
+    <BackButton />
     <PageWrapper>
       <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
         <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>✅ Applied Jobs</h1>
