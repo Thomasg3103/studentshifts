@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "react-snap || echo 'react-snap skipped (no Chrome on this host)'",
+    "postbuild": "(react-snap || echo 'react-snap skipped (no Chrome on this host)') && (node scripts/ssg-jobs.mjs || echo 'ssg-jobs skipped')",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
