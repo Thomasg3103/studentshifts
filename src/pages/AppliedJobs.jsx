@@ -16,13 +16,54 @@ const STATUS_STYLE = {
   Rejected: { cls: "badge-red",    icon: "❌", label: "Declined" },
 };
 
-const STAGE_LABEL = {
-  applied:     null,
-  shortlisted: "Shortlisted",
-  interview:   "Interview",
-  trial:       "Trial Shift",
-  decision:    "Final Decision",
-};
+const PIPELINE_STEPS = [
+  { key: "applied",     short: "Applied",     long: "Applied" },
+  { key: "shortlisted", short: "Shortlisted", long: "Shortlisted" },
+  { key: "interview",   short: "Interview",   long: "Interview" },
+  { key: "trial",       short: "Trial",       long: "Trial Shift" },
+  { key: "decision",    short: "Decision",    long: "Final Decision" },
+];
+
+function PipelineStrip({ stage, status }) {
+  const currentIdx = PIPELINE_STEPS.findIndex(s => s.key === stage);
+  const isRejected = status === "Rejected";
+  const isAccepted = status === "Accepted";
+  return (
+    <div style={{ marginTop: "0.5rem", marginBottom: "0.35rem" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 0 }}>
+        {PIPELINE_STEPS.map((step, i) => {
+          const isPast    = i < currentIdx;
+          const isCurrent = i === currentIdx;
+          const dotColor  = isAccepted ? "#16a34a"
+            : isRejected && isCurrent ? "#dc2626"
+            : isRejected && isPast    ? "#dc2626"
+            : isCurrent ? "var(--color-brand)"
+            : isPast    ? "#94a3b8"
+            : "#e2e8f0";
+          const lineColor = (isPast || (isCurrent && isAccepted)) ? (isRejected ? "#dc2626" : isAccepted ? "#16a34a" : "#94a3b8") : "#e2e8f0";
+          return (
+            <div key={step.key} style={{ display: "flex", alignItems: "center", flex: i < PIPELINE_STEPS.length - 1 ? "1" : "0" }}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: dotColor, flexShrink: 0, border: isCurrent && !isAccepted && !isRejected ? "2px solid var(--color-brand)" : "none", boxSizing: "border-box" }} />
+                <span style={{ fontSize: "0.55rem", fontWeight: isCurrent ? "800" : "500", color: isCurrent && !isRejected ? "var(--color-brand)" : "#94a3b8", marginTop: "0.2rem", whiteSpace: "nowrap", lineHeight: 1 }}>
+                  {step.short}
+                </span>
+              </div>
+              {i < PIPELINE_STEPS.length - 1 && (
+                <div style={{ flex: 1, height: "2px", backgroundColor: lineColor, margin: "0 2px", marginBottom: "0.9rem" }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {(isAccepted || isRejected || currentIdx > 0) && (
+        <p style={{ margin: "0.2rem 0 0", fontSize: "0.7rem", fontWeight: "600", color: isAccepted ? "#16a34a" : isRejected ? "#dc2626" : "var(--color-brand)" }}>
+          {isAccepted ? "Hired — congratulations!" : isRejected ? "Application declined" : `At ${PIPELINE_STEPS[currentIdx]?.long}`}
+        </p>
+      )}
+    </div>
+  );
+}
 
 // Sort order: Accepted first, Rejected second, Pending last
 const STATUS_ORDER = { Accepted: 0, Rejected: 1, Pending: 2 };
@@ -67,91 +108,102 @@ function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, 
 function AppliedJobCard({ job, status, pipelineStage, preferredShift, onRemove, onMessage }) {
   const { setSelectedJob, setPage } = useApp();
   const s = STATUS_STYLE[status] || STATUS_STYLE.Pending;
-  const stageLabel = status === "Pending" ? (STAGE_LABEL[pipelineStage] ?? null) : null;
   const photo = supabaseImg(job.photos?.[0] || null, 240);
   const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
 
-  const showMessage = status === "Accepted";
+  const showMessage  = status === "Accepted";
   const showWithdraw = status === "Pending";
-  const showRemove = status === "Rejected";
+  const showRemove   = status === "Rejected";
+  const advancedStage = status === "Pending" && (pipelineStage === "shortlisted" || pipelineStage === "interview" || pipelineStage === "trial");
 
   return (
-    <div role="listitem" className="job-card" style={{ display: "flex", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0 }}>
-      <div style={{ width: "140px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem", alignSelf: "stretch" }}>
-        {photo ? (
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
-            <img loading="lazy" src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+    <div role="listitem" className="job-card" style={{ display: "flex", flexDirection: "column", padding: 0, overflow: "hidden", marginBottom: 0 }}>
+      <div style={{ display: "flex", alignItems: "stretch" }}>
+        {/* Photo */}
+        <div style={{ width: "120px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem", alignSelf: "stretch", minHeight: "110px" }}>
+          {photo ? (
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
+              <img loading="lazy" src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            </div>
+          ) : (
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
+              <span style={{ fontSize: "2rem", opacity: 0.5 }}>🏢</span>
+            </div>
+          )}
+        </div>
+
+        <div style={{ flex: 1, padding: "0.85rem 1rem", minWidth: 0 }}>
+          {/* Title row */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.15rem" }}>
+            <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "#1e293b" }}>{job.title}</h2>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexShrink: 0 }}>
+              <span className={`badge badge-sm ${s.cls}`} style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                {s.icon} {s.label}
+              </span>
+              <button aria-label={`View ${job.title}`} onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View</button>
+            </div>
           </div>
-        ) : (
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
-            <span style={{ fontSize: "2rem", opacity: 0.5 }}>🏢</span>
-          </div>
-        )}
+
+          <p style={{ color: "#6b7280", fontSize: "0.82rem", margin: "0 0 0.1rem" }}>{job.company} · {job.location}</p>
+          <p style={{ fontWeight: "700", color: "#111827", margin: "0 0 0.3rem", fontSize: "0.88rem" }}>{job.pay}</p>
+
+          {preferredShift && status === "Pending" && (
+            <p style={{ fontSize: "0.72rem", color: "#6b7280", margin: "0 0 0.3rem" }}>
+              Shift: <strong>{preferredShift}</strong>
+            </p>
+          )}
+        </div>
       </div>
-      <div style={{ flex: 1, padding: "0.85rem 1rem", minWidth: 0 }}>
-        {/* Title + status + view */}
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.2rem" }}>
-          <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "#1e293b" }}>{job.title}</h2>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexShrink: 0 }}>
-            <span className={`badge badge-sm ${s.cls}`} style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              {s.icon} {s.label}
-            </span>
-            <button aria-label={`View ${job.title}`} onClick={() => { setSelectedJob(job); setPage("jobDetails"); }} style={btnBlue}>View Job</button>
-          </div>
-        </div>
 
-        {stageLabel && (
-          <span className="badge badge-sm badge-blue" style={{ marginBottom: "0.3rem", display: "inline-block" }}>
-            {stageLabel}
-          </span>
-        )}
-        {preferredShift && status === "Pending" && (
-          <p style={{ fontSize: "0.75rem", color: "#6b7280", margin: "0 0 0.2rem" }}>
-            Applied for: <strong>{preferredShift}</strong>
+      {/* Pipeline progress strip — always show for pending */}
+      {status === "Pending" && (
+        <div style={{ padding: "0 1rem 0.6rem 1rem", borderTop: "1px solid #f1f5f9", paddingTop: "0.6rem" }}>
+          <PipelineStrip stage={pipelineStage} status={status} />
+        </div>
+      )}
+
+      {/* Outcome strip for accepted/rejected */}
+      {(status === "Accepted" || status === "Rejected") && (
+        <div style={{ padding: "0.5rem 1rem 0.6rem", borderTop: "1px solid #f1f5f9", backgroundColor: status === "Accepted" ? "#f0fdf4" : "#fff1f2" }}>
+          <PipelineStrip stage={pipelineStage} status={status} />
+        </div>
+      )}
+
+      {/* Contextual message nudge — shortlisted / interview */}
+      {advancedStage && (
+        <div style={{ margin: "0 1rem 0.65rem", padding: "0.5rem 0.75rem", backgroundColor: "#f0f9ff", border: "1.5px solid #bae6fd", borderRadius: "0.6rem", display: "flex", alignItems: "center", gap: "0.6rem", justifyContent: "space-between" }}>
+          <p style={{ margin: 0, fontSize: "0.78rem", color: "#0369a1", fontWeight: 600 }}>
+            {pipelineStage === "shortlisted" ? "You've been shortlisted! The company may reach out soon." : pipelineStage === "trial" ? "Trial shift scheduled — check your messages for details." : "Interview stage — check your messages for an invite."}
           </p>
-        )}
-
-        <p style={{ color: "#6b7280", fontSize: "0.85rem", marginBottom: "0.15rem" }}>{job.company} · {job.location}</p>
-        <p style={{ fontWeight: "700", color: "#111827", marginBottom: "0.35rem", fontSize: "0.9rem" }}>{job.pay}</p>
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: (showMessage || showWithdraw || showRemove) ? "0.5rem" : 0 }}>
-          {(job.days || []).map(day => (
-            <span key={day} className="badge badge-brand badge-sm">
-              {day.slice(0, 3)} · {(job.times || {})[day]?.join(", ")}
-            </span>
-          ))}
+          <button onClick={() => onMessage()} style={{ padding: "0.35rem 0.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #0ea5e9, #0284c7)", color: "white", fontWeight: 700, fontSize: "0.72rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}>
+            Messages
+          </button>
         </div>
+      )}
 
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+      {/* Action buttons */}
+      {(showMessage || showWithdraw || showRemove) && (
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", padding: "0 1rem 0.85rem" }}>
           {showMessage && (
-            <button
-              aria-label={`Message ${job.company} about ${job.title}`}
-              onClick={() => onMessage()}
-              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #10b981, #059669)", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(16,185,129,0.3)" }}
-            >
+            <button aria-label={`Message ${job.company} about ${job.title}`} onClick={() => onMessage()}
+              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #10b981, #059669)", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(16,185,129,0.3)" }}>
               💬 Message Company
             </button>
           )}
           {showWithdraw && (
-            <button
-              aria-label={`Withdraw application to ${job.title}`}
-              onClick={() => onRemove(job.id, "withdraw")}
-              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
-            >
+            <button aria-label={`Withdraw application to ${job.title}`} onClick={() => onRemove(job.id, "withdraw")}
+              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>
               Withdraw
             </button>
           )}
           {showRemove && (
-            <button
-              aria-label={`Remove application to ${job.title}`}
-              onClick={() => onRemove(job.id, "remove")}
-              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
-            >
+            <button aria-label={`Remove application to ${job.title}`} onClick={() => onRemove(job.id, "remove")}
+              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>
               Remove
             </button>
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

@@ -381,6 +381,9 @@ export default function StudentDashboard({ restoreScrollY }) {
   const allLocations = useMemo(() => [...new Set(jobs.map(j => j.location))].sort(), [jobs]);
 
   const [prefOnly,          setPrefOnly]          = useState(false);
+  const [profileNudgeDismissed, setProfileNudgeDismissed] = useState(() => {
+    try { return localStorage.getItem("ss_profile_nudge_dismissed") === "1"; } catch { return false; }
+  });
   const [selectedDays,      setSelectedDays]      = useState([]);
   const [dayTimes,          setDayTimes]          = useState({});
   const [warning,           setWarning]           = useState("");
@@ -511,7 +514,7 @@ export default function StudentDashboard({ restoreScrollY }) {
     }
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
-      hit = step(pool.filter(j => j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q)), `"${debouncedSearch}"`); if (hit) return hit;
+      hit = step(pool.filter(j => j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q) || (j.description || "").toLowerCase().includes(q)), `"${debouncedSearch}"`); if (hit) return hit;
     }
     return null;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -545,7 +548,7 @@ export default function StudentDashboard({ restoreScrollY }) {
     }
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
-      if (!job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q)) return false;
+      if (!job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q) && !(job.description || "").toLowerCase().includes(q)) return false;
     }
     return true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -656,6 +659,26 @@ export default function StudentDashboard({ restoreScrollY }) {
                 {label}
               </button>
             ))}
+          </div>
+        )}
+
+        {/* Profile completeness nudge — verified students missing CV or bio */}
+        {currentUser?.role === "student" && currentUser?.verificationStatus === "verified" && !profileNudgeDismissed && (!currentUser.cvName || !currentUser.bio) && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", backgroundColor: "#fef9c3", border: "1.5px solid #fde047", borderRadius: "0.75rem", padding: "0.65rem 1rem", marginBottom: "1rem", flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flex: 1, minWidth: 0 }}>
+              <span style={{ fontSize: "1.1rem", flexShrink: 0 }}>💡</span>
+              <p style={{ margin: 0, fontSize: "0.82rem", color: "#78350f", fontWeight: 600, lineHeight: 1.4 }}>
+                {!currentUser.cvName
+                  ? "Upload a CV to start applying. Companies won't see your application without one."
+                  : "Add a bio to your profile — companies shortlist applicants with complete profiles 3× more often."}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
+              <button onClick={() => setPage("account")} style={{ padding: "0.4rem 0.9rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #d97706, #b45309)", color: "white", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                Complete Profile →
+              </button>
+              <button onClick={() => { setProfileNudgeDismissed(true); try { localStorage.setItem("ss_profile_nudge_dismissed", "1"); } catch {} }} aria-label="Dismiss" style={{ padding: "0.4rem 0.6rem", borderRadius: "2rem", border: "1.5px solid #fde047", background: "white", color: "#92400e", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>✕</button>
+            </div>
           </div>
         )}
 
@@ -830,6 +853,7 @@ export default function StudentDashboard({ restoreScrollY }) {
               {sortedJobs.map(job => {
                 const isLiked   = likedJobs.some(j => j.id === job.id);
                 const isApplied = appliedJobs.some(j => j.id === job.id);
+                const isNew     = job.createdAt && (Date.now() - new Date(job.createdAt)) < 48 * 60 * 60 * 1000;
                 const dist      = jobDistance(job);
                 const dl        = job.deadline;
                 const dlDays    = daysUntil(dl);
@@ -892,6 +916,11 @@ export default function StudentDashboard({ restoreScrollY }) {
                       {/* Bottom: pay + deadline + updated */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
                         <span style={{ fontWeight: 700, color: "#111827", fontSize: isPhone ? "0.95rem" : "1.35rem" }}>{job.pay}</span>
+                        {isNew && !job.isUrgent && (
+                          <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`} title="Posted in the last 48 hours">
+                            NEW
+                          </span>
+                        )}
                         {job.isUrgent && (
                           <span className={`badge badge-red ${isPhone ? "badge-sm" : ""}`} title="Urgent — shift needs filling today">
                             URGENT

@@ -79,6 +79,7 @@ export default function AccountPage() {
   const [workExperience, setWorkExperience]     = useState(currentUser.workExperience || "");
   const [rightToWork, setRightToWork]           = useState(currentUser.rightToWork || false);
   const [driverLicence, setDriverLicence]       = useState(currentUser.driverLicence || false);
+  const [showProfilePreview, setShowProfilePreview] = useState(false);
 
   useEffect(() => {
     return () => { if (availDebounceRef.current) clearTimeout(availDebounceRef.current); };
@@ -803,6 +804,14 @@ export default function AccountPage() {
                       ))}
                     </div>
                   )}
+
+                {/* Preview Profile button */}
+                <button
+                  onClick={() => setShowProfilePreview(true)}
+                  style={{ width: "100%", marginTop: "0.85rem", padding: "0.55rem", borderRadius: "0.6rem", border: "1.5px solid var(--color-brand)", backgroundColor: "white", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  👁 Preview — How companies see your profile
+                </button>
                 </div>
 
               {/* DM Consent */}
@@ -978,6 +987,57 @@ export default function AccountPage() {
           </div>
         )}
 
+        {/* ── Profile preview modal ── */}
+        {showProfilePreview && (
+          <div onClick={() => setShowProfilePreview(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
+            <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Profile preview" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "1.5rem", maxWidth: "400px", width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
+                <h3 style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "#1e293b" }}>How companies see your profile</h3>
+                <button onClick={() => setShowProfilePreview(false)} style={{ width: "30px", height: "30px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}>✕</button>
+              </div>
+
+              {/* Avatar + name */}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", marginBottom: "1.25rem", padding: "0.85rem", backgroundColor: "#f8fafc", borderRadius: "0.75rem" }}>
+                <div style={{ width: "52px", height: "52px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  {currentUser.profilePhoto
+                    ? <img src={currentUser.profilePhoto} alt={currentUser.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                  }
+                </div>
+                <div>
+                  <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{currentUser.name}</p>
+                  {currentUser.verificationStatus === "verified" && (
+                    <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#16a34a", backgroundColor: "#dcfce7", borderRadius: "999px", padding: "0.1rem 0.5rem" }}>✓ Verified Student</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Checklist */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <PreviewRow ok={!!currentUser.cvName} label="CV" detail={currentUser.cvName ? "Uploaded" : "Not uploaded — required to apply"} />
+                <PreviewRow ok={!!currentUser.coverLetterName} warn label="Cover Letter" detail={currentUser.coverLetterName ? "Uploaded" : "Not uploaded (optional)"} />
+                <PreviewRow ok={!!currentUser.bio} label="Bio" detail={bio || "Not written yet"} truncate />
+                <PreviewRow ok={(skills || []).length > 0} label="Skills" detail={(skills || []).length > 0 ? skills.join(", ") : "None listed"} truncate />
+                <PreviewRow ok={!!linkedIn} warn label="LinkedIn" detail={linkedIn || "Not provided"} truncate />
+
+                {/* Work profile */}
+                <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "0.75rem" }}>
+                  <p style={{ margin: "0 0 0.5rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Work Profile</p>
+                  <PreviewRow ok={rightToWork} label="Right to work in Ireland" />
+                  <PreviewRow ok={driverLicence} warn label="Driver's licence" />
+                  {transport.length > 0 && <PreviewRow ok label="Transport" detail={transport.join(", ")} />}
+                  {workExperience && <PreviewRow ok label="Experience" detail={{ none: "None", under1: "Under 1 yr", "1to3": "1–3 yrs", "3plus": "3+ yrs" }[workExperience] || workExperience} />}
+                  {canStart && <PreviewRow ok label="Can start" detail={{ immediately: "Immediately", "1week": "Within 1 wk", "2weeks": "Within 2 wks", "1month": "Within 1 mo" }[canStart] || canStart} />}
+                </div>
+              </div>
+
+              <button onClick={() => setShowProfilePreview(false)} style={{ width: "100%", marginTop: "1.25rem", padding: "0.65rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}>
+                Close Preview
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* ── Logout modal ── */}
         {showLogoutModal && (
           <div onClick={() => setShowLogoutModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
@@ -1001,6 +1061,20 @@ export default function AccountPage() {
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
+
+function PreviewRow({ ok, warn, label, detail, truncate }) {
+  const color = ok ? "#16a34a" : warn ? "#d97706" : "#dc2626";
+  const icon  = ok ? "✓" : warn ? "–" : "✗";
+  return (
+    <div style={{ display: "flex", gap: "0.55rem", alignItems: "flex-start", marginBottom: "0.35rem" }}>
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "18px", height: "18px", borderRadius: "50%", flexShrink: 0, marginTop: "1px", backgroundColor: ok ? "#dcfce7" : warn ? "#fef3c7" : "#fee2e2", color, fontSize: "0.65rem", fontWeight: "900" }}>{icon}</span>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <span style={{ fontSize: "0.82rem", fontWeight: "600", color: "#374151" }}>{label}</span>
+        {detail && <span style={{ fontSize: "0.78rem", color: "#6b7280", marginLeft: "0.35rem", ...(truncate ? { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block", maxWidth: "200px", verticalAlign: "bottom" } : {}) }}>{detail}</span>}
+      </div>
+    </div>
+  );
+}
 
 function Collapsible({ title, defaultOpen = false, children }) {
   const [open, setOpen] = useState(defaultOpen);
