@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { signUp, resendVerificationEmail } from "../lib/auth";
+import { trackReferral } from "../lib/referrals";
 import { jobCategories } from "../data/jobCategories";
 import { useApp } from "../context/AppContext";
 
@@ -37,6 +38,7 @@ function getPasswordStrength(pw) {
 export default function SignupPage() {
   const { setPage } = useApp();
   const params = new URLSearchParams(window.location.search);
+  const refCode = params.get("ref") || "";
   const [name, setName]         = useState(params.get("name") || "");
   const [email, setEmail]       = useState(params.get("email") || "");
   const [password, setPassword] = useState("");
@@ -83,6 +85,7 @@ export default function SignupPage() {
       await signUp({ email: email.trim().toLowerCase(), password, name: name.trim(), role, croNumber, industries });
       setDone(true);
       if (window.gtag) window.gtag("event", "sign_up", { method: "email" });
+      if (refCode) trackReferral(refCode, email.trim().toLowerCase()).catch(() => {});
     } catch (e) {
       Sentry.captureException(e);
       const msg = (e.message || "").toLowerCase();

@@ -19,6 +19,8 @@ export default function AppFooter() {
             <p style={fHead}>Navigate</p>
             <FLink onClick={() => navigate("/about")}>About Us</FLink>
             <FLink onClick={() => navigate("/")}>Jobs</FLink>
+            <FLink onClick={() => navigate("/leaderboard")}>Top Employers</FLink>
+            <FLink onClick={() => navigate("/forum")}>Community Forum</FLink>
             <FLink onClick={() => navigate("/login")}>Login</FLink>
             <FLink onClick={() => navigate("/signup")}>Sign Up</FLink>
           </div>

@@ -28,6 +28,8 @@ const LandingPage       = lazy(() => import("./pages/LandingPage"));
 const HelpPage          = lazy(() => import("./pages/HelpPage"));
 const ContactPage       = lazy(() => import("./pages/ContactPage"));
 const PendingCompanyPage= lazy(() => import("./pages/PendingCompanyPage"));
+const LeaderboardPage   = lazy(() => import("./pages/LeaderboardPage"));
+const ForumPage         = lazy(() => import("./pages/ForumPage"));
 
 import { supabase } from "./lib/supabase";
 import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug, fetchJobsByIds, fetchMessageCount } from "./lib/auth";
@@ -53,6 +55,8 @@ const PAGE_PATH = {
   contact:           "/contact",
   privacy:           "/privacy",
   terms:             "/terms",
+  leaderboard:       "/leaderboard",
+  forum:             "/forum",
 };
 
 // Normalise Supabase profile shape to match what the app expects
@@ -147,6 +151,19 @@ export default function StudentShiftsWeb() {
   const [appStatuses, setAppStatuses]       = useState({});
   const [notifCount, setNotifCount]         = useState(0);
   const [msgCount, setMsgCount]             = useState(0);
+
+  const [darkMode, setDarkMode] = useState(() => {
+    try { return localStorage.getItem("ss_theme") === "dark"; } catch { return false; }
+  });
+
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(d => {
+      const next = !d;
+      try { localStorage.setItem("ss_theme", next ? "dark" : "light"); } catch {}
+      document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
+      return next;
+    });
+  }, []);
   const [authLoading, setAuthLoading]       = useState(true);
   // Set to true only when Supabase fires PASSWORD_RECOVERY; gates the /reset-password route
   const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(false);
@@ -381,6 +398,7 @@ export default function StudentShiftsWeb() {
     notifCount,
     msgCount, setMsgCount,
     passwordRecoveryMode, setPasswordRecoveryMode,
+    darkMode, toggleDarkMode,
   };
 
   if (authLoading) {
@@ -444,6 +462,10 @@ export default function StudentShiftsWeb() {
               <Route path="/terms"   element={<TermsOfServicePage />} />
               <Route path="/help"    element={<HelpPage />} />
               <Route path="/contact" element={<ContactPage />} />
+
+              {/* Community */}
+              <Route path="/leaderboard" element={<LeaderboardPage />} />
+              <Route path="/forum" element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <ForumPage /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <ForumPage />} />
 
               {/* 404 */}
               <Route path="/404" element={<NotFoundPage />} />

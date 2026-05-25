@@ -43,6 +43,7 @@ export function normaliseJobRow(job, companyName) {
     photos:          job.photos || [],
     photoCrops:      job.photo_crops || [],
     filledShifts:    job.filled_shifts || [],
+    isUrgent:        job.is_urgent || false,
     status:          job.status,
     updatedAt:       job.updated_at || null,
     createdAt:       job.created_at || null,

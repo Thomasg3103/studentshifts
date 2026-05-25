@@ -34,6 +34,7 @@ function normaliseJob(j) {
     weekendRequired: j.weekend_required || false,
     sickPay:         j.sick_pay || false,
     holidays:        j.holidays || "",
+    isUrgent:        j.is_urgent || false,
     status:          j.status || "Active",
     photos:          j.photos || [],
     photoCrops:      j.photo_crops || [],
@@ -208,7 +209,7 @@ export default function CompanyDashboard() {
   };
 
   const openCreate = () => {
-    setFormData({ title: "", category: "", location: "", pay: "", description: "", deadline: "", days: [], times: {}, weekendRequired: false, status: "Active", photos: [], photoFiles: [], lat: undefined, lng: undefined, sickPay: false, holidays: "" });
+    setFormData({ title: "", category: "", location: "", pay: "", description: "", deadline: "", days: [], times: {}, weekendRequired: false, isUrgent: false, status: "Active", photos: [], photoFiles: [], lat: undefined, lng: undefined, sickPay: false, holidays: "" });
     setModal("form");
   };
 
@@ -345,6 +346,7 @@ export default function CompanyDashboard() {
         weekend_required: formData.weekendRequired || false,
         sick_pay:        formData.sickPay || false,
         holidays:        formData.holidays || "",
+        is_urgent:       formData.isUrgent || false,
         status:          formData.status || "Active",
         photos:          photoUrls,
         photo_crops:     photoCrops,

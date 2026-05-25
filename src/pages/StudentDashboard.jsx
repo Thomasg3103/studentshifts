@@ -257,6 +257,7 @@ export default function StudentDashboard({ restoreScrollY }) {
       weekendRequired: j.weekend_required || false,
       sickPay:         j.sick_pay || false,
       holidays:        j.holidays || "",
+      isUrgent:        j.is_urgent || false,
       photos:          j.photos || [],
       photoCrops:      j.photo_crops || [],
       filledShifts:    j.filled_shifts || [],
@@ -550,18 +551,41 @@ export default function StudentDashboard({ restoreScrollY }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }), [jobs, prefOnly, userPrefs, selectedDays, dayTimes, selectedLocations, selectedJobTypes, weekendOnly, allWeekOnly, noWeekends, distanceKm, studentLocation, debouncedSearch, jobDistance]);
 
-  const payNum = (p) => parseFloat(p.replace(/[^0-9.]/g, "")) || 0;
+  const payNum = (p) => parseFloat((p || "").replace(/[^0-9.]/g, "")) || 0;
   // Memoised — only re-sorts when filteredJobs or sortBy changes
-  const sortedJobs = useMemo(() => sortBy === "" ? filteredJobs : [...filteredJobs].sort((a, b) => {
-    if (sortBy === "payHigh")     return payNum(b.pay) - payNum(a.pay);
-    if (sortBy === "payLow")      return payNum(a.pay) - payNum(b.pay);
-    if (sortBy === "dateNewest")  return new Date(b.createdAt) - new Date(a.createdAt);
-    if (sortBy === "dateOldest")  return new Date(a.createdAt) - new Date(b.createdAt);
-    if (sortBy === "distanceNear") { const da = jobDistance(a) ?? Infinity;  const db = jobDistance(b) ?? Infinity;  return da - db; }
-    if (sortBy === "distanceFar")  { const da = jobDistance(a) ?? -Infinity; const db = jobDistance(b) ?? -Infinity; return db - da; }
-    return 0;
+  // Urgent jobs always float to the top regardless of sort order
+  const sortedJobs = useMemo(() => {
+    const sorted = sortBy === "" ? [...filteredJobs] : [...filteredJobs].sort((a, b) => {
+      if (sortBy === "payHigh")     return payNum(b.pay) - payNum(a.pay);
+      if (sortBy === "payLow")      return payNum(a.pay) - payNum(b.pay);
+      if (sortBy === "dateNewest")  return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortBy === "dateOldest")  return new Date(a.createdAt) - new Date(b.createdAt);
+      if (sortBy === "distanceNear") { const da = jobDistance(a) ?? Infinity;  const db = jobDistance(b) ?? Infinity;  return da - db; }
+      if (sortBy === "distanceFar")  { const da = jobDistance(a) ?? -Infinity; const db = jobDistance(b) ?? -Infinity; return db - da; }
+      return 0;
+    });
+    // Urgent jobs always float to top
+    return [...sorted.filter(j => j.isUrgent), ...sorted.filter(j => !j.isUrgent)];
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [filteredJobs, sortBy, jobDistance]);
+  }, [filteredJobs, sortBy, jobDistance]);
+
+  // Market average pay per category, computed from ALL loaded jobs (not filtered subset)
+  const categoryAvgPay = useMemo(() => {
+    const sums = {};
+    const counts = {};
+    for (const j of jobs) {
+      const cat = j.category;
+      const n = payNum(j.pay);
+      if (!cat || n <= 0) continue;
+      sums[cat] = (sums[cat] || 0) + n;
+      counts[cat] = (counts[cat] || 0) + 1;
+    }
+    const result = {};
+    for (const cat of Object.keys(sums)) {
+      if (counts[cat] >= 2) result[cat] = Math.round((sums[cat] / counts[cat]) * 10) / 10;
+    }
+    return result;
+  }, [jobs]);
 
   const toggleLike = (job) => {
     if (!currentUser) { setPage("login"); return; }
@@ -868,6 +892,25 @@ export default function StudentDashboard({ restoreScrollY }) {
                       {/* Bottom: pay + deadline + updated */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
                         <span style={{ fontWeight: 700, color: "#111827", fontSize: isPhone ? "0.95rem" : "1.35rem" }}>{job.pay}</span>
+                        {job.isUrgent && (
+                          <span className={`badge badge-red ${isPhone ? "badge-sm" : ""}`} title="Urgent — shift needs filling today">
+                            URGENT
+                          </span>
+                        )}
+                        {(() => {
+                          const avg = categoryAvgPay[job.category];
+                          const mine = payNum(job.pay);
+                          if (!avg || !mine || isPhone) return null;
+                          const aboveAvg = mine > avg;
+                          return (
+                            <span
+                              className={`badge ${aboveAvg ? "badge-green" : "badge-gray"} badge-sm`}
+                              title={`Market average for ${job.category}: €${avg}/hr`}
+                            >
+                              {aboveAvg ? "↑" : "≈"} Avg €{avg}/hr
+                            </span>
+                          );
+                        })()}
                         {dl && (
                           <span className={`badge ${dlSoon ? "badge-yellow" : "badge-gray"} ${isPhone ? "badge-sm" : ""}`}>
                             Closes {deadlineLabel(dl)}

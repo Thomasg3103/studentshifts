@@ -5,7 +5,7 @@ import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
 
 export default function Header() {
-  const { currentUser, setPage, likedJobs, appliedJobs, notifCount, msgCount } = useApp();
+  const { currentUser, setPage, likedJobs, appliedJobs, notifCount, msgCount, darkMode, toggleDarkMode } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const menuRef = useRef(null);
@@ -212,14 +212,28 @@ export default function Header() {
                 <button onClick={() => setPage("signup")} style={navBtnPrimary}>Sign Up</button>
               </>
             )}
+            <button
+              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              onClick={toggleDarkMode}
+              style={{ background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.5rem", width: "44px", height: "44px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "white", fontSize: "1.15rem", flexShrink: 0 }}
+            >
+              {darkMode ? "☀️" : "🌙"}
+            </button>
             <Hamburger />
             <Dropdown />
           </div>
         )}
 
-        {/* Mobile: hamburger only, absolutely right */}
+        {/* Mobile: dark toggle + hamburger, absolutely right */}
         {isMobile && (
-          <div ref={menuRef} style={{ position: "absolute", right: "1rem", display: "flex", alignItems: "center" }}>
+          <div ref={menuRef} style={{ position: "absolute", right: "1rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <button
+              aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+              onClick={toggleDarkMode}
+              style={{ background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.5rem", width: "38px", height: "38px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1rem", flexShrink: 0 }}
+            >
+              {darkMode ? "☀️" : "🌙"}
+            </button>
             <Hamburger />
             <Dropdown />
           </div>

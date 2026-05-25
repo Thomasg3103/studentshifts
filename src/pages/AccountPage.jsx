@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
 import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData, sendPasswordReset } from "../lib/auth";
+import { getOrCreateReferralCode, fetchMyReferrals } from "../lib/referrals";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { jobCategories } from "../data/jobCategories";
 import { useApp } from "../context/AppContext";
@@ -70,10 +71,20 @@ export default function AccountPage() {
   const availDebounceRef = useRef(null);
   // Track whether bio / linkedin / website have been edited but not yet saved (dirty state)
   const [dirtyFields, setDirtyFields]           = useState(false);
+  const [referralCode, setReferralCode]         = useState(null);
+  const [referralCopied, setReferralCopied]     = useState(false);
+  const [referralCount, setReferralCount]       = useState(0);
 
   useEffect(() => {
     return () => { if (availDebounceRef.current) clearTimeout(availDebounceRef.current); };
   }, []);
+
+  // Load referral code for students
+  useEffect(() => {
+    if (currentUser.role !== "student") return;
+    getOrCreateReferralCode().then(setReferralCode).catch(() => {});
+    fetchMyReferrals().then(rows => setReferralCount(rows.length)).catch(() => {});
+  }, [currentUser.role]);
 
   // Warn user if they try to close/navigate away with unsaved text edits
   useEffect(() => {
@@ -751,6 +762,42 @@ export default function AccountPage() {
                   Companies can only contact you if they have been verified by StudentShifts.
                 </p>
               </div>
+
+              {/* ── Refer a Friend ── */}
+              {referralCode && (
+                <div style={{ backgroundColor: "#fdf4ff", border: "1.5px solid #e9d5ff", borderRadius: "1rem", padding: "1rem 1.25rem", marginBottom: "1rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
+                    <span style={{ fontSize: "1.1rem" }}>🎁</span>
+                    <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "#6b21a8" }}>Refer a Friend</span>
+                    {referralCount > 0 && (
+                      <span style={{ marginLeft: "auto", fontSize: "0.75rem", color: "#7e22ce", fontWeight: 600, backgroundColor: "#ede9fe", borderRadius: "999px", padding: "0.1rem 0.55rem" }}>
+                        {referralCount} referred
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ margin: "0 0 0.65rem", fontSize: "0.8rem", color: "#7c3aed", lineHeight: 1.45 }}>
+                    Share your link — friends who sign up via your link are tracked here.
+                  </p>
+                  <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                    <input
+                      readOnly
+                      value={`https://studentshifts.ie/signup?ref=${referralCode}`}
+                      style={{ flex: 1, padding: "0.5rem 0.7rem", borderRadius: "0.6rem", border: "1.5px solid #c4b5fd", fontSize: "0.78rem", color: "#1e293b", backgroundColor: "white", fontFamily: "monospace", outline: "none" }}
+                      onClick={e => e.target.select()}
+                    />
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`https://studentshifts.ie/signup?ref=${referralCode}`).catch(() => {});
+                        setReferralCopied(true);
+                        setTimeout(() => setReferralCopied(false), 2000);
+                      }}
+                      style={{ padding: "0.5rem 0.9rem", borderRadius: "0.6rem", border: "none", backgroundColor: "#7c3aed", color: "white", fontWeight: 700, fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}
+                    >
+                      {referralCopied ? "Copied!" : "Copy"}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Save status — above logout/delete */}
               {(saving || saved || saveError) && (

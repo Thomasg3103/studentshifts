@@ -338,6 +338,25 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           style={inputStyle}
         />
       </div>
+
+      {/* Urgent shift toggle */}
+      <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", cursor: "pointer", padding: "0.6rem 0.75rem", backgroundColor: formData.isUrgent ? "#fff1f2" : "#f9fafb", borderRadius: "0.5rem", border: `1.5px solid ${formData.isUrgent ? "#fca5a5" : "#e5e7eb"}` }}>
+        <input
+          type="checkbox"
+          checked={formData.isUrgent || false}
+          onChange={e => setFormData(prev => ({ ...prev, isUrgent: e.target.checked }))}
+          style={{ width: "16px", height: "16px", accentColor: "#dc2626", flexShrink: 0 }}
+        />
+        <div>
+          <span style={{ fontWeight: 700, fontSize: "0.875rem", color: formData.isUrgent ? "#dc2626" : "#374151" }}>
+            🔴 Urgent — shift needs filling today
+          </span>
+          <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>
+            Shows a red URGENT badge on the job feed to attract fast applicants.
+          </p>
+        </div>
+      </label>
+
       {/* Weekend required — sits above days so the effect is immediately visible */}
       <label style={{ display: "flex", alignItems: "center", gap: "0.6rem", cursor: "pointer", padding: "0.6rem 0.75rem", backgroundColor: formData.weekendRequired ? "#fef3c7" : "#f9fafb", borderRadius: "0.5rem", border: `1.5px solid ${formData.weekendRequired ? "#fbbf24" : "#e5e7eb"}` }}>
         <input

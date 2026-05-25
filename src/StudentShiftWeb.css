@@ -10,10 +10,25 @@ html, body, #root {
   min-height: 100%;
   width: 100%;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  color: #1e293b;
-  background-color: #fafafa;
+  color: var(--color-text-primary, #1e293b);
+  background-color: var(--color-bg-subtle, #fafafa);
   overflow-x: hidden;
 }
+
+/* ─── Dark mode structural overrides ────────────────────────── */
+[data-theme="dark"] .full-page          { background-color: #0f172a; }
+[data-theme="dark"] .login-box          { background-color: #1e293b; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
+[data-theme="dark"] .job-details-container { background-color: #1e293b; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+[data-theme="dark"] .job-card           { background: #1e293b; }
+[data-theme="dark"] .job-card p         { color: #e2e8f0; }
+[data-theme="dark"] .skeleton           { background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%); }
+[data-theme="dark"] .badge-gray         { background: #334155; color: #94a3b8; border-color: #475569; }
+[data-theme="dark"] .badge-green        { background: #052e16; color: #4ade80; border-color: #166534; }
+[data-theme="dark"] .badge-yellow       { background: #422006; color: #fbbf24; border-color: #92400e; }
+[data-theme="dark"] .badge-blue         { background: #172554; color: #93c5fd; border-color: #1e40af; }
+[data-theme="dark"] .badge-red          { background: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
+[data-theme="dark"] .badge-brand        { background: #4a0f29; color: #f9a8d4; }
+[data-theme="dark"] .page-inner        { background-color: #1e293b !important; }
 
 .app-wrapper {
   display: flex;
