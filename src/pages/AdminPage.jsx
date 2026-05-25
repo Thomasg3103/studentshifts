@@ -33,8 +33,8 @@ export default function AdminPage() {
     setLoading(true);
     setError("");
     Promise.all([
-      fetchPendingStudents().catch(() => { setError("Failed to load. Please refresh."); return []; }),
-      fetchPendingCompanies().catch(() => { setError("Failed to load. Please refresh."); return []; }),
+      fetchPendingStudents().catch(e => { Sentry.captureException(e); setError("Failed to load. Please refresh."); return []; }),
+      fetchPendingCompanies().catch(e => { Sentry.captureException(e); setError("Failed to load. Please refresh."); return []; }),
     ]).then(([s, c]) => {
       setStudents(s);
       setCompanies(c);

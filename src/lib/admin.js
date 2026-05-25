@@ -1,4 +1,4 @@
-import { supabase, withTimeout, ensureValidSession } from "./supabase";
+import { supabase, withTimeout, ensureValidSession } from "./supabase"; // ensureValidSession used by approve/reject helpers
 
 export async function fetchAllVerifiedStudents() {
   const PAGE = 200;
@@ -33,10 +33,9 @@ export async function fetchAvailabilityHeatmap() {
 }
 
 export async function fetchPendingStudents() {
-  await ensureValidSession();
   const { data, error } = await withTimeout(
-    supabase.rpc("get_pending_students"),
-    10000
+    () => supabase.rpc("get_pending_students"),
+    12000
   );
   if (error) throw error;
   return (data || []).map(s => ({
@@ -50,10 +49,9 @@ export async function fetchPendingStudents() {
 }
 
 export async function fetchPendingCompanies() {
-  await ensureValidSession();
   const { data, error } = await withTimeout(
-    supabase.rpc("get_pending_companies"),
-    10000
+    () => supabase.rpc("get_pending_companies"),
+    12000
   );
   if (error) throw error;
   return (data || []).map(c => ({
