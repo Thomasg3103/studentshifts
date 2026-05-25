@@ -7,11 +7,30 @@ export default class ErrorBoundary extends Component {
     this.state = { hasError: false, error: null };
   }
 
+  static isChunkError(error) {
+    const msg = error?.message || "";
+    return (
+      msg.includes("Failed to fetch dynamically imported module") ||
+      msg.includes("Importing a module script failed") ||
+      msg.includes("Unable to preload CSS") ||
+      msg.includes("error loading dynamically imported module")
+    );
+  }
+
   static getDerivedStateFromError(error) {
+    // Auto-reload on chunk-load failures caused by a new deploy replacing old hashed filenames.
+    // Only reload once to avoid infinite loops if the new chunk itself is broken.
+    if (ErrorBoundary.isChunkError(error)) {
+      if (!sessionStorage.getItem("ss_chunk_reload")) {
+        sessionStorage.setItem("ss_chunk_reload", "1");
+        window.location.reload();
+      }
+    }
     return { hasError: true, error };
   }
 
   componentDidCatch(error, info) {
+    if (ErrorBoundary.isChunkError(error)) return; // reload already triggered, skip Sentry noise
     console.error("Unhandled error:", error, info);
     Sentry.captureException(error, { extra: info });
   }
