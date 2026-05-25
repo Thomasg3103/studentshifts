@@ -90,13 +90,21 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
           )}
           {applicant.skills?.length > 0 ? (
             <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
-              {applicant.skills.slice(0, 4).map(s => (
+              {applicant.skills.slice(0, 3).map(s => (
                 <span key={s} className="badge badge-tag badge-gray">{s}</span>
               ))}
+              {applicant.rightToWork && <span className="badge badge-tag badge-green" title="Right to work">✓ RTW</span>}
+              {applicant.driverLicence && <span className="badge badge-tag badge-gray" title="Driver's licence">🚗</span>}
             </div>
           ) : applicant.bio ? (
             <p style={{ margin: "0.1rem 0 0", fontSize: "0.72rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.bio}</p>
           ) : null}
+          {!applicant.skills?.length && !applicant.bio && (applicant.rightToWork || applicant.driverLicence) && (
+            <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+              {applicant.rightToWork && <span className="badge badge-tag badge-green">✓ RTW</span>}
+              {applicant.driverLicence && <span className="badge badge-tag badge-gray">🚗 Driver</span>}
+            </div>
+          )}
         </div>
         <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
       </button>
@@ -265,6 +273,12 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
   const [showCloseJob, setShowCloseJob]           = useState(false);
   const [search, setSearch]                       = useState("");
   const [sortBy, setSortBy]                       = useState("default"); // "default" | "name_asc" | "name_desc" | "status"
+  const [filterOpen, setFilterOpen]               = useState(false);
+  const [filterRightToWork, setFilterRightToWork] = useState(false);
+  const [filterDriver, setFilterDriver]           = useState(false);
+  const [filterTransport, setFilterTransport]     = useState(""); // "" | "Own car" | "Public transport" | "Cycling / walking"
+  const [filterCanStart, setFilterCanStart]       = useState(""); // "" | "immediately" | "1week" | "2weeks" | "1month"
+  const [filterExperience, setFilterExperience]   = useState(""); // "" | "none" | "under1" | "1to3" | "3plus"
   const [selectedIds, setSelectedIds]             = useState(new Set());
   const [invitedIds, setInvitedIds]               = useState(new Set());
   const [bulkDeclining, setBulkDeclining]         = useState(false);
@@ -287,9 +301,17 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
 
   const countFor = (key) => posting.applicants.filter(a => getVirtualStageKey(a) === key).length;
   const stageApplicants = posting.applicants.filter(a => getVirtualStageKey(a) === activeStage);
-  const searched = search.trim()
-    ? stageApplicants.filter(a => a.name.toLowerCase().includes(search.toLowerCase()))
-    : stageApplicants;
+  const activeFilterCount = [filterRightToWork, filterDriver, !!filterTransport, !!filterCanStart, !!filterExperience].filter(Boolean).length;
+
+  const searched = stageApplicants.filter(a => {
+    if (search.trim() && !a.name.toLowerCase().includes(search.toLowerCase())) return false;
+    if (filterRightToWork && !a.rightToWork) return false;
+    if (filterDriver && !a.driverLicence) return false;
+    if (filterTransport && !(a.transport || []).includes(filterTransport)) return false;
+    if (filterCanStart && a.canStart !== filterCanStart) return false;
+    if (filterExperience && a.workExperience !== filterExperience) return false;
+    return true;
+  });
   const visible = [...searched].sort((a, b) => {
     if (sortBy === "name_asc")  return a.name.localeCompare(b.name);
     if (sortBy === "name_desc") return b.name.localeCompare(a.name);
@@ -395,6 +417,68 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
         </div>
       )}
 
+      {/* Filter panel */}
+      <div style={{ marginBottom: "0.65rem" }}>
+        <button
+          onClick={() => setFilterOpen(o => !o)}
+          style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.38rem 0.75rem", borderRadius: "0.5rem", border: `1.5px solid ${activeFilterCount > 0 ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: activeFilterCount > 0 ? "#fce7f3" : "white", color: activeFilterCount > 0 ? "var(--color-brand)" : "#374151", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
+        >
+          <span>⚙ Filters</span>
+          {activeFilterCount > 0 && <span style={{ backgroundColor: "var(--color-brand)", color: "white", borderRadius: "999px", fontSize: "0.65rem", fontWeight: "800", padding: "0.05rem 0.4rem", minWidth: "16px", textAlign: "center" }}>{activeFilterCount}</span>}
+          <span style={{ fontSize: "0.65rem", color: "#64748b" }}>{filterOpen ? "▲" : "▼"}</span>
+        </button>
+        {filterOpen && (
+          <div style={{ marginTop: "0.5rem", backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.85rem 1rem" }}>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem 1.25rem" }}>
+              {/* Right to work */}
+              <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600", color: "#374151" }}>
+                <input type="checkbox" checked={filterRightToWork} onChange={e => setFilterRightToWork(e.target.checked)} style={{ accentColor: "var(--color-brand)", width: "14px", height: "14px" }} />
+                Right to work ✓
+              </label>
+              {/* Driver's licence */}
+              <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600", color: "#374151" }}>
+                <input type="checkbox" checked={filterDriver} onChange={e => setFilterDriver(e.target.checked)} style={{ accentColor: "var(--color-brand)", width: "14px", height: "14px" }} />
+                Driver's licence ✓
+              </label>
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.65rem" }}>
+              {/* Transport */}
+              <select value={filterTransport} onChange={e => setFilterTransport(e.target.value)}
+                style={{ padding: "0.38rem 0.6rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: filterTransport ? "#1e293b" : "#64748b", backgroundColor: "white" }}>
+                <option value="">Transport: Any</option>
+                <option value="Own car">Own car</option>
+                <option value="Public transport">Public transport</option>
+                <option value="Cycling / walking">Cycling / walking</option>
+              </select>
+              {/* Can start */}
+              <select value={filterCanStart} onChange={e => setFilterCanStart(e.target.value)}
+                style={{ padding: "0.38rem 0.6rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: filterCanStart ? "#1e293b" : "#64748b", backgroundColor: "white" }}>
+                <option value="">Can start: Any</option>
+                <option value="immediately">Immediately</option>
+                <option value="1week">Within 1 week</option>
+                <option value="2weeks">Within 2 weeks</option>
+                <option value="1month">Within 1 month</option>
+              </select>
+              {/* Experience */}
+              <select value={filterExperience} onChange={e => setFilterExperience(e.target.value)}
+                style={{ padding: "0.38rem 0.6rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: filterExperience ? "#1e293b" : "#64748b", backgroundColor: "white" }}>
+                <option value="">Experience: Any</option>
+                <option value="none">No experience</option>
+                <option value="under1">Under 1 year</option>
+                <option value="1to3">1–3 years</option>
+                <option value="3plus">3+ years</option>
+              </select>
+            </div>
+            {activeFilterCount > 0 && (
+              <button onClick={() => { setFilterRightToWork(false); setFilterDriver(false); setFilterTransport(""); setFilterCanStart(""); setFilterExperience(""); }}
+                style={{ marginTop: "0.5rem", background: "none", border: "none", color: "var(--color-brand)", fontSize: "0.75rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", padding: 0 }}>
+                Clear all filters
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Search + sort bar */}
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
         <div style={{ flex: 1, minWidth: "180px", position: "relative" }}>
@@ -482,8 +566,8 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
 
       {/* Stage summary */}
       <p style={{ margin: "0 0 0.85rem", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>
-        {search.trim()
-          ? `${visible.length} of ${stageApplicants.length} match${visible.length !== 1 ? "" : "es"} "${search}" · ${posting.applicants.length} total`
+        {(search.trim() || activeFilterCount > 0)
+          ? `${visible.length} of ${stageApplicants.length} shown${activeFilterCount > 0 ? ` (${activeFilterCount} filter${activeFilterCount !== 1 ? "s" : ""} active)` : ""} · ${posting.applicants.length} total`
           : stageApplicants.length === 0 ? "No applicants in this stage"
           : `${stageApplicants.length} applicant${stageApplicants.length !== 1 ? "s" : ""} in this stage · ${posting.applicants.length} total`
         }

@@ -29,6 +29,7 @@ export default function JobDetails({ job }) {
   const [submitting, setSubmitting]       = useState(false);
   const [fullscreenIdx, setFullscreenIdx] = useState(null);
   const [selectedDay, setSelectedDay]     = useState(null);
+  const [screeningAnswers, setScreeningAnswers] = useState([]);
   const [reportOpen, setReportOpen]       = useState(false);
   const applyModalRef   = useRef(null);
   const reportModalRef  = useRef(null);
@@ -95,7 +96,7 @@ export default function JobDetails({ job }) {
     setApplyModal("confirm");
   };
 
-  const confirmApply = async () => {
+  const confirmApply = async (answers = null) => {
     if (submitting) return;
     setSubmitting(true);
     try {
@@ -104,7 +105,8 @@ export default function JobDetails({ job }) {
         const timeStr = Array.isArray(t) ? t.join(", ") : (t || "");
         return timeStr ? `${selectedDay} · ${timeStr}` : selectedDay;
       })() : null;
-      const isNew = await createApplication(currentUser.id, job.id, preferredShift);
+      const answersToSend = answers || screeningAnswers;
+      const isNew = await createApplication(currentUser.id, job.id, preferredShift, answersToSend.length ? answersToSend : null);
       setAppliedJobs(prev => prev.some(j => j.id === job.id) ? prev : [...prev, job]);
       setSavedAppliedJobIds?.(prev => [...new Set([...prev, job.id])]);
       if (isNew && isLiked) {
@@ -489,7 +491,58 @@ export default function JobDetails({ job }) {
                 )}
                 <div style={{ display: "flex", gap: "0.75rem" }}>
                   <button onClick={() => setApplyModal(null)} disabled={submitting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit" }}>Cancel</button>
-                  <button onClick={confirmApply} disabled={submitting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: submitting ? "#f48fb1" : "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: submitting ? "none" : "0 4px 14px rgba(162,29,84,0.35)" }}>{submitting ? "Applying…" : "Apply Now"}</button>
+                  <button
+                    onClick={() => {
+                      if (job.screeningQuestions?.length > 0) {
+                        setScreeningAnswers(job.screeningQuestions.map(q => ({ question: q.question, type: q.type || "yes_no", knockout_if_no: q.knockout_if_no || false, answer: "" })));
+                        setApplyModal("screening");
+                      } else {
+                        confirmApply();
+                      }
+                    }}
+                    disabled={submitting}
+                    style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: submitting ? "#f48fb1" : "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: submitting ? "none" : "0 4px 14px rgba(162,29,84,0.35)" }}
+                  >{submitting ? "Applying…" : job.screeningQuestions?.length > 0 ? "Next →" : "Apply Now"}</button>
+                </div>
+              </>
+            ) : applyModal === "screening" ? (
+              <>
+                <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#f5f3ff", border: "2px solid #c4b5fd", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>📝</div>
+                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.3rem", color: "#1e293b" }}>Quick Questions</h3>
+                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "1.25rem" }}>{job.company} has a few questions for applicants.</p>
+                <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.85rem", marginBottom: "1.25rem" }}>
+                  {screeningAnswers.map((a, i) => (
+                    <div key={i}>
+                      <p style={{ margin: "0 0 0.4rem", fontSize: "0.85rem", fontWeight: "700", color: "#1e293b" }}>{a.question}</p>
+                      {a.type === "yes_no" ? (
+                        <div style={{ display: "flex", gap: "0.5rem" }}>
+                          {["yes", "no"].map(val => (
+                            <button key={val} type="button" onClick={() => setScreeningAnswers(prev => prev.map((x, idx) => idx === i ? { ...x, answer: val } : x))}
+                              style={{ flex: 1, padding: "0.55rem", borderRadius: "0.6rem", fontFamily: "inherit", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", border: `1.5px solid ${a.answer === val ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: a.answer === val ? "#fce7f3" : "white", color: a.answer === val ? "var(--color-brand)" : "#374151" }}>
+                              {val === "yes" ? "✓ Yes" : "✗ No"}
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <textarea
+                          value={a.answer}
+                          onChange={e => setScreeningAnswers(prev => prev.map((x, idx) => idx === i ? { ...x, answer: e.target.value } : x))}
+                          placeholder="Your answer…"
+                          rows={2}
+                          maxLength={500}
+                          style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.83rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", color: "#374151" }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: "flex", gap: "0.75rem" }}>
+                  <button onClick={() => setApplyModal("confirm")} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
+                  <button
+                    onClick={() => confirmApply(screeningAnswers)}
+                    disabled={submitting || screeningAnswers.some(a => !a.answer)}
+                    style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: (submitting || screeningAnswers.some(a => !a.answer)) ? "#e2e8f0" : "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: (submitting || screeningAnswers.some(a => !a.answer)) ? "#64748b" : "white", fontWeight: "700", cursor: (submitting || screeningAnswers.some(a => !a.answer)) ? "not-allowed" : "pointer", fontFamily: "inherit" }}
+                  >{submitting ? "Applying…" : "Submit Application"}</button>
                 </div>
               </>
             ) : null}

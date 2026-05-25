@@ -74,6 +74,11 @@ export default function AccountPage() {
   const [referralCode, setReferralCode]         = useState(null);
   const [referralCopied, setReferralCopied]     = useState(false);
   const [referralCount, setReferralCount]       = useState(0);
+  const [transport, setTransport]               = useState(currentUser.transport || []);
+  const [canStart, setCanStart]                 = useState(currentUser.canStart || "");
+  const [workExperience, setWorkExperience]     = useState(currentUser.workExperience || "");
+  const [rightToWork, setRightToWork]           = useState(currentUser.rightToWork || false);
+  const [driverLicence, setDriverLicence]       = useState(currentUser.driverLicence || false);
 
   useEffect(() => {
     return () => { if (availDebounceRef.current) clearTimeout(availDebounceRef.current); };
@@ -636,7 +641,67 @@ export default function AccountPage() {
                   </div>
                 </div>
 
-                {/* My Profile */}
+                {/* Work Profile — structured fields for company filtering */}
+              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.15rem" }}>Work Profile</p>
+                <p style={{ fontSize: "0.78rem", color: "#6b7280", marginBottom: "0.85rem" }}>Helps companies filter applicants — takes 30 seconds.</p>
+
+                {/* Right to work + Driver's licence */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "0.85rem" }}>
+                  {[
+                    { key: "rightToWork", label: "I have the right to work in Ireland", value: rightToWork, set: v => { setRightToWork(v); saveField({ right_to_work: v }, { rightToWork: v }); } },
+                    { key: "driverLicence", label: "I have a full driver's licence", value: driverLicence, set: v => { setDriverLicence(v); saveField({ driver_licence: v }, { driverLicence: v }); } },
+                  ].map(({ key, label, value, set }) => (
+                    <label key={key} style={{ display: "flex", alignItems: "center", gap: "0.65rem", cursor: "pointer", padding: "0.55rem 0.75rem", backgroundColor: value ? "#f0fdf4" : "#f8fafc", borderRadius: "0.6rem", border: `1.5px solid ${value ? "#86efac" : "#e2e8f0"}` }}>
+                      <input type="checkbox" checked={value} onChange={e => set(e.target.checked)} style={{ width: "16px", height: "16px", accentColor: "#16a34a", flexShrink: 0 }} />
+                      <span style={{ fontSize: "0.85rem", fontWeight: "600", color: value ? "#15803d" : "#374151" }}>{label}</span>
+                    </label>
+                  ))}
+                </div>
+
+                {/* Transport */}
+                <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", margin: "0 0 0.4rem" }}>How do you get to work?</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.85rem" }}>
+                  {["Own car", "Public transport", "Cycling / walking"].map(opt => {
+                    const active = transport.includes(opt);
+                    const next = active ? transport.filter(t => t !== opt) : [...transport, opt];
+                    return (
+                      <button key={opt} type="button" onClick={() => { setTransport(next); saveField({ transport: next }, { transport: next }); }}
+                        style={{ padding: "0.4rem 0.75rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${active ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: active ? "#fce7f3" : "#f8fafc", color: active ? "var(--color-brand)" : "#64748b" }}>
+                        {active ? "✓ " : ""}{opt}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Experience + Can start */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem" }}>
+                  <div>
+                    <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.3rem" }}>Work experience</label>
+                    <select value={workExperience} onChange={e => { setWorkExperience(e.target.value); saveField({ work_experience: e.target.value }, { workExperience: e.target.value }); }}
+                      style={{ width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.8rem", fontFamily: "inherit", color: workExperience ? "#1e293b" : "#64748b", backgroundColor: "white" }}>
+                      <option value="">Select…</option>
+                      <option value="none">No experience</option>
+                      <option value="under1">Under 1 year</option>
+                      <option value="1to3">1–3 years</option>
+                      <option value="3plus">3+ years</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.3rem" }}>Can start</label>
+                    <select value={canStart} onChange={e => { setCanStart(e.target.value); saveField({ can_start: e.target.value }, { canStart: e.target.value }); }}
+                      style={{ width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.8rem", fontFamily: "inherit", color: canStart ? "#1e293b" : "#64748b", backgroundColor: "white" }}>
+                      <option value="">Select…</option>
+                      <option value="immediately">Immediately</option>
+                      <option value="1week">Within 1 week</option>
+                      <option value="2weeks">Within 2 weeks</option>
+                      <option value="1month">Within 1 month</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* My Profile */}
                 <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1.25rem", marginBottom: "1rem" }}>
                   <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 1rem" }}>My Profile</p>
 

@@ -244,6 +244,65 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
             </Section>
           )}
 
+          {/* Work Profile — structured signals (all stages) */}
+          {(applicant.rightToWork || applicant.driverLicence || applicant.transport?.length > 0 || applicant.workExperience || applicant.canStart) && (
+            <Section label="Work Profile">
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                <CheckItem ok={applicant.rightToWork}    label="Right to work in Ireland" />
+                <CheckItem ok={applicant.driverLicence}  label="Full driver's licence" />
+              </div>
+              {applicant.transport?.length > 0 && (
+                <div style={{ marginTop: "0.5rem" }}>
+                  <p style={{ margin: "0 0 0.3rem", fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Transport</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                    {applicant.transport.map(t => <span key={t} className="badge badge-sm badge-gray">{t}</span>)}
+                  </div>
+                </div>
+              )}
+              {(applicant.workExperience || applicant.canStart) && (
+                <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
+                  {applicant.workExperience && (
+                    <div>
+                      <p style={{ margin: "0 0 0.15rem", fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Experience</p>
+                      <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: "600", color: "#374151" }}>
+                        {{ none: "None", under1: "Under 1 yr", "1to3": "1–3 yrs", "3plus": "3+ yrs" }[applicant.workExperience] || applicant.workExperience}
+                      </p>
+                    </div>
+                  )}
+                  {applicant.canStart && (
+                    <div>
+                      <p style={{ margin: "0 0 0.15rem", fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Can start</p>
+                      <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: "600", color: "#374151" }}>
+                        {{ immediately: "Immediately", "1week": "Within 1 wk", "2weeks": "Within 2 wks", "1month": "Within 1 mo" }[applicant.canStart] || applicant.canStart}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </Section>
+          )}
+
+          {/* Screening answers (Option A) */}
+          {applicant.screeningAnswers?.length > 0 && (
+            <Section label="Screening Answers">
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                {applicant.screeningAnswers.map((a, i) => {
+                  const isKnockout = a.knockout_if_no && a.type === "yes_no" && a.answer === "no";
+                  return (
+                    <div key={i} style={{ backgroundColor: isKnockout ? "#fff1f2" : "#f8fafc", border: `1px solid ${isKnockout ? "#fca5a5" : "#e2e8f0"}`, borderRadius: "0.5rem", padding: "0.55rem 0.7rem" }}>
+                      <p style={{ margin: "0 0 0.2rem", fontSize: "0.72rem", fontWeight: "700", color: isKnockout ? "#b91c1c" : "#64748b" }}>
+                        {isKnockout ? "⚠ " : ""}Q{i + 1}: {a.question}
+                      </p>
+                      <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "600", color: isKnockout ? "#b91c1c" : "#374151" }}>
+                        {a.type === "yes_no" ? (a.answer === "yes" ? "✓ Yes" : "✗ No") : (a.answer || "—")}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </Section>
+          )}
+
           {/* View Profile toggle — non-applied stages */}
           {stage !== "applied" && (
             <button

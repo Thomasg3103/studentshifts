@@ -88,6 +88,11 @@ function normaliseProfile(profile) {
       lng:         extra.location_lng,
       displayName: extra.location_display,
     } : null,
+    transport:          extra.transport        || [],
+    canStart:           extra.can_start        || "",
+    workExperience:     extra.work_experience  || "",
+    rightToWork:        extra.right_to_work    || false,
+    driverLicence:      extra.driver_licence   || false,
   };
 }
 

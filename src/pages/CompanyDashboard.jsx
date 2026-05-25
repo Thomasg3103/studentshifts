@@ -34,7 +34,8 @@ function normaliseJob(j) {
     weekendRequired: j.weekend_required || false,
     sickPay:         j.sick_pay || false,
     holidays:        j.holidays || "",
-    isUrgent:        j.is_urgent || false,
+    isUrgent:            j.is_urgent            || false,
+    screeningQuestions:  j.screening_questions  || [],
     status:          j.status || "Active",
     photos:          j.photos || [],
     photoCrops:      j.photo_crops || [],
@@ -154,7 +155,7 @@ export default function CompanyDashboard() {
     setActivePosting({ ...posting, applicants: [], applicantsLoading: true, applicantsError: null });
     setModal("applicants");
     const { data: appData, error: appError } = await withTimeout(
-      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time, interview_date, interview_time, interview_rounds_data").eq("job_id", posting.id).order("created_at", { ascending: true }),
+      supabase.from("applications").select("id, status, student_id, pipeline_stage, company_notes, interview_round, trial_date, trial_time, interview_date, interview_time, interview_rounds_data, screening_answers").eq("job_id", posting.id).order("created_at", { ascending: true }),
       10000, "Loading applicants timed out."
     );
     if (appError) {
@@ -194,6 +195,12 @@ export default function CompanyDashboard() {
       skills:           cvMap[a.student_id]?.skills           || [],
       linkedin:         cvMap[a.student_id]?.linkedin         || "",
       profilePhoto:     cvMap[a.student_id]?.profile_photo_url || null,
+      transport:        cvMap[a.student_id]?.transport         || [],
+      canStart:         cvMap[a.student_id]?.can_start         || "",
+      workExperience:   cvMap[a.student_id]?.work_experience   || "",
+      rightToWork:      cvMap[a.student_id]?.right_to_work     || false,
+      driverLicence:    cvMap[a.student_id]?.driver_licence    || false,
+      screeningAnswers: a.screening_answers                    || [],
       status:         a.status,
       pipelineStage:  a.pipeline_stage  || "applied",
       notes:          a.company_notes   || "",
@@ -209,7 +216,7 @@ export default function CompanyDashboard() {
   };
 
   const openCreate = () => {
-    setFormData({ title: "", category: "", location: "", pay: "", description: "", deadline: "", days: [], times: {}, weekendRequired: false, isUrgent: false, status: "Active", photos: [], photoFiles: [], lat: undefined, lng: undefined, sickPay: false, holidays: "" });
+    setFormData({ title: "", category: "", location: "", pay: "", description: "", deadline: "", days: [], times: {}, weekendRequired: false, isUrgent: false, screeningQuestions: [], status: "Active", photos: [], photoFiles: [], lat: undefined, lng: undefined, sickPay: false, holidays: "" });
     setModal("form");
   };
 
@@ -346,7 +353,8 @@ export default function CompanyDashboard() {
         weekend_required: formData.weekendRequired || false,
         sick_pay:        formData.sickPay || false,
         holidays:        formData.holidays || "",
-        is_urgent:       formData.isUrgent || false,
+        is_urgent:            formData.isUrgent || false,
+        screening_questions:  formData.screeningQuestions || [],
         status:          formData.status || "Active",
         photos:          photoUrls,
         photo_crops:     photoCrops,

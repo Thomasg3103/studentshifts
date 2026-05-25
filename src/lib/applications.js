@@ -38,10 +38,11 @@ export async function fetchAppliedJobIds(userId) {
   return (data || []).map(r => r.job_id);
 }
 
-export async function createApplication(userId, jobId, preferredShift = null) {
+export async function createApplication(userId, jobId, preferredShift = null, screeningAnswers = null) {
   await ensureValidSession();
   const payload = { student_id: userId, job_id: jobId };
   if (preferredShift) payload.preferred_shift = preferredShift;
+  if (screeningAnswers?.length) payload.screening_answers = screeningAnswers;
   const { error } = await withTimeout(supabase.from("applications").insert(payload), 10000);
   if (!error) return true;
   if (error.code === "42703" && preferredShift) {

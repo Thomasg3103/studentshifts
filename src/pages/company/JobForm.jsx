@@ -516,6 +516,66 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         )}
       </div>
 
+      {/* Screening Questions (Option A) */}
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
+          <div>
+            <label style={labelStyle}>Screening Questions <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem" }}>(optional)</span></label>
+            <p style={{ margin: "0 0 0.5rem", fontSize: "0.75rem", color: "#64748b" }}>Up to 5 questions shown to students when applying. Yes/No questions can auto-flag mismatches.</p>
+          </div>
+        </div>
+        {(formData.screeningQuestions || []).map((q, i) => (
+          <div key={i} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", padding: "0.7rem 0.85rem", marginBottom: "0.5rem" }}>
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.45rem" }}>
+              <span style={{ fontSize: "0.72rem", fontWeight: "800", color: "#64748b", paddingTop: "0.1rem", flexShrink: 0 }}>Q{i + 1}</span>
+              <input
+                placeholder="e.g. Are you over 18?"
+                value={q.question}
+                onChange={e => {
+                  const qs = [...(formData.screeningQuestions || [])];
+                  qs[i] = { ...qs[i], question: e.target.value };
+                  setFormData(prev => ({ ...prev, screeningQuestions: qs }));
+                }}
+                maxLength={200}
+                style={{ ...inputStyle, padding: "0.4rem 0.6rem", fontSize: "0.82rem", flex: 1 }}
+              />
+              <button type="button" onClick={() => {
+                const qs = (formData.screeningQuestions || []).filter((_, idx) => idx !== i);
+                setFormData(prev => ({ ...prev, screeningQuestions: qs }));
+              }} style={{ padding: "0.35rem 0.55rem", borderRadius: "0.4rem", border: "1px solid #fca5a5", background: "white", color: "#b91c1c", fontWeight: "700", fontSize: "0.75rem", cursor: "pointer", flexShrink: 0 }}>✕</button>
+            </div>
+            <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+              <select value={q.type || "yes_no"} onChange={e => {
+                const qs = [...(formData.screeningQuestions || [])];
+                qs[i] = { ...qs[i], type: e.target.value };
+                setFormData(prev => ({ ...prev, screeningQuestions: qs }));
+              }} style={{ padding: "0.35rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: "#374151", backgroundColor: "white" }}>
+                <option value="yes_no">Yes / No</option>
+                <option value="text">Free text</option>
+              </select>
+              {(q.type || "yes_no") === "yes_no" && (
+                <label style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.78rem", fontWeight: "600", color: "#374151", cursor: "pointer" }}>
+                  <input type="checkbox" checked={q.knockout_if_no || false} onChange={e => {
+                    const qs = [...(formData.screeningQuestions || [])];
+                    qs[i] = { ...qs[i], knockout_if_no: e.target.checked };
+                    setFormData(prev => ({ ...prev, screeningQuestions: qs }));
+                  }} style={{ accentColor: "#dc2626", width: "13px", height: "13px" }} />
+                  Flag if answered "No"
+                </label>
+              )}
+            </div>
+          </div>
+        ))}
+        {(formData.screeningQuestions || []).length < 5 && (
+          <button type="button" onClick={() => {
+            const qs = [...(formData.screeningQuestions || []), { question: "", type: "yes_no", knockout_if_no: false }];
+            setFormData(prev => ({ ...prev, screeningQuestions: qs }));
+          }} style={{ padding: "0.45rem 0.85rem", borderRadius: "0.5rem", border: "1.5px dashed #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
+            + Add Question
+          </button>
+        )}
+      </div>
+
       {isEdit && (
         <div>
           <label htmlFor="form-status" style={labelStyle}>Status</label>
