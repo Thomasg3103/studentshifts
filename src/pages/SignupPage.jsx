@@ -359,9 +359,9 @@ export default function SignupPage() {
           />
           <span style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.5 }}>
             I agree to the{" "}
-            <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>Terms of Service</a>
+            <a href="/terms" style={{ color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>Terms of Service</a>
             {" "}and{" "}
-            <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>Privacy Policy</a>
+            <a href="/privacy" style={{ color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>Privacy Policy</a>
           </span>
         </label>
 
