@@ -4,6 +4,11 @@ import { MemoryRouter } from 'react-router-dom';
 import JobDetails from '../pages/JobDetails';
 import { AppContext } from '../context/AppContext';
 
+vi.mock('../lib/supabase', () => ({
+  supabase: {},
+  withTimeout: vi.fn(),
+}));
+
 vi.mock('../lib/auth', () => ({
   likeJob: vi.fn(),
   unlikeJob: vi.fn(),
