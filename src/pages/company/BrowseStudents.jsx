@@ -2,11 +2,11 @@
 import * as Sentry from "@sentry/react";
 import { supabase } from "../../lib/supabase";
 import { fetchAllMessagesWithStudent, sendMessage, sendEmail } from "../../lib/auth";
-import { StudentAvailabilityRow, weekdays } from "./shared";
+import { StudentAvailabilityRow } from "./shared";
 
 const PAGE_SIZE = 20;
 
-export default function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, companyName, chatStudent, setChatStudent, setPage, likedStudentIds, applicantStudentIds, onToggleLike }) {
+export default function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, _companyName, chatStudent, setChatStudent, _setPage, likedStudentIds, applicantStudentIds, onToggleLike }) {
   const [filterByIndustries, setFilterByIndustries] = useState(true);
   const [sortBy, setSortBy] = useState("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);

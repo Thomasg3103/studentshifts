@@ -15,7 +15,7 @@ import JobPostingCard from "./company/JobPostingCard";
 import { PostingsSkeleton } from "../components/Skeleton";
 import ApplicantsView from "./company/ApplicantsView";
 import JobForm from "./company/JobForm";
-import { StatCard, Modal, AvailabilityHeatmap, weekdays, timeSlots } from "./company/shared";
+import { StatCard, Modal, AvailabilityHeatmap } from "./company/shared";
 import CompanyOnboardingBanner from "../components/CompanyOnboardingBanner";
 
 function normaliseJob(j) {

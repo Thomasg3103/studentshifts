@@ -4,7 +4,7 @@ import { supabase } from "../../lib/supabase";
 import { fetchAllMessagesWithStudent, sendMessage, sendEmail } from "../../lib/auth";
 import { StudentAvailabilityRow } from "./shared";
 
-export default function SavedStudents({ students, loading, fetched, error, likedStudentIds, applicantStudentIds, onToggleLike, chatStudent, setChatStudent, companyId, companyName }) {
+export default function SavedStudents({ students, _loading, fetched, error, likedStudentIds, applicantStudentIds, onToggleLike, chatStudent, setChatStudent, companyId, _companyName }) {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);

@@ -1,13 +1,10 @@
 import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
-import { useApp } from "../context/AppContext";
-
 const CONTACT_EMAIL = "privacy@studentshifts.ie";
 const LAST_UPDATED  = "21 May 2026";
 
 export default function PrivacyPolicyPage() {
-  const { setPage } = useApp();
   return (
     <><Helmet>
         <title>Privacy Policy - StudentShifts</title>

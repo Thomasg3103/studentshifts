@@ -1,8 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
-import { useApp } from "../context/AppContext";
-
 const FAQS = [
   {
     q: "How do I get verified as a student?",
@@ -35,7 +33,6 @@ const FAQS = [
 ];
 
 export default function HelpPage() {
-  const { setPage } = useApp();
   return (
     <>
       <Helmet>

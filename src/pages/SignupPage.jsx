@@ -63,7 +63,7 @@ export default function SignupPage() {
     if (resendCooldown > 0) return;
     try {
       await resendVerificationEmail(email);
-    } catch {}
+    } catch { /* ignore */ }
     setResendSent(true);
     setResendCooldown(60);
   };

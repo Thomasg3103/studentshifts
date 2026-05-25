@@ -1,6 +1,5 @@
 ﻿import { useState, useRef, useEffect } from "react";
 import { useLocation } from "react-router-dom";
-import { supabase } from "../lib/supabase";
 import { signOut as authSignOut } from "../lib/authOps";
 import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
@@ -254,7 +253,7 @@ export default function Header() {
   );
 }
 
-function MobileBottomNav({ setPage, likedJobs, appliedJobs, msgCount, notifCount, currentUser, optionalBadge, pathname }) {
+function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCount, currentUser, optionalBadge, pathname }) {
   const isHome     = pathname === "/" || pathname.startsWith("/jobs/");
   const isLiked    = pathname === "/liked";
   const isApplied  = pathname === "/applied";

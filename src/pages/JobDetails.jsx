@@ -554,7 +554,7 @@ function Pill({ children, accent, warn }) {
 
 const btn = { padding: "0.7rem 1.5rem", borderRadius: "2rem", color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontFamily: "inherit", fontSize: "0.9rem", boxShadow: "0 2px 8px rgba(0,0,0,0.15)" };
 
-const arrowBtn = (side) => ({
+const _arrowBtn = (side) => ({
   position: "absolute", top: "50%", [side]: "10px",
   transform: "translateY(-50%)",
   background: "rgba(0,0,0,0.45)", border: "none", color: "white",

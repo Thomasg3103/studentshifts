@@ -194,7 +194,7 @@ function FilterPanel({
 export default function StudentDashboard({ restoreScrollY }) {
   const { setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
     currentUser, studentLocation, savedLikedJobIds, savedAppliedJobIds,
-    setSavedLikedJobIds, setSavedAppliedJobIds } = useApp();
+    setSavedLikedJobIds } = useApp();
   const [jobs,           setJobs]           = useState([]);
   const [jobsLoading,    setJobsLoading]    = useState(true);
   const [jobsError,      setJobsError]      = useState(false);
@@ -353,7 +353,7 @@ export default function StudentDashboard({ restoreScrollY }) {
           const result = await geocodeAddress(query);
           if (result && !cancelled) {
             _geocodeCache[loc] = { lat: result.lat, lng: result.lng, ts: Date.now() };
-            try { localStorage.setItem("ss_geocode_cache", JSON.stringify(_geocodeCache)); } catch {}
+            try { localStorage.setItem("ss_geocode_cache", JSON.stringify(_geocodeCache)); } catch { /* ignore quota errors */ }
             setExtraCoords(prev => ({ ...prev, [loc]: { lat: result.lat, lng: result.lng } }));
           }
         } catch (e) { console.warn("[StudentDashboard] geocode failed:", e); }

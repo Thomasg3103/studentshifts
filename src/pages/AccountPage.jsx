@@ -67,16 +67,9 @@ export default function AccountPage() {
   const [allowDm, setAllowDm]                   = useState(currentUser.allowCompanyDm !== false);
   const [profilePhoto, setProfilePhoto]         = useState(currentUser.profilePhoto || "");
   const [photoUploading, setPhotoUploading]     = useState(false);
-  const [windowWidth, setWindowWidth]           = useState(window.innerWidth);
   const availDebounceRef = useRef(null);
   // Track whether bio / linkedin / website have been edited but not yet saved (dirty state)
   const [dirtyFields, setDirtyFields]           = useState(false);
-
-  useEffect(() => {
-    const h = () => setWindowWidth(window.innerWidth);
-    window.addEventListener("resize", h);
-    return () => window.removeEventListener("resize", h);
-  }, []);
 
   useEffect(() => {
     return () => { if (availDebounceRef.current) clearTimeout(availDebounceRef.current); };
@@ -90,7 +83,6 @@ export default function AccountPage() {
     return () => window.removeEventListener("beforeunload", handler);
   }, [dirtyFields]);
 
-  const isMobile  = windowWidth < 768;
   const isStudent = currentUser.role === "student";
   const isCompany = currentUser.role === "company";
 

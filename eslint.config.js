@@ -5,7 +5,7 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', '.claude']),
 
   // Browser / React source
   {
@@ -13,9 +13,9 @@ export default defineConfig([
     ignores: ['server/**', 'scripts/**', 'playwright.config.js', 'vite.config.js', 'eslint.config.js'],
     extends: [
       js.configs.recommended,
-      reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
     ],
+    plugins: { 'react-hooks': reactHooks },
     languageOptions: {
       ecmaVersion: 2020,
       globals: globals.browser,
@@ -26,7 +26,41 @@ export default defineConfig([
       },
     },
     rules: {
-      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+      'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
+    },
+  },
+
+  // Vitest test files
+  {
+    files: ['src/tests/**'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        vi: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+      },
+    },
+  },
+
+  // Service worker
+  {
+    files: ['src/sw.js'],
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        clients: 'readonly',
+        self: 'readonly',
+        caches: 'readonly',
+      },
     },
   },
 

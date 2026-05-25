@@ -48,7 +48,7 @@ export default function AdminPage() {
     try {
       const data = await getSignups();
       setSignups(data);
-    } catch (e) {
+    } catch {
       toast.error("Failed to load signups.");
     } finally {
       setSignupsLoading(false);

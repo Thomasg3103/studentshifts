@@ -1,4 +1,5 @@
-﻿import { useState, useRef } from "react";
+﻿/* eslint-disable react-refresh/only-export-components */
+import { useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { supabaseImg } from "../../utils/img";
 import DetailPanel, { StatusBadge, CloseJobModal } from "./DetailPanel";

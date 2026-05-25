@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 /* ─── Shared constants and small utility components ─────────────────────── */
 
 export const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
