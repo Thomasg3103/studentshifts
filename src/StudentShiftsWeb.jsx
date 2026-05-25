@@ -5,7 +5,6 @@ import toast from "react-hot-toast";
 import { useNavigate, useLocation, Routes, Route, Navigate, useParams } from "react-router-dom";
 import Header from "./components/Header";
 import ErrorBoundary from "./components/ErrorBoundary";
-import CookieBanner from "./components/CookieBanner";
 import AppFooter from "./components/AppFooter";
 import { PageSkeleton } from "./components/Skeleton";
 
@@ -399,7 +398,7 @@ export default function StudentShiftsWeb() {
     <AppContext.Provider value={appContextValue}>
       <a href="#main-content" className="skip-link">Skip to main content</a>
       {!isLanding && <Header />}
-      <main id="main-content">
+      <main id="main-content" style={{ minHeight: "100vh" }}>
         <ErrorBoundary>
           <Suspense fallback={<PageSkeleton />}>
             <Routes>
@@ -454,7 +453,6 @@ export default function StudentShiftsWeb() {
         </ErrorBoundary>
       </main>
       {!isLanding && <AppFooter />}
-      <CookieBanner />
       <Toaster position="bottom-center" containerProps={{ "aria-live": "polite", "aria-atomic": "true" }} toastOptions={{ duration: 4000, style: { fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: 600, fontSize: "0.875rem", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)" } }} />
     </AppContext.Provider>
   );

@@ -494,7 +494,7 @@ export default function StudentDashboard({ restoreScrollY }) {
       hit = step(pool.filter(j => { const c = getCategoryForTitle(j.title); return c && userPrefs.includes(c); }), "your job preferences"); if (hit) return hit;
     }
     if (selectedDays.length > 0) {
-      hit = step(pool.filter(j => selectedDays.every(d => { if (!j.days.includes(d)) return false; if (dayTimes[d]) return j.times[d]?.some(t => t >= dayTimes[d]); return true; })), selectedDays.length === 1 ? `${selectedDays[0]}` : `${selectedDays.slice(0,2).map(d=>d.slice(0,3)).join("/")} days`); if (hit) return hit;
+      hit = step(pool.filter(j => selectedDays.some(d => { if (!j.days.includes(d)) return false; if (dayTimes[d]) return j.times[d]?.some(t => t >= dayTimes[d]); return true; })), selectedDays.length === 1 ? `${selectedDays[0]}` : `${selectedDays.slice(0,2).map(d=>d.slice(0,3)).join("/")} days`); if (hit) return hit;
     }
     if (selectedLocations.length > 0) {
       hit = step(pool.filter(j => selectedLocations.includes(j.location)), selectedLocations.length === 1 ? selectedLocations[0] : "location filter"); if (hit) return hit;
@@ -523,7 +523,7 @@ export default function StudentDashboard({ restoreScrollY }) {
       if (!cat || !userPrefs.includes(cat)) return false;
     }
     if (selectedDays.length > 0) {
-      const daysMatch = selectedDays.every(day => {
+      const daysMatch = selectedDays.some(day => {
         if (!job.days.includes(day)) return false;
         if (dayTimes[day]) return job.times[day]?.some(t => t >= dayTimes[day]);
         return true;

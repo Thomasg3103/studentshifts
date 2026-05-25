@@ -132,7 +132,7 @@ function AvailabilityStep({ onDone, onBack }) {
   const toggleDay = (day) => {
     setSelected(prev => {
       const cur = prev[day] || [];
-      return { ...prev, [day]: cur.length > 0 ? [] : ["09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00"] };
+      return { ...prev, [day]: cur.length > 0 ? [] : [...timeSlots] };
     });
   };
 
@@ -146,7 +146,7 @@ function AvailabilityStep({ onDone, onBack }) {
         Tap a day to select typical hours. You can update this any time in Account.
       </p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", maxHeight: "260px", overflowY: "auto", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", maxHeight: "320px", overflowY: "auto", marginBottom: "1rem" }}>
         {weekdays.map(day => {
           const daySlots = selected[day] || [];
           const isActive = daySlots.length > 0;

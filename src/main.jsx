@@ -8,9 +8,6 @@ import "./StudentShiftWeb.css";
 import StudentShiftsWeb from "./StudentShiftsWeb.jsx";
 import ErrorBoundary from "./components/ErrorBoundary.jsx";
 
-// R3-C6/C7: GA4 must not load before cookie consent (ePrivacy / GDPR).
-// initGA() is called by CookieBanner once the user dismisses the notice.
-// On subsequent page loads, if consent was already given, it fires immediately.
 const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 export function initGA() {
   if (!GA_ID || window.__ga_initialised) return;
@@ -25,12 +22,9 @@ export function initGA() {
   window.gtag("config", GA_ID);
 }
 
-// Fire immediately only if the user has already consented in a previous session
-if (localStorage.getItem("ss_cookie_notice_dismissed") === "1") {
-  initGA();
-}
+initGA();
 
-// Microsoft Clarity — heatmaps + session recordings (consent-gated, same as GA4)
+// Microsoft Clarity — heatmaps + session recordings
 const CLARITY_ID = import.meta.env.VITE_CLARITY_PROJECT_ID;
 export function initClarity() {
   if (!CLARITY_ID || window.__clarity_initialised) return;
@@ -41,9 +35,7 @@ export function initClarity() {
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", CLARITY_ID);
 }
-if (localStorage.getItem("ss_cookie_notice_dismissed") === "1") {
-  initClarity();
-}
+initClarity();
 
 export function initSentry() {
   if (!import.meta.env.VITE_SENTRY_DSN || window.__sentry_initialised) return;
@@ -60,7 +52,7 @@ export function initSentry() {
       // Strip user PII — keep only anonymised id
       if (event.user) event.user = { id: event.user.id };
       // Scrub UUIDs and email addresses from breadcrumb messages and data
-      if (event.breadcrumbs?.values) {
+      if (Array.isArray(event.breadcrumbs?.values)) {
         event.breadcrumbs.values = event.breadcrumbs.values.map(b => ({
           ...b,
           message: scrub(b.message),
@@ -74,9 +66,7 @@ export function initSentry() {
   });
 }
 
-if (localStorage.getItem("ss_cookie_notice_dismissed") === "1") {
-  initSentry();
-}
+initSentry();
 
 const rootEl = document.getElementById("root");
 const app = (

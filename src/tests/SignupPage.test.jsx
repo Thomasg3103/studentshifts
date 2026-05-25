@@ -44,6 +44,7 @@ describe('SignupPage', () => {
     fireEvent.change(screen.getByPlaceholderText('Full Name'), { target: { value: 'Test User' } });
     fireEvent.change(screen.getByPlaceholderText('Email'), { target: { value: 'test@test.com' } });
     fireEvent.change(screen.getByPlaceholderText('Password'), { target: { value: '123' } });
+    fireEvent.click(screen.getByRole('checkbox'));
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
     expect(screen.getByText('Password must be at least 8 characters.')).toBeInTheDocument();
   });

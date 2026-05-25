@@ -33,6 +33,7 @@ export async function fetchAvailabilityHeatmap() {
 }
 
 export async function fetchPendingStudents() {
+  await ensureValidSession();
   const { data, error } = await withTimeout(
     supabase.rpc("get_pending_students"),
     10000
@@ -49,6 +50,7 @@ export async function fetchPendingStudents() {
 }
 
 export async function fetchPendingCompanies() {
+  await ensureValidSession();
   const { data, error } = await withTimeout(
     supabase.rpc("get_pending_companies"),
     10000

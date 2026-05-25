@@ -130,9 +130,10 @@ export default function PrivacyPolicyPage() {
 
         <Section title="9. Cookies">
           <p style={body}>
-            StudentShifts uses only <strong>strictly necessary cookies</strong> for session management and authentication (provided by Supabase).
-            These cookies are essential for the Service to function and do not require your consent under GDPR.
-            We do not use analytics, advertising or tracking cookies.
+            StudentShifts uses cookies for session management and authentication (provided by Supabase), as well as
+            analytics tools (Google Analytics 4 and Microsoft Clarity) to understand how the platform is used and improve the experience.
+            Analytics data is anonymised and does not identify individual users.
+            You can disable analytics cookies in your browser settings at any time.
           </p>
         </Section>
 

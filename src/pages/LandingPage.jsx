@@ -156,13 +156,13 @@ export default function LandingPage() {
         <div style={{ display: "flex", gap: "0.75rem", maxWidth: "420px", margin: "0 auto 1rem", flexWrap: "wrap", justifyContent: "center" }}>
           <button
             onClick={() => navigate("/signup")}
-            style={{ flex: 1, minWidth: "170px", padding: "0.95rem 1.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)", whiteSpace: "nowrap" }}
+            style={{ flex: 1, minWidth: "170px", padding: "0.95rem 1.5rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)" }}
           >
             Find Shifts — It's Free →
           </button>
           <button
             onClick={() => navigate("/signup?role=company")}
-            style={{ flex: 1, minWidth: "170px", padding: "0.95rem 1.75rem", borderRadius: "2rem", border: "1.5px solid rgba(255,255,255,0.35)", background: "transparent", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+            style={{ flex: 1, minWidth: "170px", padding: "0.95rem 1.5rem", borderRadius: "2rem", border: "1.5px solid rgba(255,255,255,0.35)", background: "transparent", color: "white", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit" }}
           >
             I'm Hiring Students →
           </button>

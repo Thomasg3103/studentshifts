@@ -32,9 +32,11 @@ export async function signIn({ email, password }) {
 
 export async function signOut(options = {}) {
   invalidateSessionCache();
+  // scope:'local' clears the session immediately without a network round-trip,
+  // bypassing the auth lock chain so sign-out is instant.
   const { error } = await withTimeout(
-    supabase.auth.signOut(options),
-    10000, "Sign out timed out."
+    supabase.auth.signOut({ scope: 'local', ...options }),
+    5000, "Sign out timed out."
   );
   if (error) throw error;
 }

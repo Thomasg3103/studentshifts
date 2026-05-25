@@ -49,6 +49,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendSent, setResendSent] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   const toggleIndustry = (cat) =>
     setIndustries(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
@@ -70,6 +71,7 @@ export default function SignupPage() {
 
   const handleSignup = async () => {
     if (!name.trim() || !email || !password) { setError("Please fill in all required fields."); return; }
+    if (!termsAccepted) { setError("Please accept the Terms of Service and Privacy Policy to continue."); return; }
     if (name.trim().length < 2) { setError("Please enter your full name (at least 2 characters)."); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Please enter a valid email address."); return; }
     if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
@@ -346,6 +348,22 @@ export default function SignupPage() {
             </p>
           </div>
         )}
+
+        {/* Terms acceptance */}
+        <label style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem", marginTop: "1rem", cursor: "pointer" }}>
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={e => setTermsAccepted(e.target.checked)}
+            style={{ marginTop: "0.15rem", width: "16px", height: "16px", flexShrink: 0, accentColor: "var(--color-brand)", cursor: "pointer" }}
+          />
+          <span style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.5 }}>
+            I agree to the{" "}
+            <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>Terms of Service</a>
+            {" "}and{" "}
+            <a href="/privacy" target="_blank" rel="noopener noreferrer" style={{ color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>Privacy Policy</a>
+          </span>
+        </label>
 
         <button onClick={handleSignup} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>
           {loading ? "Creating account…" : "Create Account →"}

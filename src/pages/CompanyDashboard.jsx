@@ -631,7 +631,7 @@ export default function CompanyDashboard() {
                 {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (
                   <button key={val} onClick={() => setApplicantsViewMode(val)} style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem", fontWeight: "600", border: `1px solid ${applicantsViewMode === val ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: applicantsViewMode === val ? "#fff0f6" : "white", color: applicantsViewMode === val ? "var(--color-brand)" : "#64748b" }}>{label}</button>
                 ))}
-                <button onClick={closeModal} style={{ width: "32px", height: "32px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.85rem", display: "flex", alignItems: "center", justifyContent: "center" }}>âœ•</button>
+                <button onClick={closeModal} aria-label="Close" style={{ width: "32px", height: "32px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>×</button>
               </div>
             </div>
             {/* Pipeline funnel */}
