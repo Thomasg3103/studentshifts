@@ -1,27 +1,18 @@
 {
   "name": "studentshifts-mock",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "postbuild": "(react-snap || echo 'react-snap skipped (no Chrome on this host)') && (node scripts/ssg-jobs.mjs || echo 'ssg-jobs skipped')",
+    "postbuild": "node scripts/ssg-jobs.mjs || echo 'ssg-jobs skipped'",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui"
-  },
-  "reactSnap": {
-    "source": "dist",
-    "destination": "dist",
-    "include": ["/about", "/privacy", "/terms", "/help", "/contact"],
-    "crawl": false,
-    "skipThirdPartyRequests": true,
-    "puppeteerArgs": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage"],
-    "headless": true
   },
   "dependencies": {
     "@sentry/react": "^10.53.1",
@@ -51,7 +42,6 @@
     "globals": "^16.5.0",
     "jsdom": "^29.1.1",
     "postcss": "^8.5.14",
-    "react-snap": "^1.23.0",
     "rollup-plugin-visualizer": "^7.0.1",
     "vite": "^7.3.1",
     "vite-plugin-pwa": "^1.3.0",

@@ -8,6 +8,11 @@ vi.mock('../lib/auth', () => ({
   likeJob: vi.fn(),
   unlikeJob: vi.fn(),
   createApplication: vi.fn(() => Promise.resolve()),
+  toJobSlug: (str) => {
+    if (!str) return '';
+    return str.normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase()
+      .replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+  },
 }));
 
 vi.mock('@sentry/react', () => ({
@@ -71,7 +76,7 @@ describe('JobDetails', () => {
   it('renders job title and company', () => {
     renderJobDetails();
     expect(screen.getByText('Barista')).toBeInTheDocument();
-    expect(screen.getByText(/Coffee Co/)).toBeInTheDocument();
+    expect(screen.getAllByText(/Coffee Co/).length).toBeGreaterThan(0);
   });
 
   it('shows Apply Now button for verified student with CV', () => {

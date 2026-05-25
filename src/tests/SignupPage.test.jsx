@@ -30,7 +30,7 @@ describe('SignupPage', () => {
     renderSignup();
     expect(screen.getByPlaceholderText('Full Name')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Email')).toBeInTheDocument();
-    expect(screen.getByText('Create account')).toBeInTheDocument();
+    expect(screen.getByText('Create Account →')).toBeInTheDocument();
   });
 
   it('shows error when required fields are empty', async () => {
