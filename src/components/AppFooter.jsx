@@ -35,7 +35,7 @@ export default function AppFooter() {
             <p style={fHead}>Legal</p>
             <FLink onClick={() => navigate("/privacy")}>Privacy Policy</FLink>
             <FLink onClick={() => navigate("/terms")}>Terms &amp; Conditions</FLink>
-            <FLink onClick={() => navigate("/privacy")}>Cookies</FLink>
+            {/* TODO: add Cookies page before launch */}
           </div>
 
           <div>
