@@ -1,9 +1,10 @@
-﻿import { useState, useRef, useEffect, useMemo } from "react";
+﻿import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import toast from "react-hot-toast";
 import RichTextEditor from "../../components/RichTextEditor";
 import { geocodeAddress } from "../../utils/geo";
 import { jobCategories } from "../../data/jobCategories";
 import { weekdays, timeSlots } from "./shared";
+import { supabase } from "../../lib/supabase";
 
 /* ─── Local style constants (used only in JobForm) ───────────────────────── */
 
@@ -20,6 +21,20 @@ const zoomBtn  = { padding: "0.2rem 0.55rem", borderRadius: "0.4rem", border: "1
 export default function JobForm({ formData, setFormData, onSave, onCancel, toggleDay, formSaving }) {
   const isEdit = !!formData.id;
   const set = (key) => (e) => setFormData(prev => ({ ...prev, [key]: e.target.value }));
+
+  const [matchCount, setMatchCount] = useState(null);
+  const matchTimerRef = useRef(null);
+
+  useEffect(() => {
+    if (!formData.category) { setMatchCount(null); return; }
+    clearTimeout(matchTimerRef.current);
+    matchTimerRef.current = setTimeout(() => {
+      supabase.rpc("count_matching_students", { p_skills: formData.skills || [], p_category: formData.category || "" })
+        .then(({ data }) => { if (data !== null) setMatchCount(data); })
+        .catch(() => {});
+    }, 600);
+    return () => clearTimeout(matchTimerRef.current);
+  }, [formData.category, formData.skills]);
 
   const categoryNames = Object.keys(jobCategories);
 
@@ -194,6 +209,17 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           ))}
         </select>
       </div>
+
+      {/* Skills gap preview */}
+      {matchCount !== null && formData.category && (
+        <div style={{ padding: "0.5rem 0.75rem", borderRadius: "0.55rem", border: `1.5px solid ${matchCount < 5 ? "#fca5a5" : matchCount < 20 ? "#fcd34d" : "#86efac"}`, backgroundColor: matchCount < 5 ? "#fff1f2" : matchCount < 20 ? "#fffbeb" : "#f0fdf4" }}>
+          <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: matchCount < 5 ? "#b91c1c" : matchCount < 20 ? "#92400e" : "#15803d" }}>
+            {matchCount < 5
+              ? `⚠ Only ${matchCount} verified student${matchCount !== 1 ? "s" : ""} match this category — consider broadening.`
+              : `✓ ${matchCount} verified students match this category.`}
+          </p>
+        </div>
+      )}
 
       {/* Title — locked until category chosen */}
       <div>

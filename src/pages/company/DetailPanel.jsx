@@ -76,8 +76,16 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   const [hireLoading, setHireLoading]   = useState(false);
   const [rehireLoading, setRehireLoading] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
+  const [reliabilityScore, setReliabilityScore] = useState(null);
   const panelBodyRef = useRef(null);
   useFocusTrap(panelBodyRef, onClose);
+
+  useEffect(() => {
+    if (!applicant.studentId) return;
+    supabase.rpc("get_student_reliability_score", { p_student_id: applicant.studentId })
+      .then(({ data }) => { if (data) setReliabilityScore(data); })
+      .catch(() => {});
+  }, [applicant.studentId]);
 
   const buildRounds = (a) => {
     const stored = Array.isArray(a.interviewRoundsData) ? a.interviewRoundsData : [];
@@ -214,6 +222,20 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
             <p style={{ margin: "0 0 0.3rem", fontWeight: "700", fontSize: "0.975rem", color: "#0f172a", letterSpacing: "-0.01em" }}>{applicant.name}</p>
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
               <StatusBadge status={applicant.status} />
+              {reliabilityScore && (() => {
+                const lbl = reliabilityScore.label;
+                const styles = {
+                  Reliable: { bg: "#dcfce7", color: "#15803d", border: "#86efac" },
+                  New:      { bg: "#f1f5f9", color: "#64748b", border: "#cbd5e1" },
+                  Flagged:  { bg: "#fee2e2", color: "#b91c1c", border: "#fca5a5" },
+                };
+                const s = styles[lbl] || styles.New;
+                return (
+                  <span style={{ fontSize: "0.65rem", fontWeight: "700", padding: "0.1rem 0.45rem", borderRadius: "999px", backgroundColor: s.bg, color: s.color, border: `1px solid ${s.border}` }}>
+                    {lbl === "Reliable" ? "✓ " : lbl === "Flagged" ? "⚠ " : ""}{lbl}
+                  </span>
+                );
+              })()}
               {applicant.preferredShift && (
                 <span style={{ fontSize: "0.72rem", color: "#64748b" }}>{applicant.preferredShift}</span>
               )}

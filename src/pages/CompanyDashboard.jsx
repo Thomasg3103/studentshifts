@@ -71,6 +71,9 @@ export default function CompanyDashboard() {
   const [applicantsViewMode, setApplicantsViewMode] = useState("list");
   const [talentPool, setTalentPool]                 = useState([]);
   const [talentPoolLoaded, setTalentPoolLoaded]     = useState(false);
+  const [templates, setTemplates]                   = useState([]);
+  const [templatesLoaded, setTemplatesLoaded]       = useState(false);
+  const [expiringJobs, setExpiringJobs]             = useState([]);
   const originalPhotosRef = useRef([]); // tracks photos at edit-open time for H24 storage cleanup
 
   const {
@@ -147,6 +150,22 @@ export default function CompanyDashboard() {
       setTalentPoolLoaded(true);
     }).catch(e => { console.warn("[CompanyDashboard] talentPool failed:", e); setTalentPoolLoaded(true); });
   }, [activeTab, loading, talentPoolLoaded, postings]);
+
+  // Load job templates when Templates tab is opened
+  useEffect(() => {
+    if (activeTab !== "templates" || templatesLoaded || !currentUser) return;
+    supabase.from("job_templates").select("id, name, data, created_at").eq("company_id", currentUser.id).order("created_at", { ascending: false })
+      .then(({ data }) => { setTemplates(data || []); setTemplatesLoaded(true); })
+      .catch(() => setTemplatesLoaded(true));
+  }, [activeTab, templatesLoaded, currentUser]);
+
+  // Check for jobs expiring in 48h (shown as banner on jobs tab)
+  useEffect(() => {
+    if (!currentUser) return;
+    supabase.rpc("get_jobs_expiring_soon", { hours_ahead: 48 })
+      .then(({ data }) => { if (data?.length) setExpiringJobs(data); })
+      .catch(() => {});
+  }, [currentUser?.id]);
 
   // Load this company's jobs on mount, auto-expire any past their deadline
   useEffect(() => {
@@ -553,9 +572,10 @@ export default function CompanyDashboard() {
       <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "1.75rem", gap: "0" }}>
         {[
           { val: "jobs",     label: "My Jobs" },
-          { val: "students", label: "Browse Students" },
-          { val: "saved",    label: "Saved Students", count: likedStudentIds.size },
-          { val: "talent",   label: "Talent Pool",    count: totalHired > 0 ? totalHired : 0 },
+          { val: "students",  label: "Browse Students" },
+          { val: "saved",     label: "Saved Students", count: likedStudentIds.size },
+          { val: "talent",    label: "Talent Pool",    count: totalHired > 0 ? totalHired : 0 },
+          { val: "templates", label: "Templates",      count: templates.length || 0 },
         ].map(({ val, label, count }) => (
           <button
             key={val}
@@ -579,15 +599,34 @@ export default function CompanyDashboard() {
         ))}
       </div>
 
-      {/* Stats â€" jobs tab only */}
+      {/* Stats — jobs tab only */}
       {activeTab === "jobs" && (
-      <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "1rem", marginBottom: expiringJobs.length ? "1rem" : "2rem", flexWrap: "wrap" }}>
         <StatCard label="Total Postings" value={postings.length} />
         <StatCard label="Active" value={activeCount} />
         <StatCard label="Closed" value={postings.length - activeCount} />
         <StatCard label="Total Applicants" value={totalApplicants} />
         <StatCard label="Total Hired" value={totalHired} />
       </div>
+      )}
+
+      {/* Expiry reminders banner — jobs tab only */}
+      {activeTab === "jobs" && expiringJobs.length > 0 && (
+        <div style={{ marginBottom: "1.75rem", display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+          {expiringJobs.map(j => (
+            <div key={j.job_id} style={{ backgroundColor: "#fffbeb", border: "1.5px solid #fcd34d", borderRadius: "0.75rem", padding: "0.75rem 1rem", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <span style={{ fontSize: "1.1rem", flexShrink: 0 }}>⏰</span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ margin: 0, fontWeight: "700", fontSize: "0.88rem", color: "#78350f" }}>
+                  <strong>{j.title}</strong> closes in 2 days
+                </p>
+                <p style={{ margin: "0.1rem 0 0", fontSize: "0.78rem", color: "#92400e" }}>
+                  {j.applicant_count > 0 ? `${j.applicant_count} student${j.applicant_count !== 1 ? "s" : ""} waiting — consider extending the deadline.` : "No applicants yet — consider extending the deadline or promoting it."}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
       )}
 
       {/* Student Availability Heatmap â€" Browse Students tab */}
@@ -641,6 +680,58 @@ export default function CompanyDashboard() {
           companyId={currentUser?.id}
           companyName={currentUser?.name}
         />
+      )}
+
+      {/* Templates tab */}
+      {activeTab === "templates" && (
+        <div>
+          <div style={{ marginBottom: "1.25rem" }}>
+            <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "#0f172a" }}>Job Templates</p>
+            <p style={{ margin: "0.2rem 0 0", fontSize: "0.83rem", color: "#64748b" }}>Save a job posting as a template to repost it in one click — great for recurring shifts.</p>
+          </div>
+          {!templatesLoaded ? (
+            <p style={{ fontSize: "0.875rem", color: "#64748b", textAlign: "center", padding: "2rem 0" }}>Loading…</p>
+          ) : templates.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📋</div>
+              <p style={{ fontWeight: "700", color: "#1e293b", marginBottom: "0.25rem" }}>No templates yet</p>
+              <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1.25rem" }}>Click "Save as Template" on any job posting to save it here.</p>
+              <button onClick={() => setActiveTab("jobs")} style={{ padding: "0.5rem 1.25rem", borderRadius: "2rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}>Go to My Jobs →</button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+              {templates.map(t => (
+                <div key={t.id} style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "0.85rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", justifyContent: "space-between", flexWrap: "wrap" }}>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#0f172a" }}>{t.name}</p>
+                    <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>
+                      {t.data?.category || ""}
+                      {t.data?.location ? ` · ${t.data.location}` : ""}
+                      {t.data?.pay ? ` · ${t.data.pay}` : ""}
+                    </p>
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    <button
+                      onClick={() => {
+                        const d = { ...t.data, id: undefined, status: "Active" };
+                        setFormData(d);
+                        setModal("form");
+                      }}
+                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                    >Use Template</button>
+                    <button
+                      onClick={async () => {
+                        await supabase.from("job_templates").delete().eq("id", t.id);
+                        setTemplates(prev => prev.filter(x => x.id !== t.id));
+                      }}
+                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                    >Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Talent Pool tab */}
@@ -729,6 +820,18 @@ export default function CompanyDashboard() {
                 onDelete={() => deletePosting(posting.id)}
                 onToggleStatus={() => toggleStatus(posting.id)}
                 onDuplicate={() => duplicatePosting(posting)}
+                onSaveTemplate={async (name) => {
+                  const templateData = {
+                    title: posting.title, category: posting.category, location: posting.location,
+                    pay: posting.pay, description: posting.description, deadline: posting.deadline,
+                    days: posting.days, times: posting.times, weekendRequired: posting.weekendRequired,
+                    sickPay: posting.sickPay, holidays: posting.holidays, isUrgent: posting.isUrgent,
+                    screeningQuestions: posting.screeningQuestions, photos: posting.photos,
+                    photoCrops: posting.photoCrops,
+                  };
+                  const { data } = await supabase.from("job_templates").insert({ company_id: currentUser.id, name, data: templateData }).select("id, name, data, created_at").single();
+                  if (data) { setTemplates(prev => [data, ...prev]); setTemplatesLoaded(true); }
+                }}
               />
             ))}
           </div>

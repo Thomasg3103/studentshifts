@@ -25,7 +25,7 @@ function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }
   );
 }
 
-export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onDuplicate }) {
+export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onDuplicate, onSaveTemplate }) {
   const isActive  = posting.status === "Active";
   const today     = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Expired";
@@ -41,9 +41,12 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
     if (days < 30) return `${Math.floor(days / 7)}w ago`;
     return `${Math.floor(days / 30)}mo ago`;
   })();
-  const [hovered,       setHovered]       = useState(false);
-  const [confirmClose,  setConfirmClose]  = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [hovered,           setHovered]           = useState(false);
+  const [confirmClose,      setConfirmClose]      = useState(false);
+  const [confirmDelete,     setConfirmDelete]     = useState(false);
+  const [templateSaved,     setTemplateSaved]     = useState(false);
+  const [templateNameInput, setTemplateNameInput] = useState("");
+  const [showTemplateInput, setShowTemplateInput] = useState(false);
   const deadlineClose = posting.deadline && posting.deadline > today && (new Date(posting.deadline) - new Date(today)) / 86400000 <= 3;
 
   const deadlineLabel = posting.deadline
@@ -148,6 +151,32 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
           <div style={{ display: "flex", gap: "0.35rem", marginLeft: "auto" }}>
             <button onClick={onEdit} aria-label={`Edit ${posting.title}`} style={actionBtn}>Edit</button>
             <button onClick={onDuplicate} aria-label={`Duplicate ${posting.title}`} style={actionBtn} title="Create a new job based on this one">Duplicate</button>
+            {onSaveTemplate && (
+              templateSaved ? (
+                <span style={{ ...actionBtn, color: "#16a34a", cursor: "default" }}>✓ Saved</span>
+              ) : showTemplateInput ? (
+                <div style={{ display: "flex", gap: "0.3rem" }}>
+                  <input
+                    autoFocus
+                    value={templateNameInput}
+                    onChange={e => setTemplateNameInput(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === "Enter" && templateNameInput.trim()) {
+                        onSaveTemplate(templateNameInput.trim());
+                        setTemplateSaved(true); setShowTemplateInput(false); setTemplateNameInput("");
+                        setTimeout(() => setTemplateSaved(false), 3000);
+                      }
+                      if (e.key === "Escape") { setShowTemplateInput(false); setTemplateNameInput(""); }
+                    }}
+                    placeholder="Template name…"
+                    style={{ padding: "0.25rem 0.5rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", fontSize: "0.75rem", fontFamily: "inherit", width: "130px" }}
+                  />
+                  <button onClick={() => { onSaveTemplate(templateNameInput.trim() || posting.title); setTemplateSaved(true); setShowTemplateInput(false); setTemplateNameInput(""); setTimeout(() => setTemplateSaved(false), 3000); }} disabled={!templateNameInput.trim()} style={{ ...actionBtn, backgroundColor: "#f0fdf4", borderColor: "#86efac", color: "#15803d" }}>Save</button>
+                </div>
+              ) : (
+                <button onClick={() => { setTemplateNameInput(posting.title); setShowTemplateInput(true); }} style={actionBtn} title="Save as a reusable template">Template</button>
+              )
+            )}
             <button
               aria-label={isActive ? `Close ${posting.title}` : `Reopen ${posting.title}`}
               onClick={isActive ? () => setConfirmClose(true) : onToggleStatus}

@@ -83,10 +83,28 @@ export default function AccountPage() {
   const [showProfilePreview, setShowProfilePreview] = useState(false);
   const [workHistory, setWorkHistory]               = useState([]);
   const [jobAlerts, setJobAlerts]                   = useState(() => localStorage.getItem("ss_job_alerts") === "1");
+  const [notifPrefs, setNotifPrefs]                 = useState({});
 
   useEffect(() => {
     return () => { if (availDebounceRef.current) clearTimeout(availDebounceRef.current); };
   }, []);
+
+  // Load notification preferences
+  useEffect(() => {
+    if (!currentUser?.id) return;
+    supabase
+      .from("notification_preferences")
+      .select("event_type, push_enabled, email_enabled")
+      .eq("user_id", currentUser.id)
+      .then(({ data }) => {
+        if (data?.length) {
+          const prefs = {};
+          data.forEach(r => { prefs[r.event_type] = { push: r.push_enabled, email: r.email_enabled }; });
+          setNotifPrefs(prefs);
+        }
+      })
+      .catch(() => {});
+  }, [currentUser?.id]);
 
   useEffect(() => {
     if (currentUser.role !== "student") return;
@@ -352,6 +370,60 @@ export default function AccountPage() {
     } finally {
       setIndustrySaving(false);
     }
+  };
+
+  // ── Availability ICS export ──────────────────────────────────────────────
+  const exportAvailabilityIcs = () => {
+    const dayNumbers = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 0 };
+    const byDayMap   = { 0: "SU", 1: "MO", 2: "TU", 3: "WE", 4: "TH", 5: "FR", 6: "SA" };
+    const nextWeekday = (targetDay) => {
+      const today = new Date();
+      const diff  = (targetDay - today.getDay() + 7) % 7 || 7;
+      const d     = new Date(today);
+      d.setDate(today.getDate() + diff);
+      return d;
+    };
+    const fmt = (date, h, m) => {
+      const y  = date.getFullYear();
+      const mo = String(date.getMonth() + 1).padStart(2, "0");
+      const d  = String(date.getDate()).padStart(2, "0");
+      return `${y}${mo}${d}T${String(h).padStart(2,"0")}${String(m||0).padStart(2,"0")}00`;
+    };
+    const lines = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//StudentShifts//EN","X-WR-CALNAME:My Availability","X-WR-TIMEZONE:Europe/Dublin"];
+    Object.entries(availability).forEach(([day, slots]) => {
+      if (!slots?.length) return;
+      const dayNum  = dayNumbers[day];
+      const refDate = nextWeekday(dayNum);
+      slots.forEach(slot => {
+        const [hour, min] = slot.split(":").map(Number);
+        lines.push(
+          "BEGIN:VEVENT",
+          `DTSTART;TZID=Europe/Dublin:${fmt(refDate, hour, min)}`,
+          `DTEND;TZID=Europe/Dublin:${fmt(refDate, hour + 1, min)}`,
+          `RRULE:FREQ=WEEKLY;BYDAY=${byDayMap[dayNum]}`,
+          `SUMMARY:Available — ${day} ${slot}`,
+          `UID:${day}-${slot}-studentshifts`,
+          "END:VEVENT"
+        );
+      });
+    });
+    lines.push("END:VCALENDAR");
+    const blob = new Blob([lines.join("\r\n")], { type: "text/calendar" });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement("a");
+    a.href = url; a.download = "my-availability.ics"; a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ── Notification preferences ─────────────────────────────────────────────
+  const toggleNotifPref = async (eventType, channel) => {
+    const current = notifPrefs[eventType] || { push: true, email: true };
+    const next    = { ...current, [channel]: !current[channel] };
+    setNotifPrefs(prev => ({ ...prev, [eventType]: next }));
+    supabase.from("notification_preferences").upsert(
+      { user_id: currentUser.id, event_type: eventType, push_enabled: next.push, email_enabled: next.email },
+      { onConflict: "user_id,event_type" }
+    ).catch(() => {});
   };
 
   // ── Export ───────────────────────────────────────────────────────────────
@@ -633,6 +705,15 @@ export default function AccountPage() {
               <Collapsible title="My Availability">
                 <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.75rem", lineHeight: 1.4 }}>Tap the slots you're free each week.</p>
                 <AvailabilityPicker value={availability} onChange={handleAvailabilityChange} />
+                {Object.values(availability).some(s => s?.length > 0) && (
+                  <button
+                    type="button"
+                    onClick={exportAvailabilityIcs}
+                    style={{ marginTop: "0.85rem", padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                  >
+                    📅 Export to Calendar (.ics)
+                  </button>
+                )}
               </Collapsible>
 
               {/* Job Preferences */}
@@ -884,6 +965,39 @@ export default function AccountPage() {
                 <p style={{ margin: "0.4rem 0 0", fontSize: "0.77rem", color: "#64748b", paddingLeft: "1.75rem" }}>
                   Alerts are sent when jobs matching your preferred categories are posted.
                 </p>
+              </div>
+
+              {/* Notification Preferences */}
+              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.6rem" }}>Notification Preferences</p>
+                <p style={{ fontSize: "0.78rem", color: "#6b7280", marginBottom: "0.85rem", lineHeight: 1.4 }}>Choose what you're notified about and how.</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                  {[
+                    { key: "new_message",      label: "New message from a company" },
+                    { key: "application_update", label: "Application status changes" },
+                    { key: "job_alert",        label: "New jobs matching my preferences" },
+                    { key: "trial_reminder",   label: "Reminder before a trial shift" },
+                  ].map(({ key, label }) => {
+                    const pref = notifPrefs[key] || { push: true, email: true };
+                    return (
+                      <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.55rem 0.75rem", backgroundColor: "#f8fafc", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0" }}>
+                        <span style={{ fontSize: "0.82rem", fontWeight: "600", color: "#374151", flex: 1 }}>{label}</span>
+                        <div style={{ display: "flex", gap: "0.65rem", flexShrink: 0 }}>
+                          {pushSupported && (
+                            <label style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer", fontSize: "0.72rem", color: "#64748b" }}>
+                              <input type="checkbox" checked={pref.push} onChange={() => toggleNotifPref(key, "push")} style={{ accentColor: "var(--color-brand)", width: "14px", height: "14px" }} />
+                              Push
+                            </label>
+                          )}
+                          <label style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer", fontSize: "0.72rem", color: "#64748b" }}>
+                            <input type="checkbox" checked={pref.email} onChange={() => toggleNotifPref(key, "email")} style={{ accentColor: "var(--color-brand)", width: "14px", height: "14px" }} />
+                            Email
+                          </label>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* DM Consent */}

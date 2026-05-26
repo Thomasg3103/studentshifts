@@ -70,15 +70,19 @@ export async function fetchApplicationStatuses(userId) {
   }]));
 }
 
-export async function removeApplication(userId, jobId) {
+export async function removeApplication(userId, jobId, withdrawReason = null) {
   await ensureValidSession();
+  if (withdrawReason) {
+    await withTimeout(
+      supabase.from("applications").update({ withdraw_reason: withdrawReason }).eq("student_id", userId).eq("job_id", jobId),
+      10000
+    );
+  }
   const { data, error } = await withTimeout(
     supabase.from("applications").delete().eq("student_id", userId).eq("job_id", jobId).select("id"),
     10000
   );
   if (error) throw error;
-  // B5-M9: throw if RLS blocked the delete (e.g. application is Accepted) rather than
-  // silently treating a no-op as success.
   if (!data?.length) throw new Error("Application cannot be withdrawn — it may already be accepted.");
 }
 

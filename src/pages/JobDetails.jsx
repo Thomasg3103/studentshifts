@@ -22,7 +22,7 @@ function DetailCard({ label, children }) {
 
 
 export default function JobDetails({ job }) {
-  const { setPage, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
+  const { setPage, setSelectedJob, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
     setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation } = useApp();
   const [applyModal, setApplyModal]       = useState(null);
   const [photoIdx, setPhotoIdx]           = useState(0);
@@ -31,6 +31,42 @@ export default function JobDetails({ job }) {
   const [selectedDay, setSelectedDay]     = useState(null);
   const [screeningAnswers, setScreeningAnswers] = useState([]);
   const [reportOpen, setReportOpen]       = useState(false);
+  const [similarJobs, setSimilarJobs]     = useState([]);
+  const [waitlistStatus, setWaitlistStatus] = useState(null); // null | "on" | "off"
+  const [waitlistLoading, setWaitlistLoading] = useState(false);
+
+  useEffect(() => {
+    if (job?.status !== "Closed" || !currentUser?.id || currentUser?.role !== "student") return;
+    supabase
+      .from("job_waitlist")
+      .select("id")
+      .eq("job_id", job.id)
+      .eq("student_id", currentUser.id)
+      .maybeSingle()
+      .then(({ data }) => setWaitlistStatus(data ? "on" : "off"))
+      .catch(() => setWaitlistStatus("off"));
+  }, [job?.id, job?.status, currentUser?.id]);
+
+  useEffect(() => {
+    if (!job?.category) return;
+    supabase
+      .from("jobs")
+      .select("id, title, company:profiles!jobs_company_id_fkey(name), location, pay, photos, photo_crops, category, days, status")
+      .eq("status", "Active")
+      .eq("category", job.category)
+      .neq("id", job.id)
+      .limit(3)
+      .then(({ data }) => {
+        if (data?.length) setSimilarJobs(data.map(j => ({
+          id: j.id, title: j.title,
+          company: j.company?.name || "",
+          location: j.location, pay: j.pay,
+          photos: j.photos || [], photoCrops: j.photo_crops || [],
+          category: j.category, days: j.days || [], status: j.status,
+        })));
+      })
+      .catch(() => {});
+  }, [job?.id, job?.category]);
   const applyModalRef   = useRef(null);
   const reportModalRef  = useRef(null);
   const lightboxRef     = useRef(null);
@@ -148,6 +184,27 @@ export default function JobDetails({ job }) {
       );
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const toggleWaitlist = async () => {
+    if (!currentUser) { setPage("login"); return; }
+    setWaitlistLoading(true);
+    try {
+      if (waitlistStatus === "on") {
+        await supabase.from("job_waitlist").delete().eq("job_id", job.id).eq("student_id", currentUser.id);
+        setWaitlistStatus("off");
+        toast("Removed from waitlist.");
+      } else {
+        await supabase.from("job_waitlist").insert({ job_id: job.id, student_id: currentUser.id });
+        setWaitlistStatus("on");
+        toast.success("You're on the waitlist! We'll notify you if a spot opens.");
+      }
+    } catch (e) {
+      Sentry.captureException(e);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setWaitlistLoading(false);
     }
   };
 
@@ -332,8 +389,19 @@ export default function JobDetails({ job }) {
                     {(() => {
                       if (job.status === "Closed" || job.status === "Expired") {
                         return (
-                          <div style={{ ...btn, background: "#e2e8f0", color: "#64748b", cursor: "default", textAlign: "center" }}>
-                            {job.status === "Closed" ? "Position Filled" : "Expired"}
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem" }}>
+                            <div style={{ ...btn, background: "#e2e8f0", color: "#64748b", cursor: "default", textAlign: "center" }}>
+                              {job.status === "Closed" ? "Position Filled" : "Expired"}
+                            </div>
+                            {job.status === "Closed" && currentUser?.role === "student" && waitlistStatus !== null && (
+                              <button
+                                onClick={toggleWaitlist}
+                                disabled={waitlistLoading}
+                                style={{ padding: "0.4rem 0.85rem", borderRadius: "2rem", border: `1.5px solid ${waitlistStatus === "on" ? "#fca5a5" : "var(--color-brand)"}`, background: waitlistStatus === "on" ? "#fff1f2" : "white", color: waitlistStatus === "on" ? "#dc2626" : "var(--color-brand)", fontWeight: 700, fontSize: "0.78rem", cursor: waitlistLoading ? "default" : "pointer", fontFamily: "inherit", opacity: waitlistLoading ? 0.7 : 1 }}
+                              >
+                                {waitlistLoading ? "…" : waitlistStatus === "on" ? "Leave Waitlist" : "Join Waitlist"}
+                              </button>
+                            )}
                           </div>
                         );
                       }
@@ -372,6 +440,43 @@ export default function JobDetails({ job }) {
                   ? <div className="rte-content" style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0 }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(job.description, { ALLOWED_TAGS: ["p","br","strong","em","b","i","ul","ol","li","a","h2","h3"], ALLOWED_ATTR: ["href","rel"] }) }} />
                   : <p style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0, whiteSpace: "pre-wrap" }}>{job.description}</p>
                 }
+              </div>
+            )}
+
+            {/* Similar Jobs */}
+            {similarJobs.length > 0 && (
+              <div style={{ marginBottom: "1.5rem" }}>
+                <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.75rem" }}>Similar Jobs</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                  {similarJobs.map(sj => {
+                    const sjPhoto = sj.photos?.[0] || null;
+                    const sjCrop  = sj.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
+                    return (
+                      <button
+                        key={sj.id}
+                        onClick={() => { setSelectedJob(sj); }}
+                        style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.65rem 0.85rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", fontFamily: "inherit", textAlign: "left", width: "100%" }}
+                      >
+                        <div style={{ width: "44px", height: "44px", borderRadius: "0.5rem", overflow: "hidden", flexShrink: 0, position: "relative", backgroundColor: "#f1f5f9" }}>
+                          {sjPhoto ? (
+                            <div style={{ position: "absolute", inset: 0, transform: `translate(${sjCrop.offsetX}%, ${sjCrop.offsetY}%) scale(${sjCrop.zoom})`, transformOrigin: "center" }}>
+                              <img loading="lazy" src={`${sjPhoto}?width=88&quality=70`} alt={sj.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            </div>
+                          ) : (
+                            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                              <span style={{ fontSize: "1.1rem", opacity: 0.4 }}>🏢</span>
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: "0.88rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sj.title}</p>
+                          <p style={{ margin: "0.1rem 0 0", fontSize: "0.78rem", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sj.company} · {sj.location}</p>
+                        </div>
+                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151", flexShrink: 0 }}>{sj.pay}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 

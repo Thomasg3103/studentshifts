@@ -218,11 +218,20 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, onRemove, 
   );
 }
 
+const WITHDRAW_REASONS = [
+  "Found another job",
+  "No longer available",
+  "Changed my mind",
+  "Other",
+];
+
 export default function AppliedJobs() {
   const { appliedJobs, setAppliedJobs, setSavedAppliedJobIds, currentUser, appStatuses: statuses = {}, setPage } = useApp();
   const [confirm, setConfirm] = useState(null); // { jobId, type: "withdraw"|"remove" }
+  const [withdrawReason, setWithdrawReason] = useState("");
 
   const handleRemoveRequest = (jobId, type) => {
+    setWithdrawReason("");
     setConfirm({ jobId, type });
   };
 
@@ -231,7 +240,7 @@ export default function AppliedJobs() {
     const { jobId, type } = confirm;
     setConfirm(null);
     try {
-      await removeApplication(currentUser.id, jobId);
+      await removeApplication(currentUser.id, jobId, type === "withdraw" ? withdrawReason || null : null);
       setAppliedJobs(prev => prev.filter(j => j.id !== jobId));
       setSavedAppliedJobIds(prev => prev.filter(id => id !== jobId));
       toast.success(type === "withdraw" ? "Application withdrawn" : "Application removed");
@@ -297,21 +306,77 @@ export default function AppliedJobs() {
       )}
     </PageWrapper>
 
-    {confirm && confirmingJob && (
+    {confirm && confirmingJob && confirm.type === "withdraw" && (
+      <WithdrawReasonDialog
+        job={confirmingJob}
+        reason={withdrawReason}
+        onReasonChange={setWithdrawReason}
+        onConfirm={handleRemoveConfirm}
+        onCancel={() => setConfirm(null)}
+      />
+    )}
+    {confirm && confirmingJob && confirm.type === "remove" && (
       <ConfirmDialog
-        title={confirm.type === "withdraw" ? "Withdraw application?" : "Remove application?"}
-        message={
-          confirm.type === "withdraw"
-            ? `Your application to ${confirmingJob.title} at ${confirmingJob.company} will be cancelled. This cannot be undone.`
-            : `Remove your declined application to ${confirmingJob.title} at ${confirmingJob.company} from your list?`
-        }
-        confirmLabel={confirm.type === "withdraw" ? "Yes, withdraw" : "Remove"}
+        title="Remove application?"
+        message={`Remove your declined application to ${confirmingJob.title} at ${confirmingJob.company} from your list?`}
+        confirmLabel="Remove"
         confirmStyle={{ background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 14px rgba(244,63,94,0.3)" }}
         onConfirm={handleRemoveConfirm}
         onCancel={() => setConfirm(null)}
       />
     )}
     </>
+  );
+}
+
+function WithdrawReasonDialog({ job, reason, onReasonChange, onConfirm, onCancel }) {
+  const panelRef = useRef(null);
+  useFocusTrap(panelRef, onCancel);
+  return (
+    <div
+      onClick={onCancel}
+      style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)" }}
+    >
+      <div
+        ref={panelRef}
+        onClick={e => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="withdraw-dialog-title"
+        style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "1.75rem 1.5rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
+      >
+        <h3 id="withdraw-dialog-title" style={{ fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.25rem", color: "#1e293b" }}>Withdraw application?</h3>
+        <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1rem", lineHeight: 1.55 }}>
+          {job.title} at {job.company} — why are you withdrawing?
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.25rem" }}>
+          {WITHDRAW_REASONS.map(r => (
+            <button
+              key={r}
+              onClick={() => onReasonChange(r)}
+              style={{ padding: "0.6rem 0.85rem", borderRadius: "0.65rem", border: `1.5px solid ${reason === r ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: reason === r ? "#fce7f3" : "#f8fafc", color: reason === r ? "var(--color-brand)" : "#374151", fontWeight: reason === r ? "700" : "500", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
+            >
+              {reason === r ? "✓ " : ""}{r}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: "0.75rem" }}>
+          <button
+            onClick={onCancel}
+            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
+          >
+            Keep Application
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={!reason}
+            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", fontWeight: 700, cursor: reason ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.875rem", color: "white", background: reason ? "linear-gradient(135deg, #f43f5e, #e11d48)" : "#e2e8f0", boxShadow: reason ? "0 4px 14px rgba(244,63,94,0.3)" : "none" }}
+          >
+            Withdraw
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
