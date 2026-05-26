@@ -231,7 +231,7 @@ export default function LandingPage() {
         <SectionHeading>How It Works</SectionHeading>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "3.5rem" }}>
           {HOW_IT_WORKS.map(({ icon, step, desc }) => (
-            <div key={step} style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem", textAlign: "center" }}>
+            <div key={step} style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "1rem", padding: "1.5rem", textAlign: "center" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.6rem" }}>{icon}</div>
               <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1e293b", margin: "0 0 0.4rem" }}>{step}</p>
               <p style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.6, margin: 0 }}>{desc}</p>
@@ -258,7 +258,7 @@ export default function LandingPage() {
 
         {/* Employer pitch */}
         <SectionHeading>Hiring Students?</SectionHeading>
-        <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1.25rem", padding: "2rem 2rem", display: "flex", gap: "2.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "3.5rem" }}>
+        <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "1.25rem", padding: "2rem 2rem", display: "flex", gap: "2.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "3.5rem" }}>
           <div style={{ flex: 1, minWidth: "220px" }}>
             <h3 style={{ fontWeight: 800, fontSize: "1.3rem", color: "#1e293b", margin: "0 0 0.6rem" }}>Post shifts, find reliable students</h3>
             <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.75, margin: "0 0 1.25rem" }}>
