@@ -27,7 +27,7 @@ export default function AboutPage() {
         <div style={{ width: "72px", height: "72px", borderRadius: "1.25rem", background: "linear-gradient(135deg, #f43f5e, #e11d48)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", boxShadow: "0 8px 24px rgba(244,63,94,0.35)" }}>
           <img loading="lazy" src="/favicon.svg" alt="StudentShifts" style={{ width: "40px", height: "45px" }} />
         </div>
-        <h1 style={{ fontWeight: "800", fontSize: "2rem", color: "#1e293b", marginBottom: "0.5rem" }}>About StudentShifts</h1>
+        <h1 style={{ fontWeight: "800", fontSize: "2rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.5rem" }}>About StudentShifts</h1>
         <p style={{ color: "#64748b", fontSize: "1rem", maxWidth: "520px", margin: "0 auto", lineHeight: "1.7" }}>
           We connect students in Galway with flexible part-time work that fits around their studies, lifestyle, and ambitions.
         </p>
@@ -49,9 +49,9 @@ export default function AboutPage() {
             { icon: "📋", step: "3. Apply Instantly", desc: "One click to apply. Your CV is sent straight to the employer — no faff, no forms." },
             { icon: "🎉", step: "4. Get Hired", desc: "Hear back fast. Start earning while you study. It's that simple." },
           ].map(({ icon, step, desc }) => (
-            <div key={step} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
+            <div key={step} style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
               <div style={{ fontSize: "2rem", marginBottom: "0.6rem" }}>{icon}</div>
-              <p style={{ fontWeight: "700", fontSize: "0.9rem", color: "#1e293b", marginBottom: "0.4rem" }}>{step}</p>
+              <p style={{ fontWeight: "700", fontSize: "0.9rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.4rem" }}>{step}</p>
               <p style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: "1.6", margin: 0 }}>{desc}</p>
             </div>
           ))}
@@ -85,9 +85,9 @@ export default function AboutPage() {
             { name: "Liam Hyland",       role: "Co-Founder & CMO", photo: "/Team/liam.jpg",            pos: "top" },
             { name: "John McCarthy",     role: "Co-Founder & CMO", photo: "/Team/john.jpg",             pos: "top" },
           ].map(({ name, role, photo, pos }) => (
-            <div key={name} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
+            <div key={name} style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
               <img loading="lazy" src={photo} alt={name} style={{ width: "80px", height: "80px", borderRadius: "50%", objectFit: "cover", objectPosition: pos, marginBottom: "0.65rem", border: "3px solid #e2e8f0" }} />
-              <p style={{ fontWeight: "700", fontSize: "0.9rem", color: "#1e293b", margin: 0 }}>{name}</p>
+              <p style={{ fontWeight: "700", fontSize: "0.9rem", color: "var(--color-text-primary, #1e293b)", margin: 0 }}>{name}</p>
               <p style={{ fontSize: "0.78rem", color: "var(--color-brand)", fontWeight: "600", margin: "0.2rem 0 0" }}>{role}</p>
             </div>
           ))}
@@ -116,8 +116,8 @@ export default function AboutPage() {
 
 function Section({ title, children }) {
   return (
-    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem 1.75rem", marginBottom: "1.25rem" }}>
-      <h2 style={{ fontWeight: "800", fontSize: "1.1rem", color: "#1e293b", marginBottom: "0.85rem" }}>{title}</h2>
+    <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem 1.75rem", marginBottom: "1.25rem" }}>
+      <h2 style={{ fontWeight: "800", fontSize: "1.1rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.85rem" }}>{title}</h2>
       {children}
     </div>
   );

@@ -39,7 +39,7 @@ export default class ErrorBoundary extends Component {
     if (this.state.hasError) {
       const msg = this.state.error?.message || "Unknown error";
       return (
-        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#fafafa", padding: "2rem" }}>
+        <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--color-bg-subtle, #fafafa)", padding: "2rem" }}>
           <div style={{ textAlign: "center", maxWidth: "480px" }}>
             <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚠️</div>
             <h2 style={{ fontWeight: "800", fontSize: "1.4rem", color: "#1e293b", marginBottom: "0.5rem" }}>Something went wrong</h2>

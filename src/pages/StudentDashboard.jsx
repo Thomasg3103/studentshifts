@@ -96,7 +96,7 @@ function FilterPanel({
       {/* Sort */}
       <FilterSection title={<>Sort by {sortBy && <Pip n="✓" />}</>} open={openSections.sort} onToggle={() => toggleSection("sort")} onClear={sortBy ? () => setSortBy("") : null}>
         {sortOptions.map(({ value, label }) => (
-          <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "var(--color-brand)" : "var(--color-text-primary, #374151)" }}>
+          <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "var(--color-brand)" : "var(--color-text-body, #374151)" }}>
             <input type="radio" name="sortByPanel" checked={sortBy === value} onChange={() => setSortBy(value)} style={{ cursor: "pointer", accentColor: "var(--color-brand)" }} />
             {label}
           </label>
@@ -125,8 +125,8 @@ function FilterPanel({
         {/* Distance slider — shown below days/times */}
         <div style={{ marginTop: "0.6rem", paddingTop: "0.6rem", borderTop: "1px solid #f3f4f6" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-            <span style={{ fontSize: "0.81rem", color: "var(--color-text-primary, #374151)", fontWeight: 600 }}>Distance</span>
-            <span style={{ fontSize: "0.81rem", color: "var(--color-text-primary, #374151)", fontWeight: 500 }}>{distanceKm === 0 ? "Any" : `Within ${distanceKm} km`}</span>
+            <span style={{ fontSize: "0.81rem", color: "var(--color-text-body, #374151)", fontWeight: 600 }}>Distance</span>
+            <span style={{ fontSize: "0.81rem", color: "var(--color-text-body, #374151)", fontWeight: 500 }}>{distanceKm === 0 ? "Any" : `Within ${distanceKm} km`}</span>
           </div>
           {studentLocation ? (
             <>
@@ -187,7 +187,7 @@ function FilterPanel({
       {/* Schedule */}
       <FilterSection title={<>Schedule {(weekendOnly || allWeekOnly || noWeekends || matchSchedule) && <Pip n="✓" />}</>} open={openSections.schedule} onToggle={() => toggleSection("schedule")} onClear={(weekendOnly || allWeekOnly || noWeekends || matchSchedule) ? () => { setWeekendOnly(false); setAllWeekOnly(false); setNoWeekends(false); setMatchSchedule(false); } : null}>
         {hasStudentAvailability && (
-          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.55rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: matchSchedule ? 700 : 500, color: matchSchedule ? "var(--color-brand)" : "var(--color-text-primary, #374151)", paddingBottom: "0.45rem", borderBottom: "1px solid var(--color-border-light, #f3f4f6)" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.55rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: matchSchedule ? 700 : 500, color: matchSchedule ? "var(--color-brand)" : "var(--color-text-body, #374151)", paddingBottom: "0.45rem", borderBottom: "1px solid var(--color-border-light, #f3f4f6)" }}>
             <input type="checkbox" checked={matchSchedule} onChange={() => setMatchSchedule(p => !p)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
             Matches my schedule
           </label>
@@ -197,7 +197,7 @@ function FilterPanel({
           { label: "All Week",     active: allWeekOnly, toggle: () => setAllWeekOnly(p => !p) },
           { label: "No Weekends",  active: noWeekends,  toggle: () => setNoWeekends(p => !p) },
         ].map(({ label, active, toggle }) => (
-          <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: active ? 700 : 500, color: active ? "var(--color-brand)" : "var(--color-text-primary, #374151)" }}>
+          <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: active ? 700 : 500, color: active ? "var(--color-brand)" : "var(--color-text-body, #374151)" }}>
             <input type="checkbox" checked={active} onChange={toggle} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
             {label}
           </label>
@@ -936,7 +936,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                         { value: "distanceFar",  label: "Distance: Furthest → Closest" },
                       ] : []),
                     ].map(({ value, label }) => (
-                      <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0", cursor: "pointer", fontSize: "0.85rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "var(--color-brand)" : "var(--color-text-primary, #374151)" }}>
+                      <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0", cursor: "pointer", fontSize: "0.85rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "var(--color-brand)" : "var(--color-text-body, #374151)" }}>
                         <input type="radio" name="sortByAbove" checked={sortBy === value} onChange={() => { setSortBy(value); setSortDropdownOpen(false); }} style={{ cursor: "pointer", accentColor: "var(--color-brand)" }} />
                         {label}
                       </label>
@@ -983,7 +983,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                     <p style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>No jobs match your filters</p>
                     <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem", color: "#6b7280" }}>
                       {firstBlockingFilter
-                        ? <><strong style={{ color: "var(--color-text-primary, #374151)" }}>{firstBlockingFilter}</strong> has no matches — try widening it.</>
+                        ? <><strong style={{ color: "var(--color-text-body, #374151)" }}>{firstBlockingFilter}</strong> has no matches — try widening it.</>
                         : "Try removing some filters."}
                     </p>
                     <button onClick={clearAll} style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>

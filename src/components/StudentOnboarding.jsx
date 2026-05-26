@@ -221,7 +221,7 @@ export default function StudentOnboarding() {
         role="dialog"
         aria-modal="true"
         aria-label="Profile setup"
-        style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "400px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)", textAlign: "center", maxHeight: "90vh", overflowY: "auto" }}
+        style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "400px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)", textAlign: "center", maxHeight: "90vh", overflowY: "auto" }}
       >
         <StepDots step={step} />
 
@@ -251,6 +251,6 @@ export default function StudentOnboarding() {
 }
 
 const btnPrimary = { width: "100%", padding: "0.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", boxShadow: "0 4px 18px rgba(162,29,84,0.3)" };
-const btnOutline = { width: "100%", padding: "0.7rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem" };
+const btnOutline = { width: "100%", padding: "0.7rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem" };
 const btnGhost   = { background: "none", border: "none", color: "#64748b", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", padding: "0.4rem" };
 const btnSmall   = { padding: "0.65rem 1rem", borderRadius: "0.65rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", whiteSpace: "nowrap" };

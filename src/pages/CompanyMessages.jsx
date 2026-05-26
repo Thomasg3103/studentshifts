@@ -178,7 +178,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
       <div ref={msgListRef} style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
         {!loading && hasMore && (
           <div style={{ textAlign: "center", marginBottom: "0.5rem" }}>
-            <button onClick={loadEarlier} disabled={loadingMore} style={{ padding: "0.35rem 1rem", borderRadius: "999px", border: "1.5px solid #e5e7eb", background: "white", color: "#64748b", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: loadingMore ? 0.6 : 1 }}>
+            <button onClick={loadEarlier} disabled={loadingMore} style={{ padding: "0.35rem 1rem", borderRadius: "999px", border: "1.5px solid #e5e7eb", background: "var(--color-bg-elevated, white)", color: "#64748b", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: loadingMore ? 0.6 : 1 }}>
               {loadingMore ? "Loading…" : "Load earlier messages"}
             </button>
           </div>

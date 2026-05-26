@@ -62,7 +62,7 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
   };
 
   return (
-    <div style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.5rem", position: "relative" }}>
+    <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.5rem", position: "relative" }}>
       <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", marginBottom: "0.5rem" }}>💬 Messages</p>
       <div style={{ maxHeight: "200px", overflowY: "auto", marginBottom: "0.5rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
         {loading

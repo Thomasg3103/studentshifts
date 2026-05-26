@@ -189,7 +189,7 @@ export default function ForumPage() {
             />
             {postError && <p style={{ margin: "0 0 0.6rem", fontSize: "0.8rem", color: "#ef4444" }}>{postError}</p>}
             <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-              <button onClick={() => { setShowForm(false); setPostError(""); }} style={{ padding: "0.5rem 1rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#64748b", fontWeight: 600, fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
+              <button onClick={() => { setShowForm(false); setPostError(""); }} style={{ padding: "0.5rem 1rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "#64748b", fontWeight: 600, fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
                 Cancel
               </button>
               <button onClick={handlePost} disabled={posting} style={{ padding: "0.5rem 1.25rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: 700, fontSize: "0.85rem", cursor: posting ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: posting ? 0.7 : 1 }}>

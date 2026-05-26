@@ -35,8 +35,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "Start t
   const isEmpty = !value || value.replace(/<[^>]+>/g, "").trim() === "";
 
   return (
-    <div style={{ border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", overflow: "hidden", backgroundColor: "white" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.5rem 0.75rem", borderBottom: "1.5px solid #e2e8f0", backgroundColor: "#f9fafb", flexWrap: "wrap" }}>
+    <div style={{ border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", overflow: "hidden", backgroundColor: "var(--color-bg-elevated, white)" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.3rem", padding: "0.5rem 0.75rem", borderBottom: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-surface, #f8fafc)", flexWrap: "wrap" }}>
         <ToolBtn cmd="bold" title="Bold" active={activeFormats.bold} onExec={exec} style={{ fontWeight: "800", fontSize: "0.88rem" }}>B</ToolBtn>
         <ToolBtn cmd="italic" title="Italic" active={activeFormats.italic} onExec={exec} style={{ fontStyle: "italic", fontSize: "0.88rem" }}>I</ToolBtn>
         <ToolBtn cmd="underline" title="Underline" active={activeFormats.underline} onExec={exec} style={{ textDecoration: "underline", fontSize: "0.88rem" }}>U</ToolBtn>

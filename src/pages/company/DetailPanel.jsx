@@ -19,7 +19,7 @@ const PdfModal = lazy(() => import("./PdfModal").then(m => ({ default: m.PdfModa
 const panelActionBtn = (variant) => {
   const styles = {
     primary:   { backgroundColor: "var(--color-brand)", color: "white",    border: "none" },
-    secondary: { backgroundColor: "var(--color-bg-elevated, white)",   color: "var(--color-text-primary, #374151)",  border: "1px solid var(--color-border-light, #d1d5db)" },
+    secondary: { backgroundColor: "var(--color-bg-elevated, white)",   color: "var(--color-text-body, #374151)",  border: "1px solid var(--color-border-light, #d1d5db)" },
     danger:    { backgroundColor: "var(--color-bg-elevated, white)",   color: "#b91c1c",  border: "1px solid #fca5a5" },
     accept:    { backgroundColor: "#15803d", color: "white",    border: "none" },
   };
@@ -350,7 +350,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
           {stage !== "applied" && (
             <button
               onClick={() => setProfileOpen(p => !p)}
-              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "0.55rem 0.85rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", backgroundColor: profileOpen ? "var(--color-bg-surface, #f8fafc)" : "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "0.55rem 0.85rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", backgroundColor: profileOpen ? "var(--color-bg-surface, #f8fafc)" : "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
             >
               <span>{profileOpen ? "Hide Profile" : "View Profile"}</span>
               <span style={{ fontSize: "0.7rem", color: "#64748b" }}>{profileOpen ? "▲" : "▼"}</span>
@@ -387,14 +387,14 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                 <button
                   onClick={openCv}
                   disabled={!applicant.cvName || cvLoading}
-                  style={{ flex: 1, padding: "0.55rem 0.75rem", borderRadius: "0.4rem", border: `1px solid ${applicant.cvName ? "var(--color-border-light, #d1d5db)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: "var(--color-bg-elevated, white)", color: applicant.cvName ? "var(--color-text-primary, #374151)" : "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.82rem", cursor: applicant.cvName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
+                  style={{ flex: 1, padding: "0.55rem 0.75rem", borderRadius: "0.4rem", border: `1px solid ${applicant.cvName ? "var(--color-border-light, #d1d5db)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: "var(--color-bg-elevated, white)", color: applicant.cvName ? "var(--color-text-body, #374151)" : "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.82rem", cursor: applicant.cvName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
                 >
                   {cvLoading ? "Loading…" : "View CV"}
                 </button>
                 <button
                   onClick={openCoverLetter}
                   disabled={!applicant.coverLetterName || clLoading}
-                  style={{ flex: 1, padding: "0.55rem 0.75rem", borderRadius: "0.4rem", border: `1px solid ${applicant.coverLetterName ? "var(--color-border-light, #d1d5db)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: "var(--color-bg-elevated, white)", color: applicant.coverLetterName ? "var(--color-text-primary, #374151)" : "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.82rem", cursor: applicant.coverLetterName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
+                  style={{ flex: 1, padding: "0.55rem 0.75rem", borderRadius: "0.4rem", border: `1px solid ${applicant.coverLetterName ? "var(--color-border-light, #d1d5db)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: "var(--color-bg-elevated, white)", color: applicant.coverLetterName ? "var(--color-text-body, #374151)" : "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.82rem", cursor: applicant.coverLetterName ? "pointer" : "default", fontFamily: "inherit", textAlign: "center" }}
                 >
                   {clLoading ? "Loading…" : "Cover Letter"}
                 </button>
@@ -437,7 +437,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                           setInterviewRounds(prev => prev.map((r, idx) => idx === i ? { ...r, date: v } : r));
                         }}
                         onBlur={() => onSaveInterviewRoundsData?.(applicant.id, interviewRounds)}
-                        style={{ flex: 1, minWidth: "120px", padding: "0.4rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", fontSize: "0.8rem", fontFamily: "inherit", color: "var(--color-text-primary, #374151)", backgroundColor: "var(--color-bg-elevated, white)" }}
+                        style={{ flex: 1, minWidth: "120px", padding: "0.4rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", fontSize: "0.8rem", fontFamily: "inherit", color: "var(--color-text-body, #374151)", backgroundColor: "var(--color-bg-elevated, white)" }}
                       />
                       <input
                         type="time"
@@ -447,7 +447,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                           setInterviewRounds(prev => prev.map((r, idx) => idx === i ? { ...r, time: v } : r));
                         }}
                         onBlur={() => onSaveInterviewRoundsData?.(applicant.id, interviewRounds)}
-                        style={{ flex: 1, minWidth: "90px", padding: "0.4rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", fontSize: "0.8rem", fontFamily: "inherit", color: "var(--color-text-primary, #374151)", backgroundColor: "var(--color-bg-elevated, white)" }}
+                        style={{ flex: 1, minWidth: "90px", padding: "0.4rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", fontSize: "0.8rem", fontFamily: "inherit", color: "var(--color-text-body, #374151)", backgroundColor: "var(--color-bg-elevated, white)" }}
                       />
                     </div>
                     <button

@@ -53,18 +53,18 @@ export default function HelpPage() {
         <div style={{ maxWidth: "680px", margin: "0 auto" }}>
 
           <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-            <h1 style={{ fontWeight: 800, fontSize: "2rem", color: "#1e293b", marginBottom: "0.5rem" }}>Help Centre</h1>
+            <h1 style={{ fontWeight: 800, fontSize: "2rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.5rem" }}>Help Centre</h1>
             <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6 }}>
               Find answers to common questions, or get in touch with our team.
             </p>
           </div>
 
           {/* FAQs */}
-          <h2 style={{ fontWeight: 700, fontSize: "1.15rem", color: "#1e293b", marginBottom: "1rem" }}>Frequently Asked Questions</h2>
+          <h2 style={{ fontWeight: 700, fontSize: "1.15rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "1rem" }}>Frequently Asked Questions</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "2.5rem" }}>
             {FAQS.map(({ q, a }) => (
-              <details key={q} style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "0.85rem 1rem" }}>
-                <summary style={{ fontWeight: 700, fontSize: "0.92rem", color: "#1e293b", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <details key={q} style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "0.85rem 1rem" }}>
+                <summary style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--color-text-primary, #1e293b)", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   {q} <span style={{ color: "#64748b", fontSize: "0.75rem" }}>▾</span>
                 </summary>
                 <p style={{ margin: "0.6rem 0 0", fontSize: "0.88rem", color: "#64748b", lineHeight: 1.6 }}>{a}</p>
@@ -73,8 +73,8 @@ export default function HelpPage() {
           </div>
 
           {/* Contact */}
-          <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem", textAlign: "center" }}>
-            <h2 style={{ fontWeight: 700, fontSize: "1.1rem", color: "#1e293b", marginBottom: "0.5rem" }}>Contact Us</h2>
+          <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem", textAlign: "center" }}>
+            <h2 style={{ fontWeight: 700, fontSize: "1.1rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.5rem" }}>Contact Us</h2>
             <p style={{ color: "#64748b", fontSize: "0.88rem", lineHeight: 1.6, marginBottom: "1rem" }}>
               Can't find what you're looking for? We're happy to help.
             </p>

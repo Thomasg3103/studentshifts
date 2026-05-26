@@ -72,7 +72,7 @@ export default function LoginPage() {
       <PageWrapper narrow>
         <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
           <div style={{ marginBottom: "1.75rem" }}>
-            <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Reset password</h1>
+            <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Reset password</h1>
             <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>
               {resetSent ? "Check your email for a reset link." : "Enter your email and we'll send you a reset link."}
             </p>
@@ -136,7 +136,7 @@ export default function LoginPage() {
       <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
 
         <div style={{ marginBottom: "1.75rem" }}>
-          <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Welcome back</h1>
+          <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Welcome back</h1>
           <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Sign in to find your next shift</p>
         </div>
 
@@ -205,9 +205,9 @@ export default function LoginPage() {
   );
 }
 
-const fieldStyle = { width: "100%", padding: "0.72rem 1rem", margin: "0.4rem 0", display: "block", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", boxSizing: "border-box", fontSize: "1rem", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#1e293b", outline: "none" };
+const fieldStyle = { width: "100%", padding: "0.72rem 1rem", margin: "0.4rem 0", display: "block", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", boxSizing: "border-box", fontSize: "1rem", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "var(--color-text-primary, #1e293b)", outline: "none" };
 const srOnly     = { position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", marginTop: "0.6rem", fontSize: "0.95rem", fontFamily: "inherit" };
 const btnPrimary = { ...btnBase, background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)", marginTop: "1rem" };
-const btnGhost   = { ...btnBase, backgroundColor: "#fafafa", color: "#64748b", boxShadow: "none" };
+const btnGhost   = { ...btnBase, backgroundColor: "var(--color-bg-subtle, #fafafa)", color: "#64748b", boxShadow: "none" };
 const btnHome    = { ...btnBase, marginTop: "0.75rem", background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 18px rgba(244,63,94,0.35)" };

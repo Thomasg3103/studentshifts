@@ -79,10 +79,10 @@ export default function SavedStudents({ students, _loading, fetched, error, like
   if (chatStudent) {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 280px)", minHeight: "400px", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", overflow: "hidden" }}>
-        <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "#f8fafc", flexShrink: 0 }}>
+        <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", flexShrink: 0 }}>
           <button onClick={() => setChatStudent(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "#6b7280", padding: "0.2rem 0.5rem" }}>←</button>
           <div>
-            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{chatStudent.name}</p>
+            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #1e293b)" }}>{chatStudent.name}</p>
             <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>Direct Message</p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function SavedStudents({ students, _loading, fetched, error, like
           <p style={{ margin: 0, padding: "0.4rem 1rem", fontSize: "0.78rem", color: "#e11d48", backgroundColor: "#fff1f2", borderTop: "1px solid #fecdd3" }}>{chatError}</p>
         )}
         {!chatInput && !chatLoading && chatMessages.length === 0 && (
-          <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
+          <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid #e5e7eb" }}>
             <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
             <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
               {savedQuickReplies.map(qr => (
@@ -118,7 +118,7 @@ export default function SavedStudents({ students, _loading, fetched, error, like
             </div>
           </div>
         )}
-        <div style={{ padding: "0.75rem 1rem", borderTop: chatInput ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
+        <div style={{ padding: "0.75rem 1rem", borderTop: chatInput ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "var(--color-bg-elevated, white)" }}>
           <input
             ref={chatInputRef}
             value={chatInput}
@@ -156,7 +156,7 @@ export default function SavedStudents({ students, _loading, fetched, error, like
     return (
       <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280" }}>
         <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>♡</div>
-        <p style={{ fontWeight: "700", fontSize: "1rem", color: "#1e293b", marginBottom: "0.4rem" }}>No saved students yet</p>
+        <p style={{ fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.4rem" }}>No saved students yet</p>
         <p style={{ fontSize: "0.875rem", color: "#64748b" }}>Browse Students and tap the heart icon to save students here.</p>
       </div>
     );
@@ -170,7 +170,7 @@ export default function SavedStudents({ students, _loading, fetched, error, like
       {savedStudents.map(s => {
         const hasApplied = applicantStudentIds?.has(s.id);
         return (
-        <div key={s.id} style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+        <div key={s.id} style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {s.profile_photo_url
               ? <img loading="lazy" src={`${s.profile_photo_url}?width=100&quality=75`} alt={`${s.name} profile`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -180,7 +180,7 @@ export default function SavedStudents({ students, _loading, fetched, error, like
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
-                <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{s.name}</p>
+                <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #1e293b)" }}>{s.name}</p>
                 {hasApplied && (
                   <span className="badge badge-sm badge-green" style={{ whiteSpace: "nowrap", flexShrink: 0 }}>Applied ✓</span>
                 )}

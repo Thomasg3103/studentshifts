@@ -290,7 +290,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
         const isLiked   = likedStudentIds?.has(s.id);
         const hasApplied = applicantStudentIds?.has(s.id);
         return (
-        <div key={s.id} style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+        <div key={s.id} style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {s.profile_photo_url
               ? <img loading="lazy" src={`${s.profile_photo_url}?width=100&quality=75`} alt={`${s.name} profile`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -357,7 +357,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
                       if (!likedStudentIds?.has(s.id)) onToggleLike?.(s.id);
                       toast.success(`${s.name} added to ${p.title} shortlist`);
                       setShortlistFor(null);
-                    }} style={{ padding: "0.3rem 0.7rem", borderRadius: "999px", border: "1.5px solid var(--color-brand)", background: "white", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
+                    }} style={{ padding: "0.3rem 0.7rem", borderRadius: "999px", border: "1.5px solid var(--color-brand)", background: "var(--color-bg-elevated, white)", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
                       {p.title}
                     </button>
                   ))}
@@ -371,7 +371,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
         <div style={{ textAlign: "center", paddingTop: "0.5rem" }}>
           <button
             onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
-            style={{ padding: "0.6rem 1.75rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#1e293b", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
+            style={{ padding: "0.6rem 1.75rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "#1e293b", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
           >
             Load more ({displayStudents.length - visibleCount} remaining)
           </button>

@@ -75,7 +75,7 @@ export default function VerifyDocsPage() {
       <PageWrapper narrow>
         <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⏳</div>
-          <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Documents submitted</h2>
+          <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Documents submitted</h2>
           <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.25rem" }}>
             Your student ID and government ID are under review by our team. We'll email you once your account is verified — usually within 24 hours on weekdays.
           </p>
@@ -103,7 +103,7 @@ export default function VerifyDocsPage() {
 
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>{isRejected ? "❌" : "🪪"}</div>
-          <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>
+          <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>
             {isRejected ? "Verification not approved" : "Verify your identity"}
           </h2>
           <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>
@@ -127,7 +127,7 @@ export default function VerifyDocsPage() {
           </div>
         )}
 
-        <div style={{ backgroundColor: "#f8fafc", borderRadius: "0.85rem", padding: "1rem 1.25rem", border: "1px solid #e2e8f0" }}>
+        <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.85rem", padding: "1rem 1.25rem", border: "1px solid #e2e8f0" }}>
           <p style={{ margin: "0 0 0.75rem", fontSize: "0.76rem", color: "#64748b", lineHeight: 1.5 }}>
             Accepted formats: JPG, PNG, WebP, PDF, Word (.doc/.docx) &nbsp;·&nbsp; Max size: 10 MB per file
           </p>
@@ -161,9 +161,9 @@ export default function VerifyDocsPage() {
 
     {showAvailabilityPrompt && (
       <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-        <div ref={availabilityPromptRef} role="dialog" aria-modal="true" aria-labelledby="availability-prompt-title" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+        <div ref={availabilityPromptRef} role="dialog" aria-modal="true" aria-labelledby="availability-prompt-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>📅</div>
-          <h3 id="availability-prompt-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "#1e293b" }}>Documents submitted!</h3>
+          <h3 id="availability-prompt-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "var(--color-text-primary, #1e293b)" }}>Documents submitted!</h3>
           <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.5rem", lineHeight: 1.6 }}>
             While you wait for verification, set your available times. Companies use this to plan rosters — it helps you get noticed faster.
           </p>
@@ -176,7 +176,7 @@ export default function VerifyDocsPage() {
             </button>
             <button
               onClick={() => { setShowAvailabilityPrompt(false); setPage("studentDashboard"); }}
-              style={{ padding: "0.75rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
+              style={{ padding: "0.75rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#64748b", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
             >
               Skip for Now
             </button>

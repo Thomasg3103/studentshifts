@@ -26,18 +26,18 @@ export default function ContactPage() {
       <div style={{ maxWidth: "560px", margin: "0 auto" }}>
 
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
-          <h1 style={{ fontWeight: 800, fontSize: "2rem", color: "#1e293b", margin: "0 0 0.4rem" }}>Contact Us</h1>
+          <h1 style={{ fontWeight: 800, fontSize: "2rem", color: "var(--color-text-primary, #1e293b)", margin: "0 0 0.4rem" }}>Contact Us</h1>
           <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0 }}>We're a small team — we'll get back to you as soon as we can.</p>
         </div>
 
         {/* Email */}
-        <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem", marginBottom: "1rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+        <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem", marginBottom: "1rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
           <p style={labelStyle}>General enquiries</p>
           <a href="mailto:hello@studentshifts.ie" style={linkStyle}>hello@studentshifts.ie</a>
           <p style={hintStyle}>Jobs, partnerships, feedback, or anything else.</p>
         </div>
 
-        <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem", marginBottom: "1rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+        <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem", marginBottom: "1rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
           <p style={labelStyle}>Privacy &amp; data requests</p>
           <a href="mailto:privacy@studentshifts.ie" style={linkStyle}>privacy@studentshifts.ie</a>
           <p style={hintStyle}>Data access, deletion requests, or GDPR queries.</p>

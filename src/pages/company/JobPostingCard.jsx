@@ -17,7 +17,7 @@ function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }
         <h3 style={{ margin: "0 0 0.4rem", fontWeight: "700", fontSize: "1.05rem", color: "var(--color-text-primary, #0f172a)" }}>{title}</h3>
         <p style={{ margin: "0 0 1.5rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)" }}>{body}</p>
         <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-          <button onClick={onCancel} style={{ flex: 1, padding: "0.6rem 1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.6rem", background: "var(--color-bg-elevated, white)", cursor: "pointer", color: "var(--color-text-primary, #374151)", fontSize: "0.88rem", fontWeight: "600", fontFamily: "inherit" }}>Cancel</button>
+          <button onClick={onCancel} style={{ flex: 1, padding: "0.6rem 1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.6rem", background: "var(--color-bg-elevated, white)", cursor: "pointer", color: "var(--color-text-body, #374151)", fontSize: "0.88rem", fontWeight: "600", fontFamily: "inherit" }}>Cancel</button>
           <button onClick={onConfirm} style={{ flex: 1, padding: "0.6rem 1rem", border: "none", borderRadius: "0.6rem", background: "#dc2626", cursor: "pointer", color: "white", fontSize: "0.88rem", fontWeight: "700", fontFamily: "inherit" }}>{confirmLabel}</button>
         </div>
       </div>
@@ -55,7 +55,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
 
   const actionBtn = {
     padding: "0.32rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem",
-    background: "white", cursor: "pointer", color: "#374151",
+    background: "var(--color-bg-elevated, white)", cursor: "pointer", color: "#374151",
     fontSize: "0.76rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap",
   };
 

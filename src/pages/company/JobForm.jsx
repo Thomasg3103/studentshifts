@@ -14,7 +14,7 @@ const inputStyle  = { width: "100%", padding: "0.6rem 0.75rem", borderRadius: "0
 const btnBase  = { padding: "0.6rem 1.1rem", borderRadius: "0.5rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.875rem", fontFamily: "inherit", letterSpacing: "-0.01em" };
 const btnGreen = { ...btnBase, backgroundColor: "#059669" };
 const btnGray  = { ...btnBase, backgroundColor: "#64748b" };
-const zoomBtn  = { padding: "0.2rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" };
+const zoomBtn  = { padding: "0.2rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" };
 
 /* ─── JobForm ────────────────────────────────────────────────────────────── */
 
@@ -280,7 +280,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
 
         {/* Manual address form */}
         {showManual && (
-          <div style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.25rem" }}>
+          <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.25rem" }}>
             <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", marginBottom: "0.6rem" }}>Enter address manually</p>
             <input aria-label="Address line 1" value={manualLine1} onChange={e => setManualLine1(e.target.value)} placeholder="Address Line 1" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
             <input aria-label="Address line 2" value={manualLine2} onChange={e => setManualLine2(e.target.value)} placeholder="Address Line 2 (optional)" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
@@ -532,7 +532,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
 
         {/* Add photo button */}
         {totalPhotos < 10 && (
-          <label style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px dashed var(--color-border-light, #d1d5db)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontSize: "0.8rem", fontWeight: "600", cursor: "pointer" }}>
+          <label style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem", padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px dashed var(--color-border-light, #d1d5db)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontSize: "0.8rem", fontWeight: "600", cursor: "pointer" }}>
             + Add Photo{totalPhotos === 0 ? " (required)" : ""}
             <input type="file" accept="image/*" multiple style={{ display: "none" }} onChange={handlePhotoAdd} />
           </label>
@@ -568,14 +568,14 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
               <button type="button" onClick={() => {
                 const qs = (formData.screeningQuestions || []).filter((_, idx) => idx !== i);
                 setFormData(prev => ({ ...prev, screeningQuestions: qs }));
-              }} style={{ padding: "0.35rem 0.55rem", borderRadius: "0.4rem", border: "1px solid #fca5a5", background: "white", color: "#b91c1c", fontWeight: "700", fontSize: "0.75rem", cursor: "pointer", flexShrink: 0 }}>✕</button>
+              }} style={{ padding: "0.35rem 0.55rem", borderRadius: "0.4rem", border: "1px solid #fca5a5", background: "var(--color-bg-elevated, white)", color: "#b91c1c", fontWeight: "700", fontSize: "0.75rem", cursor: "pointer", flexShrink: 0 }}>✕</button>
             </div>
             <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
               <select value={q.type || "yes_no"} onChange={e => {
                 const qs = [...(formData.screeningQuestions || [])];
                 qs[i] = { ...qs[i], type: e.target.value };
                 setFormData(prev => ({ ...prev, screeningQuestions: qs }));
-              }} style={{ padding: "0.35rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", fontSize: "0.78rem", fontFamily: "inherit", color: "var(--color-text-primary, #374151)", backgroundColor: "var(--color-bg-elevated, white)" }}>
+              }} style={{ padding: "0.35rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", fontSize: "0.78rem", fontFamily: "inherit", color: "var(--color-text-body, #374151)", backgroundColor: "var(--color-bg-elevated, white)" }}>
                 <option value="yes_no">Yes / No</option>
                 <option value="text">Free text</option>
               </select>

@@ -30,7 +30,7 @@ export default function PageWrapper({ children, narrow }) {
         margin: "0 auto",
         padding: narrow ? "2rem 2.5rem" : "2rem 2.5rem",
         boxSizing: "border-box",
-        backgroundColor: "white",
+        backgroundColor: "var(--color-bg-elevated, white)",
         borderRadius: narrow ? "1.25rem" : "0",
         boxShadow: narrow ? "0 4px 24px rgba(0,0,0,0.07)" : "none",
       }}>

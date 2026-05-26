@@ -112,9 +112,9 @@ export default function SignupPage() {
       <PageWrapper narrow>
         <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📬</div>
-          <h1 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Almost there!</h1>
+          <h1 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Almost there!</h1>
           <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
-            We sent a confirmation link to <strong style={{ color: "#1e293b" }}>{email}</strong>.
+            We sent a confirmation link to <strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{email}</strong>.
           </p>
 
           {/* Two-step process */}
@@ -154,9 +154,9 @@ export default function SignupPage() {
       <PageWrapper narrow>
         <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📬</div>
-          <h1 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Check your email</h1>
+          <h1 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Check your email</h1>
           <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
-            We sent a confirmation link to <strong style={{ color: "#1e293b" }}>{email}</strong>.<br />
+            We sent a confirmation link to <strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{email}</strong>.<br />
             Click it to activate your account.
           </p>
           <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #86efac", borderRadius: "0.75rem", padding: "0.85rem 1rem", marginBottom: "1.5rem", color: "#16a34a", fontSize: "0.85rem", fontWeight: "500" }}>
@@ -195,7 +195,7 @@ export default function SignupPage() {
         {role === "student" && <StepBar step={1} total={2} label="Create account" />}
 
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
-          <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Create account</h1>
+          <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Create account</h1>
           <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Join StudentShifts — it's free</p>
         </div>
 
@@ -206,7 +206,7 @@ export default function SignupPage() {
         )}
 
         {/* Role toggle */}
-        <div style={{ display: "flex", backgroundColor: "#fafafa", borderRadius: "0.75rem", padding: "0.25rem", marginBottom: "1.1rem", gap: "0.25rem" }}>
+        <div style={{ display: "flex", backgroundColor: "var(--color-bg-subtle, #fafafa)", borderRadius: "0.75rem", padding: "0.25rem", marginBottom: "1.1rem", gap: "0.25rem" }}>
           {[{ val: "student", label: "🎓 Student" }, { val: "company", label: "🏢 Company" }].map(({ val, label }) => (
             <button
               key={val}
@@ -214,7 +214,7 @@ export default function SignupPage() {
               style={{
                 flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none",
                 fontWeight: "600", fontSize: "0.875rem", cursor: "pointer",
-                backgroundColor: role === val ? "white" : "transparent",
+                backgroundColor: role === val ? "var(--color-bg-elevated, white)" : "transparent",
                 color: role === val ? "var(--color-brand)" : "#64748b",
                 boxShadow: role === val ? "0 1px 6px rgba(0,0,0,0.1)" : "none",
                 fontFamily: "inherit",
@@ -389,7 +389,7 @@ export default function SignupPage() {
 }
 
 
-const inputStyle = { width: "100%", padding: "0.72rem 1rem", marginBottom: "0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b" };
+const inputStyle = { width: "100%", padding: "0.72rem 1rem", marginBottom: "0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)" };
 const srOnly     = { position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };
 const btnPrimary = { ...btnBase, marginTop: "1.25rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" };

@@ -58,7 +58,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist,
   const sc = statusColors[applicant.status];
   return (
     <div
-      style={{ borderRadius: "0.5rem", border: `1px solid ${isSelected ? "var(--color-brand)" : "#e2e8f0"}`, overflow: "hidden", backgroundColor: isSelected ? "#fdf8fb" : "white", transition: "all 0.12s", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
+      style={{ borderRadius: "0.5rem", border: `1px solid ${isSelected ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, overflow: "hidden", backgroundColor: isSelected ? "#fdf8fb" : "var(--color-bg-elevated, white)", transition: "all 0.12s", boxShadow: "0 1px 2px rgba(0,0,0,0.04)" }}
       onMouseEnter={e => { if (!isSelected) { e.currentTarget.style.borderColor = "#cbd5e1"; e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.08)"; } }}
       onMouseLeave={e => { if (!isSelected) { e.currentTarget.style.borderColor = "#e2e8f0"; e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.04)"; } }}
     >
@@ -82,7 +82,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist,
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.2rem", flexWrap: "wrap" }}>
-            <p style={{ margin: 0, fontWeight: "600", fontSize: "0.875rem", color: "#0f172a" }}>{applicant.name}</p>
+            <p style={{ margin: 0, fontWeight: "600", fontSize: "0.875rem", color: "var(--color-text-primary, #0f172a)" }}>{applicant.name}</p>
             {sc && <span className={`badge badge-tag ${sc.cls}`} style={{ flexShrink: 0 }}>{sc.label}</span>}
             {isInvited && <span className="badge badge-tag badge-blue" style={{ flexShrink: 0 }}>Invite sent</span>}
             {applicant.linkedin && <span className="badge badge-tag badge-blue" style={{ flexShrink: 0 }}>LinkedIn</span>}
@@ -122,7 +122,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist,
               setShortlistLoading(true);
               try { await onQuickShortlist?.(applicant); } finally { setShortlistLoading(false); }
             }}
-            style={{ flex: 1, padding: "0.55rem", backgroundColor: "white", border: "none", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: shortlistLoading ? "default" : "pointer", fontFamily: "inherit", opacity: shortlistLoading ? 0.6 : 1 }}
+            style={{ flex: 1, padding: "0.55rem", backgroundColor: "var(--color-bg-elevated, white)", border: "none", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: shortlistLoading ? "default" : "pointer", fontFamily: "inherit", opacity: shortlistLoading ? 0.6 : 1 }}
           >{shortlistLoading ? "Shortlisting…" : "Shortlist →"}</button>
         </div>
       )}
@@ -131,12 +131,12 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist,
           <button
             disabled={hireLoading}
             onClick={async (e) => { e.stopPropagation(); setHireLoading(true); try { await onHire?.(applicant); } finally { setHireLoading(false); } }}
-            style={{ flex: 1, padding: "0.6rem", backgroundColor: "white", border: "none", borderRight: "1px solid #e2e8f0", color: "#15803d", fontWeight: "600", fontSize: "0.8rem", cursor: hireLoading ? "default" : "pointer", fontFamily: "inherit", opacity: hireLoading ? 0.6 : 1 }}
+            style={{ flex: 1, padding: "0.6rem", backgroundColor: "var(--color-bg-elevated, white)", border: "none", borderRight: "1px solid #e2e8f0", color: "#15803d", fontWeight: "600", fontSize: "0.8rem", cursor: hireLoading ? "default" : "pointer", fontFamily: "inherit", opacity: hireLoading ? 0.6 : 1 }}
           >{hireLoading ? "Hiring…" : "Hire Applicant"}</button>
           <button
             disabled={hireLoading}
             onClick={async (e) => { e.stopPropagation(); setHireLoading(true); try { await onDecline?.(applicant); } finally { setHireLoading(false); } }}
-            style={{ flex: 1, padding: "0.6rem", backgroundColor: "white", border: "none", color: "#b91c1c", fontWeight: "600", fontSize: "0.8rem", cursor: hireLoading ? "default" : "pointer", fontFamily: "inherit", opacity: hireLoading ? 0.6 : 1 }}
+            style={{ flex: 1, padding: "0.6rem", backgroundColor: "var(--color-bg-elevated, white)", border: "none", color: "#b91c1c", fontWeight: "600", fontSize: "0.8rem", cursor: hireLoading ? "default" : "pointer", fontFamily: "inherit", opacity: hireLoading ? 0.6 : 1 }}
           >{hireLoading ? "Processing…" : "Decline"}</button>
         </div>
       )}
@@ -159,14 +159,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
     return "#475569";
   };
 
-  const stageBgColor = (key) => {
-    if (key === "applied")            return "#f8fafc";
-    if (key === "shortlisted")        return "#eff6ff";
-    if (key.startsWith("interview_")) return "#f5f3ff";
-    if (key === "trial")              return "#f0fdf4";
-    if (key === "decision")           return "#fffbeb";
-    return "#f8fafc";
-  };
+  const stageBgColor = () => "var(--color-bg-surface, #f8fafc)";
 
   const handleDrop = (e, targetKey) => {
     e.preventDefault();
@@ -241,7 +234,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
                       padding: "0.9rem 0.95rem",
                       borderRadius: "0.5rem",
                       border: `1px solid ${isFinished ? "#e2e8f0" : "#e2e8f0"}`,
-                      backgroundColor: isFinished ? "#f8fafc" : "white",
+                      backgroundColor: isFinished ? "var(--color-bg-surface, #f8fafc)" : "var(--color-bg-elevated, white)",
                       cursor: isFinished ? "pointer" : "grab", fontFamily: "inherit", textAlign: "left",
                       opacity: draggingId === applicant.id ? 0.4 : isFinished ? 0.75 : 1,
                       boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
@@ -257,7 +250,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
                         }
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: "0 0 0.2rem", fontSize: "0.875rem", fontWeight: "700", color: "#0f172a", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.name}</p>
+                        <p style={{ margin: "0 0 0.2rem", fontSize: "0.875rem", fontWeight: "700", color: "var(--color-text-primary, #0f172a)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.name}</p>
                         <span style={{ fontSize: "0.72rem", fontWeight: "600", padding: "0.1rem 0.45rem", borderRadius: "0.25rem", backgroundColor: sc.bg, color: sc.text }}>{sc.label}</span>
                       </div>
                     </div>
@@ -323,7 +316,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
     return <div style={{ textAlign: "center", padding: "2rem 1rem", backgroundColor: "#fff1f2", borderRadius: "0.75rem", border: "1.5px solid #fca5a5" }}><div style={{ fontSize: "1.5rem", marginBottom: "0.35rem" }}>⚠️</div><p style={{ color: "#e11d48", fontWeight: "600", margin: 0 }}>Error loading applicants. Please try again.</p></div>;
   }
   if (posting.applicants.length === 0) {
-    return <div style={{ textAlign: "center", padding: "3.5rem 1rem" }}><div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>📭</div><p style={{ color: "#1e293b", fontWeight: "700", fontSize: "1rem", margin: "0 0 0.35rem" }}>No applicants yet</p><p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0 }}>Share this job posting to start receiving applications.</p></div>;
+    return <div style={{ textAlign: "center", padding: "3.5rem 1rem" }}><div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>📭</div><p style={{ color: "var(--color-text-primary, #1e293b)", fontWeight: "700", fontSize: "1rem", margin: "0 0 0.35rem" }}>No applicants yet</p><p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0 }}>Share this job posting to start receiving applications.</p></div>;
   }
 
   const dynamicStages = buildDynamicStages(posting.applicants);
@@ -431,12 +424,12 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
       {/* Bulk Decline Confirmation Modal */}
       {showBulkDeclineModal && (
         <div onClick={() => setShowBulkDeclineModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1200, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem" }}>
-          <div ref={bulkDeclineModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Decline ${pendingDeclineIds.length} applicants`} style={{ backgroundColor: "white", borderRadius: "1rem", padding: "2rem", maxWidth: "400px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", border: "1px solid #e2e8f0" }}>
+          <div ref={bulkDeclineModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={`Decline ${pendingDeclineIds.length} applicants`} style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", padding: "2rem", maxWidth: "400px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", border: "1px solid #e2e8f0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
               <div style={{ width: "40px", height: "40px", borderRadius: "50%", backgroundColor: "#fee2e2", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <span style={{ fontSize: "1.1rem" }}>✕</span>
               </div>
-              <h3 style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "#0f172a" }}>
+              <h3 style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "var(--color-text-primary, #0f172a)" }}>
                 Decline {pendingDeclineIds.length} applicant{pendingDeclineIds.length !== 1 ? "s" : ""}?
               </h3>
             </div>
@@ -446,7 +439,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
             <div style={{ display: "flex", gap: "0.6rem", justifyContent: "flex-end" }}>
               <button
                 onClick={() => setShowBulkDeclineModal(false)}
-                style={{ padding: "0.55rem 1.25rem", borderRadius: "0.55rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
+                style={{ padding: "0.55rem 1.25rem", borderRadius: "0.55rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}
               >
                 Cancel
               </button>
@@ -472,7 +465,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
           <span style={{ fontSize: "0.65rem", color: "#64748b" }}>{filterOpen ? "▲" : "▼"}</span>
         </button>
         {filterOpen && (
-          <div style={{ marginTop: "0.5rem", backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.85rem 1rem" }}>
+          <div style={{ marginTop: "0.5rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.85rem 1rem" }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem 1.25rem" }}>
               {/* Right to work */}
               <label style={{ display: "flex", alignItems: "center", gap: "0.4rem", cursor: "pointer", fontSize: "0.8rem", fontWeight: "600", color: "#374151" }}>
@@ -488,7 +481,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginTop: "0.65rem" }}>
               {/* Transport */}
               <select value={filterTransport} onChange={e => setFilterTransport(e.target.value)}
-                style={{ padding: "0.38rem 0.6rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: filterTransport ? "#1e293b" : "#64748b", backgroundColor: "white" }}>
+                style={{ padding: "0.38rem 0.6rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: filterTransport ? "#1e293b" : "#64748b", backgroundColor: "var(--color-bg-elevated, white)" }}>
                 <option value="">Transport: Any</option>
                 <option value="Own car">Own car</option>
                 <option value="Public transport">Public transport</option>
@@ -496,7 +489,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
               </select>
               {/* Can start */}
               <select value={filterCanStart} onChange={e => setFilterCanStart(e.target.value)}
-                style={{ padding: "0.38rem 0.6rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: filterCanStart ? "#1e293b" : "#64748b", backgroundColor: "white" }}>
+                style={{ padding: "0.38rem 0.6rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: filterCanStart ? "#1e293b" : "#64748b", backgroundColor: "var(--color-bg-elevated, white)" }}>
                 <option value="">Can start: Any</option>
                 <option value="immediately">Immediately</option>
                 <option value="1week">Within 1 week</option>
@@ -505,7 +498,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
               </select>
               {/* Experience */}
               <select value={filterExperience} onChange={e => setFilterExperience(e.target.value)}
-                style={{ padding: "0.38rem 0.6rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: filterExperience ? "#1e293b" : "#64748b", backgroundColor: "white" }}>
+                style={{ padding: "0.38rem 0.6rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: filterExperience ? "#1e293b" : "#64748b", backgroundColor: "var(--color-bg-elevated, white)" }}>
                 <option value="">Experience: Any</option>
                 <option value="none">No experience</option>
                 <option value="under1">Under 1 year</option>
@@ -542,7 +535,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
           value={sortBy}
           onChange={e => setSortBy(e.target.value)}
           aria-label="Sort applicants"
-          style={{ padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151", backgroundColor: "white", cursor: "pointer", outline: "none" }}
+          style={{ padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "#374151", backgroundColor: "var(--color-bg-elevated, white)", cursor: "pointer", outline: "none" }}
         >
           <option value="default">Sort: Default</option>
           <option value="name_asc">Name A → Z</option>
@@ -618,9 +611,9 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
         </button>
       </div>
       {activeStage === "calendar" && (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "#f8fafc", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", marginTop: "0.75rem" }}>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", marginTop: "0.75rem" }}>
           <p style={{ fontSize: "2rem", margin: "0 0 0.75rem" }}>📅</p>
-          <p style={{ fontWeight: "700", fontSize: "1rem", color: "#1e293b", margin: "0 0 0.35rem" }}>Interview & Trial Calendar</p>
+          <p style={{ fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)", margin: "0 0 0.35rem" }}>Interview & Trial Calendar</p>
           <p style={{ fontSize: "0.875rem", color: "#64748b", margin: 0, lineHeight: 1.55 }}>A unified calendar view of all scheduled interviews and trial shifts is coming soon.</p>
         </div>
       )}
@@ -666,9 +659,9 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
           <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>{search.trim() ? "🔍" : "👤"}</div>
           {search.trim() ? (
             <>
-              <p style={{ color: "#1e293b", fontSize: "0.9rem", margin: "0 0 0.3rem", fontWeight: "700" }}>No results for "{search}"</p>
+              <p style={{ color: "var(--color-text-primary, #1e293b)", fontSize: "0.9rem", margin: "0 0 0.3rem", fontWeight: "700" }}>No results for "{search}"</p>
               <p style={{ color: "#64748b", fontSize: "0.8rem", margin: "0 0 1rem" }}>Try a different name or clear the search.</p>
-              <button onClick={() => setSearch("")} style={{ padding: "0.45rem 1.2rem", borderRadius: "999px", border: "1.5px solid #e2e8f0", background: "white", color: "#374151", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}>Clear Search</button>
+              <button onClick={() => setSearch("")} style={{ padding: "0.45rem 1.2rem", borderRadius: "999px", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}>Clear Search</button>
             </>
           ) : (
             <p style={{ color: "#64748b", fontSize: "0.875rem", margin: 0, fontWeight: "500" }}>No applicants in this stage yet.</p>
@@ -699,9 +692,9 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
 
       {/* Bulk action bar — floats above liked students when selection is active */}
       {selectedIds.size > 0 && (
-        <div style={{ position: "sticky", bottom: 0, backgroundColor: "white", borderTop: "1.5px solid #e2e8f0", padding: "0.7rem 0", marginTop: "0.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", zIndex: 10, boxShadow: "0 -4px 16px rgba(0,0,0,0.07)" }}>
+        <div style={{ position: "sticky", bottom: 0, backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid #e2e8f0", padding: "0.7rem 0", marginTop: "0.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", zIndex: 10, boxShadow: "0 -4px 16px rgba(0,0,0,0.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <span style={{ fontSize: "0.82rem", fontWeight: "800", color: "#1e293b" }}>{selectedIds.size} selected</span>
+            <span style={{ fontSize: "0.82rem", fontWeight: "800", color: "var(--color-text-primary, #1e293b)" }}>{selectedIds.size} selected</span>
             <button onClick={() => setSelectedIds(new Set())} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", padding: 0 }}>Clear</button>
           </div>
           <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -709,7 +702,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
               <button
                 onClick={bulkShortlist}
                 disabled={bulkShortlisting || bulkDeclining}
-                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.55rem", border: "1.5px solid var(--color-brand)", background: "white", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: (bulkShortlisting || bulkDeclining) ? "default" : "pointer", fontFamily: "inherit", opacity: bulkShortlisting ? 0.7 : 1 }}
+                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.55rem", border: "1.5px solid var(--color-brand)", background: "var(--color-bg-elevated, white)", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: (bulkShortlisting || bulkDeclining) ? "default" : "pointer", fontFamily: "inherit", opacity: bulkShortlisting ? 0.7 : 1 }}
               >
                 {bulkShortlisting ? "Shortlisting…" : `Shortlist ${selectedIds.size} →`}
               </button>
@@ -721,7 +714,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
             >
               {bulkDeclining ? "Declining…" : `✕ Decline ${selectedIds.size}`}
             </button>
-            <button disabled title="Bulk messaging — coming soon" style={{ padding: "0.5rem 1.1rem", borderRadius: "0.55rem", border: "1.5px solid #e2e8f0", background: "white", color: "#94a3b8", fontWeight: "700", fontSize: "0.8rem", cursor: "default", fontFamily: "inherit" }}>
+            <button disabled title="Bulk messaging — coming soon" style={{ padding: "0.5rem 1.1rem", borderRadius: "0.55rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "#94a3b8", fontWeight: "700", fontSize: "0.8rem", cursor: "default", fontFamily: "inherit" }}>
               📨 Message <span style={{ fontSize: "0.65rem" }}>· Soon</span>
             </button>
           </div>
@@ -739,7 +732,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
               Saved Students — haven't applied yet
             </p>
             {saved.map(s => (
-              <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.65rem 0.9rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", marginBottom: "0.4rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
+              <div key={s.id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.65rem 0.9rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", marginBottom: "0.4rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
                 <div style={{ width: "42px", height: "42px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {s.profile_photo_url
                     ? <img loading="lazy" src={s.profile_photo_url} alt={s.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -747,7 +740,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
                   }
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: 0, fontWeight: "700", fontSize: "0.88rem", color: "#1e293b" }}>{s.name}</p>
+                  <p style={{ margin: 0, fontWeight: "700", fontSize: "0.88rem", color: "var(--color-text-primary, #1e293b)" }}>{s.name}</p>
                   {s.bio && <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{s.bio}</p>}
                 </div>
                 <span className="badge badge-sm badge-brand" style={{ whiteSpace: "nowrap" }}>♥ Saved</span>
@@ -764,7 +757,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
         <div style={{ marginTop: "1.25rem", paddingTop: "1.25rem", borderTop: "1.5px solid #e2e8f0" }}>
           <button
             onClick={() => setShowCloseJob(true)}
-            style={{ width: "100%", padding: "0.65rem", borderRadius: "0.4rem", border: "1px solid #fca5a5", backgroundColor: "white", color: "#b91c1c", fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
+            style={{ width: "100%", padding: "0.65rem", borderRadius: "0.4rem", border: "1px solid #fca5a5", backgroundColor: "var(--color-bg-elevated, white)", color: "#b91c1c", fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
           >
             Close this Job
           </button>

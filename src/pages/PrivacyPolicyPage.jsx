@@ -188,7 +188,7 @@ function Table({ rows }) {
     <div style={{ overflowX: "auto", marginTop: "0.5rem" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
         <thead>
-          <tr style={{ backgroundColor: "#fafafa" }}>
+          <tr style={{ backgroundColor: "var(--color-bg-subtle, #fafafa)" }}>
             {["Data", "Purpose", "Legal Basis"].map(h => (
               <th key={h} style={{ textAlign: "left", padding: "0.6rem 0.75rem", fontWeight: "700", color: "#475569", borderBottom: "2px solid #e2e8f0" }}>{h}</th>
             ))}

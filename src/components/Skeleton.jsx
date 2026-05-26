@@ -13,7 +13,7 @@ export function JobCardsSkeleton({ count = 6 }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} style={{ background: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0", overflow: "hidden", padding: "1rem" }}>
+        <div key={i} style={{ background: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid #e2e8f0", overflow: "hidden", padding: "1rem" }}>
           <Skeleton height="140px" borderRadius="0.75rem" style={{ marginBottom: "0.85rem" }} />
           <Skeleton height="1.1rem" width="70%" style={{ marginBottom: "0.5rem" }} />
           <Skeleton height="0.85rem" width="50%" style={{ marginBottom: "0.75rem" }} />
@@ -33,7 +33,7 @@ export function JobRowsSkeleton({ count = 5 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} style={{ background: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "center" }}>
+        <div key={i} style={{ background: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid #e2e8f0", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "center" }}>
           <Skeleton width="52px" height="52px" borderRadius="0.75rem" style={{ flexShrink: 0 }} />
           <div style={{ flex: 1 }}>
             <Skeleton height="1rem" width="55%" style={{ marginBottom: "0.45rem" }} />
@@ -51,7 +51,7 @@ export function PostingsSkeleton({ count = 3 }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} style={{ background: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0", padding: "1.1rem 1.25rem" }}>
+        <div key={i} style={{ background: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid #e2e8f0", padding: "1.1rem 1.25rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.6rem" }}>
             <Skeleton height="1.1rem" width="45%" />
             <Skeleton height="1.4rem" width="70px" borderRadius="999px" />

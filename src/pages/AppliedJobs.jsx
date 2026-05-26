@@ -82,14 +82,14 @@ function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, 
         role="dialog"
         aria-modal="true"
         aria-labelledby="confirm-dialog-title"
-        style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "1.75rem 1.5rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
+        style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "1.75rem 1.5rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
       >
         <h3 id="confirm-dialog-title" style={{ fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.4rem", color: "#1e293b" }}>{title}</h3>
         <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1.5rem", lineHeight: 1.55 }}>{message}</p>
         <div style={{ display: "flex", gap: "0.75rem" }}>
           <button
             onClick={onCancel}
-            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
+            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
           >
             Keep Application
           </button>
@@ -191,12 +191,12 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, onRemove, 
             </button>
           )}
           {showMessage && (
-            <button disabled title="Coming soon" style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#94a3b8", fontWeight: "700", fontSize: "0.78rem", cursor: "default", fontFamily: "inherit" }}>
+            <button disabled title="Coming soon" style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "#94a3b8", fontWeight: "700", fontSize: "0.78rem", cursor: "default", fontFamily: "inherit" }}>
               📄 Offer Letter <span style={{ fontSize: "0.65rem" }}>· Soon</span>
             </button>
           )}
           {showMessage && (
-            <button disabled title="Coming soon" style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#94a3b8", fontWeight: "700", fontSize: "0.78rem", cursor: "default", fontFamily: "inherit" }}>
+            <button disabled title="Coming soon" style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "#94a3b8", fontWeight: "700", fontSize: "0.78rem", cursor: "default", fontFamily: "inherit" }}>
               ⭐ Review Company <span style={{ fontSize: "0.65rem" }}>· Soon</span>
             </button>
           )}
@@ -343,7 +343,7 @@ function WithdrawReasonDialog({ job, reason, onReasonChange, onConfirm, onCancel
         role="dialog"
         aria-modal="true"
         aria-labelledby="withdraw-dialog-title"
-        style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "1.75rem 1.5rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
+        style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "1.75rem 1.5rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
       >
         <h3 id="withdraw-dialog-title" style={{ fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.25rem", color: "#1e293b" }}>Withdraw application?</h3>
         <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1rem", lineHeight: 1.55 }}>
@@ -354,7 +354,7 @@ function WithdrawReasonDialog({ job, reason, onReasonChange, onConfirm, onCancel
             <button
               key={r}
               onClick={() => onReasonChange(r)}
-              style={{ padding: "0.6rem 0.85rem", borderRadius: "0.65rem", border: `1.5px solid ${reason === r ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: reason === r ? "#fce7f3" : "var(--color-bg-surface, #f8fafc)", color: reason === r ? "var(--color-brand)" : "var(--color-text-primary, #374151)", fontWeight: reason === r ? "700" : "500", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
+              style={{ padding: "0.6rem 0.85rem", borderRadius: "0.65rem", border: `1.5px solid ${reason === r ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: reason === r ? "#fce7f3" : "var(--color-bg-surface, #f8fafc)", color: reason === r ? "var(--color-brand)" : "var(--color-text-body, #374151)", fontWeight: reason === r ? "700" : "500", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
             >
               {reason === r ? "✓ " : ""}{r}
             </button>
@@ -363,7 +363,7 @@ function WithdrawReasonDialog({ job, reason, onReasonChange, onConfirm, onCancel
         <div style={{ display: "flex", gap: "0.75rem" }}>
           <button
             onClick={onCancel}
-            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
+            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
           >
             Keep Application
           </button>

@@ -12,7 +12,7 @@ const VARIANT = {
     boxShadow: "var(--shadow-brand)",
   },
   secondary: {
-    background: "white",
+    background: "var(--color-bg-elevated, white)",
     color: "#374151",
     border: "1.5px solid #e2e8f0",
     boxShadow: "none",

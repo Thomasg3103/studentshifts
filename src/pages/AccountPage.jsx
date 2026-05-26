@@ -555,7 +555,7 @@ export default function AccountPage() {
             minHeight: "44px", display: "inline-flex", alignItems: "center",
             border: `1.5px solid ${locationType === val ? "#3b82f6" : "#d1d5db"}`,
             backgroundColor: locationType === val ? "#eff6ff" : "var(--color-bg-elevated, white)",
-            color: locationType === val ? "#1d4ed8" : "var(--color-text-primary, #374151)",
+            color: locationType === val ? "#1d4ed8" : "var(--color-text-body, #374151)",
             fontWeight: locationType === val ? "700" : "500",
             fontSize: "0.9rem", fontFamily: "inherit",
           }}>{label}</button>
@@ -587,7 +587,7 @@ export default function AccountPage() {
         </button>
       )}
       {showManual && (
-        <div style={{ backgroundColor: "#f9fafb", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginBottom: "0.5rem" }}>
+        <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginBottom: "0.5rem" }}>
           <input value={manualLine1} onChange={e => setManualLine1(e.target.value)} placeholder="Address Line 1" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
           <input value={manualLine2} onChange={e => setManualLine2(e.target.value)} placeholder="Address Line 2 (optional)" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
           <input value={manualCity} onChange={e => setManualCity(e.target.value)} placeholder="Town / City" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
@@ -600,7 +600,7 @@ export default function AccountPage() {
           </div>
         </div>
       )}
-      <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
+      <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
         📡 Use my current GPS location
       </button>
     </div>
@@ -679,7 +679,7 @@ export default function AccountPage() {
             <div style={{ position: "relative", display: "inline-block" }}>
               {/* Avatar circle with loading overlay */}
               <div style={{ position: "relative", width: "88px", height: "88px", margin: "0 auto" }}>
-                <div style={{ width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: "3px solid #fce7f3", backgroundColor: "#fafafa", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 3px var(--color-brand)22" }}>
+                <div style={{ width: "88px", height: "88px", borderRadius: "50%", overflow: "hidden", border: "3px solid #fce7f3", backgroundColor: "var(--color-bg-subtle, #fafafa)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 0 0 3px var(--color-brand)22" }}>
                   {profilePhoto
                     ? <img loading="lazy" src={supabaseImg(profilePhoto, 176)} alt="Profile" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     : <PersonIcon />}
@@ -723,7 +723,7 @@ export default function AccountPage() {
                   <button
                     type="button"
                     onClick={exportAvailabilityIcs}
-                    style={{ marginTop: "0.85rem", padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                    style={{ marginTop: "0.85rem", padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
                   >
                     📅 Export to Calendar (.ics)
                   </button>
@@ -731,7 +731,7 @@ export default function AccountPage() {
               </Collapsible>
 
               {/* Job Preferences */}
-                <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+                <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                   <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.5rem" }}>Job Preferences</p>
                   <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.65rem" }}>Industries you're interested in.</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
@@ -754,7 +754,7 @@ export default function AccountPage() {
                 </div>
 
                 {/* Work Profile — structured fields for company filtering */}
-              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+              <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                 <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.15rem" }}>Work Profile</p>
                 <p style={{ fontSize: "0.78rem", color: "#6b7280", marginBottom: "0.85rem" }}>Helps companies filter applicants — takes 30 seconds.</p>
 
@@ -791,7 +791,7 @@ export default function AccountPage() {
                   <div>
                     <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.3rem" }}>Work experience</label>
                     <select value={workExperience} onChange={e => { setWorkExperience(e.target.value); saveField({ work_experience: e.target.value }, { workExperience: e.target.value }); }}
-                      style={{ width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.8rem", fontFamily: "inherit", color: workExperience ? "#1e293b" : "#64748b", backgroundColor: "white" }}>
+                      style={{ width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.8rem", fontFamily: "inherit", color: workExperience ? "#1e293b" : "#64748b", backgroundColor: "var(--color-bg-elevated, white)" }}>
                       <option value="">Select…</option>
                       <option value="none">No experience</option>
                       <option value="under1">Under 1 year</option>
@@ -802,7 +802,7 @@ export default function AccountPage() {
                   <div>
                     <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.3rem" }}>Can start</label>
                     <select value={canStart} onChange={e => { setCanStart(e.target.value); saveField({ can_start: e.target.value }, { canStart: e.target.value }); }}
-                      style={{ width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.8rem", fontFamily: "inherit", color: canStart ? "#1e293b" : "#64748b", backgroundColor: "white" }}>
+                      style={{ width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.8rem", fontFamily: "inherit", color: canStart ? "#1e293b" : "#64748b", backgroundColor: "var(--color-bg-elevated, white)" }}>
                       <option value="">Select…</option>
                       <option value="immediately">Immediately</option>
                       <option value="1week">Within 1 week</option>
@@ -814,7 +814,7 @@ export default function AccountPage() {
               </div>
 
               {/* My Profile */}
-                <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1.25rem", marginBottom: "1rem" }}>
+                <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1.25rem", marginBottom: "1rem" }}>
                   <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 1rem" }}>My Profile</p>
 
                   {/* Completeness bar */}
@@ -886,7 +886,7 @@ export default function AccountPage() {
                       style={{ ...inputStyle, marginBottom: 0 }}
                     />
                     {showSkillSuggestions && skillSuggestions.length > 0 && (
-                      <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20, backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxHeight: "220px", overflowY: "auto", marginTop: "0.25rem" }}>
+                      <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20, backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", maxHeight: "220px", overflowY: "auto", marginTop: "0.25rem" }}>
                         {skillSuggestions.map(s => (
                           <button
                             key={s}
@@ -900,7 +900,7 @@ export default function AccountPage() {
                       </div>
                     )}
                     {showSkillSuggestions && skillInput.trim().length > 0 && skillSuggestions.length === 0 && (
-                      <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20, backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", padding: "0.6rem 0.85rem", marginTop: "0.25rem" }}>
+                      <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20, backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", padding: "0.6rem 0.85rem", marginTop: "0.25rem" }}>
                         <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>No matching skills found</p>
                       </div>
                     )}
@@ -919,14 +919,14 @@ export default function AccountPage() {
                 {/* Preview Profile button */}
                 <button
                   onClick={() => setShowProfilePreview(true)}
-                  style={{ width: "100%", marginTop: "0.85rem", padding: "0.55rem", borderRadius: "0.6rem", border: "1.5px solid var(--color-brand)", backgroundColor: "white", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
+                  style={{ width: "100%", marginTop: "0.85rem", padding: "0.55rem", borderRadius: "0.6rem", border: "1.5px solid var(--color-brand)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
                 >
                   👁 Preview — How companies see your profile
                 </button>
                 </div>
 
               {/* Work History */}
-              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+              <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
                   <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: 0 }}>Work History</p>
                   {workHistory.length > 0 && <span style={{ fontSize: "0.72rem", color: "#64748b" }}>{workHistory.length} shift{workHistory.length !== 1 ? "s" : ""}</span>}
@@ -936,7 +936,7 @@ export default function AccountPage() {
                 ) : (
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                     {workHistory.map(app => (
-                      <div key={app.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.55rem 0.75rem", backgroundColor: "#f8fafc", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0" }}>
+                      <div key={app.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.55rem 0.75rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0" }}>
                         <div>
                           <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "700", color: "#0f172a" }}>{app.jobs?.title || "Job"}</p>
                           <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>{app.jobs?.location}{app.jobs?.pay ? ` · ${app.jobs.pay}` : ""}</p>
@@ -949,7 +949,7 @@ export default function AccountPage() {
               </div>
 
               {/* Skills Endorsements — placeholder */}
-              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+              <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
                   <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: 0 }}>Skills Endorsements</p>
                   <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "#7c3aed", backgroundColor: "#ede9fe", borderRadius: "999px", padding: "0.1rem 0.45rem" }}>Coming Soon</span>
@@ -958,7 +958,7 @@ export default function AccountPage() {
               </div>
 
               {/* Job Alerts */}
-              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+              <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                 <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.5rem" }}>Job Alerts</p>
                 <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
                   <input
@@ -982,7 +982,7 @@ export default function AccountPage() {
               </div>
 
               {/* Notification Preferences */}
-              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+              <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                 <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.6rem" }}>Notification Preferences</p>
                 <p style={{ fontSize: "0.78rem", color: "#6b7280", marginBottom: "0.85rem", lineHeight: 1.4 }}>Choose what you're notified about and how.</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -994,7 +994,7 @@ export default function AccountPage() {
                   ].map(({ key, label }) => {
                     const pref = notifPrefs[key] || { push: true, email: true };
                     return (
-                      <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.55rem 0.75rem", backgroundColor: "#f8fafc", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0" }}>
+                      <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.55rem 0.75rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0" }}>
                         <span style={{ fontSize: "0.82rem", fontWeight: "600", color: "#374151", flex: 1 }}>{label}</span>
                         <div style={{ display: "flex", gap: "0.65rem", flexShrink: 0 }}>
                           {pushSupported && (
@@ -1015,7 +1015,7 @@ export default function AccountPage() {
               </div>
 
               {/* DM Consent */}
-              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+              <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                 <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.5rem" }}>Messaging</p>
                 <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
                   <input
@@ -1178,7 +1178,7 @@ export default function AccountPage() {
               <input value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder="DELETE" style={{ ...inputStyle, marginBottom: "0.75rem", borderColor: deleteConfirm === "DELETE" ? "#ef4444" : "#e2e8f0" }} />
               {deleteError && <p style={{ fontSize: "0.8rem", color: "#ef4444", margin: "0 0 0.75rem" }}>{deleteError}</p>}
               <div style={{ display: "flex", gap: "0.75rem" }}>
-                <button onClick={() => setShowDeleteModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Cancel</button>
+                <button onClick={() => setShowDeleteModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Cancel</button>
                 <button onClick={handleDeleteAccount} disabled={deleteConfirm !== "DELETE" || !deletePassword || deleting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: deleteConfirm === "DELETE" && deletePassword ? "#dc2626" : "#fca5a5", color: "white", fontWeight: "700", cursor: deleteConfirm === "DELETE" && deletePassword && !deleting ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.9rem" }}>
                   {deleting ? "Deleting…" : "Delete"}
                 </button>
@@ -1246,7 +1246,7 @@ export default function AccountPage() {
               <h3 id="logout-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Log out?</h3>
               <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.5rem" }}>You'll need to sign back in to access your account.</p>
               <div style={{ display: "flex", gap: "0.75rem" }}>
-                <button onClick={() => setShowLogoutModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Stay</button>
+                <button onClick={() => setShowLogoutModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Stay</button>
                 <button onClick={confirmLogout} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: "#f43f5e", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Log Out</button>
               </div>
             </div>
@@ -1359,7 +1359,7 @@ function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
 
   return (
     <div style={{ marginBottom: "0.9rem" }}>
-      <label style={{ display: "block", fontWeight: "600", fontSize: "0.875rem", marginBottom: "0.25rem", color: "var(--color-text-primary, #374151)" }}>
+      <label style={{ display: "block", fontWeight: "600", fontSize: "0.875rem", marginBottom: "0.25rem", color: "var(--color-text-body, #374151)" }}>
         {label} {required && !existingName && <span style={{ color: "#ef4444" }}>*</span>}
       </label>
       <p style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.35rem" }}>{hint}</p>
@@ -1417,6 +1417,6 @@ function AvailabilityPicker({ value, onChange }) {
   );
 }
 
-const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "var(--color-text-primary, #374151)", marginBottom: "0.3rem" };
+const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "var(--color-text-body, #374151)", marginBottom: "0.3rem" };
 const inputStyle = { width: "100%", padding: "0.6rem 0.75rem", marginBottom: "1rem", borderRadius: "0.65rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)", backgroundColor: "var(--color-bg-elevated, white)" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };

@@ -764,12 +764,12 @@ export default function CompanyDashboard() {
                   <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                     <button
                       onClick={() => setChatStudent({ id: s.id, name: s.name })}
-                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
                     >💬 Message</button>
                     <button
                       disabled
                       title="Coming soon — instant re-hire with one tap"
-                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", backgroundColor: "#f9fafb", color: "#94a3b8", fontWeight: "600", fontSize: "0.8rem", cursor: "default", fontFamily: "inherit" }}
+                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-surface, #f8fafc)", color: "#94a3b8", fontWeight: "600", fontSize: "0.8rem", cursor: "default", fontFamily: "inherit" }}
                     >⚡ Re-Hire · Soon</button>
                   </div>
                 </div>
