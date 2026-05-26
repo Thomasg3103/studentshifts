@@ -533,7 +533,7 @@ export default function CompanyDashboard() {
   const btnGreen = { ...btnBase, backgroundColor: "#059669" };
 
   return (
-    <div style={{ minHeight: "100vh", backgroundColor: "#fafafa", padding: "1.5rem 1rem" }}>
+    <div style={{ minHeight: "100vh", backgroundColor: "var(--color-bg-subtle)", padding: "1.5rem 1rem" }}>
       <Helmet>
         <title>Company Dashboard — StudentShifts</title>
         <meta name="robots" content="noindex" />

@@ -78,14 +78,14 @@ export default function Header() {
   );
 
   const Dropdown = () => menuOpen ? (
-    <div style={{ position: "absolute", top: "48px", right: 0, backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", boxShadow: "0 8px 32px rgba(0,0,0,0.15)", zIndex: 300, minWidth: "180px", overflow: "hidden" }}>
+    <div style={{ position: "absolute", top: "48px", right: 0, backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "1rem", boxShadow: "0 8px 32px rgba(0,0,0,0.15)", zIndex: 300, minWidth: "180px", overflow: "hidden" }}>
       {menuItems.map((item, i) =>
         item.separator ? (
-          <hr key={i} style={{ border: "none", borderTop: "1px solid #fafafa", margin: "0.25rem 0" }} />
+          <hr key={i} style={{ border: "none", borderTop: "1px solid var(--color-border-light, #e2e8f0)", margin: "0.25rem 0" }} />
         ) : (
           <button key={item.label} onClick={item.action}
-            style={{ display: "block", width: "100%", padding: "0.75rem 1.25rem", background: "none", border: "none", textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, color: item.danger ? "#ef4444" : "#1e293b" }}
-            onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f8fafc"}
+            style={{ display: "block", width: "100%", padding: "0.75rem 1.25rem", background: "none", border: "none", textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, color: item.danger ? "#ef4444" : "var(--color-text-primary, #1e293b)" }}
+            onMouseEnter={e => e.currentTarget.style.backgroundColor = "var(--color-bg-surface, #f8fafc)"}
             onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
           >
             {item.label}
@@ -278,7 +278,7 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
     gap: "2px", flex: 1, padding: "0.35rem 0", minHeight: "48px",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-    color: active ? "var(--color-brand)" : "#64748b",
+    color: active ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)",
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
   });
 
@@ -295,7 +295,7 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
   return (
     <nav aria-label="Main navigation" style={{
       position: "fixed", bottom: 0, left: 0, right: 0, height: "64px",
-      backgroundColor: "white", borderTop: "1.5px solid #e2e8f0",
+      backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid var(--color-border-light, #e2e8f0)",
       display: "flex", alignItems: "stretch", zIndex: 200,
       boxShadow: "0 -4px 16px rgba(0,0,0,0.07)",
     }}>
@@ -358,14 +358,14 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
     display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
     gap: "2px", flex: 1, padding: "0.35rem 0", minHeight: "48px",
     background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
-    color: active ? "var(--color-brand)" : "#64748b",
+    color: active ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)",
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
   });
 
   return (
     <nav aria-label="Main navigation" style={{
       position: "fixed", bottom: 0, left: 0, right: 0, height: "64px",
-      backgroundColor: "white", borderTop: "1.5px solid #e2e8f0",
+      backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid var(--color-border-light, #e2e8f0)",
       display: "flex", alignItems: "stretch", zIndex: 200,
       boxShadow: "0 -4px 16px rgba(0,0,0,0.07)",
     }}>

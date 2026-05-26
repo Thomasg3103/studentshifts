@@ -20,7 +20,7 @@ export default function PageWrapper({ children, narrow }) {
       justifyContent: "center",
       padding: narrow ? "2.5rem 1rem" : "2rem 2rem",
       boxSizing: "border-box",
-      backgroundColor: "#fafafa",
+      backgroundColor: "var(--color-bg-subtle)",
       fontFamily: "'Plus Jakarta Sans', sans-serif",
     }}>
 

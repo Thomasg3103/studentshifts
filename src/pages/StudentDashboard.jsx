@@ -714,7 +714,7 @@ export default function StudentDashboard({ restoreScrollY }) {
   };
 
   return (
-    <div style={{ backgroundColor: "#fafafa", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+    <div style={{ backgroundColor: "var(--color-bg-subtle)", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
       <Helmet>
         <title>Find Your Shift — StudentShifts</title>
         <meta name="description" content="Browse student-friendly part-time jobs across Ireland. Filter by day, time, location and more." />

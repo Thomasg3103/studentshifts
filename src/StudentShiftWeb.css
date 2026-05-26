@@ -30,6 +30,44 @@ html, body, #root {
 [data-theme="dark"] .badge-brand        { background: #4a0f29; color: #f9a8d4; }
 [data-theme="dark"] .page-inner        { background-color: #1e293b !important; }
 
+/* ─── Dark mode: global element resets ──────────────────────── */
+/* All form inputs, selects, textareas */
+[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder { color: #64748b !important; }
+
+/* Modal panel (index.css .modal-panel) */
+[data-theme="dark"] .modal-panel {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+
+/* Generic white cards that use .card class */
+[data-theme="dark"] .card { background: #1e293b !important; }
+
+/* Outline button */
+[data-theme="dark"] .btn-outline {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+/* Company applicants modal (large dialog) */
+[data-theme="dark"] .applicants-modal {
+  background-color: #1e293b !important;
+  border-color: #334155 !important;
+}
+
+/* filter-section used in StudentDashboard sidebar */
+[data-theme="dark"] .filter-section-header { background: #253347 !important; }
+[data-theme="dark"] .filter-section-body   { background: #1e293b !important; }
+
 .app-wrapper {
   display: flex;
   flex-direction: column;
@@ -67,7 +105,7 @@ header {
   align-items: center;
   justify-content: flex-start;
   padding: 2rem;
-  background-color: #fafafa;
+  background-color: var(--color-bg-subtle);
   box-sizing: border-box;
 }
 
