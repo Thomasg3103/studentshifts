@@ -85,7 +85,7 @@ function FilterPanel({
     <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "#1e293b" }}>Filter &amp; Sort</h3>
+        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 700, color: "var(--color-text-primary, #1e293b)" }}>Filter &amp; Sort</h3>
         {(hasActiveFilters || sortBy !== "") && (
           <button onClick={clearAll} style={{ fontSize: "0.75rem", color: "#e11d48", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>
             Clear All
@@ -96,12 +96,13 @@ function FilterPanel({
       {/* Sort */}
       <FilterSection title={<>Sort by {sortBy && <Pip n="✓" />}</>} open={openSections.sort} onToggle={() => toggleSection("sort")} onClear={sortBy ? () => setSortBy("") : null}>
         {sortOptions.map(({ value, label }) => (
-          <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "var(--color-brand)" : "#374151" }}>
+          <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "var(--color-brand)" : "var(--color-text-primary, #374151)" }}>
             <input type="radio" name="sortByPanel" checked={sortBy === value} onChange={() => setSortBy(value)} style={{ cursor: "pointer", accentColor: "var(--color-brand)" }} />
             {label}
           </label>
         ))}
       </FilterSection>
+
 
       {/* Days & Times */}
       <FilterSection title={<>Days &amp; Times {selectedDays.length > 0 && <Pip n={selectedDays.length} />}</>} open={openSections.days} onToggle={() => toggleSection("days")} onClear={selectedDays.length > 0 ? () => { setSelectedDays([]); setDayTimes({}); } : null}>
@@ -114,7 +115,7 @@ function FilterPanel({
               aria-label={`${day} preferred time`}
               value={dayTimes[day] || ""} onChange={e => updateTime(day, e.target.value)}
               disabled={!selectedDays.includes(day)}
-              style={{ padding: "0.15rem 0.3rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.75rem", color: selectedDays.includes(day) ? "#111827" : "#64748b", cursor: selectedDays.includes(day) ? "pointer" : "not-allowed", backgroundColor: selectedDays.includes(day) ? "white" : "#f9fafb", flex: 1 }}
+              style={{ padding: "0.15rem 0.3rem", borderRadius: "0.4rem", border: "1px solid var(--color-border-light, #d1d5db)", fontSize: "0.75rem", color: selectedDays.includes(day) ? "var(--color-text-primary, #111827)" : "var(--color-text-secondary, #64748b)", cursor: selectedDays.includes(day) ? "pointer" : "not-allowed", backgroundColor: selectedDays.includes(day) ? "var(--color-bg-elevated, white)" : "var(--color-bg-surface, #f9fafb)", flex: 1 }}
             >
               <option value="">Any time</option>
               {timeSlots.map(t => <option key={t} value={t}>{t}</option>)}
@@ -124,13 +125,13 @@ function FilterPanel({
         {/* Distance slider — shown below days/times */}
         <div style={{ marginTop: "0.6rem", paddingTop: "0.6rem", borderTop: "1px solid #f3f4f6" }}>
           <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-            <span style={{ fontSize: "0.81rem", color: "#374151", fontWeight: 600 }}>Distance</span>
-            <span style={{ fontSize: "0.81rem", color: "#374151", fontWeight: 500 }}>{distanceKm === 0 ? "Any" : `Within ${distanceKm} km`}</span>
+            <span style={{ fontSize: "0.81rem", color: "var(--color-text-primary, #374151)", fontWeight: 600 }}>Distance</span>
+            <span style={{ fontSize: "0.81rem", color: "var(--color-text-primary, #374151)", fontWeight: 500 }}>{distanceKm === 0 ? "Any" : `Within ${distanceKm} km`}</span>
           </div>
           {studentLocation ? (
             <>
               <SmoothSlider value={distanceKm} onChange={setDistanceKm} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.68rem", color: "#64748b" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)" }}>
                 <span>0 km</span><span>25 km</span><span>50 km</span>
               </div>
               {distanceKm > 0 && (
@@ -140,7 +141,7 @@ function FilterPanel({
               )}
             </>
           ) : (
-            <p style={{ fontSize: "0.78rem", color: "#64748b", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
+            <p style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
           )}
         </div>
       </FilterSection>
@@ -169,13 +170,13 @@ function FilterPanel({
       <FilterSection title={<>Pay Rate {(payMin || payMax) && <Pip n="✓" />}</>} open={openSections.pay} onToggle={() => toggleSection("pay")} onClear={(payMin || payMax) ? () => { setPayMin(""); setPayMax(""); } : null}>
         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
           <div style={{ flex: 1, position: "relative" }}>
-            <span style={{ position: "absolute", left: "0.5rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.78rem", color: "#64748b", pointerEvents: "none" }}>€</span>
+            <span style={{ position: "absolute", left: "0.5rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", pointerEvents: "none" }}>€</span>
             <input type="number" min="0" max="999" step="0.5" value={payMin} onChange={e => setPayMin(e.target.value)} placeholder="Min" aria-label="Minimum pay per hour"
               style={{ width: "100%", padding: "0.35rem 0.4rem 0.35rem 1.4rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.82rem", fontFamily: "inherit", boxSizing: "border-box" }} />
           </div>
           <span style={{ fontSize: "0.75rem", color: "#94a3b8", flexShrink: 0 }}>to</span>
           <div style={{ flex: 1, position: "relative" }}>
-            <span style={{ position: "absolute", left: "0.5rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.78rem", color: "#64748b", pointerEvents: "none" }}>€</span>
+            <span style={{ position: "absolute", left: "0.5rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", pointerEvents: "none" }}>€</span>
             <input type="number" min="0" max="999" step="0.5" value={payMax} onChange={e => setPayMax(e.target.value)} placeholder="Max" aria-label="Maximum pay per hour"
               style={{ width: "100%", padding: "0.35rem 0.4rem 0.35rem 1.4rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.82rem", fontFamily: "inherit", boxSizing: "border-box" }} />
           </div>
@@ -186,7 +187,7 @@ function FilterPanel({
       {/* Schedule */}
       <FilterSection title={<>Schedule {(weekendOnly || allWeekOnly || noWeekends || matchSchedule) && <Pip n="✓" />}</>} open={openSections.schedule} onToggle={() => toggleSection("schedule")} onClear={(weekendOnly || allWeekOnly || noWeekends || matchSchedule) ? () => { setWeekendOnly(false); setAllWeekOnly(false); setNoWeekends(false); setMatchSchedule(false); } : null}>
         {hasStudentAvailability && (
-          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.55rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: matchSchedule ? 700 : 500, color: matchSchedule ? "var(--color-brand)" : "#374151", paddingBottom: "0.45rem", borderBottom: "1px solid #f3f4f6" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.55rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: matchSchedule ? 700 : 500, color: matchSchedule ? "var(--color-brand)" : "var(--color-text-primary, #374151)", paddingBottom: "0.45rem", borderBottom: "1px solid var(--color-border-light, #f3f4f6)" }}>
             <input type="checkbox" checked={matchSchedule} onChange={() => setMatchSchedule(p => !p)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
             Matches my schedule
           </label>
@@ -196,7 +197,7 @@ function FilterPanel({
           { label: "All Week",     active: allWeekOnly, toggle: () => setAllWeekOnly(p => !p) },
           { label: "No Weekends",  active: noWeekends,  toggle: () => setNoWeekends(p => !p) },
         ].map(({ label, active, toggle }) => (
-          <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: active ? 700 : 500, color: active ? "var(--color-brand)" : "#374151" }}>
+          <label key={label} style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: active ? 700 : 500, color: active ? "var(--color-brand)" : "var(--color-text-primary, #374151)" }}>
             <input type="checkbox" checked={active} onChange={toggle} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
             {label}
           </label>
@@ -731,8 +732,8 @@ export default function StudentDashboard({ restoreScrollY }) {
 
         {/* Page heading */}
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
-          <h1 style={{ margin: 0, fontWeight: 800, fontSize: "1.85rem", color: "#1e293b" }}>Find Your Shift</h1>
-          <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Browse student-friendly jobs across Galway</p>
+          <h1 style={{ margin: 0, fontWeight: 800, fontSize: "1.85rem", color: "var(--color-text-primary, #1e293b)" }}>Find Your Shift</h1>
+          <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>Browse student-friendly jobs across Galway</p>
         </div>
 
         {/* Location nudge */}
@@ -747,9 +748,9 @@ export default function StudentDashboard({ restoreScrollY }) {
 
         {/* Preference tabs */}
         {currentUser?.role === "student" && userPrefs.length > 0 && (
-          <div style={{ display: "flex", backgroundColor: "#e8edf5", borderRadius: "0.75rem", padding: "0.25rem", marginBottom: "1rem", gap: "0.25rem" }}>
+          <div style={{ display: "flex", backgroundColor: "var(--color-bg-surface, #e8edf5)", borderRadius: "0.75rem", padding: "0.25rem", marginBottom: "1rem", gap: "0.25rem" }}>
             {[{ val: false, label: "All Jobs" }, { val: true, label: "My Preferences" }].map(({ val, label }) => (
-              <button key={String(val)} onClick={() => setPrefOnly(val)} style={{ flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: prefOnly === val ? "white" : "transparent", color: prefOnly === val ? "var(--color-brand)" : "#64748b", boxShadow: prefOnly === val ? "0 1px 6px rgba(0,0,0,0.1)" : "none" }}>
+              <button key={String(val)} onClick={() => setPrefOnly(val)} style={{ flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none", fontWeight: 600, fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: prefOnly === val ? "var(--color-bg-elevated, white)" : "transparent", color: prefOnly === val ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", boxShadow: prefOnly === val ? "0 1px 6px rgba(0,0,0,0.1)" : "none" }}>
                 {label}
               </button>
             ))}
@@ -771,7 +772,7 @@ export default function StudentDashboard({ restoreScrollY }) {
               <button onClick={() => setPage("account")} style={{ padding: "0.4rem 0.9rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #d97706, #b45309)", color: "white", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                 Complete Profile →
               </button>
-              <button onClick={() => { setProfileNudgeDismissed(true); try { localStorage.setItem("ss_profile_nudge_dismissed", "1"); } catch {} }} aria-label="Dismiss" style={{ padding: "0.4rem 0.6rem", borderRadius: "2rem", border: "1.5px solid #fde047", background: "white", color: "#92400e", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>✕</button>
+              <button onClick={() => { setProfileNudgeDismissed(true); try { localStorage.setItem("ss_profile_nudge_dismissed", "1"); } catch {} }} aria-label="Dismiss" style={{ padding: "0.4rem 0.6rem", borderRadius: "2rem", border: "1.5px solid #fde047", background: "var(--color-bg-elevated, white)", color: "#92400e", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>✕</button>
             </div>
           </div>
         )}
@@ -782,7 +783,7 @@ export default function StudentDashboard({ restoreScrollY }) {
           {/* Sidebar — desktop only */}
           {!isMobile && (
             <aside style={{ width: "260px", flexShrink: 0, position: "sticky", top: "88px" }}>
-              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+              <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "var(--border-muted)", borderRadius: "1rem", padding: "1rem", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
                 <FilterPanel {...filterPanelProps} />
               </div>
             </aside>
@@ -798,15 +799,15 @@ export default function StudentDashboard({ restoreScrollY }) {
                 aria-label="Search by job title or company"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                style={{ width: "100%", padding: "0.7rem 2.5rem 0.7rem 1rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white", outline: "none" }}
+                style={{ width: "100%", padding: "0.7rem 2.5rem 0.7rem 1rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)", backgroundColor: "var(--color-bg-elevated, white)", outline: "none" }}
                 onFocus={e => e.target.style.borderColor = "var(--color-brand)"}
-                onBlur={e => e.target.style.borderColor = "#e2e8f0"}
+                onBlur={e => e.target.style.borderColor = "var(--color-border-light, #e2e8f0)"}
               />
               {searchQuery && (
                 <button
                   aria-label="Clear search"
                   onClick={() => { setSearchQuery(""); searchInputRef.current?.focus(); }}
-                  style={{ position: "absolute", right: "0.6rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#64748b", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: "1.1rem", lineHeight: 1, borderRadius: "50%" }}
+                  style={{ position: "absolute", right: "0.6rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary, #64748b)", width: "24px", height: "24px", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, fontSize: "1.1rem", lineHeight: 1, borderRadius: "50%" }}
                 >
                   ×
                 </button>
@@ -841,11 +842,11 @@ export default function StudentDashboard({ restoreScrollY }) {
                     const isApplied = appliedJobs.some(j => j.id === job.id);
                     return (
                       <button key={job.id} onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
-                        style={{ flexShrink: 0, width: "175px", padding: "0.75rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-brand)", background: "linear-gradient(135deg, #fff0f6 0%, white 100%)", cursor: "pointer", textAlign: "left", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(162,29,84,0.1)" }}>
-                        <p style={{ margin: "0 0 0.2rem", fontWeight: 700, fontSize: "0.82rem", color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</p>
-                        <p style={{ margin: "0 0 0.35rem", fontSize: "0.72rem", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.company}</p>
+                        style={{ flexShrink: 0, width: "175px", padding: "0.75rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-brand)", background: "var(--color-bg-elevated, white)", cursor: "pointer", textAlign: "left", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(162,29,84,0.1)" }}>
+                        <p style={{ margin: "0 0 0.2rem", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-text-primary, #0f172a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</p>
+                        <p style={{ margin: "0 0 0.35rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.company}</p>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                          <span style={{ fontWeight: 700, fontSize: "0.82rem", color: "#111827" }}>{job.pay}</span>
+                          <span style={{ fontWeight: 700, fontSize: "0.82rem", color: "var(--color-text-primary, #111827)" }}>{job.pay}</span>
                           {isApplied
                             ? <span className="badge badge-green badge-sm">Applied</span>
                             : <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.1rem 0.45rem" }}>{pct}% match</span>
@@ -890,23 +891,23 @@ export default function StudentDashboard({ restoreScrollY }) {
                 <span className="badge badge-brand" style={{ fontSize: "0.8rem" }}>
                   {sortedJobs.length} job{sortedJobs.length !== 1 ? "s" : ""}
                 </span>
-                <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", backgroundColor: "#fafafa", borderRadius: "0.6rem", padding: "0.2rem" }}>
-                  <button onClick={() => setGridCols(1)} aria-label="Single column layout" aria-pressed={gridCols === 1} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "white" : "transparent", color: gridCols === 1 ? "var(--color-brand)" : "#64748b", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
-                  <button onClick={() => setGridCols(2)} aria-label="Two column layout" aria-pressed={gridCols === 2} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "white" : "transparent", color: gridCols === 2 ? "var(--color-brand)" : "#64748b", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", backgroundColor: "var(--color-bg-surface, #fafafa)", borderRadius: "0.6rem", padding: "0.2rem" }}>
+                  <button onClick={() => setGridCols(1)} aria-label="Single column layout" aria-pressed={gridCols === 1} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "var(--color-bg-elevated, white)" : "transparent", color: gridCols === 1 ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
+                  <button onClick={() => setGridCols(2)} aria-label="Two column layout" aria-pressed={gridCols === 2} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "var(--color-bg-elevated, white)" : "transparent", color: gridCols === 2 ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
                 </div>
                 {/* Save search button — auto-saves using search bar text as name */}
                 <button
                   onClick={saveSearch}
                   aria-label={justSaved ? "Search saved" : "Save current search"}
                   title="Save current search"
-                  style={{ padding: "0.28rem 0.55rem", border: `1.5px solid ${justSaved ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", backgroundColor: justSaved ? "#fce7f3" : "white", color: justSaved ? "var(--color-brand)" : "#64748b", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, fontFamily: "inherit" }}
+                  style={{ padding: "0.28rem 0.55rem", border: `1.5px solid ${justSaved ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, borderRadius: "0.4rem", cursor: "pointer", backgroundColor: justSaved ? "#fce7f3" : "var(--color-bg-elevated, white)", color: justSaved ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: 700, fontSize: "0.95rem", lineHeight: 1, fontFamily: "inherit" }}
                 >⭐</button>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
               {isMobile && (
                 <button
                   onClick={() => setMobileFiltersOpen(o => !o)}
-                  style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${activeFilterCount > 0 ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: activeFilterCount > 0 ? "#fce7f3" : "white", color: activeFilterCount > 0 ? "var(--color-brand)" : "#64748b", fontWeight: activeFilterCount > 0 ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "0.35rem", whiteSpace: "nowrap" }}
+                  style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${activeFilterCount > 0 ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: activeFilterCount > 0 ? "#fce7f3" : "var(--color-bg-elevated, white)", color: activeFilterCount > 0 ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: activeFilterCount > 0 ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "0.35rem", whiteSpace: "nowrap" }}
                 >
                   Filters {activeFilterCount > 0 && <Pip n={activeFilterCount} />} {mobileFiltersOpen ? "▲" : "▼"}
                 </button>
@@ -918,12 +919,12 @@ export default function StudentDashboard({ restoreScrollY }) {
                     setSortDropsUp(!!rect && window.innerHeight - rect.bottom < 280);
                     setSortDropdownOpen(o => !o);
                   }}
-                  style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${sortBy ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: sortBy ? "#fce7f3" : "white", color: sortBy ? "var(--color-brand)" : "#64748b", fontWeight: sortBy ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                  style={{ padding: "0.42rem 1rem", borderRadius: "2rem", border: `1.5px solid ${sortBy ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: sortBy ? "#fce7f3" : "var(--color-bg-elevated, white)", color: sortBy ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: sortBy ? 700 : 500, fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
                 >
                   {sortLabel[sortBy] || "Sort by"} ▾
                 </button>
                 {sortDropdownOpen && (
-                  <div style={{ position: "absolute", ...(sortDropsUp ? { bottom: "calc(100% + 0.4rem)" } : { top: "calc(100% + 0.4rem)" }), ...(isPhone ? { left: 0 } : { right: 0 }), zIndex: 50, backgroundColor: "white", border: "1.5px solid #e5e7eb", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "0.5rem 0.75rem", minWidth: "210px" }}>
+                  <div style={{ position: "absolute", ...(sortDropsUp ? { bottom: "calc(100% + 0.4rem)" } : { top: "calc(100% + 0.4rem)" }), ...(isPhone ? { left: 0 } : { right: 0 }), zIndex: 50, backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e5e7eb)", borderRadius: "0.75rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", padding: "0.5rem 0.75rem", minWidth: "210px" }}>
                     {[
                       { value: "",             label: "Best Match" },
                       { value: "payHigh",      label: "Pay: High → Low" },
@@ -935,7 +936,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                         { value: "distanceFar",  label: "Distance: Furthest → Closest" },
                       ] : []),
                     ].map(({ value, label }) => (
-                      <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0", cursor: "pointer", fontSize: "0.85rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "var(--color-brand)" : "#374151" }}>
+                      <label key={value} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.3rem 0", cursor: "pointer", fontSize: "0.85rem", fontWeight: sortBy === value ? 700 : 500, color: sortBy === value ? "var(--color-brand)" : "var(--color-text-primary, #374151)" }}>
                         <input type="radio" name="sortByAbove" checked={sortBy === value} onChange={() => { setSortBy(value); setSortDropdownOpen(false); }} style={{ cursor: "pointer", accentColor: "var(--color-brand)" }} />
                         {label}
                       </label>
@@ -948,14 +949,14 @@ export default function StudentDashboard({ restoreScrollY }) {
 
             {/* Mobile filter panel */}
             {isMobile && mobileFiltersOpen && (
-              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem", marginBottom: "0.75rem", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
+              <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "1rem", padding: "1rem", marginBottom: "0.75rem", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }}>
                 <FilterPanel {...filterPanelProps} onApply={() => setMobileFiltersOpen(false)} />
               </div>
             )}
 
             {/* States */}
             {jobsError && !jobsLoading && (
-              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
+              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #6b7280)", background: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)" }}>
                 <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⚠️</div>
                 <p style={{ fontSize: "1.1rem", fontWeight: 600, color: "#ef4444", marginBottom: "0.4rem" }}>Couldn't load jobs</p>
                 <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>Check your connection and try again.</p>
@@ -975,14 +976,14 @@ export default function StudentDashboard({ restoreScrollY }) {
             )}
             {jobsLoading && <JobCardsSkeleton />}
             {!jobsLoading && !jobsError && sortedJobs.length === 0 && (
-              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280", background: "white", borderRadius: "1rem" }}>
+              <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #6b7280)", background: "var(--color-bg-elevated, white)", borderRadius: "1rem" }}>
                 {hasActiveFilters ? (
                   <>
                     <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🔍</div>
                     <p style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>No jobs match your filters</p>
                     <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem", color: "#6b7280" }}>
                       {firstBlockingFilter
-                        ? <><strong style={{ color: "#374151" }}>{firstBlockingFilter}</strong> has no matches — try widening it.</>
+                        ? <><strong style={{ color: "var(--color-text-primary, #374151)" }}>{firstBlockingFilter}</strong> has no matches — try widening it.</>
                         : "Try removing some filters."}
                     </p>
                     <button onClick={clearAll} style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}>
@@ -1047,8 +1048,8 @@ export default function StudentDashboard({ restoreScrollY }) {
                     <div style={{ flex: 1, padding: isPhone ? "0.65rem 0.7rem" : "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       {/* Top: title + company + pills */}
                       <div>
-                        <h2 style={{ fontWeight: 800, fontSize: isPhone ? "1.0rem" : "1.5rem", margin: "0 0 0.15rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
-                        <p style={{ margin: isPhone ? "0 0 0.35rem" : "0 0 0.6rem", fontSize: isPhone ? "0.78rem" : "1.1rem", color: "#6b7280" }}>{job.company} · {job.location}</p>
+                        <h2 style={{ fontWeight: 800, fontSize: isPhone ? "1.0rem" : "1.5rem", margin: "0 0 0.15rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
+                        <p style={{ margin: isPhone ? "0 0 0.35rem" : "0 0 0.6rem", fontSize: isPhone ? "0.78rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>{job.company} · {job.location}</p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                           {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
@@ -1110,7 +1111,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                           return <span className={`badge ${dlSoon ? "badge-yellow" : "badge-gray"} ${isPhone ? "badge-sm" : ""}`}>Closes {deadlineLabel(dl)}</span>;
                         })()}
                         {job.updatedAt && (
-                          <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#64748b", marginLeft: "auto" }}>
+                          <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "var(--color-text-secondary, #64748b)", marginLeft: "auto" }}>
                             Updated {new Date(job.updatedAt).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}
                           </span>
                         )}
@@ -1118,7 +1119,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                       {/* Social proof + match score + job alerts */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
                         {(applicantCounts[job.id] ?? 0) > 0 && (
-                          <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#64748b", fontWeight: 500 }}>
+                          <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 500 }}>
                             👥 {applicantCounts[job.id]} applicant{applicantCounts[job.id] !== 1 ? "s" : ""}
                           </span>
                         )}
@@ -1143,7 +1144,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                           onClick={e => { e.stopPropagation(); const next = !jobAlerts; setJobAlerts(next); try { localStorage.setItem("ss_job_alerts", next ? "1" : "0"); } catch {} }}
                           title={jobAlerts ? "Job alerts on — you'll be notified of new matching jobs" : "Get notified when similar jobs are posted (coming soon)"}
                           aria-label={jobAlerts ? "Disable job alerts" : "Enable job alerts"}
-                          style={{ marginLeft: "auto", padding: "0.1rem 0.4rem", borderRadius: "999px", border: `1px solid ${jobAlerts ? "var(--color-brand)" : "#e2e8f0"}`, background: jobAlerts ? "#fce7f3" : "white", color: jobAlerts ? "var(--color-brand)" : "#94a3b8", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}
+                          style={{ marginLeft: "auto", padding: "0.1rem 0.4rem", borderRadius: "999px", border: `1px solid ${jobAlerts ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, background: jobAlerts ? "#fce7f3" : "var(--color-bg-elevated, white)", color: jobAlerts ? "var(--color-brand)" : "var(--color-text-secondary, #94a3b8)", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}
                         >{jobAlerts ? "🔔 Alerts on" : "🔔 Alert me"}</button>
                       </div>
                     </div>
@@ -1175,7 +1176,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                 <button
                   onClick={loadMore}
                   disabled={loadingMore}
-                  style={{ padding: "0.65rem 2rem", borderRadius: "2rem", border: "1.5px solid var(--color-brand)", background: "white", color: "var(--color-brand)", fontWeight: 700, fontSize: "0.9rem", fontFamily: "inherit", cursor: loadingMore ? "default" : "pointer", opacity: loadingMore ? 0.7 : 1 }}
+                  style={{ padding: "0.65rem 2rem", borderRadius: "2rem", border: "1.5px solid var(--color-brand)", background: "var(--color-bg-elevated, white)", color: "var(--color-brand)", fontWeight: 700, fontSize: "0.9rem", fontFamily: "inherit", cursor: loadingMore ? "default" : "pointer", opacity: loadingMore ? 0.7 : 1 }}
                 >
                   {loadingMore ? "Loading…" : "Load more jobs"}
                 </button>
@@ -1213,15 +1214,15 @@ function FilterSection({ title, open, onToggle, onClear, children }) {
   const [everOpened, setEverOpened] = useState(open);
   useEffect(() => { if (open) setEverOpened(true); }, [open]);
   return (
-    <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.5rem 0.75rem", marginBottom: "0.4rem" }}>
+    <div className="filter-section-header" style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem", padding: "0.5rem 0.75rem", marginBottom: "0.4rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: open ? "0.5rem" : 0 }}>
         <button
           onClick={onToggle}
           aria-expanded={open}
-          style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "none", border: "none", padding: "0.2rem 0", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", color: "#1e293b", fontFamily: "inherit", textAlign: "left", flex: 1 }}
+          style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "none", border: "none", padding: "0.2rem 0", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-text-primary, #1e293b)", fontFamily: "inherit", textAlign: "left", flex: 1 }}
         >
           <span>{title}</span>
-          <span style={{ fontSize: "0.7rem", color: "#64748b", marginLeft: "0.2rem" }}>{open ? "▲" : "▼"}</span>
+          <span style={{ fontSize: "0.7rem", color: "var(--color-text-secondary, #64748b)", marginLeft: "0.2rem" }}>{open ? "▲" : "▼"}</span>
         </button>
         {onClear && (
           <button onClick={e => { e.stopPropagation(); onClear(); }} style={{ fontSize: "0.7rem", color: "#e11d48", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: "0.1rem 0.25rem", fontFamily: "inherit" }}>
