@@ -286,7 +286,7 @@ AS $$
   JOIN students s ON s.id = a.student_id
   WHERE j.company_id = p_company_id
     AND a.status = 'Accepted'
-  ORDER BY p.id, a.updated_at DESC;
+  ORDER BY p.id, a.created_at DESC;
 $$;
 GRANT EXECUTE ON FUNCTION get_company_past_hires(uuid) TO authenticated;
 
