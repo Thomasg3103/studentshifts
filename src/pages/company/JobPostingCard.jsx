@@ -25,7 +25,7 @@ function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }
   );
 }
 
-export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus }) {
+export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onDuplicate }) {
   const isActive  = posting.status === "Active";
   const today     = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Expired";
@@ -147,6 +147,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
           {/* Secondary actions */}
           <div style={{ display: "flex", gap: "0.35rem", marginLeft: "auto" }}>
             <button onClick={onEdit} aria-label={`Edit ${posting.title}`} style={actionBtn}>Edit</button>
+            <button onClick={onDuplicate} aria-label={`Duplicate ${posting.title}`} style={actionBtn} title="Create a new job based on this one">Duplicate</button>
             <button
               aria-label={isActive ? `Close ${posting.title}` : `Reopen ${posting.title}`}
               onClick={isActive ? () => setConfirmClose(true) : onToggleStatus}

@@ -3,6 +3,7 @@ import { supabaseImg } from "../../utils/img";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { saveApplicationNotes } from "../../lib/auth";
+import { supabase } from "../../lib/supabase";
 import { Section } from "./shared";
 import ChatThread from "./ChatThread";
 import { InterviewInviteModal } from "./InterviewInviteModal";
@@ -72,7 +73,8 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   const [trialInviteOpen, setTrialInviteOpen] = useState(false);
   const [shortlistInviteOpen, setShortlistInviteOpen] = useState(false);
   const [nextRoundInviteOpen, setNextRoundInviteOpen] = useState(false);
-  const [hireLoading, setHireLoading] = useState(false);
+  const [hireLoading, setHireLoading]   = useState(false);
+  const [rehireLoading, setRehireLoading] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
   const panelBodyRef = useRef(null);
   useFocusTrap(panelBodyRef, onClose);
@@ -150,6 +152,25 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
       setTimeout(() => setNotesSaved(false), 2500);
     } catch { toast.error("Failed to save notes — please try again."); }
     setNotesSaving(false);
+  };
+
+  const handleRehire = async () => {
+    setRehireLoading(true);
+    try {
+      const firstName = applicant.name.split(" ")[0];
+      await supabase.from("chat_messages").insert({
+        job_id:     postingId,
+        student_id: applicant.studentId,
+        company_id: companyId,
+        sender_id:  companyId,
+        text:       `Hi ${firstName}! We really enjoyed having you with us. Would you be interested in working another shift? Let us know when you're available!`,
+      });
+      toast.success("Rehire message sent!");
+    } catch (e) {
+      Sentry.captureException(e);
+      toast.error("Could not send message — please try again.");
+    }
+    setRehireLoading(false);
   };
 
   const stage = applicant.pipelineStage || "applied";
@@ -508,6 +529,13 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               style={{ ...panelActionBtn("danger"), opacity: hireLoading ? 0.6 : 1 }}
             >{hireLoading ? "Processing…" : "Decline Applicant"}</button>
           </>)}
+          {applicant.status === "Accepted" && (
+            <button
+              disabled={rehireLoading}
+              onClick={handleRehire}
+              style={{ ...panelActionBtn("secondary"), opacity: rehireLoading ? 0.6 : 1 }}
+            >{rehireLoading ? "Sending…" : "Offer Another Shift"}</button>
+          )}
         </div>
       </div>
 

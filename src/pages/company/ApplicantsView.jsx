@@ -46,9 +46,11 @@ export const buildDynamicStages = (applicants) => {
 
 /* ─── ApplicantRow ───────────────────────────────────────────────────────── */
 
-function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onToggleSelect, isInvited }) {
+function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist, isSelected, onToggleSelect, isInvited }) {
   const isDecision = applicant.pipelineStage === "decision" && applicant.status === "Pending";
+  const isApplied  = applicant.pipelineStage === "applied"  && applicant.status === "Pending";
   const [hireLoading, setHireLoading] = useState(false);
+  const [shortlistLoading, setShortlistLoading] = useState(false);
   const statusColors = {
     Accepted: { cls: "badge-green", label: "Hired" },
     Rejected: { cls: "badge-red",   label: "Declined" },
@@ -108,6 +110,19 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, isSelected, onTog
         </div>
         <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
       </button>
+      {isApplied && (
+        <div style={{ display: "flex", borderTop: "1px solid #e2e8f0" }}>
+          <button
+            disabled={shortlistLoading}
+            onClick={async (e) => {
+              e.stopPropagation();
+              setShortlistLoading(true);
+              try { await onQuickShortlist?.(applicant); } finally { setShortlistLoading(false); }
+            }}
+            style={{ flex: 1, padding: "0.55rem", backgroundColor: "white", border: "none", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: shortlistLoading ? "default" : "pointer", fontFamily: "inherit", opacity: shortlistLoading ? 0.6 : 1 }}
+          >{shortlistLoading ? "Shortlisting…" : "Shortlist →"}</button>
+        </div>
+      )}
       {isDecision && (
         <div style={{ display: "flex", borderTop: "1px solid #e2e8f0" }}>
           <button
@@ -281,6 +296,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
   const [filterExperience, setFilterExperience]   = useState(""); // "" | "none" | "under1" | "1to3" | "3plus"
   const [selectedIds, setSelectedIds]             = useState(new Set());
   const [invitedIds, setInvitedIds]               = useState(new Set());
+  const [bulkShortlisting, setBulkShortlisting]   = useState(false);
   const [bulkDeclining, setBulkDeclining]         = useState(false);
   const [showBulkDeclineModal, setShowBulkDeclineModal] = useState(false);
   const [pendingDeclineIds, setPendingDeclineIds] = useState([]);
@@ -342,6 +358,21 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
     await onIncrementRound(applicationId, currentRound, newRoundsData);
     setSelectedApplicant(null);
     setActiveStage(`interview_${currentRound + 1}`);
+  };
+
+  const bulkShortlist = async () => {
+    const pendingApplied = [...selectedIds].filter(id => {
+      const a = posting.applicants.find(x => x.id === id);
+      return a && a.pipelineStage === "applied" && a.status === "Pending";
+    });
+    if (pendingApplied.length === 0) { setSelectedIds(new Set()); return; }
+    setBulkShortlisting(true);
+    for (const id of pendingApplied) {
+      await onStageChange(id, "shortlisted", undefined).catch(() => {});
+    }
+    setBulkShortlisting(false);
+    setSelectedIds(new Set());
+    toast.success(`${pendingApplied.length} applicant${pendingApplied.length !== 1 ? "s" : ""} shortlisted`);
   };
 
   const bulkDecline = () => {
@@ -624,6 +655,12 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
               onClick={() => setSelectedApplicant(applicant)}
               onHire={(a) => onUpdateStatus(a.id, "Accepted", a)}
               onDecline={(a) => onUpdateStatus(a.id, "Rejected", a)}
+              onQuickShortlist={async (a) => {
+                try {
+                  await onStageChange(a.id, "shortlisted", undefined);
+                  toast.success(`${a.name} shortlisted`);
+                } catch { toast.error("Failed to shortlist — please try again."); }
+              }}
             />
           ))}
         </div>
@@ -636,13 +673,24 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
             <span style={{ fontSize: "0.82rem", fontWeight: "800", color: "#1e293b" }}>{selectedIds.size} selected</span>
             <button onClick={() => setSelectedIds(new Set())} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", padding: 0 }}>Clear</button>
           </div>
-          <button
-            onClick={bulkDecline}
-            disabled={bulkDeclining}
-            style={{ padding: "0.5rem 1.1rem", borderRadius: "0.55rem", border: "none", background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "white", fontWeight: "700", fontSize: "0.8rem", cursor: bulkDeclining ? "default" : "pointer", fontFamily: "inherit", opacity: bulkDeclining ? 0.7 : 1, boxShadow: "0 2px 8px rgba(244,63,94,0.3)" }}
-          >
-            {bulkDeclining ? "Declining…" : `✕ Decline ${selectedIds.size}`}
-          </button>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            {activeStage === "applied" && (
+              <button
+                onClick={bulkShortlist}
+                disabled={bulkShortlisting || bulkDeclining}
+                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.55rem", border: "1.5px solid var(--color-brand)", background: "white", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: (bulkShortlisting || bulkDeclining) ? "default" : "pointer", fontFamily: "inherit", opacity: bulkShortlisting ? 0.7 : 1 }}
+              >
+                {bulkShortlisting ? "Shortlisting…" : `Shortlist ${selectedIds.size} →`}
+              </button>
+            )}
+            <button
+              onClick={bulkDecline}
+              disabled={bulkDeclining || bulkShortlisting}
+              style={{ padding: "0.5rem 1.1rem", borderRadius: "0.55rem", border: "none", background: "linear-gradient(135deg, #f43f5e, #e11d48)", color: "white", fontWeight: "700", fontSize: "0.8rem", cursor: (bulkDeclining || bulkShortlisting) ? "default" : "pointer", fontFamily: "inherit", opacity: bulkDeclining ? 0.7 : 1, boxShadow: "0 2px 8px rgba(244,63,94,0.3)" }}
+            >
+              {bulkDeclining ? "Declining…" : `✕ Decline ${selectedIds.size}`}
+            </button>
+          </div>
         </div>
       )}
 

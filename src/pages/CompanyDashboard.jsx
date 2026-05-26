@@ -141,6 +141,7 @@ export default function CompanyDashboard() {
         setPostings(data.map(j => ({
           ...normaliseJob(j),
           applicantCount: j.applications?.length || 0,
+          hiredCount:     j.applications?.filter(a => a.status === "Accepted").length || 0,
         })));
       }
       setLoading(false);
@@ -148,6 +149,7 @@ export default function CompanyDashboard() {
   }, [currentUser?.id, loadRetryKey]);
 
   const totalApplicants = postings.reduce((sum, p) => sum + p.applicantCount, 0);
+  const totalHired      = postings.reduce((sum, p) => sum + (p.hiredCount || 0), 0);
   const activeCount     = postings.filter(p => p.status === "Active").length;
 
   const openApplicants = async (posting) => {
@@ -223,6 +225,30 @@ export default function CompanyDashboard() {
   const openEdit = (posting) => {
     originalPhotosRef.current = (posting.photos || []).filter(p => typeof p === "string" && p.startsWith("http"));
     setFormData({ ...posting, days: [...posting.days], times: { ...posting.times }, photoFiles: [] });
+    setModal("form");
+  };
+
+  const duplicatePosting = (posting) => {
+    setFormData({
+      title: `${posting.title} (copy)`,
+      category: posting.category,
+      location: posting.location,
+      lat: posting.lat,
+      lng: posting.lng,
+      pay: posting.pay,
+      description: posting.description || "",
+      deadline: "",
+      days: [...posting.days],
+      times: { ...posting.times },
+      weekendRequired: posting.weekendRequired || false,
+      isUrgent: false,
+      sickPay: posting.sickPay || false,
+      holidays: posting.holidays || "",
+      screeningQuestions: posting.screeningQuestions || [],
+      status: "Active",
+      photos: [],
+      photoFiles: [],
+    });
     setModal("form");
   };
 
@@ -533,6 +559,7 @@ export default function CompanyDashboard() {
         <StatCard label="Active" value={activeCount} />
         <StatCard label="Closed" value={postings.length - activeCount} />
         <StatCard label="Total Applicants" value={totalApplicants} />
+        <StatCard label="Total Hired" value={totalHired} />
       </div>
       )}
 
@@ -621,6 +648,7 @@ export default function CompanyDashboard() {
                 onEdit={() => openEdit(posting)}
                 onDelete={() => deletePosting(posting.id)}
                 onToggleStatus={() => toggleStatus(posting.id)}
+                onDuplicate={() => duplicatePosting(posting)}
               />
             ))}
           </div>
