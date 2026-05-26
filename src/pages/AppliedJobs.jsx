@@ -202,13 +202,13 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, onRemove, 
           )}
           {showWithdraw && (
             <button aria-label={`Withdraw application to ${job.title}`} onClick={() => onRemove(job.id, "withdraw")}
-              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>
+              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "var(--color-bg-elevated, white)", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>
               Withdraw
             </button>
           )}
           {showRemove && (
             <button aria-label={`Remove application to ${job.title}`} onClick={() => onRemove(job.id, "remove")}
-              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>
+              style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "var(--color-bg-elevated, white)", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>
               Remove
             </button>
           )}
@@ -354,7 +354,7 @@ function WithdrawReasonDialog({ job, reason, onReasonChange, onConfirm, onCancel
             <button
               key={r}
               onClick={() => onReasonChange(r)}
-              style={{ padding: "0.6rem 0.85rem", borderRadius: "0.65rem", border: `1.5px solid ${reason === r ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: reason === r ? "#fce7f3" : "#f8fafc", color: reason === r ? "var(--color-brand)" : "#374151", fontWeight: reason === r ? "700" : "500", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
+              style={{ padding: "0.6rem 0.85rem", borderRadius: "0.65rem", border: `1.5px solid ${reason === r ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: reason === r ? "#fce7f3" : "var(--color-bg-surface, #f8fafc)", color: reason === r ? "var(--color-brand)" : "var(--color-text-primary, #374151)", fontWeight: reason === r ? "700" : "500", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
             >
               {reason === r ? "✓ " : ""}{r}
             </button>

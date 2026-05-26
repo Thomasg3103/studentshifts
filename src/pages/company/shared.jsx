@@ -61,7 +61,7 @@ export function StatCard({ label, value }) {
   return (
     <div style={{
       flex: "1", minWidth: "110px",
-      backgroundColor: "white", border: "1.5px solid #e2e8f0",
+      backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)",
       borderTop: `3px solid ${accent.border}`,
       borderRadius: "0.75rem", padding: "1rem 1.25rem",
       boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
@@ -93,7 +93,7 @@ export function Modal({ title, children, onClose }) {
       <div
         onClick={e => e.stopPropagation()}
         style={{
-          backgroundColor: "white", borderRadius: "1rem",
+          backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem",
           width: "100%", maxWidth: "520px", maxHeight: "85vh",
           overflow: "hidden", boxShadow: "0 20px 60px rgba(0,0,0,0.25)",
           display: "flex", flexDirection: "column",

@@ -64,6 +64,14 @@ html, body, #root {
   border-color: #334155 !important;
 }
 
+/* All dialogs / modals */
+[data-theme="dark"] [role="dialog"] {
+  background-color: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+
+
 /* filter-section used in StudentDashboard sidebar */
 [data-theme="dark"] .filter-section-header { background: #253347 !important; }
 [data-theme="dark"] .filter-section-body   { background: #1e293b !important; }

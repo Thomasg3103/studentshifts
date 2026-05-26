@@ -112,7 +112,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
   if (chatStudent) {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 280px)", minHeight: "400px", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", overflow: "hidden" }}>
-        <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "#f8fafc", flexShrink: 0 }}>
+        <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid var(--color-border-light, #e5e7eb)", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", flexShrink: 0 }}>
           <button onClick={() => setChatStudent(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "#6b7280", padding: "0.2rem 0.5rem" }}>←</button>
           <div>
             <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{chatStudent.name}</p>
@@ -140,7 +140,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
           <p style={{ margin: 0, padding: "0.4rem 1rem", fontSize: "0.78rem", color: "#e11d48", backgroundColor: "#fff1f2", borderTop: "1px solid #fecdd3" }}>{chatError}</p>
         )}
         {!chatInput && !chatLoading && chatMessages.length === 0 && (
-          <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
+          <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid var(--color-border-light, #e5e7eb)" }}>
             <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
             <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
               {browseQuickReplies.map(qr => (
@@ -152,13 +152,13 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
           </div>
         )}
         {chatInput.length > 3800 && (
-          <div style={{ padding: "0.25rem 1rem 0", backgroundColor: "white" }}>
+          <div style={{ padding: "0.25rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)" }}>
             <span style={{ fontSize: "0.72rem", color: chatInput.length >= 4000 ? "#ef4444" : "#f97316", fontWeight: 600 }}>
               {chatInput.length}/4000 characters
             </span>
           </div>
         )}
-        <div style={{ padding: "0.75rem 1rem", borderTop: chatInput ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
+        <div style={{ padding: "0.75rem 1rem", borderTop: chatInput ? "1.5px solid var(--color-border-light, #e5e7eb)" : "none", display: "flex", gap: "0.5rem", backgroundColor: "var(--color-bg-elevated, white)" }}>
           <input
             ref={chatInputRef}
             aria-label={`Message ${chatStudent.name}`}
@@ -249,20 +249,20 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
             onClick={() => setFilterByIndustries(true)}
             disabled={companyIndustries.length === 0}
             title={companyIndustries.length === 0 ? "Set your industries in My Account first" : ""}
-            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: companyIndustries.length === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", border: `1.5px solid ${filterByIndustries ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: filterByIndustries ? "#fce7f3" : "white", color: filterByIndustries ? "var(--color-brand)" : "#64748b", opacity: companyIndustries.length === 0 ? 0.5 : 1 }}
+            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: companyIndustries.length === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", border: `1.5px solid ${filterByIndustries ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: filterByIndustries ? "#fce7f3" : "var(--color-bg-elevated, white)", color: filterByIndustries ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", opacity: companyIndustries.length === 0 ? 0.5 : 1 }}
           >
             My Industries
           </button>
           <button
             onClick={() => setFilterByIndustries(false)}
-            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${!filterByIndustries ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: !filterByIndustries ? "#fce7f3" : "white", color: !filterByIndustries ? "var(--color-brand)" : "#64748b" }}
+            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${!filterByIndustries ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: !filterByIndustries ? "#fce7f3" : "var(--color-bg-elevated, white)", color: !filterByIndustries ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)" }}
           >
             All Students
           </button>
           <select
             value={sortBy}
             onChange={e => setSortBy(e.target.value)}
-            style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid #e2e8f0", backgroundColor: sortBy !== "default" ? "#fce7f3" : "white", color: sortBy !== "default" ? "var(--color-brand)" : "#64748b", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
+            style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid #e2e8f0", backgroundColor: sortBy !== "default" ? "#fce7f3" : "var(--color-bg-elevated, white)", color: sortBy !== "default" ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
           >
             <option value="default">Sort: Default</option>
             <option value="most_available">Most Days Available</option>
@@ -349,7 +349,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
               )}
             </div>
             {shortlistFor === s.id && postings.length > 0 && (
-              <div style={{ marginTop: "0.5rem", padding: "0.65rem 0.85rem", backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem" }}>
+              <div style={{ marginTop: "0.5rem", padding: "0.65rem 0.85rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem" }}>
                 <p style={{ margin: "0 0 0.4rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Shortlist for which job?</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
                   {postings.filter(p => p.status === "Active").map(p => (
