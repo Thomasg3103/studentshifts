@@ -631,13 +631,13 @@ export default function CompanyDashboard() {
 
       {/* Student Availability Heatmap â€" Browse Students tab */}
       {activeTab === "students" && heatmap && (
-        <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
+        <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showHeatmap ? "1rem" : 0 }}>
             <div>
               <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#1e293b" }}>Student Availability</p>
               <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>When verified students are free â€" use this to plan your job times</p>
             </div>
-            <button onClick={() => setShowHeatmap(p => !p)} style={{ padding: "0.35rem 0.85rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
+            <button onClick={() => setShowHeatmap(p => !p)} style={{ padding: "0.35rem 0.85rem", borderRadius: "0.5rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
               {showHeatmap ? "Hide" : "Show"}
             </button>
           </div>
@@ -692,7 +692,7 @@ export default function CompanyDashboard() {
           {!templatesLoaded ? (
             <p style={{ fontSize: "0.875rem", color: "#64748b", textAlign: "center", padding: "2rem 0" }}>Loading…</p>
           ) : templates.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
+            <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📋</div>
               <p style={{ fontWeight: "700", color: "#1e293b", marginBottom: "0.25rem" }}>No templates yet</p>
               <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1.25rem" }}>Click "Save as Template" on any job posting to save it here.</p>
@@ -701,7 +701,7 @@ export default function CompanyDashboard() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
               {templates.map(t => (
-                <div key={t.id} style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "0.85rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", justifyContent: "space-between", flexWrap: "wrap" }}>
+                <div key={t.id} style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "0.85rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", justifyContent: "space-between", flexWrap: "wrap" }}>
                   <div>
                     <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#0f172a" }}>{t.name}</p>
                     <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>
@@ -724,7 +724,7 @@ export default function CompanyDashboard() {
                         await supabase.from("job_templates").delete().eq("id", t.id);
                         setTemplates(prev => prev.filter(x => x.id !== t.id));
                       }}
-                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid #fca5a5", backgroundColor: "var(--color-bg-elevated, white)", color: "#dc2626", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
                     >Delete</button>
                   </div>
                 </div>
@@ -744,7 +744,7 @@ export default function CompanyDashboard() {
           {!talentPoolLoaded ? (
             <p style={{ fontSize: "0.875rem", color: "#64748b", textAlign: "center", padding: "2rem 0" }}>Loading…</p>
           ) : talentPool.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
+            <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>👥</div>
               <p style={{ fontWeight: "700", color: "#1e293b", marginBottom: "0.25rem" }}>No hired students yet</p>
               <p style={{ fontSize: "0.85rem", color: "#64748b" }}>Students you hire will appear here so you can quickly re-hire them.</p>
@@ -752,7 +752,7 @@ export default function CompanyDashboard() {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
               {talentPool.map(s => (
-                <div key={s.id} style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "0.85rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", justifyContent: "space-between", flexWrap: "wrap" }}>
+                <div key={s.id} style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "0.85rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", justifyContent: "space-between", flexWrap: "wrap" }}>
                   <div>
                     <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#0f172a" }}>{s.name}</p>
                     {s.jobs.length > 0 && (
@@ -764,7 +764,7 @@ export default function CompanyDashboard() {
                   <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
                     <button
                       onClick={() => setChatStudent({ id: s.id, name: s.name })}
-                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
                     >💬 Message</button>
                     <button
                       disabled
@@ -801,7 +801,7 @@ export default function CompanyDashboard() {
             >Retry</button>
           </div>
         ) : postings.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "4rem 1rem", color: "#6b7280", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
+          <div style={{ textAlign: "center", padding: "4rem 1rem", color: "var(--color-text-secondary, #6b7280)", backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)" }}>
             <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>ðŸ"‹</div>
             <p style={{ fontSize: "1.15rem", fontWeight: "700", color: "#1e293b", marginBottom: "0.4rem" }}>No job postings yet</p>
             <p style={{ marginBottom: "1.75rem", fontSize: "0.9rem", color: "#64748b" }}>
@@ -841,7 +841,7 @@ export default function CompanyDashboard() {
       {/* Applicants Modal â€" wide overlay */}
       {modal === "applicants" && activePosting && (
         <div onClick={closeModal} className="applicants-modal-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)", animation: "fadeInOverlay 0.18s ease" }}>
-          <div ref={applicantsModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="applicants-modal-title" className="applicants-modal" style={{ backgroundColor: "white", borderRadius: "0.85rem", width: "100%", maxWidth: "min(96vw, 1500px)", minHeight: "88vh", maxHeight: "96vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid #e2e8f0" }}>
+          <div ref={applicantsModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="applicants-modal-title" className="applicants-modal" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "0.85rem", width: "100%", maxWidth: "min(96vw, 1500px)", minHeight: "88vh", maxHeight: "96vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid var(--color-border-light, #e2e8f0)" }}>
             {/* Header */}
             <div style={{ height: "60px", padding: "0 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: "1rem" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: "0.65rem", flex: 1, minWidth: 0 }}>
@@ -850,14 +850,14 @@ export default function CompanyDashboard() {
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
                 {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (
-                  <button key={val} onClick={() => setApplicantsViewMode(val)} style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem", fontWeight: "600", border: `1px solid ${applicantsViewMode === val ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.4rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: applicantsViewMode === val ? "#fff0f6" : "white", color: applicantsViewMode === val ? "var(--color-brand)" : "#64748b" }}>{label}</button>
+                  <button key={val} onClick={() => setApplicantsViewMode(val)} style={{ padding: "0.3rem 0.75rem", fontSize: "0.75rem", fontWeight: "600", border: `1px solid ${applicantsViewMode === val ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, borderRadius: "0.4rem", cursor: "pointer", fontFamily: "inherit", backgroundColor: applicantsViewMode === val ? "#fff0f6" : "var(--color-bg-elevated, white)", color: applicantsViewMode === val ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)" }}>{label}</button>
                 ))}
-                <button onClick={closeModal} aria-label="Close" style={{ width: "32px", height: "32px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>×</button>
+                <button onClick={closeModal} aria-label="Close" style={{ width: "32px", height: "32px", borderRadius: "0.4rem", border: "1px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", cursor: "pointer", color: "var(--color-text-secondary, #64748b)", fontSize: "1.1rem", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>×</button>
               </div>
             </div>
             {/* Pipeline funnel */}
             {!activePosting.applicantsLoading && activePosting.applicants?.length > 0 && (
-              <div style={{ padding: "0.85rem 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", flexShrink: 0, backgroundColor: "#f8fafc", gap: 0 }}>
+              <div style={{ padding: "0.85rem 1.75rem", borderBottom: "1px solid var(--color-border-light, #e2e8f0)", display: "flex", alignItems: "center", flexShrink: 0, backgroundColor: "var(--color-bg-surface, #f8fafc)", gap: 0 }}>
                 {[
                   { key: "applied",     label: "Applied"     },
                   { key: "shortlisted", label: "Shortlisted" },
