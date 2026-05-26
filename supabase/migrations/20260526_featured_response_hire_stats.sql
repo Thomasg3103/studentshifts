@@ -60,7 +60,7 @@ SET search_path = public
 AS $$
   SELECT json_build_object(
     'total_hired',      COUNT(a.id),
-    'hired_this_month', COUNT(CASE WHEN a.updated_at >= date_trunc('month', now()) THEN 1 END)
+    'hired_this_month', COUNT(CASE WHEN a.created_at >= date_trunc('month', now()) THEN 1 END)
   )
   FROM applications a
   JOIN jobs j ON a.job_id = j.id
