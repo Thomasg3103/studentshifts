@@ -103,7 +103,7 @@ export default function LeaderboardPage() {
                 key={c.id}
                 style={{
                   display: "flex", alignItems: "center", gap: "1rem",
-                  backgroundColor: i < 3 ? "white" : "var(--color-bg-surface, #f8fafc)",
+                  backgroundColor: i < 3 ? "var(--color-bg-elevated, white)" : "var(--color-bg-surface, #f8fafc)",
                   border: `1.5px solid ${i === 0 ? "#fde68a" : i === 1 ? "#e2e8f0" : i === 2 ? "#fed7aa" : "var(--color-border-light, #e2e8f0)"}`,
                   borderRadius: "0.85rem",
                   padding: "1rem 1.25rem",

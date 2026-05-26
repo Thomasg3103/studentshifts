@@ -163,7 +163,7 @@ export default function ForumPage() {
 
         {/* New post form */}
         {showForm && (
-          <div style={{ backgroundColor: "white", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "1rem", padding: "1.25rem", marginBottom: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
+          <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "1rem", padding: "1.25rem", marginBottom: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
             <h3 style={{ margin: "0 0 1rem", fontWeight: 700, fontSize: "1rem", color: "#1e293b" }}>New Post</h3>
             <select
               value={newCategory}
@@ -205,7 +205,7 @@ export default function ForumPage() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              style={{ padding: "0.35rem 0.85rem", borderRadius: "999px", border: `1.5px solid ${selectedCategory === cat ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: selectedCategory === cat ? "#fce7f3" : "white", color: selectedCategory === cat ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: selectedCategory === cat ? 700 : 500, fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+              style={{ padding: "0.35rem 0.85rem", borderRadius: "999px", border: `1.5px solid ${selectedCategory === cat ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: selectedCategory === cat ? "#fce7f3" : "var(--color-bg-elevated, white)", color: selectedCategory === cat ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: selectedCategory === cat ? 700 : 500, fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
             >
               {cat}
             </button>
@@ -240,7 +240,7 @@ export default function ForumPage() {
               return (
                 <div
                   key={post.id}
-                  style={{ backgroundColor: "white", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderLeft: `4px solid ${bandColor}`, borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}
+                  style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderLeft: `4px solid ${bandColor}`, borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}
                 >
                   {/* Vote column */}
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem", flexShrink: 0 }}>

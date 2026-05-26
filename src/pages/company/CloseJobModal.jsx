@@ -50,7 +50,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
               <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Position was cancelled or filled internally</span>
             </button>
           </div>
-          <button onClick={onClose} style={{ marginTop: "1rem", width: "100%", padding: "0.55rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+          <button onClick={onClose} style={{ marginTop: "1rem", width: "100%", padding: "0.55rem", borderRadius: "0.5rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
         </>)}
 
         {mode === "found" && (<>
@@ -69,7 +69,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
                     display: "flex", alignItems: "center", gap: "0.65rem",
                     padding: "0.6rem 0.85rem", borderRadius: "0.55rem",
                     border: `1.5px solid ${winner?.id === a.id ? "var(--color-brand)" : "#e2e8f0"}`,
-                    backgroundColor: winner?.id === a.id ? "#fce7f3" : "white",
+                    backgroundColor: winner?.id === a.id ? "#fce7f3" : "var(--color-bg-elevated, white)",
                     cursor: "pointer", fontFamily: "inherit", textAlign: "left",
                   }}
                 >
