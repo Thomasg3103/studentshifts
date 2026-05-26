@@ -14,6 +14,8 @@ export default function CompanyProfilePage() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [hireStats, setHireStats] = useState(null);
+  const [responseRate, setResponseRate] = useState(null);
 
   useEffect(() => {
     if (!companyId) return;
@@ -23,7 +25,7 @@ export default function CompanyProfilePage() {
         8000
       ),
       withTimeout(
-        supabase.from("companies").select("bio, website, industries, status").eq("id", companyId).single(),
+        supabase.from("companies").select("bio, website, industries, status, is_featured").eq("id", companyId).single(),
         8000
       ),
       withTimeout(
@@ -39,6 +41,13 @@ export default function CompanyProfilePage() {
       setCompany({ ...profileRes.data, ...companyRes.data });
       setJobs(jobsRes.data || []);
       setLoading(false);
+      // Load stats in background (non-blocking)
+      supabase.rpc("get_company_hire_stats", { p_company_id: companyId })
+        .then(({ data }) => { if (data) setHireStats(data); })
+        .catch(() => {});
+      supabase.rpc("get_company_response_rate", { p_company_id: companyId })
+        .then(({ data }) => { if (data) setResponseRate(data); })
+        .catch(() => {});
     }).catch(() => { setNotFound(true); setLoading(false); });
   }, [companyId]);
 
@@ -80,7 +89,12 @@ export default function CompanyProfilePage() {
           <div style={{ display: "flex", alignItems: "flex-start", gap: "1.25rem", flexWrap: "wrap" }}>
             <div style={{ width: "64px", height: "64px", borderRadius: "0.75rem", backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", flexShrink: 0 }}>🏢</div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ margin: "0 0 0.2rem", fontSize: "1.5rem", fontWeight: "800", color: "#0f172a", letterSpacing: "-0.02em" }}>{company.name}</h1>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", flexWrap: "wrap", marginBottom: "0.2rem" }}>
+                <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "#0f172a", letterSpacing: "-0.02em" }}>{company.name}</h1>
+                {company.is_featured && (
+                  <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#854d0e", backgroundColor: "#fef9c3", borderRadius: "999px", padding: "0.2rem 0.6rem", border: "1.5px solid #fde68a" }}>⭐ Featured Employer</span>
+                )}
+              </div>
               {industryList && <p style={{ margin: "0 0 0.5rem", fontSize: "0.8rem", color: "#64748b", fontWeight: "600" }}>{industryList}</p>}
               {company.website && (
                 <a href={company.website.startsWith("http") ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.83rem", color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>
@@ -94,27 +108,47 @@ export default function CompanyProfilePage() {
           )}
         </div>
 
-        {/* Stats row — two real + two placeholders */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
-          {[
-            { label: "Active Jobs", value: jobs.length },
-            { label: "Total Hired", value: "—", soon: false },
-          ].map(({ label, value }) => (
-            <div key={label} style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
-              <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "#0f172a" }}>{value}</p>
-              <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>{label}</p>
-            </div>
-          ))}
-          {[
-            { label: "Avg. Response Time", icon: "⏱️" },
-            { label: "Company Rating", icon: "⭐" },
-          ].map(({ label, icon }) => (
-            <div key={label} style={{ backgroundColor: "#f9fafb", border: "1.5px dashed #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
-              <p style={{ margin: 0, fontSize: "1.3rem" }}>{icon}</p>
-              <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>{label}</p>
-              <span style={{ fontSize: "0.6rem", fontWeight: "700", color: "#a855f7", backgroundColor: "#f5f3ff", borderRadius: "999px", padding: "0.1rem 0.45rem" }}>Coming Soon</span>
-            </div>
-          ))}
+        {/* Stats row */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
+          <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
+            <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "#0f172a" }}>{jobs.length}</p>
+            <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>Active Jobs</p>
+          </div>
+          <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
+            <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "#0f172a" }}>
+              {hireStats ? hireStats.total_hired : "—"}
+            </p>
+            <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>Total Hired</p>
+            {hireStats?.hired_this_month > 0 && (
+              <p style={{ margin: "0.2rem 0 0", fontSize: "0.65rem", color: "#16a34a", fontWeight: "700" }}>+{hireStats.hired_this_month} this month</p>
+            )}
+          </div>
+          <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
+            {responseRate && responseRate.total_received > 0 ? (
+              <>
+                <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "#0f172a" }}>{responseRate.response_rate_pct}%</p>
+                <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>Response Rate</p>
+                {responseRate.avg_hours !== null && (
+                  <p style={{ margin: "0.2rem 0 0", fontSize: "0.65rem", color: "#64748b" }}>
+                    avg {responseRate.avg_hours < 1
+                      ? `${Math.round(responseRate.avg_hours * 60)}m`
+                      : `${responseRate.avg_hours}h`}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <p style={{ margin: 0, fontSize: "1.3rem" }}>⏱️</p>
+                <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>Avg. Response</p>
+                <p style={{ margin: "0.1rem 0 0", fontSize: "0.65rem", color: "#94a3b8" }}>No data yet</p>
+              </>
+            )}
+          </div>
+          <div style={{ backgroundColor: "#f9fafb", border: "1.5px dashed #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
+            <p style={{ margin: 0, fontSize: "1.3rem" }}>⭐</p>
+            <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>Company Rating</p>
+            <span style={{ fontSize: "0.6rem", fontWeight: "700", color: "#a855f7", backgroundColor: "#f5f3ff", borderRadius: "999px", padding: "0.1rem 0.45rem" }}>Coming Soon</span>
+          </div>
         </div>
 
         {/* Active jobs */}

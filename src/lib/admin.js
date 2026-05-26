@@ -118,6 +118,24 @@ export async function getSignups() {
   return data || [];
 }
 
+export async function fetchVerifiedCompanies() {
+  const { data, error } = await withTimeout(
+    supabase.rpc("get_verified_companies"),
+    10000
+  );
+  if (error) throw error;
+  return (data || []).map(c => ({ id: c.id, name: c.name, isFeatured: c.is_featured }));
+}
+
+export async function setCompanyFeatured(companyId, featured) {
+  await ensureValidSession();
+  const { error } = await withTimeout(
+    supabase.rpc("set_company_featured", { p_company_id: companyId, p_featured: featured }),
+    10000
+  );
+  if (error) throw error;
+}
+
 export async function sendLaunchEmails({ test = false } = {}) {
   const { data, error } = await supabase.functions.invoke("send-launch-emails", {
     body: { test },

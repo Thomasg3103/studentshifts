@@ -225,6 +225,8 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [jobsLoading,    setJobsLoading]    = useState(true);
   const [jobsError,      setJobsError]      = useState(false);
   const [applicantCounts, setApplicantCounts] = useState({});
+  const [featuredCompanyIds,   setFeaturedCompanyIds]   = useState(new Set());
+  const [companyResponseRates, setCompanyResponseRates] = useState({});
   const [fetchedPage,  setFetchedPage]  = useState(0);
   const [hasMore,      setHasMore]      = useState(true);
   const [loadingMore,  setLoadingMore]  = useState(false);
@@ -270,6 +272,7 @@ export default function StudentDashboard({ restoreScrollY }) {
       id:              j.id,
       title:           j.title,
       company:         nameMap[j.company_id] || "Unknown Company",
+      companyId:       j.company_id,
       category:        j.category || "",
       location:        j.location,
       lat:             j.lat,
@@ -320,11 +323,25 @@ export default function StudentDashboard({ restoreScrollY }) {
         setApplicantCounts(prev => ({ ...prev, ...Object.fromEntries(data.map(r => [r.job_id, Number(r.applicant_count)])) }));
       })
       .catch(() => {});
+    // Batch-load response rates for newly seen companies (fire-and-forget)
+    const pageCompanyIds = [...new Set(rows.map(r => r.company_id))];
+    if (pageCompanyIds.length) {
+      supabase.rpc("get_companies_response_rates", { p_company_ids: pageCompanyIds })
+        .then(({ data }) => {
+          if (!data?.length) return;
+          setCompanyResponseRates(prev => ({ ...prev, ...Object.fromEntries(data.map(r => [r.company_id, Number(r.avg_hours)])) }));
+        })
+        .catch(() => {});
+    }
   }
 
   useEffect(() => {
     fetchJobPage(0).catch(e => { console.error("[StudentDashboard] jobs error:", e); setJobsError(true); })
       .finally(() => setJobsLoading(false));
+    // Load featured company IDs once on mount (fire-and-forget)
+    supabase.rpc("get_featured_company_ids")
+      .then(({ data }) => { if (data?.length) setFeaturedCompanyIds(new Set(data.map(r => r.id))); })
+      .catch(() => {});
   }, []);
 
   const loadMore = useCallback(async () => {
@@ -1074,9 +1091,16 @@ export default function StudentDashboard({ restoreScrollY }) {
                           if (pct < 20) return null;
                           return <span style={{ fontSize: isPhone ? "0.62rem" : "0.68rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.1rem 0.4rem", flexShrink: 0 }}>{pct}% match</span>;
                         })()}
-                        <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#64748b" }}>
-                          ⚡ 24h response
-                        </span>
+                        {featuredCompanyIds.has(job.companyId) && (
+                          <span style={{ fontSize: isPhone ? "0.62rem" : "0.68rem", fontWeight: "700", color: "#854d0e", backgroundColor: "#fef9c3", borderRadius: "999px", padding: "0.1rem 0.4rem", flexShrink: 0 }}>⭐ Featured</span>
+                        )}
+                        {(() => {
+                          const hrs = companyResponseRates[job.companyId];
+                          if (!hrs) return null;
+                          const label = hrs < 1 ? `${Math.round(hrs * 60)}m reply` : hrs <= 24 ? `${hrs}h reply` : null;
+                          if (!label) return null;
+                          return <span style={{ fontSize: isPhone ? "0.62rem" : "0.68rem", color: "#16a34a", fontWeight: "600", flexShrink: 0 }}>⚡ {label}</span>;
+                        })()}
                         <button
                           onClick={e => { e.stopPropagation(); const next = !jobAlerts; setJobAlerts(next); try { localStorage.setItem("ss_job_alerts", next ? "1" : "0"); } catch {} }}
                           title={jobAlerts ? "Job alerts on — you'll be notified of new matching jobs" : "Get notified when similar jobs are posted (coming soon)"}

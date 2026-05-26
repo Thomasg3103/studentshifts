@@ -8,6 +8,7 @@ import {
   fetchPendingCompanies, approveCompany, rejectCompany,
   sendEmail, emailStudentApproved, emailCompanyApproved,
   getSignups, sendLaunchEmails,
+  fetchVerifiedCompanies, setCompanyFeatured,
 } from "../lib/auth";
 import { emailStudentRejected, emailCompanyRejected } from "../lib/emails";
 import { useFocusTrap } from "../hooks/useFocusTrap";
@@ -27,6 +28,9 @@ export default function AdminPage() {
   const [signupsLoading, setSignupsLoading] = useState(false);
   const [launchSending, setLaunchSending] = useState(false);
   const [testSending, setTestSending]     = useState(false);
+  const [verifiedCompanies, setVerifiedCompanies] = useState(null); // null = not yet fetched
+  const [verifiedLoading, setVerifiedLoading]     = useState(false);
+  const [featuredToggling, setFeaturedToggling]   = useState(null); // company id being toggled
 
   // F-M10: extracted so the Refresh button can re-call it
   const loadData = useCallback(() => {
@@ -58,6 +62,32 @@ export default function AdminPage() {
   useEffect(() => {
     if (tab === "signups" && signups === null) loadSignups();
   }, [tab, signups, loadSignups]);
+
+  useEffect(() => {
+    if (tab === "featured" && verifiedCompanies === null) {
+      setVerifiedLoading(true);
+      fetchVerifiedCompanies()
+        .then(setVerifiedCompanies)
+        .catch(() => toast.error("Failed to load companies."))
+        .finally(() => setVerifiedLoading(false));
+    }
+  }, [tab, verifiedCompanies]);
+
+  const handleToggleFeatured = async (company) => {
+    if (featuredToggling) return;
+    setFeaturedToggling(company.id);
+    const next = !company.isFeatured;
+    setVerifiedCompanies(prev => prev.map(c => c.id === company.id ? { ...c, isFeatured: next } : c));
+    try {
+      await setCompanyFeatured(company.id, next);
+      toast.success(`${company.name} ${next ? "marked as featured" : "unfeatured"}.`);
+    } catch {
+      setVerifiedCompanies(prev => prev.map(c => c.id === company.id ? { ...c, isFeatured: !next } : c));
+      toast.error("Failed to update featured status.");
+    } finally {
+      setFeaturedToggling(null);
+    }
+  };
 
   const handleTestLaunchEmail = async () => {
     setTestSending(true);
@@ -276,6 +306,7 @@ export default function AdminPage() {
             { key: "students",  label: "Students",  count: pendingStudents },
             { key: "companies", label: "Companies", count: pendingCompanies },
             { key: "signups",   label: "Signups",   count: 0 },
+            { key: "featured",  label: "Featured",  count: 0 },
           ].map(({ key, label, count }) => {
             const active = tab === key;
             return (
@@ -310,7 +341,46 @@ export default function AdminPage() {
           })}
         </div>
 
-        {tab === "signups" ? (
+        {tab === "featured" ? (
+          <div>
+            <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "#64748b" }}>
+              Featured employers get a ⭐ badge on their job cards and profile. Toggle to feature or unfeature a verified company.
+            </p>
+            {verifiedLoading ? (
+              <p style={{ color: "#64748b" }}>Loading…</p>
+            ) : !verifiedCompanies?.length ? (
+              <EmptyState label="No verified companies yet" />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                {verifiedCompanies.map(c => (
+                  <div key={c.id} style={{ ...cardStyle, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+                      {c.isFeatured && <span style={{ fontSize: "1.1rem" }}>⭐</span>}
+                      <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{c.name}</p>
+                      {c.isFeatured && (
+                        <span style={{ fontSize: "0.65rem", fontWeight: "700", backgroundColor: "#fef9c3", color: "#854d0e", borderRadius: "999px", padding: "0.1rem 0.5rem" }}>Featured</span>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleToggleFeatured(c)}
+                      disabled={featuredToggling === c.id}
+                      style={{
+                        padding: "0.4rem 0.9rem", borderRadius: "0.45rem", border: "1.5px solid",
+                        borderColor: c.isFeatured ? "#fca5a5" : "#d1d5db",
+                        backgroundColor: c.isFeatured ? "#fff1f2" : "white",
+                        color: c.isFeatured ? "#e11d48" : "#374151",
+                        fontWeight: "600", fontSize: "0.8rem", cursor: featuredToggling === c.id ? "default" : "pointer",
+                        fontFamily: "inherit", opacity: featuredToggling === c.id ? 0.5 : 1, flexShrink: 0,
+                      }}
+                    >
+                      {featuredToggling === c.id ? "…" : c.isFeatured ? "Unfeature" : "⭐ Feature"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : tab === "signups" ? (
           <SignupsPanel
             signups={signups}
             loading={signupsLoading}
