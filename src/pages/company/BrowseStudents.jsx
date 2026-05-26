@@ -9,15 +9,22 @@ const PAGE_SIZE = 20;
 
 export default function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, _companyName, chatStudent, setChatStudent, _setPage, likedStudentIds, applicantStudentIds, onToggleLike, postings = [] }) {
   const [filterByIndustries, setFilterByIndustries] = useState(true);
-  const [sortBy, setSortBy] = useState("default");
+  const [locationFilter, setLocationFilter]         = useState("");
+  const [sortBy, setSortBy]       = useState("default");
   const [selectedJobId, setSelectedJobId] = useState("");
-  const [reliabilityMap, setReliabilityMap] = useState({});
+  const [sliders, setSliders]     = useState({ availability: 5, reliability: 5, skills: 3 });
+  const [reliabilityMap, setReliabilityMap]     = useState({});
   const [reliabilityLoading, setReliabilityLoading] = useState(false);
+  const [savedAlerts, setSavedAlerts]   = useState([]);
+  const [alertsLoaded, setAlertsLoaded] = useState(false);
+  const [showSaveAlert, setShowSaveAlert] = useState(false);
+  const [alertName, setAlertName]       = useState("");
+  const [savingAlert, setSavingAlert]   = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [shortlistFor, setShortlistFor] = useState(null);
   const [hiredThisMonth, setHiredThisMonth] = useState(0);
 
-  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filterByIndustries, sortBy, selectedJobId]);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filterByIndustries, locationFilter, sortBy, selectedJobId]);
 
   useEffect(() => {
     if (!companyId) return;
@@ -29,9 +36,18 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       .gte("updated_at", start.toISOString())
       .then(({ count }) => { if (count != null) setHiredThisMonth(count); });
   }, [companyId]);
+  // Load saved alerts for this company
+  useEffect(() => {
+    if (!companyId || alertsLoaded) return;
+    supabase.from("job_alerts").select("*").eq("company_id", companyId).order("created_at", { ascending: false })
+      .then(({ data }) => { setSavedAlerts(data || []); setAlertsLoaded(true); })
+      .catch(() => setAlertsLoaded(true));
+  }, [companyId, alertsLoaded]);
+
   // Load reliability scores when sort mode requires them
   useEffect(() => {
-    if (sortBy !== "reliability_first" || !students.length) return;
+    if (sortBy !== "reliability_first" && sortBy !== "priority") return;
+    if (!students.length) return;
     const missing = students.filter(s => !reliabilityMap[s.id]).map(s => s.id);
     if (!missing.length) return;
     setReliabilityLoading(true);
@@ -228,9 +244,9 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     );
   }
 
-  const filtered = filterByIndustries && companyIndustries.length > 0
-    ? students.filter(s => s.job_preferences?.some(p => companyIndustries.includes(p)))
-    : students;
+  const filtered = students
+    .filter(s => !filterByIndustries || !companyIndustries.length || s.job_preferences?.some(p => companyIndustries.includes(p)))
+    .filter(s => !locationFilter.trim() || s.location_display?.toLowerCase().includes(locationFilter.toLowerCase()));
 
   const toMins     = t => { const [h, m] = t.split(":").map(Number); return h * 60 + m; };
   const dayCount   = avail => Object.values(avail || {}).filter(v => Array.isArray(v) && v.length > 0).length;
@@ -250,6 +266,14 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
 
   const reliabilityRank = label => label === "Reliable" ? 0 : label === "New" ? 1 : 2;
 
+  const priorityScore = (s) => {
+    const availNorm = Math.min(dayCount(s.availability) / 7, 1);
+    const relLabel  = reliabilityMap[s.id];
+    const relNorm   = relLabel === "Reliable" ? 1 : relLabel === "Flagged" ? 0 : 0.5;
+    const skillNorm = Math.min((s.skills?.length || 0) / 8, 1);
+    return availNorm * sliders.availability + relNorm * sliders.reliability + skillNorm * sliders.skills;
+  };
+
   const displayStudents = [...filtered].sort((a, b) => {
     switch (sortBy) {
       case "most_available":    return dayCount(b.availability) - dayCount(a.availability);
@@ -257,6 +281,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       case "earliest":          return avgStart(a.availability) - avgStart(b.availability);
       case "match_job":         return jobMatchScore(b) - jobMatchScore(a);
       case "reliability_first": return reliabilityRank(reliabilityMap[a.id]) - reliabilityRank(reliabilityMap[b.id]);
+      case "priority":          return priorityScore(b) - priorityScore(a);
       default:                  return 0;
     }
   });
@@ -268,61 +293,146 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
 
   const visibleStudents = displayStudents.slice(0, visibleCount);
 
+  const applyAlert = (alert) => {
+    const c = alert.criteria || {};
+    if (c.sortBy)                        setSortBy(c.sortBy);
+    if (c.selectedJobId !== undefined)   setSelectedJobId(c.selectedJobId || "");
+    if (typeof c.filterByIndustries === "boolean") setFilterByIndustries(c.filterByIndustries);
+    if (c.locationFilter !== undefined)  setLocationFilter(c.locationFilter || "");
+    setVisibleCount(PAGE_SIZE);
+  };
+
+  const saveAlert = async () => {
+    if (!alertName.trim() || !companyId || savingAlert) return;
+    setSavingAlert(true);
+    const criteria = { sortBy, selectedJobId: selectedJobId || null, filterByIndustries, locationFilter: locationFilter || null };
+    const { data, error } = await supabase.from("job_alerts").insert({ company_id: companyId, label: alertName.trim(), criteria }).select().single();
+    if (!error && data) { setSavedAlerts(prev => [data, ...prev]); toast.success("Alert saved!"); }
+    setAlertName(""); setShowSaveAlert(false); setSavingAlert(false);
+  };
+
+  const deleteAlert = async (id) => {
+    await supabase.from("job_alerts").delete().eq("id", id);
+    setSavedAlerts(prev => prev.filter(a => a.id !== id));
+  };
+
+  const alertMatchCount = (alert) => {
+    const c = alert.criteria || {};
+    return students
+      .filter(s => !c.filterByIndustries || !companyIndustries.length || s.job_preferences?.some(p => companyIndustries.includes(p)))
+      .filter(s => !c.locationFilter || s.location_display?.toLowerCase().includes(c.locationFilter.toLowerCase()))
+      .length;
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
+
+      {/* Saved alerts strip */}
+      {savedAlerts.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", alignItems: "center" }}>
+          <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.05em", whiteSpace: "nowrap" }}>Saved:</span>
+          {savedAlerts.map(a => (
+            <div key={a.id} style={{ display: "flex", alignItems: "center", gap: "0", borderRadius: "999px", border: "1.5px solid var(--color-border-light, #e2e8f0)", overflow: "hidden", backgroundColor: "var(--color-bg-elevated, white)" }}>
+              <button onClick={() => applyAlert(a)} style={{ padding: "0.22rem 0.6rem", background: "none", border: "none", cursor: "pointer", fontSize: "0.75rem", fontWeight: "600", color: "var(--color-brand)", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                {a.label} <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)" }}>({alertMatchCount(a)})</span>
+              </button>
+              <button onClick={() => deleteAlert(a.id)} style={{ padding: "0.22rem 0.45rem 0.22rem 0", background: "none", border: "none", cursor: "pointer", fontSize: "0.75rem", color: "#94a3b8", fontFamily: "inherit", lineHeight: 1 }} aria-label={`Delete ${a.label} alert`}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Filter bar */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-          <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>
-            {displayStudents.length} of {students.length} verified student{students.length !== 1 ? "s" : ""}
-            {filterByIndustries && companyIndustries.length > 0 ? " matching your industries" : ""}
-          </p>
-          {hiredThisMonth > 0 && (
-            <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#16a34a", backgroundColor: "#dcfce7", borderRadius: "999px", padding: "0.15rem 0.55rem", whiteSpace: "nowrap" }}>
-              {hiredThisMonth} hired this month
-            </span>
-          )}
-        </div>
-        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap", marginLeft: "auto" }}>
-          <button
-            onClick={() => setFilterByIndustries(true)}
-            disabled={companyIndustries.length === 0}
-            title={companyIndustries.length === 0 ? "Set your industries in My Account first" : ""}
-            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: companyIndustries.length === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", border: `1.5px solid ${filterByIndustries ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: filterByIndustries ? "#fce7f3" : "var(--color-bg-elevated, white)", color: filterByIndustries ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", opacity: companyIndustries.length === 0 ? 0.5 : 1 }}
-          >
-            My Industries
-          </button>
-          <button
-            onClick={() => setFilterByIndustries(false)}
-            style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${!filterByIndustries ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: !filterByIndustries ? "#fce7f3" : "var(--color-bg-elevated, white)", color: !filterByIndustries ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)" }}
-          >
-            All Students
-          </button>
-          <select
-            value={sortBy}
-            onChange={e => { setSortBy(e.target.value); if (e.target.value !== "match_job") setSelectedJobId(""); }}
-            style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid #e2e8f0", backgroundColor: sortBy !== "default" ? "#fce7f3" : "var(--color-bg-elevated, white)", color: sortBy !== "default" ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
-          >
-            <option value="default">Sort: Default</option>
-            <option value="most_available">Most Days Available</option>
-            <option value="weekends_first">Weekend Work</option>
-            <option value="earliest">Earliest Starts</option>
-            {postings.filter(p => p.status === "Active").length > 0 && <option value="match_job">Match to Job</option>}
-            <option value="reliability_first">Reliability {reliabilityLoading ? "(loading…)" : ""}</option>
-          </select>
-          {sortBy === "match_job" && (
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+            <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>
+              {displayStudents.length} of {students.length} verified student{students.length !== 1 ? "s" : ""}
+              {filterByIndustries && companyIndustries.length > 0 ? " matching your industries" : ""}
+            </p>
+            {hiredThisMonth > 0 && (
+              <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#16a34a", backgroundColor: "#dcfce7", borderRadius: "999px", padding: "0.15rem 0.55rem", whiteSpace: "nowrap" }}>
+                {hiredThisMonth} hired this month
+              </span>
+            )}
+          </div>
+          <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap", marginLeft: "auto" }}>
+            <button
+              onClick={() => setFilterByIndustries(true)}
+              disabled={companyIndustries.length === 0}
+              title={companyIndustries.length === 0 ? "Set your industries in My Account first" : ""}
+              style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: companyIndustries.length === 0 ? "not-allowed" : "pointer", fontFamily: "inherit", border: `1.5px solid ${filterByIndustries ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: filterByIndustries ? "#fce7f3" : "var(--color-bg-elevated, white)", color: filterByIndustries ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", opacity: companyIndustries.length === 0 ? 0.5 : 1 }}
+            >My Industries</button>
+            <button
+              onClick={() => setFilterByIndustries(false)}
+              style={{ padding: "0.3rem 0.85rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${!filterByIndustries ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: !filterByIndustries ? "#fce7f3" : "var(--color-bg-elevated, white)", color: !filterByIndustries ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)" }}
+            >All Students</button>
             <select
-              value={selectedJobId}
-              onChange={e => setSelectedJobId(e.target.value)}
-              style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid var(--color-brand)", backgroundColor: "#fce7f3", color: "var(--color-brand)", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
+              value={sortBy}
+              onChange={e => { setSortBy(e.target.value); if (e.target.value !== "match_job") setSelectedJobId(""); }}
+              style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid #e2e8f0", backgroundColor: sortBy !== "default" ? "#fce7f3" : "var(--color-bg-elevated, white)", color: sortBy !== "default" ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
             >
-              <option value="">Pick a job…</option>
-              {postings.filter(p => p.status === "Active").map(p => (
-                <option key={p.id} value={p.id}>{p.title}</option>
-              ))}
+              <option value="default">Sort: Default</option>
+              <option value="most_available">Most Days Available</option>
+              <option value="weekends_first">Weekend Work</option>
+              <option value="earliest">Earliest Starts</option>
+              {postings.filter(p => p.status === "Active").length > 0 && <option value="match_job">Match to Job</option>}
+              <option value="reliability_first">Reliability {reliabilityLoading ? "(loading…)" : ""}</option>
+              <option value="priority">Custom Priority</option>
             </select>
-          )}
+            {sortBy === "match_job" && (
+              <select value={selectedJobId} onChange={e => setSelectedJobId(e.target.value)}
+                style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid var(--color-brand)", backgroundColor: "#fce7f3", color: "var(--color-brand)", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
+              >
+                <option value="">Pick a job…</option>
+                {postings.filter(p => p.status === "Active").map(p => (<option key={p.id} value={p.id}>{p.title}</option>))}
+              </select>
+            )}
+            {showSaveAlert ? (
+              <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
+                <input autoFocus value={alertName} onChange={e => setAlertName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") saveAlert(); if (e.key === "Escape") { setShowSaveAlert(false); setAlertName(""); } }} placeholder="Alert name…" style={{ padding: "0.25rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", fontSize: "0.75rem", fontFamily: "inherit", width: "130px" }} />
+                <button onClick={saveAlert} disabled={!alertName.trim() || savingAlert} style={{ padding: "0.25rem 0.6rem", borderRadius: "0.4rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.75rem", cursor: alertName.trim() ? "pointer" : "default", fontFamily: "inherit" }}>Save</button>
+                <button onClick={() => { setShowSaveAlert(false); setAlertName(""); }} style={{ padding: "0.25rem 0.5rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", background: "none", color: "#64748b", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>×</button>
+              </div>
+            ) : (
+              <button onClick={() => { setAlertName(""); setShowSaveAlert(true); }} title="Save current filters as a named alert" style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", cursor: "pointer", fontFamily: "inherit" }}>＋ Save Alert</button>
+            )}
+          </div>
         </div>
+
+        {/* Location filter */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <input
+            value={locationFilter}
+            onChange={e => setLocationFilter(e.target.value)}
+            placeholder="Filter by location (e.g. Dublin, Cork…)"
+            style={{ padding: "0.3rem 0.75rem", borderRadius: "999px", border: `1.5px solid ${locationFilter ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, fontSize: "0.78rem", fontFamily: "inherit", outline: "none", width: "220px", backgroundColor: locationFilter ? "#fce7f3" : "var(--color-bg-elevated, white)", color: locationFilter ? "var(--color-brand)" : "inherit" }}
+          />
+          {locationFilter && <button onClick={() => setLocationFilter("")} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.85rem", color: "#94a3b8", padding: 0 }}>×</button>}
+        </div>
+
+        {/* Priority sliders */}
+        {sortBy === "priority" && (
+          <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "0.85rem 1rem" }}>
+            <p style={{ margin: "0 0 0.65rem", fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Adjust priorities — list re-ranks instantly</p>
+            {[
+              { key: "availability", label: "Availability breadth", hint: "Days & hours available per week" },
+              { key: "reliability",  label: "Reliability",          hint: "Track record of showing up" },
+              { key: "skills",       label: "Skills count",         hint: "Number of listed skills" },
+            ].map(({ key, label, hint }) => (
+              <div key={key} style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.5rem" }}>
+                <div style={{ width: "130px", flexShrink: 0 }}>
+                  <p style={{ margin: 0, fontSize: "0.78rem", fontWeight: "600", color: "var(--color-text-primary, #1e293b)" }}>{label}</p>
+                  <p style={{ margin: 0, fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)" }}>{hint}</p>
+                </div>
+                <input type="range" min="0" max="10" value={sliders[key]} onChange={e => setSliders(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                  style={{ flex: 1, accentColor: "var(--color-brand)", cursor: "pointer" }} />
+                <span style={{ width: "24px", textAlign: "center", fontSize: "0.78rem", fontWeight: "700", color: sliders[key] > 0 ? "var(--color-brand)" : "#94a3b8" }}>{sliders[key]}</span>
+              </div>
+            ))}
+            {sliders.reliability > 0 && reliabilityLoading && <p style={{ margin: 0, fontSize: "0.72rem", color: "#64748b" }}>Loading reliability data…</p>}
+          </div>
+        )}
       </div>
       {showGoodEnough && (
         <div style={{ backgroundColor: "#fffbeb", border: "1.5px solid #fcd34d", borderRadius: "0.75rem", padding: "0.75rem 1rem", display: "flex", alignItems: "center", gap: "0.65rem" }}>
@@ -338,16 +448,16 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       {displayStudents.length === 0 && (
         <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
           <div style={{ fontSize: "2rem", marginBottom: "0.65rem" }}>🔍</div>
-          <p style={{ margin: "0 0 0.35rem", fontWeight: "700", fontSize: "1rem", color: "#1e293b" }}>No students match your industries</p>
-          <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.5 }}>
-            Students need to set matching job preferences in their account.<br />You can browse all students instead.
+          <p style={{ margin: "0 0 0.35rem", fontWeight: "700", fontSize: "1rem", color: "#1e293b" }}>
+            {locationFilter ? `No students found in "${locationFilter}"` : "No students match your industries"}
           </p>
-          <button
-            onClick={() => setFilterByIndustries(false)}
-            style={{ padding: "0.6rem 1.5rem", borderRadius: "999px", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.88rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(162,29,84,0.3)" }}
-          >
-            Browse All Students
-          </button>
+          <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.5 }}>
+            {locationFilter ? "Try a broader location or clear the filter." : <>Students need to set matching job preferences in their account.<br />You can browse all students instead.</>}
+          </p>
+          {locationFilter
+            ? <button onClick={() => setLocationFilter("")} style={{ padding: "0.6rem 1.5rem", borderRadius: "999px", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.88rem", cursor: "pointer", fontFamily: "inherit" }}>Clear Location Filter</button>
+            : <button onClick={() => setFilterByIndustries(false)} style={{ padding: "0.6rem 1.5rem", borderRadius: "999px", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.88rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 14px rgba(162,29,84,0.3)" }}>Browse All Students</button>
+          }
         </div>
       )}
       {visibleStudents.map(s => {
@@ -379,6 +489,11 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
                     🎯 {jobMatchScore(s)}/{selectedJob.days.length} shifts
                   </span>
                 )}
+                {sortBy === "priority" && (
+                  <span className="badge badge-sm" style={{ whiteSpace: "nowrap", flexShrink: 0, backgroundColor: "#fce7f3", color: "var(--color-brand)", border: "1px solid var(--color-brand)" }}>
+                    ⭐ {priorityScore(s).toFixed(1)}
+                  </span>
+                )}
               </div>
               <button
                 onClick={() => onToggleLike?.(s.id)}
@@ -389,6 +504,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
                 {isLiked ? "♥" : "♡"}
               </button>
             </div>
+            {s.location_display && <p style={{ margin: "0 0 0.2rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {s.location_display}</p>}
             {s.bio && <p style={{ margin: "0 0 0.4rem", fontSize: "0.8rem", color: "#64748b", lineHeight: 1.5 }}>{s.bio.length > 160 ? s.bio.slice(0, 160).trimEnd() + "…" : s.bio}</p>}
             {s.skills?.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>

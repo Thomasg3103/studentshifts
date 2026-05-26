@@ -329,3 +329,18 @@ BEGIN
 END;
 $$;
 GRANT EXECUTE ON FUNCTION get_reliability_scores_bulk(uuid[]) TO authenticated;
+
+-- ── 12. Saved search alerts ───────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS job_alerts (
+  id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  company_id  uuid        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  label       text        NOT NULL,
+  criteria    jsonb       NOT NULL DEFAULT '{}',
+  created_at  timestamptz DEFAULT now()
+);
+ALTER TABLE job_alerts ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "alerts_company_all" ON job_alerts;
+CREATE POLICY "alerts_company_all"
+  ON job_alerts FOR ALL
+  USING  (company_id = auth.uid())
+  WITH CHECK (company_id = auth.uid());
