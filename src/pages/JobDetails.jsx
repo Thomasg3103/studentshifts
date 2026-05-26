@@ -13,9 +13,9 @@ import { useApp } from "../context/AppContext";
 
 function DetailCard({ label, children }) {
   return (
-    <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderLeft: "3px solid var(--color-brand)", borderRadius: "0.65rem", padding: "0.55rem 0.75rem", marginBottom: "0.4rem" }}>
+    <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderLeft: "3px solid var(--color-brand)", borderRadius: "0.65rem", padding: "0.55rem 0.75rem", marginBottom: "0.4rem" }}>
       <p style={{ margin: "0 0 0.25rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-brand)" }}>{label}</p>
-      <div style={{ fontSize: "0.88rem", color: "#1e293b", fontWeight: 600 }}>{children}</div>
+      <div style={{ fontSize: "0.88rem", color: "var(--color-text-primary, #1e293b)", fontWeight: 600 }}>{children}</div>
     </div>
   );
 }
@@ -343,7 +343,7 @@ export default function JobDetails({ job }) {
           )}
 
           {/* RIGHT: main white card */}
-          <div style={{ flex: 1, minWidth: 0, backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 2rem", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
+          <div style={{ flex: 1, minWidth: 0, backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 2rem", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
 
             {/* Single header row: image · title/company · buttons */}
             <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
@@ -411,7 +411,7 @@ export default function JobDetails({ job }) {
                               <button
                                 onClick={toggleWaitlist}
                                 disabled={waitlistLoading}
-                                style={{ padding: "0.4rem 0.85rem", borderRadius: "2rem", border: `1.5px solid ${waitlistStatus === "on" ? "#fca5a5" : "var(--color-brand)"}`, background: waitlistStatus === "on" ? "#fff1f2" : "white", color: waitlistStatus === "on" ? "#dc2626" : "var(--color-brand)", fontWeight: 700, fontSize: "0.78rem", cursor: waitlistLoading ? "default" : "pointer", fontFamily: "inherit", opacity: waitlistLoading ? 0.7 : 1 }}
+                                style={{ padding: "0.4rem 0.85rem", borderRadius: "2rem", border: `1.5px solid ${waitlistStatus === "on" ? "#fca5a5" : "var(--color-brand)"}`, background: waitlistStatus === "on" ? "#fff1f2" : "var(--color-bg-elevated, white)", color: waitlistStatus === "on" ? "#dc2626" : "var(--color-brand)", fontWeight: 700, fontSize: "0.78rem", cursor: waitlistLoading ? "default" : "pointer", fontFamily: "inherit", opacity: waitlistLoading ? 0.7 : 1 }}
                               >
                                 {waitlistLoading ? "…" : waitlistStatus === "on" ? "Leave Waitlist" : "Join Waitlist"}
                               </button>
@@ -448,11 +448,11 @@ export default function JobDetails({ job }) {
 
             {/* About This Role */}
             {job.description && (
-              <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.1rem", marginBottom: "1.5rem" }}>
-                <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.45rem" }}>About This Role</p>
+              <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "1rem 1.1rem", marginBottom: "1.5rem" }}>
+                <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.45rem" }}>About This Role</p>
                 {/<[a-z]/i.test(job.description)
-                  ? <div className="rte-content" style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0 }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(job.description, { ALLOWED_TAGS: ["p","br","strong","em","b","i","ul","ol","li","a","h2","h3"], ALLOWED_ATTR: ["href","rel"] }) }} />
-                  : <p style={{ fontSize: "0.88rem", color: "#374151", lineHeight: 1.65, margin: 0, whiteSpace: "pre-wrap" }}>{job.description}</p>
+                  ? <div className="rte-content" style={{ fontSize: "0.88rem", color: "var(--color-text-primary, #374151)", lineHeight: 1.65, margin: 0 }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(job.description, { ALLOWED_TAGS: ["p","br","strong","em","b","i","ul","ol","li","a","h2","h3"], ALLOWED_ATTR: ["href","rel"] }) }} />
+                  : <p style={{ fontSize: "0.88rem", color: "var(--color-text-primary, #374151)", lineHeight: 1.65, margin: 0, whiteSpace: "pre-wrap" }}>{job.description}</p>
                 }
               </div>
             )}
@@ -469,7 +469,7 @@ export default function JobDetails({ job }) {
                       <button
                         key={sj.id}
                         onClick={() => { setSelectedJob(sj); }}
-                        style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.65rem 0.85rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", fontFamily: "inherit", textAlign: "left", width: "100%" }}
+                        style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.65rem 0.85rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", cursor: "pointer", fontFamily: "inherit", textAlign: "left", width: "100%" }}
                       >
                         <div style={{ width: "44px", height: "44px", borderRadius: "0.5rem", overflow: "hidden", flexShrink: 0, position: "relative", backgroundColor: "#f1f5f9" }}>
                           {sjPhoto ? (
@@ -497,7 +497,7 @@ export default function JobDetails({ job }) {
             {/* Report Job */}
             <button
               onClick={() => setReportOpen(true)}
-              style={{ width: "100%", padding: "0.85rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#64748b", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
+              style={{ width: "100%", padding: "0.85rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}
             >
               ⚑ Report this job
             </button>
@@ -508,8 +508,8 @@ export default function JobDetails({ job }) {
       {/* Report modal */}
       {reportOpen && (
         <div onClick={() => setReportOpen(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-          <div ref={reportModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="report-modal-title" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
-            <h3 id="report-modal-title" style={{ fontWeight: 800, fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Report Job</h3>
+          <div ref={reportModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="report-modal-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+            <h3 id="report-modal-title" style={{ fontWeight: 800, fontSize: "1.1rem", marginBottom: "0.25rem", color: "var(--color-text-primary, #1e293b)" }}>Report Job</h3>
             <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1rem", lineHeight: 1.5 }}>Let us know what's wrong with this listing and we'll look into it.</p>
             <textarea
               value={reportReason}
@@ -519,7 +519,7 @@ export default function JobDetails({ job }) {
               style={{ width: "100%", padding: "0.65rem 0.85rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", marginBottom: "1.25rem", outline: "none" }}
             />
             <div style={{ display: "flex", gap: "0.75rem" }}>
-              <button onClick={() => setReportOpen(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+              <button onClick={() => setReportOpen(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
               <button
                 onClick={() => {
                   const subject = encodeURIComponent(`Job Report: ${job.title} at ${job.company}`);
@@ -538,7 +538,7 @@ export default function JobDetails({ job }) {
       {/* Apply modal */}
       {applyModal && (
         <div onClick={() => setApplyModal(null)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-          <div ref={applyModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Apply for job" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+          <div ref={applyModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Apply for job" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
             {applyModal === "noCV" ? (
         <>
           <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fef9c3", border: "2px solid #fde047", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>📄</div>
@@ -547,7 +547,7 @@ export default function JobDetails({ job }) {
             You need to upload a CV before you can apply for jobs. Head to your Account page to add one.
           </p>
           <div style={{ display: "flex", gap: "0.75rem" }}>
-            <button onClick={() => setApplyModal(null)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+            <button onClick={() => setApplyModal(null)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
             <button onClick={() => { setApplyModal(null); setPage("account"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Upload CV →</button>
           </div>
         </>
@@ -570,8 +570,8 @@ export default function JobDetails({ job }) {
                 <div style={{ display: "flex", gap: "0.6rem", flexDirection: "column" }}>
                   <button onClick={() => setApplyModal("confirm")} style={{ width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Apply to All Shifts</button>
                   <div style={{ display: "flex", gap: "0.6rem" }}>
-                    <button onClick={() => setApplyModal(null)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-                    <button onClick={() => { setSelectedDay(null); setApplyModal("pickShift"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-brand)", backgroundColor: "white", color: "var(--color-brand)", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Pick a Shift</button>
+                    <button onClick={() => setApplyModal(null)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+                    <button onClick={() => { setSelectedDay(null); setApplyModal("pickShift"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-brand)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-brand)", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Pick a Shift</button>
                   </div>
                 </div>
               </>
@@ -596,7 +596,7 @@ export default function JobDetails({ job }) {
                   })}
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
-                  <button onClick={() => setApplyModal("shifts")} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
+                  <button onClick={() => setApplyModal("shifts")} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
                   <button onClick={() => { if (selectedDay) setApplyModal("confirm"); }} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: selectedDay ? "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))" : "#e2e8f0", color: selectedDay ? "white" : "#64748b", fontWeight: "700", cursor: selectedDay ? "pointer" : "default", fontFamily: "inherit" }}>Apply →</button>
                 </div>
               </>
@@ -606,15 +606,15 @@ export default function JobDetails({ job }) {
                 <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "#1e293b" }}>Apply for {job.title}?</h3>
                 <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: selectedDay ? "0.6rem" : "1.5rem" }}>{job.company} — your CV will be shared with the employer.</p>
                 {selectedDay && (
-                  <div style={{ backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.65rem 0.9rem", marginBottom: "1.25rem", textAlign: "left" }}>
-                    <p style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.25rem" }}>Preferred shift</p>
+                  <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem", padding: "0.65rem 0.9rem", marginBottom: "1.25rem", textAlign: "left" }}>
+                    <p style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.25rem" }}>Preferred shift</p>
                     <p style={{ fontSize: "0.88rem", color: "#374151", fontWeight: "600", margin: 0 }}>
                       {selectedDay}{(() => { const t = job.times?.[selectedDay]; const s = Array.isArray(t) ? t.join(", ") : t; return s ? ` · ${s}` : ""; })()}
                     </p>
                   </div>
                 )}
                 <div style={{ display: "flex", gap: "0.75rem" }}>
-                  <button onClick={() => setApplyModal(null)} disabled={submitting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit" }}>Cancel</button>
+                  <button onClick={() => setApplyModal(null)} disabled={submitting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", cursor: submitting ? "not-allowed" : "pointer", fontFamily: "inherit" }}>Cancel</button>
                   <button
                     onClick={() => {
                       if (job.screeningQuestions?.length > 0) {
@@ -642,7 +642,7 @@ export default function JobDetails({ job }) {
                         <div style={{ display: "flex", gap: "0.5rem" }}>
                           {["yes", "no"].map(val => (
                             <button key={val} type="button" onClick={() => setScreeningAnswers(prev => prev.map((x, idx) => idx === i ? { ...x, answer: val } : x))}
-                              style={{ flex: 1, padding: "0.55rem", borderRadius: "0.6rem", fontFamily: "inherit", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", border: `1.5px solid ${a.answer === val ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: a.answer === val ? "#fce7f3" : "white", color: a.answer === val ? "var(--color-brand)" : "#374151" }}>
+                              style={{ flex: 1, padding: "0.55rem", borderRadius: "0.6rem", fontFamily: "inherit", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", border: `1.5px solid ${a.answer === val ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: a.answer === val ? "#fce7f3" : "var(--color-bg-elevated, white)", color: a.answer === val ? "var(--color-brand)" : "var(--color-text-primary, #374151)" }}>
                               {val === "yes" ? "✓ Yes" : "✗ No"}
                             </button>
                           ))}
@@ -661,7 +661,7 @@ export default function JobDetails({ job }) {
                   ))}
                 </div>
                 <div style={{ display: "flex", gap: "0.75rem" }}>
-                  <button onClick={() => setApplyModal("confirm")} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
+                  <button onClick={() => setApplyModal("confirm")} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>← Back</button>
                   <button
                     onClick={() => confirmApply(screeningAnswers)}
                     disabled={submitting || screeningAnswers.some(a => !a.answer)}

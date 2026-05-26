@@ -47,14 +47,14 @@ function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMess
     <button onClick={onClick} style={{
       display: "flex", alignItems: "center", gap: "0.85rem",
       padding: "0.85rem 1rem", borderRadius: "0.75rem",
-      backgroundColor: isUnread ? "#fdf2f8" : "white",
-      border: `1.5px solid ${isUnread ? "#fce7f3" : "#e5e7eb"}`,
+      backgroundColor: isUnread ? "#fdf2f8" : "var(--color-bg-elevated, white)",
+      border: `1.5px solid ${isUnread ? "#fce7f3" : "var(--color-border-light, #e5e7eb)"}`,
       cursor: "pointer", textAlign: "left", width: "100%", fontFamily: "inherit",
     }}>
       <Avatar url={avatarUrl} name={avatarName || name} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.4rem" }}>
-          <p style={{ margin: 0, fontWeight: isUnread ? "800" : "700", fontSize: "0.92rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+          <p style={{ margin: 0, fontWeight: isUnread ? "800" : "700", fontSize: "0.92rem", color: "var(--color-text-primary, #1e293b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
           {timeStr && <p style={{ margin: 0, fontSize: "0.7rem", color: isUnread ? "var(--color-brand)" : "#64748b", flexShrink: 0 }}>{timeStr}</p>}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
@@ -248,8 +248,8 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
         }
       </div>
       {!input && !loading && !loadError && messages.length === 0 && (
-        <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
-          <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+        <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid var(--color-border-light, #e5e7eb)" }}>
+          <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
             {quickReplies.map(qr => (
               <button
@@ -265,13 +265,13 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
         {messages.length > 0 && `New message from ${messages[messages.length - 1]?.sender_id === senderId ? "you" : companyName}`}
       </div>
       {input.length > 3800 && (
-        <div style={{ padding: "0.25rem 1rem 0", backgroundColor: "white" }}>
+        <div style={{ padding: "0.25rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)" }}>
           <span style={{ fontSize: "0.72rem", color: input.length >= 4000 ? "#ef4444" : "#f97316", fontWeight: 600 }}>
             {input.length}/4000 characters
           </span>
         </div>
       )}
-      <div style={{ padding: "0.75rem 1rem", borderTop: input ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
+      <div style={{ padding: "0.75rem 1rem", borderTop: input ? "1.5px solid var(--color-border-light, #e5e7eb)" : "none", display: "flex", gap: "0.5rem", backgroundColor: "var(--color-bg-elevated, white)" }}>
         <input
           ref={inputRef}
           aria-label={`Message ${companyName}`}
@@ -280,7 +280,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
           onKeyDown={e => e.key === "Enter" && !e.shiftKey && send()}
           placeholder={`Message ${companyName}…`}
           maxLength={4000}
-          style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
+          style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid var(--color-border-light, #d1d5db)", fontSize: "0.85rem", fontFamily: "inherit", outline: "none", backgroundColor: "var(--color-bg-surface, white)", color: "var(--color-text-primary, #1e293b)" }}
         />
         <button
           onClick={send}
@@ -333,11 +333,11 @@ export default function Messages() {
     const isDirect = active.jobId === null;
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 80px)" }}>
-        <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "white", flexShrink: 0 }}>
-          <button aria-label="Back to conversations" onClick={goBack} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "#6b7280" }}>←</button>
+        <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid var(--color-border-light, #e5e7eb)", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "var(--color-bg-elevated, white)", flexShrink: 0 }}>
+          <button aria-label="Back to conversations" onClick={goBack} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "var(--color-text-secondary, #6b7280)" }}>←</button>
           <div>
-            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{isDirect ? active.companyName : active.title}</p>
-            <p style={{ margin: 0, fontSize: "0.78rem", color: "#6b7280" }}>{isDirect ? "Direct message" : active.companyName}</p>
+            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #1e293b)" }}>{isDirect ? active.companyName : active.title}</p>
+            <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--color-text-secondary, #6b7280)" }}>{isDirect ? "Direct message" : active.companyName}</p>
           </div>
         </div>
         <ChatThread key={`${active.jobId}_${active.companyId}`} jobId={active.jobId} studentId={currentUser.id} companyId={active.companyId} senderId={currentUser.id} companyName={active.companyName} jobTitle={active.title} />
