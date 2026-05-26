@@ -42,6 +42,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
 
   useEffect(() => {
     if (!chatStudent) return;
+    if (chatStudent.initialMessage) setChatInput(chatStudent.initialMessage);
     window.scrollTo({ top: 0, behavior: "smooth" });
     setChatLoading(true);
     setChatError("");

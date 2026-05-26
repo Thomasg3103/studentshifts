@@ -193,3 +193,99 @@ AS $$
   GROUP BY j.id, j.company_id, j.title, j.deadline;
 $$;
 GRANT EXECUTE ON FUNCTION get_jobs_expiring_soon(int) TO authenticated;
+
+-- ── 9. Smart matching: get students available for a job's shifts ──────────────
+-- Returns verified students whose stored availability overlaps the job's days.
+-- Availability stored as: { "Monday": ["09:00","14:00",...], ... }
+-- p_days: e.g. ARRAY['Monday','Wednesday']
+-- p_times: e.g. '{"Monday":"14:00","Wednesday":"09:00"}'  (optional, can be NULL)
+CREATE OR REPLACE FUNCTION get_matched_students_for_job(
+  p_job_id bigint
+)
+RETURNS TABLE (
+  student_id      uuid,
+  student_name    text,
+  profile_photo   text,
+  bio             text,
+  skills          text[],
+  availability    jsonb,
+  location_label  text,
+  match_score     int
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_days  text[];
+  v_times jsonb;
+BEGIN
+  SELECT days, times INTO v_days, v_times
+  FROM jobs WHERE id = p_job_id;
+
+  RETURN QUERY
+  SELECT
+    p.id                          AS student_id,
+    p.name                        AS student_name,
+    s.profile_photo_url           AS profile_photo,
+    s.bio,
+    s.skills,
+    s.availability,
+    s.location_label,
+    -- match_score: count of days where student is available at the shift time
+    (
+      SELECT COUNT(*)::int
+      FROM unnest(v_days) AS d
+      WHERE
+        s.availability ? d
+        AND (
+          v_times IS NULL
+          OR NOT (v_times ? d)
+          OR (s.availability->d) ? (v_times->>d)
+        )
+    ) AS match_score
+  FROM students s
+  JOIN profiles p ON p.id = s.id
+  WHERE
+    s.status = 'verified'
+    -- Must be available on at least one of the shift days
+    AND EXISTS (
+      SELECT 1 FROM unnest(v_days) d
+      WHERE s.availability ? d
+    )
+  ORDER BY match_score DESC
+  LIMIT 50;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION get_matched_students_for_job(bigint) TO authenticated;
+
+-- ── 10. Past hires: get all students a company has hired (for instant re-hire) ─
+CREATE OR REPLACE FUNCTION get_company_past_hires(p_company_id uuid)
+RETURNS TABLE (
+  student_id    uuid,
+  student_name  text,
+  profile_photo text,
+  bio           text,
+  job_title     text,
+  hired_at      timestamptz
+)
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT DISTINCT ON (p.id)
+    p.id           AS student_id,
+    p.name         AS student_name,
+    s.profile_photo_url AS profile_photo,
+    s.bio,
+    j.title        AS job_title,
+    a.updated_at   AS hired_at
+  FROM applications a
+  JOIN jobs j     ON j.id = a.job_id
+  JOIN profiles p ON p.id = a.student_id
+  JOIN students s ON s.id = a.student_id
+  WHERE j.company_id = p_company_id
+    AND a.status = 'Accepted'
+  ORDER BY p.id, a.updated_at DESC;
+$$;
+GRANT EXECUTE ON FUNCTION get_company_past_hires(uuid) TO authenticated;

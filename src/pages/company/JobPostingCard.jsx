@@ -25,7 +25,7 @@ function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }
   );
 }
 
-export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onDuplicate, onSaveTemplate }) {
+export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onDuplicate, onSaveTemplate, onNotifyStudents, notifying, notified }) {
   const isActive  = posting.status === "Active";
   const today     = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Expired";
@@ -149,6 +149,19 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
 
           {/* Secondary actions */}
           <div style={{ display: "flex", gap: "0.35rem", marginLeft: "auto" }}>
+            {onNotifyStudents && isActive && (
+              notified ? (
+                <span style={{ ...actionBtn, color: "#16a34a", cursor: "default" }}>✓ Notified</span>
+              ) : (
+                <button
+                  onClick={onNotifyStudents}
+                  disabled={notifying}
+                  aria-label={`Notify available students for ${posting.title}`}
+                  title="Email verified students whose availability matches this job's shift days"
+                  style={{ ...actionBtn, color: notifying ? "#94a3b8" : "var(--color-brand)", borderColor: notifying ? "#e2e8f0" : "var(--color-brand)", cursor: notifying ? "default" : "pointer" }}
+                >{notifying ? "Notifying…" : "📣 Notify"}</button>
+              )
+            )}
             <button onClick={onEdit} aria-label={`Edit ${posting.title}`} style={actionBtn}>Edit</button>
             <button onClick={onDuplicate} aria-label={`Duplicate ${posting.title}`} style={actionBtn} title="Create a new job based on this one">Duplicate</button>
             {onSaveTemplate && (

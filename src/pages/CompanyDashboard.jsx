@@ -6,7 +6,7 @@ import { useApp } from "../context/AppContext";
 import PageWrapper from "../components/PageWrapper";
 import "../StudentShiftWeb.css";
 import { supabase, withTimeout } from "../lib/supabase";
-import { fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchLikedStudentIds, likeStudent, unlikeStudent } from "../lib/auth";
+import { fetchAvailabilityHeatmap, fetchAllVerifiedStudents, fetchLikedStudentIds, likeStudent, unlikeStudent, sendEmail, emailShiftAvailable } from "../lib/auth";
 import { useHiringPipeline } from "../hooks/useHiringPipeline";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import BrowseStudents from "./company/BrowseStudents";
@@ -129,27 +129,21 @@ export default function CompanyDashboard() {
 
   // Load talent pool (past-hired students) when Talent Pool tab is opened
   useEffect(() => {
-    if (activeTab !== "talent" || talentPoolLoaded || loading) return;
-    const jobIds = postings.map(p => p.id);
-    if (!jobIds.length) { setTalentPoolLoaded(true); return; }
-    withTimeout(
-      supabase.from("applications").select("student_id, jobs(title)").in("job_id", jobIds).eq("status", "Accepted"),
-      10000
-    ).then(async ({ data, error }) => {
-      if (error || !data?.length) { setTalentPoolLoaded(true); return; }
-      const studentIds = [...new Set(data.map(a => a.student_id))];
-      const { data: profiles } = await supabase.from("profiles").select("id, name").in("id", studentIds);
-      const profileMap = {};
-      (profiles || []).forEach(p => { profileMap[p.id] = p; });
-      const pool = studentIds.map(sid => ({
-        id: sid,
-        name: profileMap[sid]?.name || "Unknown",
-        jobs: data.filter(a => a.student_id === sid).map(a => a.jobs?.title).filter(Boolean),
-      }));
-      setTalentPool(pool);
-      setTalentPoolLoaded(true);
-    }).catch(e => { console.warn("[CompanyDashboard] talentPool failed:", e); setTalentPoolLoaded(true); });
-  }, [activeTab, loading, talentPoolLoaded, postings]);
+    if (activeTab !== "talent" || talentPoolLoaded || !currentUser) return;
+    supabase.rpc("get_company_past_hires", { p_company_id: currentUser.id })
+      .then(({ data }) => {
+        setTalentPool((data || []).map(r => ({
+          id:       r.student_id,
+          name:     r.student_name,
+          photo:    r.profile_photo,
+          bio:      r.bio,
+          jobTitle: r.job_title,
+          hiredAt:  r.hired_at,
+        })));
+        setTalentPoolLoaded(true);
+      })
+      .catch(e => { console.warn("[CompanyDashboard] talentPool failed:", e); setTalentPoolLoaded(true); });
+  }, [activeTab, talentPoolLoaded, currentUser?.id]);
 
   // Load job templates when Templates tab is opened
   useEffect(() => {
@@ -304,6 +298,35 @@ export default function CompanyDashboard() {
   };
   useFocusTrap(applicantsModalRef, closeModal, modal === "applicants");
 
+  const [notifyingJobIds, setNotifyingJobIds] = useState(new Set());
+  const [notifiedJobIds, setNotifiedJobIds]   = useState(new Set());
+
+  const handleNotifyStudents = async (posting) => {
+    if (notifyingJobIds.has(posting.id) || notifiedJobIds.has(posting.id)) return;
+    setNotifyingJobIds(prev => new Set([...prev, posting.id]));
+    try {
+      const { data: matched, error: matchErr } = await supabase.rpc("get_matched_students_for_job", { p_job_id: posting.id });
+      if (matchErr) throw matchErr;
+      const studentIds = (matched || []).map(s => s.student_id);
+      if (!studentIds.length) { toast("No matching students found for this shift."); return; }
+      const { data: emailRows, error: emailErr } = await supabase.rpc("get_user_emails", { user_ids: studentIds });
+      if (emailErr) throw emailErr;
+      const emails = (emailRows || []).map(r => r.email).filter(Boolean);
+      if (!emails.length) { toast("Could not find email addresses for matched students."); return; }
+      await Promise.all(emails.map(to => sendEmail({
+        to,
+        subject: `New shift matching your availability — ${posting.title} at ${currentUser.name}`,
+        html: emailShiftAvailable("there", currentUser.name, posting.title, posting.days, posting.location),
+      })));
+      setNotifiedJobIds(prev => new Set([...prev, posting.id]));
+      toast.success(`Notified ${emails.length} student${emails.length !== 1 ? "s" : ""}!`);
+    } catch (e) {
+      Sentry.captureException(e);
+      toast.error("Failed to notify students — please try again.");
+    } finally {
+      setNotifyingJobIds(prev => { const s = new Set(prev); s.delete(posting.id); return s; });
+    }
+  };
 
   const toggleStatus = async (id) => {
     const posting = postings.find(p => p.id === id);
@@ -751,36 +774,57 @@ export default function CompanyDashboard() {
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
-              {talentPool.map(s => (
-                <div key={s.id} style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "0.85rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", justifyContent: "space-between", flexWrap: "wrap" }}>
-                  <div>
-                    <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#0f172a" }}>{s.name}</p>
-                    {s.jobs.length > 0 && (
-                      <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>
-                        Hired for: {s.jobs.slice(0, 3).join(", ")}{s.jobs.length > 3 ? ` +${s.jobs.length - 3} more` : ""}
-                      </p>
-                    )}
+              {talentPool.map(s => {
+                const hiredLabel = s.hiredAt
+                  ? new Date(s.hiredAt).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })
+                  : null;
+                return (
+                  <div key={s.id} style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "0.85rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", justifyContent: "space-between", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", minWidth: 0 }}>
+                      {s.photo ? (
+                        <img src={s.photo} alt={s.name} style={{ width: "42px", height: "42px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} loading="lazy" />
+                      ) : (
+                        <div style={{ width: "42px", height: "42px", borderRadius: "50%", backgroundColor: "#fce7f3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-brand)" }}>
+                          {s.name?.charAt(0)?.toUpperCase() || "?"}
+                        </div>
+                      )}
+                      <div style={{ minWidth: 0 }}>
+                        <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "var(--color-text-primary, #0f172a)" }}>{s.name}</p>
+                        <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          {s.jobTitle ? `Hired for ${s.jobTitle}` : "Previously hired"}
+                          {hiredLabel ? ` · ${hiredLabel}` : ""}
+                        </p>
+                        {s.bio && (
+                          <p style={{ margin: "0.2rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 1, WebkitBoxOrient: "vertical" }}>
+                            {s.bio}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <button
+                        onClick={() => setChatStudent({ id: s.id, name: s.name })}
+                        style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                      >💬 Message</button>
+                      <button
+                        onClick={() => {
+                          setActiveTab("students");
+                          if (!studentsFetched) setStudentsLoading(true);
+                          setChatStudent({ id: s.id, name: s.name, initialMessage: `Hi ${s.name}! We have a new shift coming up and would love to have you back — are you interested?` });
+                        }}
+                        style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                      >⚡ Re-Hire</button>
+                    </div>
                   </div>
-                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-                    <button
-                      onClick={() => setChatStudent({ id: s.id, name: s.name })}
-                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
-                    >💬 Message</button>
-                    <button
-                      disabled
-                      title="Coming soon — instant re-hire with one tap"
-                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-surface, #f8fafc)", color: "#94a3b8", fontWeight: "600", fontSize: "0.8rem", cursor: "default", fontFamily: "inherit" }}
-                    >⚡ Re-Hire · Soon</button>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
-          <div style={{ marginTop: "2rem", backgroundColor: "#f0fdf4", border: "1.5px dashed #86efac", borderRadius: "0.85rem", padding: "1.25rem 1.5rem", display: "flex", alignItems: "flex-start", gap: "0.85rem" }}>
-            <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>⚡</span>
+          <div style={{ marginTop: "2rem", backgroundColor: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: "0.85rem", padding: "1.25rem 1.5rem", display: "flex", alignItems: "flex-start", gap: "0.85rem" }}>
+            <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>💡</span>
             <div>
-              <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#15803d" }}>Instant Shift Fill <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "white", backgroundColor: "#a855f7", borderRadius: "999px", padding: "0.15rem 0.55rem", marginLeft: "0.35rem", verticalAlign: "middle" }}>Coming Soon</span></p>
-              <p style={{ margin: "0.25rem 0 0", fontSize: "0.82rem", color: "#166534" }}>Post a last-minute shift and automatically notify your Talent Pool — get it filled in minutes.</p>
+              <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#15803d" }}>Notify Available Students</p>
+              <p style={{ margin: "0.25rem 0 0", fontSize: "0.82rem", color: "#166534" }}>On each of your active job postings, use the <strong>📣 Notify</strong> button to instantly email all verified students whose availability matches your shift days.</p>
             </div>
           </div>
         </div>
@@ -820,6 +864,9 @@ export default function CompanyDashboard() {
                 onDelete={() => deletePosting(posting.id)}
                 onToggleStatus={() => toggleStatus(posting.id)}
                 onDuplicate={() => duplicatePosting(posting)}
+                onNotifyStudents={() => handleNotifyStudents(posting)}
+                notifying={notifyingJobIds.has(posting.id)}
+                notified={notifiedJobIds.has(posting.id)}
                 onSaveTemplate={async (name) => {
                   const templateData = {
                     title: posting.title, category: posting.category, location: posting.location,

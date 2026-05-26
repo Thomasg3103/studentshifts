@@ -12,6 +12,7 @@ import { usePushNotifications } from "../hooks/usePushNotifications";
 import { jobCategories } from "../data/jobCategories";
 import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
+import TimetableGrid from "../components/TimetableGrid";
 
 const PART_TIME_SKILLS = [
   "Customer Service", "Cash Handling", "Till Operation", "Retail Sales", "Stock Management",
@@ -513,8 +514,8 @@ export default function AccountPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
         <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-brand)" }}>My Availability</p>
       </div>
-      <p style={{ fontSize: "0.73rem", color: "#6b7280", marginBottom: "0.65rem", lineHeight: 1.4 }}>Tap the slots you're free each week.</p>
-      <AvailabilityPicker value={availability} onChange={handleAvailabilityChange} />
+      <p style={{ fontSize: "0.73rem", color: "#6b7280", marginBottom: "0.65rem", lineHeight: 1.4 }}>Mark when you're free — companies match shifts to your timetable.</p>
+      <TimetableGrid value={availability} onChange={handleAvailabilityChange} />
     </div>
   );
 
@@ -717,8 +718,8 @@ export default function AccountPage() {
 
               {/* My Availability — collapsible, below location */}
               <Collapsible title="My Availability">
-                <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.75rem", lineHeight: 1.4 }}>Tap the slots you're free each week.</p>
-                <AvailabilityPicker value={availability} onChange={handleAvailabilityChange} />
+                <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.75rem", lineHeight: 1.4 }}>Drag or tap to mark when you're free. Companies match shifts to your timetable.</p>
+                <TimetableGrid value={availability} onChange={handleAvailabilityChange} />
                 {Object.values(availability).some(s => s?.length > 0) && (
                   <button
                     type="button"
