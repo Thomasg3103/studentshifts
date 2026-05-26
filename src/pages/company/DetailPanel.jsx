@@ -434,6 +434,9 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                     >
                       Send Invite
                     </button>
+                    <button disabled title="Coming soon — share a calendar booking link" style={{ width: "100%", marginTop: "0.3rem", padding: "0.4rem", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", color: "#94a3b8", fontWeight: "600", fontSize: "0.75rem", cursor: "default", fontFamily: "inherit" }}>
+                      📅 Pick a Time · Soon
+                    </button>
                   </div>
                 ))}
               </div>
@@ -503,11 +506,13 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
             <button onClick={() => onStageAction(applicant.id, "trial")} style={panelActionBtn("primary")}>Advance to Trial</button>
             <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("secondary")}>Move to Decision</button>
             <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("danger")}>Decline Applicant</button>
+            {applicant.status === "Pending" && <button disabled title="Coming soon — flag if applicant is not responding" style={{ ...panelActionBtn("danger"), opacity: 0.4, cursor: "default", fontSize: "0.78rem" }}>🚫 Flag as Ghosted · Soon</button>}
           </>)}
           {stage === "trial" && (<>
             <button onClick={() => setTrialInviteOpen(true)} style={panelActionBtn("secondary")}>Send Trial Invite</button>
             <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("primary")}>Move to Decision</button>
             <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("danger")}>Decline Applicant</button>
+            {applicant.status === "Pending" && <button disabled title="Coming soon — flag if applicant is not responding" style={{ ...panelActionBtn("danger"), opacity: 0.4, cursor: "default", fontSize: "0.78rem" }}>🚫 Flag as Ghosted · Soon</button>}
           </>)}
           {stage === "decision" && applicant.status === "Pending" && (<>
             <button
@@ -529,13 +534,14 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               style={{ ...panelActionBtn("danger"), opacity: hireLoading ? 0.6 : 1 }}
             >{hireLoading ? "Processing…" : "Decline Applicant"}</button>
           </>)}
-          {applicant.status === "Accepted" && (
+          {applicant.status === "Accepted" && (<>
             <button
               disabled={rehireLoading}
               onClick={handleRehire}
               style={{ ...panelActionBtn("secondary"), opacity: rehireLoading ? 0.6 : 1 }}
             >{rehireLoading ? "Sending…" : "Offer Another Shift"}</button>
-          )}
+            <button disabled title="Coming soon — send a formal offer letter" style={{ ...panelActionBtn("secondary"), opacity: 0.45, cursor: "default", fontSize: "0.82rem" }}>📄 Send Offer Letter · Soon</button>
+          </>)}
         </div>
       </div>
 

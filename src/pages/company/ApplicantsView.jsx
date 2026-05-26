@@ -107,6 +107,9 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist,
               {applicant.driverLicence && <span className="badge badge-tag badge-gray">🚗 Driver</span>}
             </div>
           )}
+          {applicant.status === "Accepted" && (
+            <p style={{ margin: "0.15rem 0 0", fontSize: "0.65rem", color: "#94a3b8", fontWeight: "600" }}>⭐ Reliability Score · Coming soon</p>
+          )}
         </div>
         <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M9 18l6-6-6-6"/></svg>
       </button>
@@ -535,6 +538,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
           <option value="name_asc">Name A → Z</option>
           <option value="name_desc">Name Z → A</option>
           <option value="status">By Status</option>
+          <option value="ai_sort" disabled>✨ AI Sort — Coming Soon</option>
         </select>
       </div>
 
@@ -593,8 +597,25 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
             </button>
           );
         })}
+        <button
+          role="tab"
+          aria-selected={activeStage === "calendar"}
+          onClick={() => { setActiveStage("calendar"); setSelectedIds(new Set()); }}
+          style={{ flexShrink: 0, padding: "0.55rem 1.1rem", border: "none", borderBottom: activeStage === "calendar" ? "2px solid var(--color-brand)" : "2px solid transparent", marginBottom: "-2px", background: "transparent", fontWeight: "600", fontSize: "0.82rem", color: activeStage === "calendar" ? "var(--color-brand)" : "#94a3b8", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: "0.3rem" }}
+        >
+          📅 Calendar
+          <span style={{ fontSize: "0.6rem", fontWeight: "700", color: "#7c3aed", backgroundColor: "#ede9fe", borderRadius: "999px", padding: "0.05rem 0.35rem" }}>Soon</span>
+        </button>
       </div>
+      {activeStage === "calendar" && (
+        <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "#f8fafc", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", marginTop: "0.75rem" }}>
+          <p style={{ fontSize: "2rem", margin: "0 0 0.75rem" }}>📅</p>
+          <p style={{ fontWeight: "700", fontSize: "1rem", color: "#1e293b", margin: "0 0 0.35rem" }}>Interview & Trial Calendar</p>
+          <p style={{ fontSize: "0.875rem", color: "#64748b", margin: 0, lineHeight: 1.55 }}>A unified calendar view of all scheduled interviews and trial shifts is coming soon.</p>
+        </div>
+      )}
 
+      {activeStage !== "calendar" && (<>
       {/* Stage summary */}
       <p style={{ margin: "0 0 0.85rem", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>
         {(search.trim() || activeFilterCount > 0)
@@ -690,12 +711,15 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
             >
               {bulkDeclining ? "Declining…" : `✕ Decline ${selectedIds.size}`}
             </button>
+            <button disabled title="Bulk messaging — coming soon" style={{ padding: "0.5rem 1.1rem", borderRadius: "0.55rem", border: "1.5px solid #e2e8f0", background: "white", color: "#94a3b8", fontWeight: "700", fontSize: "0.8rem", cursor: "default", fontFamily: "inherit" }}>
+              📨 Message <span style={{ fontSize: "0.65rem" }}>· Soon</span>
+            </button>
           </div>
         </div>
       )}
 
       {/* Liked students — Shortlisted tab only, not yet applied */}
-      {activeStage === "shortlisted" && (() => {
+      {activeStage === "shortlisted" && (activeStage !== "calendar") && (() => {
         const appliedIds = new Set(posting.applicants.map(a => a.studentId));
         const saved = (likedStudents || []).filter(s => !appliedIds.has(s.id));
         if (saved.length === 0) return null;
@@ -722,6 +746,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
           </div>
         );
       })()}
+      </>)}
       </>)}
 
       {/* Close Job button — Decision stage only, no accepted applicant yet */}

@@ -190,6 +190,16 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, onRemove, 
               💬 Message Company
             </button>
           )}
+          {showMessage && (
+            <button disabled title="Coming soon" style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#94a3b8", fontWeight: "700", fontSize: "0.78rem", cursor: "default", fontFamily: "inherit" }}>
+              📄 Offer Letter <span style={{ fontSize: "0.65rem" }}>· Soon</span>
+            </button>
+          )}
+          {showMessage && (
+            <button disabled title="Coming soon" style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#94a3b8", fontWeight: "700", fontSize: "0.78rem", cursor: "default", fontFamily: "inherit" }}>
+              ⭐ Review Company <span style={{ fontSize: "0.65rem" }}>· Soon</span>
+            </button>
+          )}
           {showWithdraw && (
             <button aria-label={`Withdraw application to ${job.title}`} onClick={() => onRemove(job.id, "withdraw")}
               style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #fca5a5", backgroundColor: "white", color: "#dc2626", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>

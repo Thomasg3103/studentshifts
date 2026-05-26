@@ -65,6 +65,8 @@ function FilterPanel({
   distanceKm, setDistanceKm, studentLocation, allLocations,
   selectedLocations, toggleLocation, selectedJobTypes, toggleJobType,
   weekendOnly, allWeekOnly, noWeekends,
+  payMin, setPayMin, payMax, setPayMax,
+  matchSchedule, setMatchSchedule, hasStudentAvailability,
   onApply,
 }) {
   const sortOptions = [
@@ -163,8 +165,32 @@ function FilterPanel({
         ))}
       </FilterSection>
 
+      {/* Pay Range */}
+      <FilterSection title={<>Pay Rate {(payMin || payMax) && <Pip n="✓" />}</>} open={openSections.pay} onToggle={() => toggleSection("pay")} onClear={(payMin || payMax) ? () => { setPayMin(""); setPayMax(""); } : null}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <div style={{ flex: 1, position: "relative" }}>
+            <span style={{ position: "absolute", left: "0.5rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.78rem", color: "#64748b", pointerEvents: "none" }}>€</span>
+            <input type="number" min="0" max="999" step="0.5" value={payMin} onChange={e => setPayMin(e.target.value)} placeholder="Min" aria-label="Minimum pay per hour"
+              style={{ width: "100%", padding: "0.35rem 0.4rem 0.35rem 1.4rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.82rem", fontFamily: "inherit", boxSizing: "border-box" }} />
+          </div>
+          <span style={{ fontSize: "0.75rem", color: "#94a3b8", flexShrink: 0 }}>to</span>
+          <div style={{ flex: 1, position: "relative" }}>
+            <span style={{ position: "absolute", left: "0.5rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.78rem", color: "#64748b", pointerEvents: "none" }}>€</span>
+            <input type="number" min="0" max="999" step="0.5" value={payMax} onChange={e => setPayMax(e.target.value)} placeholder="Max" aria-label="Maximum pay per hour"
+              style={{ width: "100%", padding: "0.35rem 0.4rem 0.35rem 1.4rem", borderRadius: "0.4rem", border: "1px solid #d1d5db", fontSize: "0.82rem", fontFamily: "inherit", boxSizing: "border-box" }} />
+          </div>
+        </div>
+        <p style={{ margin: "0.3rem 0 0", fontSize: "0.72rem", color: "#94a3b8" }}>per hour</p>
+      </FilterSection>
+
       {/* Schedule */}
-      <FilterSection title="Schedule" open={openSections.schedule} onToggle={() => toggleSection("schedule")} onClear={(weekendOnly || allWeekOnly || noWeekends) ? () => { setWeekendOnly(false); setAllWeekOnly(false); setNoWeekends(false); } : null}>
+      <FilterSection title={<>Schedule {(weekendOnly || allWeekOnly || noWeekends || matchSchedule) && <Pip n="✓" />}</>} open={openSections.schedule} onToggle={() => toggleSection("schedule")} onClear={(weekendOnly || allWeekOnly || noWeekends || matchSchedule) ? () => { setWeekendOnly(false); setAllWeekOnly(false); setNoWeekends(false); setMatchSchedule(false); } : null}>
+        {hasStudentAvailability && (
+          <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.55rem", cursor: "pointer", fontSize: "0.83rem", fontWeight: matchSchedule ? 700 : 500, color: matchSchedule ? "var(--color-brand)" : "#374151", paddingBottom: "0.45rem", borderBottom: "1px solid #f3f4f6" }}>
+            <input type="checkbox" checked={matchSchedule} onChange={() => setMatchSchedule(p => !p)} style={{ width: "14px", height: "14px", cursor: "pointer", accentColor: "var(--color-brand)" }} />
+            Matches my schedule
+          </label>
+        )}
         {[
           { label: "Weekend Work", active: weekendOnly, toggle: () => setWeekendOnly(p => !p) },
           { label: "All Week",     active: allWeekOnly, toggle: () => setAllWeekOnly(p => !p) },
@@ -393,13 +419,17 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [allWeekOnly,       setAllWeekOnly]       = useState(false);
   const [noWeekends,        setNoWeekends]        = useState(false);
   const [distanceKm,        setDistanceKm]        = useState(0);
+  const [payMin,            setPayMin]            = useState("");
+  const [payMax,            setPayMax]            = useState("");
+  const [matchSchedule,     setMatchSchedule]     = useState(false);
+  const [jobAlerts,         setJobAlerts]         = useState(() => { try { return localStorage.getItem("ss_job_alerts") === "1"; } catch { return false; } });
   const [searchQuery,       setSearchQuery]       = useState("");
   // Debounced version — filter/sort only recomputes 200 ms after the user stops typing
   const [debouncedSearch,   setDebouncedSearch]   = useState("");
   const [sortBy,            setSortBy]            = useState("");
 
   // Sidebar section collapse state — Sort and Days & Times open by default
-  const [openSections, setOpenSections] = useState({ sort: true, days: true, location: false, jobType: false, schedule: false, distance: false });
+  const [openSections, setOpenSections] = useState({ sort: true, days: true, location: false, jobType: false, pay: false, schedule: false, distance: false });
   const toggleSection = (k) => setOpenSections(p => ({ ...p, [k]: !p[k] }));
 
   // Debounce search input so filtering doesn't fire on every keystroke
@@ -427,6 +457,7 @@ export default function StudentDashboard({ restoreScrollY }) {
 
   const clearAll = () => {
     setSelectedDays([]); setDayTimes({}); setSelectedLocations([]); setSelectedJobTypes([]);
+    setPayMin(""); setPayMax(""); setMatchSchedule(false);
     setWeekendOnly(false); setAllWeekOnly(false); setNoWeekends(false);
     setDistanceKm(0); setSearchQuery(""); setSortBy(""); setWarning("");
   };
@@ -434,7 +465,7 @@ export default function StudentDashboard({ restoreScrollY }) {
   const currentFilters = () => ({
     selectedDays, dayTimes, selectedLocations, selectedJobTypes,
     weekendOnly, allWeekOnly, noWeekends, distanceKm, sortBy, prefOnly,
-    searchQuery,
+    searchQuery, payMin, payMax, matchSchedule,
   });
 
   const applyFilters = (f) => {
@@ -449,6 +480,9 @@ export default function StudentDashboard({ restoreScrollY }) {
     setSortBy(f.sortBy || "");
     setPrefOnly(f.prefOnly || false);
     setSearchQuery(f.searchQuery || "");
+    setPayMin(f.payMin || "");
+    setPayMax(f.payMax || "");
+    setMatchSchedule(f.matchSchedule || false);
   };
 
   const generateSearchName = () => {
@@ -483,8 +517,8 @@ export default function StudentDashboard({ restoreScrollY }) {
     try { localStorage.setItem(ssKey, JSON.stringify(updated)); } catch (e) { console.warn("Could not persist saved search deletion:", e); }
   };
 
-  const hasActiveFilters = selectedDays.length > 0 || selectedLocations.length > 0 || selectedJobTypes.length > 0 || weekendOnly || allWeekOnly || noWeekends || distanceKm > 0 || debouncedSearch.trim() !== "";
-  const activeFilterCount = (selectedDays.length > 0 ? 1 : 0) + (selectedLocations.length > 0 ? 1 : 0) + (selectedJobTypes.length > 0 ? 1 : 0) + (weekendOnly ? 1 : 0) + (allWeekOnly ? 1 : 0) + (noWeekends ? 1 : 0) + (distanceKm > 0 ? 1 : 0);
+  const hasActiveFilters = selectedDays.length > 0 || selectedLocations.length > 0 || selectedJobTypes.length > 0 || weekendOnly || allWeekOnly || noWeekends || distanceKm > 0 || debouncedSearch.trim() !== "" || !!payMin || !!payMax || matchSchedule;
+  const activeFilterCount = (selectedDays.length > 0 ? 1 : 0) + (selectedLocations.length > 0 ? 1 : 0) + (selectedJobTypes.length > 0 ? 1 : 0) + (weekendOnly ? 1 : 0) + (allWeekOnly ? 1 : 0) + (noWeekends ? 1 : 0) + (distanceKm > 0 ? 1 : 0) + ((payMin || payMax) ? 1 : 0) + (matchSchedule ? 1 : 0);
 
   const userPrefs = currentUser?.jobPreferences || [];
 
@@ -546,31 +580,70 @@ export default function StudentDashboard({ restoreScrollY }) {
       const dist = jobDistance(job);
       if (dist === null || dist > distanceKm) return false;
     }
+    if (payMin && payNum(job.pay) < parseFloat(payMin)) return false;
+    if (payMax && payNum(job.pay) > parseFloat(payMax)) return false;
+    if (matchSchedule) {
+      const avail = currentUser?.availability || {};
+      const hasOverlap = (job.days || []).some(day => Array.isArray(avail[day]) && avail[day].length > 0);
+      if (!hasOverlap) return false;
+    }
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase();
       if (!job.title.toLowerCase().includes(q) && !job.company.toLowerCase().includes(q) && !(job.description || "").toLowerCase().includes(q)) return false;
     }
     return true;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [jobs, prefOnly, userPrefs, selectedDays, dayTimes, selectedLocations, selectedJobTypes, weekendOnly, allWeekOnly, noWeekends, distanceKm, studentLocation, debouncedSearch, jobDistance]);
+  }), [jobs, prefOnly, userPrefs, selectedDays, dayTimes, selectedLocations, selectedJobTypes, weekendOnly, allWeekOnly, noWeekends, distanceKm, studentLocation, debouncedSearch, jobDistance, payMin, payMax, matchSchedule, currentUser?.availability]);
 
   const payNum = (p) => parseFloat((p || "").replace(/[^0-9.]/g, "")) || 0;
-  // Memoised — only re-sorts when filteredJobs or sortBy changes
-  // Urgent jobs always float to the top regardless of sort order
+
+  // Match score per job — skills + preferences + availability overlap (must be before sortedJobs)
+  const jobMatchScore = useCallback((job) => {
+    if (!currentUser) return 0;
+    let score = 0;
+    const prefs = currentUser.jobPreferences || [];
+    const skills = currentUser.skills || [];
+    const avail  = currentUser.availability || {};
+    const cat    = job.category || getCategoryForTitle(job.title);
+    if (cat && prefs.includes(cat)) score += 40;
+    const jobText = (job.title + " " + (job.description || "")).toLowerCase();
+    const skillMatches = skills.filter(s => jobText.includes(s.toLowerCase())).length;
+    score += Math.min(30, skillMatches * 10);
+    const days = job.days || [];
+    const matchingDays = days.filter(d => Array.isArray(avail[d]) && avail[d].length > 0).length;
+    score += days.length > 0 ? Math.round((matchingDays / days.length) * 30) : 0;
+    return score;
+  }, [currentUser]);
+
+  // Top-matched jobs for "For You" strip
+  const forYouJobs = useMemo(() => {
+    if (!currentUser || currentUser.role !== "student") return [];
+    const prefs  = currentUser.jobPreferences || [];
+    const skills = currentUser.skills || [];
+    const avail  = currentUser.availability || {};
+    if (!prefs.length && !skills.length && !Object.keys(avail).length) return [];
+    return [...jobs]
+      .map(j => ({ ...j, _score: jobMatchScore(j) }))
+      .filter(j => j._score > 0 && !appliedJobs.some(a => a.id === j.id))
+      .sort((a, b) => b._score - a._score)
+      .slice(0, 5);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [jobs, currentUser, jobMatchScore, appliedJobs]);
+
+  // Sorted jobs — Best Match uses match score, urgent always floats first
   const sortedJobs = useMemo(() => {
-    const sorted = sortBy === "" ? [...filteredJobs] : [...filteredJobs].sort((a, b) => {
+    const sorted = [...filteredJobs].sort((a, b) => {
       if (sortBy === "payHigh")     return payNum(b.pay) - payNum(a.pay);
       if (sortBy === "payLow")      return payNum(a.pay) - payNum(b.pay);
       if (sortBy === "dateNewest")  return new Date(b.createdAt) - new Date(a.createdAt);
       if (sortBy === "dateOldest")  return new Date(a.createdAt) - new Date(b.createdAt);
       if (sortBy === "distanceNear") { const da = jobDistance(a) ?? Infinity;  const db = jobDistance(b) ?? Infinity;  return da - db; }
       if (sortBy === "distanceFar")  { const da = jobDistance(a) ?? -Infinity; const db = jobDistance(b) ?? -Infinity; return db - da; }
-      return 0;
+      return jobMatchScore(b) - jobMatchScore(a);
     });
-    // Urgent jobs always float to top
     return [...sorted.filter(j => j.isUrgent), ...sorted.filter(j => !j.isUrgent)];
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filteredJobs, sortBy, jobDistance]);
+  }, [filteredJobs, sortBy, jobDistance, jobMatchScore]);
 
   // Market average pay per category, computed from ALL loaded jobs (not filtered subset)
   const categoryAvgPay = useMemo(() => {
@@ -610,6 +683,8 @@ export default function StudentDashboard({ restoreScrollY }) {
     "distanceFar":  "Distance: Furthest",
   };
 
+  const hasStudentAvailability = !!(currentUser?.availability && Object.values(currentUser.availability || {}).some(v => Array.isArray(v) && v.length > 0));
+
   const filterPanelProps = {
     clearAll, hasActiveFilters, sortBy, setSortBy, openSections, toggleSection,
     warning, selectedDays, toggleDay, dayTimes, updateTime,
@@ -617,6 +692,8 @@ export default function StudentDashboard({ restoreScrollY }) {
     distanceKm, setDistanceKm, studentLocation, allLocations,
     selectedLocations, toggleLocation, selectedJobTypes, toggleJobType,
     weekendOnly, setWeekendOnly, allWeekOnly, setAllWeekOnly, noWeekends, setNoWeekends,
+    payMin, setPayMin, payMax, setPayMax,
+    matchSchedule, setMatchSchedule, hasStudentAvailability,
   };
 
   return (
@@ -730,6 +807,37 @@ export default function StudentDashboard({ restoreScrollY }) {
                     <button onClick={() => deleteSearch(i)} aria-label={`Remove saved search: ${s.name}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "0.25rem 0.5rem 0.25rem 0.1rem", background: "none", border: "none", color: "#f48fb1", fontWeight: 700, fontSize: "0.9rem", lineHeight: 1, cursor: "pointer" }}>×</button>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* For You recommendations strip */}
+            {forYouJobs.length > 0 && !hasActiveFilters && (
+              <div style={{ marginBottom: "1.25rem" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.55rem" }}>
+                  <p style={{ margin: 0, fontSize: "0.72rem", fontWeight: 800, color: "var(--color-brand)", textTransform: "uppercase", letterSpacing: "0.07em" }}>✨ For You</p>
+                  <p style={{ margin: 0, fontSize: "0.68rem", color: "#94a3b8" }}>Based on your profile</p>
+                </div>
+                <div style={{ display: "flex", gap: "0.65rem", overflowX: "auto", paddingBottom: "0.35rem" }}>
+                  {forYouJobs.map(job => {
+                    const score = job._score || 0;
+                    const pct   = Math.min(100, Math.round((score / 100) * 100));
+                    const isApplied = appliedJobs.some(j => j.id === job.id);
+                    return (
+                      <button key={job.id} onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
+                        style={{ flexShrink: 0, width: "175px", padding: "0.75rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-brand)", background: "linear-gradient(135deg, #fff0f6 0%, white 100%)", cursor: "pointer", textAlign: "left", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(162,29,84,0.1)" }}>
+                        <p style={{ margin: "0 0 0.2rem", fontWeight: 700, fontSize: "0.82rem", color: "#0f172a", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</p>
+                        <p style={{ margin: "0 0 0.35rem", fontSize: "0.72rem", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.company}</p>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                          <span style={{ fontWeight: 700, fontSize: "0.82rem", color: "#111827" }}>{job.pay}</span>
+                          {isApplied
+                            ? <span className="badge badge-green badge-sm">Applied</span>
+                            : <span style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.1rem 0.45rem" }}>{pct}% match</span>
+                          }
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
@@ -940,27 +1048,41 @@ export default function StudentDashboard({ restoreScrollY }) {
                             </span>
                           );
                         })()}
-                        {dl && (
-                          <span className={`badge ${dlSoon ? "badge-yellow" : "badge-gray"} ${isPhone ? "badge-sm" : ""}`}>
-                            Closes {deadlineLabel(dl)}
-                          </span>
-                        )}
+                        {dl && (() => {
+                          if (dlDays !== null && dlDays <= 3 && dlDays >= 0) {
+                            return <span className={`badge badge-red ${isPhone ? "badge-sm" : ""}`}>🔴 Closes in {dlDays === 0 ? "today" : `${dlDays} day${dlDays !== 1 ? "s" : ""}`}</span>;
+                          }
+                          return <span className={`badge ${dlSoon ? "badge-yellow" : "badge-gray"} ${isPhone ? "badge-sm" : ""}`}>Closes {deadlineLabel(dl)}</span>;
+                        })()}
                         {job.updatedAt && (
                           <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#64748b", marginLeft: "auto" }}>
                             Updated {new Date(job.updatedAt).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}
                           </span>
                         )}
                       </div>
-                      {/* Social proof + response time */}
+                      {/* Social proof + match score + job alerts */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
                         {(applicantCounts[job.id] ?? 0) > 0 && (
                           <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#64748b", fontWeight: 500 }}>
                             👥 {applicantCounts[job.id]} applicant{applicantCounts[job.id] !== 1 ? "s" : ""}
                           </span>
                         )}
+                        {(() => {
+                          const score = jobMatchScore(job);
+                          if (!score || !currentUser || currentUser.role !== "student") return null;
+                          const pct = Math.min(100, Math.round((score / 100) * 100));
+                          if (pct < 20) return null;
+                          return <span style={{ fontSize: isPhone ? "0.62rem" : "0.68rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.1rem 0.4rem", flexShrink: 0 }}>{pct}% match</span>;
+                        })()}
                         <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "#64748b" }}>
-                          ⚡ Responds within 24h (Mon–Fri)
+                          ⚡ 24h response
                         </span>
+                        <button
+                          onClick={e => { e.stopPropagation(); const next = !jobAlerts; setJobAlerts(next); try { localStorage.setItem("ss_job_alerts", next ? "1" : "0"); } catch {} }}
+                          title={jobAlerts ? "Job alerts on — you'll be notified of new matching jobs" : "Get notified when similar jobs are posted (coming soon)"}
+                          aria-label={jobAlerts ? "Disable job alerts" : "Enable job alerts"}
+                          style={{ marginLeft: "auto", padding: "0.1rem 0.4rem", borderRadius: "999px", border: `1px solid ${jobAlerts ? "var(--color-brand)" : "#e2e8f0"}`, background: jobAlerts ? "#fce7f3" : "white", color: jobAlerts ? "var(--color-brand)" : "#94a3b8", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}
+                        >{jobAlerts ? "🔔 Alerts on" : "🔔 Alert me"}</button>
                       </div>
                     </div>
 

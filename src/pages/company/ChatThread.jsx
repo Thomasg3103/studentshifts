@@ -69,16 +69,21 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
           ? <p style={{ fontSize: "0.8rem", color: "#64748b", textAlign: "center", padding: "0.5rem 0" }}>Loading…</p>
           : messages.length === 0
             ? <p style={{ fontSize: "0.8rem", color: "#64748b", textAlign: "center", padding: "0.5rem 0" }}>No messages yet.</p>
-            : messages.map((m) => (
-              <div key={m.id} style={{ alignSelf: m.sender_id === senderId ? "flex-end" : "flex-start", maxWidth: "85%" }}>
-                <div style={{ backgroundColor: m.sender_id === senderId ? "#3b82f6" : "#e5e7eb", color: m.sender_id === senderId ? "white" : "#111827", padding: "0.4rem 0.65rem", borderRadius: "0.55rem", fontSize: "0.8rem", lineHeight: 1.4 }}>
-                  {m.text}
-                </div>
-                <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
-                  {new Date(m.created_at).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
-                </p>
-              </div>
-            ))
+            : messages.map((m, idx) => {
+                const isMine = m.sender_id === senderId;
+                const isLastMine = isMine && messages.slice(idx + 1).every(x => x.sender_id !== senderId);
+                return (
+                  <div key={m.id} style={{ alignSelf: isMine ? "flex-end" : "flex-start", maxWidth: "85%" }}>
+                    <div style={{ backgroundColor: isMine ? "#3b82f6" : "#e5e7eb", color: isMine ? "white" : "#111827", padding: "0.4rem 0.65rem", borderRadius: "0.55rem", fontSize: "0.8rem", lineHeight: 1.4 }}>
+                      {m.text}
+                    </div>
+                    <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: isMine ? "right" : "left", display: "flex", alignItems: "center", justifyContent: isMine ? "flex-end" : "flex-start", gap: "0.2rem" }}>
+                      {new Date(m.created_at).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
+                      {isMine && <span style={{ fontSize: "0.62rem", color: isLastMine ? "#3b82f6" : "#94a3b8", fontWeight: "700" }}>✓✓</span>}
+                    </p>
+                  </div>
+                );
+              })
         }
         <div ref={bottomRef} />
       </div>

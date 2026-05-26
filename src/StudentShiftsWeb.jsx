@@ -30,6 +30,7 @@ const ContactPage       = lazy(() => import("./pages/ContactPage"));
 const PendingCompanyPage= lazy(() => import("./pages/PendingCompanyPage"));
 const LeaderboardPage   = lazy(() => import("./pages/LeaderboardPage"));
 const ForumPage         = lazy(() => import("./pages/ForumPage"));
+const CompanyProfilePage= lazy(() => import("./pages/CompanyProfilePage"));
 
 import { supabase } from "./lib/supabase";
 import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatuses, saveCompanyCroNumber, saveCompanyIndustries, fetchJobBySlug, toJobSlug, fetchJobsByIds, fetchMessageCount } from "./lib/auth";
@@ -457,6 +458,7 @@ export default function StudentShiftsWeb() {
               {/* Company pages */}
               <Route path="/company" element={currentUser?.role === "company" && currentUser?.verificationStatus === "verified" ? <CompanyDashboard /> : <Navigate to="/" replace />} />
               <Route path="/company/messages" element={currentUser?.role === "company" && currentUser?.verificationStatus === "verified" ? <CompanyMessages /> : <Navigate to="/" replace />} />
+              <Route path="/companies/:companyId" element={<CompanyProfilePage />} />
 
               {/* Admin */}
               <Route path="/admin" element={currentUser?.role === "admin" ? <AdminPage /> : <Navigate to="/" replace />} />

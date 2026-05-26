@@ -1,0 +1,171 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { supabase, withTimeout } from "../lib/supabase";
+import PageWrapper from "../components/PageWrapper";
+import { useApp } from "../context/AppContext";
+
+export default function CompanyProfilePage() {
+  const { companyId } = useParams();
+  const navigate = useNavigate();
+  const { setSelectedJob, currentUser } = useApp();
+
+  const [company, setCompany] = useState(null);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+
+  useEffect(() => {
+    if (!companyId) return;
+    Promise.all([
+      withTimeout(
+        supabase.from("profiles").select("id, name").eq("id", companyId).eq("role", "company").single(),
+        8000
+      ),
+      withTimeout(
+        supabase.from("companies").select("bio, website, industries, status").eq("id", companyId).single(),
+        8000
+      ),
+      withTimeout(
+        supabase.from("jobs").select("id, title, category, location, pay, days, deadline, is_urgent, photos").eq("company_id", companyId).eq("status", "Active").order("created_at", { ascending: false }),
+        8000
+      ),
+    ]).then(([profileRes, companyRes, jobsRes]) => {
+      if (!profileRes.data || companyRes.data?.status !== "verified") {
+        setNotFound(true);
+        setLoading(false);
+        return;
+      }
+      setCompany({ ...profileRes.data, ...companyRes.data });
+      setJobs(jobsRes.data || []);
+      setLoading(false);
+    }).catch(() => { setNotFound(true); setLoading(false); });
+  }, [companyId]);
+
+  if (loading) {
+    return (
+      <PageWrapper>
+        <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <p style={{ color: "#64748b", fontWeight: "600" }}>Loading…</p>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  if (notFound) {
+    return (
+      <PageWrapper>
+        <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>
+          <div style={{ fontSize: "3rem" }}>🏢</div>
+          <p style={{ fontWeight: "700", fontSize: "1.1rem", color: "#1e293b", margin: 0 }}>Company not found</p>
+          <p style={{ color: "#64748b", margin: 0, fontSize: "0.9rem" }}>This company profile doesn't exist or isn't verified yet.</p>
+          <button onClick={() => navigate(-1)} style={{ marginTop: "0.5rem", padding: "0.5rem 1.25rem", borderRadius: "2rem", border: "none", backgroundColor: "var(--color-brand)", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}>Go back</button>
+        </div>
+      </PageWrapper>
+    );
+  }
+
+  const industryList = (company.industries || []).join(", ");
+
+  return (
+    <PageWrapper>
+      <Helmet>
+        <title>{company.name} — StudentShifts</title>
+        <meta name="description" content={`${company.name} is hiring students on StudentShifts. ${company.bio ? company.bio.slice(0, 120) : ""}`} />
+      </Helmet>
+
+      <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2rem 1rem" }}>
+        {/* Profile header */}
+        <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.75rem", marginBottom: "1.5rem" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: "1.25rem", flexWrap: "wrap" }}>
+            <div style={{ width: "64px", height: "64px", borderRadius: "0.75rem", backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", flexShrink: 0 }}>🏢</div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <h1 style={{ margin: "0 0 0.2rem", fontSize: "1.5rem", fontWeight: "800", color: "#0f172a", letterSpacing: "-0.02em" }}>{company.name}</h1>
+              {industryList && <p style={{ margin: "0 0 0.5rem", fontSize: "0.8rem", color: "#64748b", fontWeight: "600" }}>{industryList}</p>}
+              {company.website && (
+                <a href={company.website.startsWith("http") ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.83rem", color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>
+                  🔗 {company.website.replace(/^https?:\/\//, "")}
+                </a>
+              )}
+            </div>
+          </div>
+          {company.bio && (
+            <p style={{ margin: "1.1rem 0 0", fontSize: "0.9rem", color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{company.bio}</p>
+          )}
+        </div>
+
+        {/* Stats row — two real + two placeholders */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
+          {[
+            { label: "Active Jobs", value: jobs.length },
+            { label: "Total Hired", value: "—", soon: false },
+          ].map(({ label, value }) => (
+            <div key={label} style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "#0f172a" }}>{value}</p>
+              <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>{label}</p>
+            </div>
+          ))}
+          {[
+            { label: "Avg. Response Time", icon: "⏱️" },
+            { label: "Company Rating", icon: "⭐" },
+          ].map(({ label, icon }) => (
+            <div key={label} style={{ backgroundColor: "#f9fafb", border: "1.5px dashed #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
+              <p style={{ margin: 0, fontSize: "1.3rem" }}>{icon}</p>
+              <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>{label}</p>
+              <span style={{ fontSize: "0.6rem", fontWeight: "700", color: "#a855f7", backgroundColor: "#f5f3ff", borderRadius: "999px", padding: "0.1rem 0.45rem" }}>Coming Soon</span>
+            </div>
+          ))}
+        </div>
+
+        {/* Active jobs */}
+        <h2 style={{ margin: "0 0 1rem", fontSize: "1.05rem", fontWeight: "700", color: "#0f172a" }}>Open Positions ({jobs.length})</h2>
+        {jobs.length === 0 ? (
+          <div style={{ textAlign: "center", padding: "2.5rem 1rem", backgroundColor: "white", borderRadius: "0.85rem", border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+            <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📋</div>
+            <p style={{ margin: 0, fontWeight: "600" }}>No open positions right now</p>
+            <p style={{ margin: "0.25rem 0 0", fontSize: "0.85rem" }}>Check back soon — new shifts are posted regularly.</p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {jobs.map(job => {
+              const thumb = job.photos?.[0];
+              return (
+                <button
+                  key={job.id}
+                  onClick={() => { if (currentUser?.role === "student") { setSelectedJob({ id: job.id, title: job.title, company: company.name }); } }}
+                  style={{ width: "100%", textAlign: "left", background: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.25rem", cursor: currentUser?.role === "student" ? "pointer" : "default", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "1rem" }}
+                >
+                  {thumb && <img src={thumb} alt="" style={{ width: "52px", height: "52px", borderRadius: "0.5rem", objectFit: "cover", flexShrink: 0 }} />}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                      <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{job.title}</p>
+                      {job.is_urgent && <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "#dc2626", backgroundColor: "#fee2e2", borderRadius: "999px", padding: "0.1rem 0.5rem" }}>Urgent</span>}
+                    </div>
+                    <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "#64748b" }}>
+                      📍 {job.location} &nbsp;·&nbsp; 💰 {job.pay} &nbsp;·&nbsp; {job.category}
+                    </p>
+                    {job.days?.length > 0 && (
+                      <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#94a3b8" }}>{job.days.join(", ")}</p>
+                    )}
+                  </div>
+                  {currentUser?.role === "student" && (
+                    <span style={{ flexShrink: 0, fontSize: "0.8rem", color: "var(--color-brand)", fontWeight: "700" }}>View →</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Reviews placeholder */}
+        <div style={{ marginTop: "2rem", backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+            <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: "700", color: "#0f172a" }}>Student Reviews</h3>
+            <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "#a855f7", backgroundColor: "#f5f3ff", borderRadius: "999px", padding: "0.2rem 0.6rem" }}>Coming Soon</span>
+          </div>
+          <p style={{ margin: 0, fontSize: "0.85rem", color: "#94a3b8" }}>Students who've worked here will be able to leave reviews once this feature launches.</p>
+        </div>
+      </div>
+    </PageWrapper>
+  );
+}

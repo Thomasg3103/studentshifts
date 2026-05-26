@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
 import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData, sendPasswordReset } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 import { getOrCreateReferralCode, fetchMyReferrals } from "../lib/referrals";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { jobCategories } from "../data/jobCategories";
@@ -80,10 +81,25 @@ export default function AccountPage() {
   const [rightToWork, setRightToWork]           = useState(currentUser.rightToWork || false);
   const [driverLicence, setDriverLicence]       = useState(currentUser.driverLicence || false);
   const [showProfilePreview, setShowProfilePreview] = useState(false);
+  const [workHistory, setWorkHistory]               = useState([]);
+  const [jobAlerts, setJobAlerts]                   = useState(() => localStorage.getItem("ss_job_alerts") === "1");
 
   useEffect(() => {
     return () => { if (availDebounceRef.current) clearTimeout(availDebounceRef.current); };
   }, []);
+
+  useEffect(() => {
+    if (currentUser.role !== "student") return;
+    supabase
+      .from("applications")
+      .select("id, created_at, jobs(title, location, pay)")
+      .eq("student_id", currentUser.id)
+      .eq("status", "Accepted")
+      .order("created_at", { ascending: false })
+      .then(({ data, error }) => {
+        if (!error && data) setWorkHistory(data);
+      });
+  }, [currentUser.role, currentUser.id]);
 
   // Load referral code for students
   useEffect(() => {
@@ -813,6 +829,62 @@ export default function AccountPage() {
                   👁 Preview — How companies see your profile
                 </button>
                 </div>
+
+              {/* Work History */}
+              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
+                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: 0 }}>Work History</p>
+                  {workHistory.length > 0 && <span style={{ fontSize: "0.72rem", color: "#64748b" }}>{workHistory.length} shift{workHistory.length !== 1 ? "s" : ""}</span>}
+                </div>
+                {workHistory.length === 0 ? (
+                  <p style={{ fontSize: "0.82rem", color: "#94a3b8", margin: 0 }}>Shifts you complete through StudentShifts will appear here.</p>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                    {workHistory.map(app => (
+                      <div key={app.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.55rem 0.75rem", backgroundColor: "#f8fafc", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0" }}>
+                        <div>
+                          <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "700", color: "#0f172a" }}>{app.jobs?.title || "Job"}</p>
+                          <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>{app.jobs?.location}{app.jobs?.pay ? ` · ${app.jobs.pay}` : ""}</p>
+                        </div>
+                        <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: "700", backgroundColor: "#dcfce7", borderRadius: "999px", padding: "0.15rem 0.5rem", flexShrink: 0 }}>Hired</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Skills Endorsements — placeholder */}
+              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
+                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: 0 }}>Skills Endorsements</p>
+                  <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "#7c3aed", backgroundColor: "#ede9fe", borderRadius: "999px", padding: "0.1rem 0.45rem" }}>Coming Soon</span>
+                </div>
+                <p style={{ fontSize: "0.82rem", color: "#94a3b8", margin: 0 }}>Companies you've worked with will be able to endorse your skills, making your profile stand out to future employers.</p>
+              </div>
+
+              {/* Job Alerts */}
+              <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.5rem" }}>Job Alerts</p>
+                <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
+                  <input
+                    type="checkbox"
+                    checked={jobAlerts}
+                    onChange={e => {
+                      const next = e.target.checked;
+                      setJobAlerts(next);
+                      if (next) localStorage.setItem("ss_job_alerts", "1");
+                      else localStorage.removeItem("ss_job_alerts");
+                    }}
+                    style={{ width: "18px", height: "18px", cursor: "pointer", accentColor: "var(--color-brand)" }}
+                  />
+                  <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "#374151" }}>
+                    Notify me when new jobs match my preferences
+                  </span>
+                </label>
+                <p style={{ margin: "0.4rem 0 0", fontSize: "0.77rem", color: "#64748b", paddingLeft: "1.75rem" }}>
+                  Alerts are sent when jobs matching your preferred categories are posted.
+                </p>
+              </div>
 
               {/* DM Consent */}
               <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>

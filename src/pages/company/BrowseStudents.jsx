@@ -1,17 +1,31 @@
 ﻿import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
+import toast from "react-hot-toast";
 import { supabase } from "../../lib/supabase";
 import { fetchAllMessagesWithStudent, sendMessage, sendEmail } from "../../lib/auth";
 import { StudentAvailabilityRow } from "./shared";
 
 const PAGE_SIZE = 20;
 
-export default function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, _companyName, chatStudent, setChatStudent, _setPage, likedStudentIds, applicantStudentIds, onToggleLike }) {
+export default function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, _companyName, chatStudent, setChatStudent, _setPage, likedStudentIds, applicantStudentIds, onToggleLike, postings = [] }) {
   const [filterByIndustries, setFilterByIndustries] = useState(true);
   const [sortBy, setSortBy] = useState("default");
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [shortlistFor, setShortlistFor] = useState(null);
+  const [hiredThisMonth, setHiredThisMonth] = useState(0);
 
   useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filterByIndustries, sortBy]);
+
+  useEffect(() => {
+    if (!companyId) return;
+    const start = new Date(); start.setDate(1); start.setHours(0, 0, 0, 0);
+    supabase
+      .from("applications")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "Accepted")
+      .gte("updated_at", start.toISOString())
+      .then(({ count }) => { if (count != null) setHiredThisMonth(count); });
+  }, [companyId]);
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
@@ -219,11 +233,18 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
       {/* Filter bar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
-        <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>
-          {displayStudents.length} of {students.length} verified student{students.length !== 1 ? "s" : ""}
-          {filterByIndustries && companyIndustries.length > 0 ? " matching your industries" : ""}
-        </p>
-        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+          <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>
+            {displayStudents.length} of {students.length} verified student{students.length !== 1 ? "s" : ""}
+            {filterByIndustries && companyIndustries.length > 0 ? " matching your industries" : ""}
+          </p>
+          {hiredThisMonth > 0 && (
+            <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#16a34a", backgroundColor: "#dcfce7", borderRadius: "999px", padding: "0.15rem 0.55rem", whiteSpace: "nowrap" }}>
+              {hiredThisMonth} hired this month
+            </span>
+          )}
+        </div>
+        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap", marginLeft: "auto" }}>
           <button
             onClick={() => setFilterByIndustries(true)}
             disabled={companyIndustries.length === 0}
@@ -309,14 +330,40 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
               </div>
             )}
             <StudentAvailabilityRow availability={s.availability} />
-            <button
-              onClick={s.allow_company_dm !== false ? () => { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); } : undefined}
-              disabled={s.allow_company_dm === false}
-              title={s.allow_company_dm === false ? "This student has turned off direct messages from companies" : undefined}
-              style={{ marginTop: "0.75rem", width: "100%", padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: s.allow_company_dm === false ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: s.allow_company_dm === false ? 0.4 : 1 }}
-            >
-              {s.allow_company_dm === false ? "DMs Off" : "Message Student"}
-            </button>
+            <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+              <button
+                onClick={s.allow_company_dm !== false ? () => { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); } : undefined}
+                disabled={s.allow_company_dm === false}
+                title={s.allow_company_dm === false ? "This student has turned off direct messages from companies" : undefined}
+                style={{ flex: 1, padding: "0.5rem 1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: s.allow_company_dm === false ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: s.allow_company_dm === false ? 0.4 : 1 }}
+              >
+                {s.allow_company_dm === false ? "DMs Off" : "Message"}
+              </button>
+              {postings.length > 0 && (
+                <button
+                  onClick={() => setShortlistFor(shortlistFor === s.id ? null : s.id)}
+                  style={{ padding: "0.5rem 0.9rem", borderRadius: "2rem", border: `1.5px solid ${shortlistFor === s.id ? "var(--color-brand)" : "#e2e8f0"}`, background: shortlistFor === s.id ? "#fce7f3" : "white", color: shortlistFor === s.id ? "var(--color-brand)" : "#374151", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
+                >
+                  Shortlist →
+                </button>
+              )}
+            </div>
+            {shortlistFor === s.id && postings.length > 0 && (
+              <div style={{ marginTop: "0.5rem", padding: "0.65rem 0.85rem", backgroundColor: "#f8fafc", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem" }}>
+                <p style={{ margin: "0 0 0.4rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Shortlist for which job?</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+                  {postings.filter(p => p.status === "Active").map(p => (
+                    <button key={p.id} onClick={() => {
+                      if (!likedStudentIds?.has(s.id)) onToggleLike?.(s.id);
+                      toast.success(`${s.name} added to ${p.title} shortlist`);
+                      setShortlistFor(null);
+                    }} style={{ padding: "0.3rem 0.7rem", borderRadius: "999px", border: "1.5px solid var(--color-brand)", background: "white", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>
+                      {p.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         ); })}

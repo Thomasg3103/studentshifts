@@ -93,6 +93,11 @@ export default function JobDetails({ job }) {
       setApplyModal("shifts");
       return;
     }
+    // 1-tap apply: single shift, no screening questions → apply immediately
+    if (!(job.screeningQuestions?.length > 0)) {
+      confirmApply();
+      return;
+    }
     setApplyModal("confirm");
   };
 

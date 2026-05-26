@@ -69,6 +69,8 @@ export default function CompanyDashboard() {
   const [likedStudentIds, setLikedStudentIds] = useState(new Set());
   const [applicantStudentIds, setApplicantStudentIds] = useState(new Set());
   const [applicantsViewMode, setApplicantsViewMode] = useState("list");
+  const [talentPool, setTalentPool]                 = useState([]);
+  const [talentPoolLoaded, setTalentPoolLoaded]     = useState(false);
   const originalPhotosRef = useRef([]); // tracks photos at edit-open time for H24 storage cleanup
 
   const {
@@ -121,6 +123,30 @@ export default function CompanyDashboard() {
       .catch(e => { setStudentsError(e.message || "Failed to load students"); setStudentsFetched(true); })
       .finally(() => setStudentsLoading(false));
   }, [activeTab, modal, likedStudentIds.size]);
+
+  // Load talent pool (past-hired students) when Talent Pool tab is opened
+  useEffect(() => {
+    if (activeTab !== "talent" || talentPoolLoaded || loading) return;
+    const jobIds = postings.map(p => p.id);
+    if (!jobIds.length) { setTalentPoolLoaded(true); return; }
+    withTimeout(
+      supabase.from("applications").select("student_id, jobs(title)").in("job_id", jobIds).eq("status", "Accepted"),
+      10000
+    ).then(async ({ data, error }) => {
+      if (error || !data?.length) { setTalentPoolLoaded(true); return; }
+      const studentIds = [...new Set(data.map(a => a.student_id))];
+      const { data: profiles } = await supabase.from("profiles").select("id, name").in("id", studentIds);
+      const profileMap = {};
+      (profiles || []).forEach(p => { profileMap[p.id] = p; });
+      const pool = studentIds.map(sid => ({
+        id: sid,
+        name: profileMap[sid]?.name || "Unknown",
+        jobs: data.filter(a => a.student_id === sid).map(a => a.jobs?.title).filter(Boolean),
+      }));
+      setTalentPool(pool);
+      setTalentPoolLoaded(true);
+    }).catch(e => { console.warn("[CompanyDashboard] talentPool failed:", e); setTalentPoolLoaded(true); });
+  }, [activeTab, loading, talentPoolLoaded, postings]);
 
   // Load this company's jobs on mount, auto-expire any past their deadline
   useEffect(() => {
@@ -529,6 +555,7 @@ export default function CompanyDashboard() {
           { val: "jobs",     label: "My Jobs" },
           { val: "students", label: "Browse Students" },
           { val: "saved",    label: "Saved Students", count: likedStudentIds.size },
+          { val: "talent",   label: "Talent Pool",    count: totalHired > 0 ? totalHired : 0 },
         ].map(({ val, label, count }) => (
           <button
             key={val}
@@ -595,6 +622,7 @@ export default function CompanyDashboard() {
           likedStudentIds={likedStudentIds}
           applicantStudentIds={applicantStudentIds}
           onToggleLike={toggleLike}
+          postings={postings}
         />
       )}
 
@@ -615,7 +643,59 @@ export default function CompanyDashboard() {
         />
       )}
 
-      {/* Postings â€" jobs tab only */}
+      {/* Talent Pool tab */}
+      {activeTab === "talent" && (
+        <div>
+          <div style={{ marginBottom: "1.25rem" }}>
+            <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "#0f172a" }}>Talent Pool</p>
+            <p style={{ margin: "0.2rem 0 0", fontSize: "0.83rem", color: "#64748b" }}>Students you've previously hired — easy to re-engage for future shifts.</p>
+          </div>
+          {!talentPoolLoaded ? (
+            <p style={{ fontSize: "0.875rem", color: "#64748b", textAlign: "center", padding: "2rem 0" }}>Loading…</p>
+          ) : talentPool.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "white", borderRadius: "1rem", border: "1.5px solid #e2e8f0" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>👥</div>
+              <p style={{ fontWeight: "700", color: "#1e293b", marginBottom: "0.25rem" }}>No hired students yet</p>
+              <p style={{ fontSize: "0.85rem", color: "#64748b" }}>Students you hire will appear here so you can quickly re-hire them.</p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+              {talentPool.map(s => (
+                <div key={s.id} style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "0.85rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", justifyContent: "space-between", flexWrap: "wrap" }}>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#0f172a" }}>{s.name}</p>
+                    {s.jobs.length > 0 && (
+                      <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>
+                        Hired for: {s.jobs.slice(0, 3).join(", ")}{s.jobs.length > 3 ? ` +${s.jobs.length - 3} more` : ""}
+                      </p>
+                    )}
+                  </div>
+                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+                    <button
+                      onClick={() => setChatStudent({ id: s.id, name: s.name })}
+                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                    >💬 Message</button>
+                    <button
+                      disabled
+                      title="Coming soon — instant re-hire with one tap"
+                      style={{ padding: "0.38rem 0.85rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", backgroundColor: "#f9fafb", color: "#94a3b8", fontWeight: "600", fontSize: "0.8rem", cursor: "default", fontFamily: "inherit" }}
+                    >⚡ Re-Hire · Soon</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div style={{ marginTop: "2rem", backgroundColor: "#f0fdf4", border: "1.5px dashed #86efac", borderRadius: "0.85rem", padding: "1.25rem 1.5rem", display: "flex", alignItems: "flex-start", gap: "0.85rem" }}>
+            <span style={{ fontSize: "1.5rem", flexShrink: 0 }}>⚡</span>
+            <div>
+              <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#15803d" }}>Instant Shift Fill <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "white", backgroundColor: "#a855f7", borderRadius: "999px", padding: "0.15rem 0.55rem", marginLeft: "0.35rem", verticalAlign: "middle" }}>Coming Soon</span></p>
+              <p style={{ margin: "0.25rem 0 0", fontSize: "0.82rem", color: "#166534" }}>Post a last-minute shift and automatically notify your Talent Pool — get it filled in minutes.</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Postings — jobs tab only */}
       {activeTab === "jobs" && (
         loading ? (
           <PostingsSkeleton />
