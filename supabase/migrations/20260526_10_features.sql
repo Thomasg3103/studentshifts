@@ -50,7 +50,7 @@ CREATE POLICY "waitlist_company_select"
 -- ── 4. Interview slots (self-scheduling) ────────────────────────────────────
 CREATE TABLE IF NOT EXISTS interview_slots (
   id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  application_id uuid        NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
+  application_id bigint      NOT NULL REFERENCES applications(id) ON DELETE CASCADE,
   slot_time      timestamptz NOT NULL,
   selected       boolean     DEFAULT false,
   created_at     timestamptz DEFAULT now()
