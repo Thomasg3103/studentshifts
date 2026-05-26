@@ -41,7 +41,7 @@ const HOW_IT_WORKS = [
 
 
 export default function LandingPage() {
-  const { currentUser } = useApp();
+  const { currentUser, darkMode, toggleDarkMode } = useApp();
   const navigate  = useNavigate();
   const [locations, setLocations] = useState([]);
   const [menuOpen,  setMenuOpen]  = useState(false);
@@ -84,7 +84,7 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
+    <div style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", backgroundColor: "var(--color-bg-subtle)", minHeight: "100vh" }}>
       <Helmet>
         <title>StudentShifts — Part-Time Jobs for Irish Students</title>
         <meta name="description" content="Find flexible part-time work that fits your college timetable. Apply to verified Irish employers in one click — no cover letter, no experience needed. Free to join." />
@@ -124,6 +124,13 @@ export default function LandingPage() {
             <PersonIcon />
           </button>
           <button
+            aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+            onClick={toggleDarkMode}
+            style={{ background: "transparent", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.5rem", width: "38px", height: "38px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: "1rem" }}
+          >
+            {darkMode ? "☀️" : "🌙"}
+          </button>
+          <button
             aria-label={menuOpen ? "Close menu" : "Open menu"}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen(o => !o)}
@@ -137,7 +144,7 @@ export default function LandingPage() {
           {menuOpen && (
             <div style={{
               position: "absolute", top: "48px", right: 0,
-              backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem",
+              backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "1rem",
               boxShadow: "0 8px 32px rgba(0,0,0,0.15)", zIndex: 300, minWidth: "180px", overflow: "hidden",
             }}>
               {[
@@ -150,13 +157,22 @@ export default function LandingPage() {
                 <button
                   key={item.label}
                   onClick={() => { setMenuOpen(false); navigate(item.path); }}
-                  style={{ display: "block", width: "100%", padding: "0.75rem 1.25rem", background: "none", border: "none", textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, color: "#1e293b" }}
-                  onMouseEnter={e => e.currentTarget.style.backgroundColor = "#fafafa"}
+                  style={{ display: "block", width: "100%", padding: "0.75rem 1.25rem", background: "none", border: "none", textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-primary, #1e293b)" }}
+                  onMouseEnter={e => e.currentTarget.style.backgroundColor = "var(--color-bg-surface, #f8fafc)"}
                   onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
                 >
                   {item.label}
                 </button>
               ))}
+              <hr style={{ border: "none", borderTop: "1px solid var(--color-border-light, #e2e8f0)", margin: "0.25rem 0" }} />
+              <button
+                onClick={() => { setMenuOpen(false); toggleDarkMode(); }}
+                style={{ display: "block", width: "100%", padding: "0.75rem 1.25rem", background: "none", border: "none", textAlign: "left", cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-primary, #1e293b)" }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = "var(--color-bg-surface, #f8fafc)"}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                {darkMode ? "☀️  Light Mode" : "🌙  Dark Mode"}
+              </button>
             </div>
           )}
         </div>

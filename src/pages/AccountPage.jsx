@@ -37,7 +37,7 @@ const PART_TIME_SKILLS = [
 ];
 
 export default function AccountPage() {
-  const { currentUser, setCurrentUser, setPage, setLikedJobs, setAppliedJobs, setStudentLocation } = useApp();
+  const { currentUser, setCurrentUser, setPage, setLikedJobs, setAppliedJobs, setStudentLocation, darkMode, toggleDarkMode } = useApp();
   const { supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: subscribePush, unsubscribe: unsubscribePush } = usePushNotifications(currentUser?.id);
   const [availability, setAvailability]         = useState(currentUser.availability || {});
   const [jobPreferences, setJobPreferences]     = useState(currentUser.jobPreferences || []);
@@ -622,6 +622,20 @@ export default function AccountPage() {
   const BottomActions = () => (
     <>
       <div style={{ borderTop: "1.5px solid #e2e8f0", marginBottom: "1rem", marginTop: "0.25rem" }} />
+      {/* Appearance */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", padding: "0.65rem 0.85rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.65rem", border: "1.5px solid var(--color-border-light, #e2e8f0)" }}>
+        <div>
+          <p style={{ margin: 0, fontWeight: 700, fontSize: "0.875rem", color: "var(--color-text-primary, #1e293b)" }}>Appearance</p>
+          <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>{darkMode ? "Dark mode on" : "Light mode on"}</p>
+        </div>
+        <button
+          onClick={toggleDarkMode}
+          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          style={{ padding: "0.45rem 1rem", borderRadius: "2rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #1e293b)", fontWeight: 700, fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", gap: "0.4rem" }}
+        >
+          {darkMode ? "☀️ Light" : "🌙 Dark"}
+        </button>
+      </div>
       <div style={{ display: "flex", gap: "0.75rem", marginBottom: "0.5rem" }}>
         <button onClick={() => setShowLogoutModal(true)} style={{ ...btnBase, flex: 1, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 14px rgba(244,63,94,0.3)" }}>Logout</button>
         <button onClick={() => { setDeleteConfirm(""); setDeletePassword(""); setDeleteError(""); setShowDeleteModal(true); }} style={{ ...btnBase, flex: 1, backgroundColor: "transparent", border: "1.5px solid #fca5a5", color: "#dc2626", boxShadow: "none" }}>Delete Account</button>

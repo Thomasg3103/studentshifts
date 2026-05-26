@@ -54,6 +54,8 @@ export default function Header() {
     { label: "Help Centre", action: () => { setMenuOpen(false); setPage("help"); } },
     { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("contact"); } },
     { separator: true },
+    { label: darkMode ? "☀️  Light Mode" : "🌙  Dark Mode", action: () => { setMenuOpen(false); toggleDarkMode(); } },
+    { separator: true },
     { label: "Sign Out", action: signOut, danger: true },
   ] : [
     { label: "Login",       action: () => { setMenuOpen(false); setPage("login"); } },
@@ -62,6 +64,8 @@ export default function Header() {
     { label: "About",       action: () => { setMenuOpen(false); setPage("about"); } },
     { label: "Help Centre", action: () => { setMenuOpen(false); setPage("help"); } },
     { label: "Contact Us",  action: () => { setMenuOpen(false); setPage("contact"); } },
+    { separator: true },
+    { label: darkMode ? "☀️  Light Mode" : "🌙  Dark Mode", action: () => { setMenuOpen(false); toggleDarkMode(); } },
   ];
 
   const Hamburger = () => (
