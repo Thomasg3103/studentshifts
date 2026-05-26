@@ -5,6 +5,32 @@ import { supabase } from "../lib/supabase";
 import AppFooter from "../components/AppFooter";
 import { useApp } from "../context/AppContext";
 
+// #23 — count-up hook driven by IntersectionObserver
+function useCountUp(target, duration = 1200) {
+  const [value, setValue] = useState(null);
+  const ref = useRef(null);
+  useEffect(() => {
+    if (target == null) return;
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([entry]) => {
+      if (!entry.isIntersecting) return;
+      obs.disconnect();
+      const start = performance.now();
+      const step = (now) => {
+        const p = Math.min((now - start) / duration, 1);
+        setValue(Math.floor(p * target));
+        if (p < 1) requestAnimationFrame(step);
+        else setValue(target);
+      };
+      requestAnimationFrame(step);
+    }, { threshold: 0.5 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [target, duration]);
+  return [value, ref];
+}
+
 
 const HOW_IT_WORKS = [
   { icon: "🎓", step: "1. Sign Up",        desc: "Create a free student account in under 2 minutes. Verify your student ID and you're in." },
@@ -20,6 +46,9 @@ export default function LandingPage() {
   const [locations, setLocations] = useState([]);
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [stats,     setStats]     = useState({ students: null, jobs: null, companies: null });
+  const [studentsCount, studentsRef] = useCountUp(stats.students);
+  const [jobsCount,     jobsRef]     = useCountUp(stats.jobs);
+  const [companiesCount,companiesRef]= useCountUp(stats.companies);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -137,7 +166,11 @@ export default function LandingPage() {
       <section style={{
         background: "linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #7b0d2e 100%)",
         color: "white", textAlign: "center", padding: "5rem 1.5rem 4.5rem",
+        position: "relative", overflow: "hidden",
       }}>
+        {/* #2 — subtle noise grain overlay */}
+        <div aria-hidden="true" style={{ position: "absolute", inset: 0, backgroundImage: "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")", opacity: 0.06, pointerEvents: "none", zIndex: 0 }} />
+        <div style={{ position: "relative", zIndex: 1 }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem", backgroundColor: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "999px", padding: "0.3rem 0.9rem", marginBottom: "1.5rem", fontSize: "0.78rem", fontWeight: 600, color: "rgba(255,255,255,0.75)", letterSpacing: "0.03em" }}>
           🇮🇪 Built for Irish Students
         </div>
@@ -172,6 +205,7 @@ export default function LandingPage() {
         <p style={{ margin: "0.75rem 0 0", fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", letterSpacing: "0.02em" }}>
           {stats.students ? `${stats.students} verified students` : "Hundreds of students"} · {stats.companies ? `${stats.companies} verified employers` : "Verified employers"} · 100% free to join
         </p>
+        </div>{/* /noise inner */}
       </section>
 
       {/* ── Main sections ── */}
@@ -189,16 +223,18 @@ export default function LandingPage() {
           ))}
         </div>
 
-        {/* Numbers */}
+        {/* Numbers — #23 count-up animation */}
         <SectionHeading>StudentShifts by the Numbers</SectionHeading>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "1rem", marginBottom: "3.5rem" }}>
           {[
-            { n: stats.students, label: "Verified Students" },
-            { n: stats.jobs,     label: "Shifts Posted" },
-            { n: stats.companies,label: "Verified Employers" },
-          ].map(({ n, label }) => (
-            <div key={label} style={{ backgroundColor: "#fce7f3", borderRadius: "1rem", padding: "1.75rem 1rem", textAlign: "center" }}>
-              <p style={{ fontWeight: 800, fontSize: "2rem", color: "var(--color-brand)", margin: 0 }}>{n ?? "..."}</p>
+            { count: studentsCount,  ref: studentsRef,  raw: stats.students,  label: "Verified Students" },
+            { count: jobsCount,      ref: jobsRef,      raw: stats.jobs,      label: "Shifts Posted" },
+            { count: companiesCount, ref: companiesRef, raw: stats.companies, label: "Verified Employers" },
+          ].map(({ count, ref, raw, label }) => (
+            <div key={label} ref={ref} style={{ backgroundColor: "#fce7f3", borderRadius: "1rem", padding: "1.75rem 1rem", textAlign: "center" }}>
+              <p style={{ fontWeight: 800, fontSize: "2rem", color: "var(--color-brand)", margin: 0 }}>
+                {raw == null ? "..." : (count ?? raw)}
+              </p>
               <p style={{ fontSize: "0.82rem", color: "#475569", margin: "0.3rem 0 0", fontWeight: 600 }}>{label}</p>
             </div>
           ))}
@@ -278,8 +314,16 @@ export default function LandingPage() {
 }
 
 function SectionHeading({ children, light }) {
+  if (light) {
+    return (
+      <h2 style={{ fontWeight: 800, fontSize: "1.5rem", color: "white", margin: "0 0 1.25rem", letterSpacing: "-0.02em" }}>
+        {children}
+      </h2>
+    );
+  }
+  /* #3 — brand gradient text on dark-on-light headings */
   return (
-    <h2 style={{ fontWeight: 800, fontSize: "1.5rem", color: light ? "white" : "#1e293b", margin: "0 0 1.25rem", letterSpacing: "-0.02em" }}>
+    <h2 style={{ fontWeight: 800, fontSize: "1.5rem", margin: "0 0 1.25rem", letterSpacing: "-0.02em", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", display: "inline-block" }}>
       {children}
     </h2>
   );

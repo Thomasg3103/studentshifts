@@ -6,6 +6,15 @@ import BackButton from "../components/BackButton";
 
 const CATEGORIES = ["General", "Jobs & Shifts", "Pay & Rights", "Best Companies", "Tips & Advice", "Events"];
 
+const CATEGORY_COLORS = {
+  "General":        "#64748b",
+  "Jobs & Shifts":  "#0369a1",
+  "Pay & Rights":   "#15803d",
+  "Best Companies": "#b45309",
+  "Tips & Advice":  "#7c3aed",
+  "Events":         "#dc2626",
+};
+
 export default function ForumPage() {
   const { currentUser } = useApp();
   const isVerifiedStudent = currentUser?.role === "student" && currentUser?.verificationStatus === "verified";
@@ -227,10 +236,11 @@ export default function ForumPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
             {filtered.map(post => {
               const voted = myVotes.has(post.id);
+              const bandColor = CATEGORY_COLORS[post.category] || "#64748b";
               return (
                 <div
                   key={post.id}
-                  style={{ backgroundColor: "white", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}
+                  style={{ backgroundColor: "white", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderLeft: `4px solid ${bandColor}`, borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}
                 >
                   {/* Vote column */}
                   <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem", flexShrink: 0 }}>

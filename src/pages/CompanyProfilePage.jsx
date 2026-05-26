@@ -85,7 +85,12 @@ export default function CompanyProfilePage() {
 
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2rem 1rem" }}>
         {/* Profile header */}
-        <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.75rem", marginBottom: "1.5rem" }}>
+        <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "1rem", marginBottom: "1.5rem", overflow: "hidden" }}>
+          {/* Cover banner */}
+          <div style={{ height: "130px", background: "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 55%, #1e293b 100%)", position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 15% 60%, rgba(255,255,255,0.10) 0%, transparent 55%), radial-gradient(circle at 75% 25%, rgba(255,255,255,0.07) 0%, transparent 45%)" }} />
+          </div>
+          <div style={{ padding: "1.75rem" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "1.25rem", flexWrap: "wrap" }}>
             <div style={{ width: "64px", height: "64px", borderRadius: "0.75rem", backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", flexShrink: 0 }}>🏢</div>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -106,6 +111,7 @@ export default function CompanyProfilePage() {
           {company.bio && (
             <p style={{ margin: "1.1rem 0 0", fontSize: "0.9rem", color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{company.bio}</p>
           )}
+          </div>
         </div>
 
         {/* Stats row */}

@@ -94,16 +94,18 @@ export default function LoginPage() {
                   {resetError}
                 </div>
               )}
-              <label htmlFor="reset-email" style={srOnly}>Email address</label>
-              <input
-                id="reset-email"
-                placeholder="Email address"
-                type="email"
-                value={resetEmail}
-                onChange={e => setResetEmail(e.target.value)}
-                onKeyDown={e => e.key === "Enter" && handleReset()}
-                style={fieldStyle}
-              />
+              <div className="float-field">
+                <input
+                  id="reset-email"
+                  placeholder=" "
+                  type="email"
+                  value={resetEmail}
+                  onChange={e => setResetEmail(e.target.value)}
+                  onKeyDown={e => e.key === "Enter" && handleReset()}
+                  style={{ outline: "none" }}
+                />
+                <label htmlFor="reset-email">Email address</label>
+              </div>
               <button onClick={handleReset} disabled={resetLoading || resetCooldown > 0} style={{ ...btnPrimary, opacity: (resetLoading || resetCooldown > 0) ? 0.7 : 1 }}>
                 {resetLoading ? "Sending…" : resetCooldown > 0 ? `Resend available in ${resetCooldown}s` : "Send Reset Link →"}
               </button>
@@ -144,27 +146,29 @@ export default function LoginPage() {
           </div>
         )}
 
-        <label htmlFor="login-email" style={srOnly}>Email address</label>
-        <input
-          id="login-email"
-          placeholder="Email address"
-          type="email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          onKeyDown={e => e.key === "Enter" && document.getElementById("login-password")?.focus()}
-          style={fieldStyle}
-        />
-        <label htmlFor="login-password" style={srOnly}>Password</label>
-        <div style={{ position: "relative" }}>
+        <div className="float-field">
+          <input
+            id="login-email"
+            placeholder=" "
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && document.getElementById("login-password")?.focus()}
+            style={{ outline: "none" }}
+          />
+          <label htmlFor="login-email">Email address</label>
+        </div>
+        <div className="float-field">
           <input
             id="login-password"
-            placeholder="Password"
+            placeholder=" "
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={e => setPassword(e.target.value)}
             onKeyDown={e => e.key === "Enter" && handleLogin()}
-            style={{ ...fieldStyle, margin: 0, paddingRight: "2.75rem" }}
+            style={{ paddingRight: "2.75rem", outline: "none" }}
           />
+          <label htmlFor="login-password">Password</label>
           <button
             type="button"
             aria-label={showPassword ? "Hide password" : "Show password"}

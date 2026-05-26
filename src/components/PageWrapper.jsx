@@ -13,7 +13,7 @@ export default function PageWrapper({ children, narrow }) {
   const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
 
   return (
-    <main className="page-wrapper-outer" style={{
+    <main className="page-wrapper-outer page-fade" style={{
       width: "100%",
       minHeight: "100vh",
       display: "flex",

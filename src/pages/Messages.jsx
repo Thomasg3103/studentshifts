@@ -202,20 +202,49 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
               </div>
             )
           : messages.length === 0
-            ? <p style={{ color: "#64748b", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Say hello!</p>
-            : messages.map(m => (
-              <div key={m.id} style={{ alignSelf: m.sender_id === senderId ? "flex-end" : "flex-start", maxWidth: "80%" }}>
-                <div style={{
-                  backgroundColor: m.sender_id === senderId ? "var(--color-brand)" : "#e5e7eb",
-                  color: m.sender_id === senderId ? "white" : "#111827",
-                  padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45,
-                  wordBreak: "break-word", whiteSpace: "pre-wrap",
-                }}>{m.text}</div>
-                <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
-                  {formatMsgTime(m.created_at)}
-                </p>
+            ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", flex: 1, padding: "2rem 1rem", gap: "0.75rem" }}>
+                <svg aria-hidden="true" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <line x1="9" y1="10" x2="15" y2="10"/>
+                  <line x1="9" y1="14" x2="12" y2="14"/>
+                </svg>
+                <p style={{ color: "#64748b", fontWeight: 600, fontSize: "0.9rem", margin: 0 }}>No messages yet</p>
+                <p style={{ color: "#94a3b8", fontSize: "0.8rem", margin: 0 }}>Say hello to start the conversation!</p>
               </div>
-            ))
+            )
+            : (() => {
+              let lastDateStr = null;
+              const items = [];
+              for (const m of messages) {
+                const d = new Date(m.created_at);
+                const dateStr = d.toLocaleDateString("en-IE", { weekday: "short", day: "numeric", month: "short" });
+                if (dateStr !== lastDateStr) {
+                  lastDateStr = dateStr;
+                  items.push(
+                    <div key={`sep-${dateStr}`} style={{ display: "flex", alignItems: "center", gap: "0.5rem", margin: "0.35rem 0" }}>
+                      <div style={{ flex: 1, height: "1px", backgroundColor: "#e5e7eb" }} />
+                      <span style={{ fontSize: "0.68rem", color: "#9ca3af", fontWeight: 600, whiteSpace: "nowrap", padding: "0.15rem 0.55rem", backgroundColor: "#f3f4f6", borderRadius: "999px" }}>{dateStr}</span>
+                      <div style={{ flex: 1, height: "1px", backgroundColor: "#e5e7eb" }} />
+                    </div>
+                  );
+                }
+                items.push(
+                  <div key={m.id} style={{ alignSelf: m.sender_id === senderId ? "flex-end" : "flex-start", maxWidth: "80%" }}>
+                    <div style={{
+                      backgroundColor: m.sender_id === senderId ? "var(--color-brand)" : "#e5e7eb",
+                      color: m.sender_id === senderId ? "white" : "#111827",
+                      padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45,
+                      wordBreak: "break-word", whiteSpace: "pre-wrap",
+                    }}>{m.text}</div>
+                    <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
+                      {formatMsgTime(m.created_at)}
+                    </p>
+                  </div>
+                );
+              }
+              return items;
+            })()
         }
       </div>
       {!input && !loading && !loadError && messages.length === 0 && (

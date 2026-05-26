@@ -159,6 +159,15 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
     return "#475569";
   };
 
+  const stageBgColor = (key) => {
+    if (key === "applied")            return "#f8fafc";
+    if (key === "shortlisted")        return "#eff6ff";
+    if (key.startsWith("interview_")) return "#f5f3ff";
+    if (key === "trial")              return "#f0fdf4";
+    if (key === "decision")           return "#fffbeb";
+    return "#f8fafc";
+  };
+
   const handleDrop = (e, targetKey) => {
     e.preventDefault();
     setDragOverStage(null);
@@ -179,6 +188,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
       {(stages || []).map(({ key, label }) => {
         const cards  = applicants.filter(a => getVirtualStageKey(a) === key);
         const color  = stageColor(key);
+        const bgColor = stageBgColor(key);
         const isOver = dragOverStage === key;
         return (
           <div
@@ -190,7 +200,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
             onDrop={e => handleDrop(e, key)}
             style={{
               minWidth: "270px", flex: "0 0 270px",
-              backgroundColor: "#f8fafc",
+              backgroundColor: isOver ? bgColor : bgColor,
               border: `1.5px solid ${isOver ? color : "#e2e8f0"}`,
               borderRadius: "0.75rem",
               overflow: "hidden",

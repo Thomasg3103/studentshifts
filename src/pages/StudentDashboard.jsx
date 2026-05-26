@@ -859,6 +859,32 @@ export default function StudentDashboard({ restoreScrollY }) {
             )}
 
             {/* Job count + grid toggle + Sort By */}
+            {/* #10 — active filter chips */}
+            {hasActiveFilters && (() => {
+              const chips = [
+                ...selectedDays.map(d => ({ label: d, onRemove: () => setSelectedDays(p => p.filter(x => x !== d)) })),
+                ...selectedLocations.map(l => ({ label: l, onRemove: () => setSelectedLocations(p => p.filter(x => x !== l)) })),
+                ...selectedJobTypes.map(t => ({ label: t, onRemove: () => setSelectedJobTypes(p => p.filter(x => x !== t)) })),
+                ...(weekendOnly ? [{ label: "Weekend", onRemove: () => setWeekendOnly(false) }] : []),
+                ...(allWeekOnly ? [{ label: "All-Week", onRemove: () => setAllWeekOnly(false) }] : []),
+                ...(noWeekends ? [{ label: "No Weekends", onRemove: () => setNoWeekends(false) }] : []),
+                ...(matchSchedule ? [{ label: "Matches Schedule", onRemove: () => setMatchSchedule(false) }] : []),
+                ...((payMin || payMax) ? [{ label: `Pay ${payMin ? `€${payMin}` : ""}${payMin && payMax ? "–" : ""}${payMax ? `€${payMax}` : ""}`, onRemove: () => { setPayMin(""); setPayMax(""); } }] : []),
+                ...(distanceKm > 0 ? [{ label: `≤${distanceKm}km`, onRemove: () => setDistanceKm(0) }] : []),
+                ...(debouncedSearch.trim() ? [{ label: `"${debouncedSearch.trim()}"`, onRemove: () => setSearchQuery("") }] : []),
+              ];
+              return (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.6rem" }}>
+                  {chips.map(c => (
+                    <span key={c.label} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.25rem 0.5rem 0.25rem 0.65rem", borderRadius: "999px", backgroundColor: "#fce7f3", border: "1.5px solid #f9a8d4", color: "var(--color-brand)", fontSize: "0.75rem", fontWeight: 700 }}>
+                      {c.label}
+                      <button onClick={c.onRemove} aria-label={`Remove ${c.label} filter`} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, color: "var(--color-brand)", lineHeight: 1, fontSize: "0.8rem", display: "flex", alignItems: "center" }}>×</button>
+                    </span>
+                  ))}
+                </div>
+              );
+            })()}
+
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
                 <span className="badge badge-brand" style={{ fontSize: "0.8rem" }}>
@@ -1002,8 +1028,17 @@ export default function StudentDashboard({ restoreScrollY }) {
                           <img loading="lazy" src={photo} alt={`${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         </div>
                       ) : (
-                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
-                          <span style={{ fontSize: "3rem", opacity: 0.5 }}>🏢</span>
+                        /* #7 — brand-tint gradient placeholder with initials */
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #fce7f3 0%, #f5d0e3 100%)" }}>
+                          <span style={{ fontSize: isPhone ? "1.5rem" : "2.2rem", fontWeight: 800, color: "var(--color-brand)", opacity: 0.7, letterSpacing: "-0.03em", userSelect: "none" }}>
+                            {(job.company || "?").slice(0, 2).toUpperCase()}
+                          </span>
+                        </div>
+                      )}
+                      {/* #9 — NEW ribbon in top-right corner of photo */}
+                      {isNew && !job.isUrgent && (
+                        <div style={{ position: "absolute", top: "8px", right: "8px", backgroundColor: "var(--color-brand)", color: "white", fontSize: "0.6rem", fontWeight: 800, padding: "0.15rem 0.45rem", borderRadius: "0.3rem", letterSpacing: "0.06em", lineHeight: 1.4, boxShadow: "0 2px 6px rgba(162,29,84,0.45)" }}>
+                          NEW
                         </div>
                       )}
                     </div>
@@ -1040,7 +1075,10 @@ export default function StudentDashboard({ restoreScrollY }) {
 
                       {/* Bottom: pay + deadline + updated */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
-                        <span style={{ fontWeight: 700, color: "#111827", fontSize: isPhone ? "0.95rem" : "1.35rem" }}>{job.pay}</span>
+                        {/* #8 — pay as primary visual attribute */}
+                        <span style={{ fontWeight: 800, color: "var(--color-brand)", fontSize: isPhone ? "0.95rem" : "1.35rem", letterSpacing: "-0.01em" }}>
+                          <span style={{ opacity: 0.6, fontWeight: 700 }}>€</span>{job.pay.replace(/€/g, "")}
+                        </span>
                         {isNew && !job.isUrgent && (
                           <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`} title="Posted in the last 48 hours">
                             NEW

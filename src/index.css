@@ -9,7 +9,19 @@
   --color-border-light:    #e2e8f0;
   --color-bg-subtle:       #fafafa;
   --color-bg-surface:      #f8fafc;
+  --color-bg-elevated:     #ffffff;
   --color-bg-input:        #ffffff;
+
+  /* Type scale — #1 */
+  --text-xs:   0.72rem;
+  --text-sm:   0.82rem;
+  --text-base: 0.9rem;
+  --text-md:   1rem;
+  --text-lg:   1.1rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  1.875rem;
+  --text-4xl:  2.25rem;
 
   --radius-sm: 0.45rem;
   --radius-md: 0.75rem;
@@ -40,6 +52,7 @@
   --color-border-light:    #334155;
   --color-bg-subtle:       #0f172a;
   --color-bg-surface:      #1e293b;
+  --color-bg-elevated:     #253347; /* #29 — elevation via lighter surface, not shadow */
   --color-bg-input:        #1e293b;
   --border-muted: 1.5px solid #334155;
   --shadow-sm: 0 1px 4px rgba(0,0,0,0.3);
@@ -79,11 +92,49 @@ button {
   100% { background-position: 400px 0; }
 }
 
+/* #18 — bottom nav tap bounce */
+@keyframes navBounce {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.2); }
+}
+.nav-icon-bounce { animation: navBounce 0.18s ease; }
+
+/* #20 — page fade in */
+@keyframes pageFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.page-fade { animation: pageFade 0.14s ease; }
+
+/* #13 — inline button spinner */
+@keyframes btnSpin {
+  to { transform: rotate(360deg); }
+}
+.btn-spinner {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: btnSpin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.btn-spinner--dark {
+  border-color: rgba(0,0,0,0.15);
+  border-top-color: var(--color-brand);
+}
+
 .skeleton {
-  background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+  background: linear-gradient(90deg, var(--skeleton-base, #f0f0f0) 25%, var(--skeleton-shine, #e8e8e8) 50%, var(--skeleton-base, #f0f0f0) 75%);
   background-size: 800px 100%;
   animation: shimmer 1.4s infinite linear;
   border-radius: 0.5rem;
+}
+/* #4 — skeleton respects dark mode */
+[data-theme="dark"] {
+  --skeleton-base:  #253347;
+  --skeleton-shine: #2e3e56;
 }
 
 /* ─── Badges / pills ─────────────────────────────────── */
@@ -141,11 +192,20 @@ button {
 /* Variant pinned to the right edge (Messages tab) */
 .nav-dot--right { left: auto; right: 4px; margin-left: 0; }
 
-/* ─── Global focus ring ──────────────────────────────── */
+/* ─── Global focus ring — #5: radius inherits from element ── */
 *:focus-visible {
   outline: 3px solid var(--color-brand) !important;
   outline-offset: 2px !important;
-  border-radius: 3px;
+  border-radius: inherit;
+}
+
+/* #15 — inputs get soft brand glow instead of hard outline */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(162,29,84,0.18) !important;
+  border-color: var(--color-brand) !important;
 }
 
 /* Button tap feedback */
@@ -240,8 +300,11 @@ input::placeholder { color: var(--color-text-secondary); }
   background: linear-gradient(135deg, var(--color-brand), var(--color-brand-dark));
   color: white;
   box-shadow: var(--shadow-brand);
+  transition: opacity 0.15s, transform 0.15s ease;
 }
-.btn-primary:hover:not(:disabled) { opacity: 0.9; }
+/* #11 — scale micro-animation on hover */
+.btn-primary:hover:not(:disabled) { opacity: 0.9; transform: scale(1.02); }
+.btn-primary:active:not(:disabled) { transform: scale(0.98); }
 
 .btn-outline {
   border: var(--border-muted);
@@ -250,6 +313,16 @@ input::placeholder { color: var(--color-text-secondary); }
   font-weight: 600;
 }
 .btn-ghost { background: none; border: none; }
+
+/* #12 — destructive action variant */
+.btn-danger {
+  background: #dc2626;
+  color: white;
+  border: none;
+  transition: background 0.15s, transform 0.15s;
+}
+.btn-danger:hover:not(:disabled) { background: #b91c1c; transform: scale(1.02); }
+.btn-danger:active:not(:disabled) { transform: scale(0.98); }
 
 /* ─── Cards ──────────────────────────────────────────── */
 .card {
@@ -299,6 +372,73 @@ input[type="password"]::-ms-clear {
 }
 
 /* ─── Mobile layout fixes ─── */
+/* #14 — floating label inputs */
+.float-field {
+  position: relative;
+  margin-bottom: 0.75rem;
+}
+.float-field input,
+.float-field textarea {
+  width: 100%;
+  padding: 1.25rem 0.85rem 0.45rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 0.65rem;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: white;
+  color: #1e293b;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.float-field label {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.9rem;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: transform 0.18s ease, font-size 0.18s ease, color 0.18s ease;
+  transform-origin: left top;
+}
+.float-field input:focus ~ label,
+.float-field input:not(:placeholder-shown) ~ label,
+.float-field textarea:focus ~ label,
+.float-field textarea:not(:placeholder-shown) ~ label {
+  transform: translateY(-130%) scale(0.75);
+  color: var(--color-brand);
+  font-weight: 600;
+}
+[data-theme="dark"] .float-field input,
+[data-theme="dark"] .float-field textarea {
+  background: var(--color-bg-input);
+  color: var(--color-text-primary);
+  border-color: var(--color-border-light);
+}
+
+/* #19 — scroll progress bar */
+.scroll-progress {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-brand), var(--color-brand-dark));
+  z-index: 9999;
+  transition: width 0.1s linear;
+}
+
+/* #17 — nav link active underline variant */
+.nav-active-underline {
+  position: relative;
+}
+.nav-active-underline::after {
+  content: "";
+  position: absolute;
+  bottom: -3px; left: 0; right: 0;
+  height: 2px;
+  background: var(--color-brand);
+  border-radius: 1px;
+}
+
 @media (max-width: 640px) {
   /* Job posting card: stack buttons below info */
   .job-posting-card {
@@ -326,5 +466,15 @@ input[type="password"]::-ms-clear {
     flex-shrink: unset !important;
     width: 100%;
     margin-top: 0.5rem;
+  }
+}
+
+/* #30 — respect OS reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

@@ -34,6 +34,7 @@ export default function JobDetails({ job }) {
   const [similarJobs, setSimilarJobs]     = useState([]);
   const [waitlistStatus, setWaitlistStatus] = useState(null); // null | "on" | "off"
   const [waitlistLoading, setWaitlistLoading] = useState(false);
+  const [scrollPct, setScrollPct]         = useState(0);
 
   useEffect(() => {
     if (job?.status !== "Closed" || !currentUser?.id || currentUser?.role !== "student") return;
@@ -81,6 +82,17 @@ export default function JobDetails({ job }) {
     const h = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", h);
     return () => window.removeEventListener("resize", h);
+  }, []);
+
+  /* #19 — scroll progress bar */
+  useEffect(() => {
+    const onScroll = () => {
+      const el = document.documentElement;
+      const pct = el.scrollTop / (el.scrollHeight - el.clientHeight) * 100;
+      setScrollPct(isNaN(pct) ? 0 : Math.min(pct, 100));
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   useEffect(() => {
@@ -284,6 +296,8 @@ export default function JobDetails({ job }) {
 
   return (
     <>
+      {/* #19 — scroll progress bar */}
+      <div className="scroll-progress" style={{ width: `${scrollPct}%` }} aria-hidden="true" />
       <Helmet>
         <title>{job.title} at {job.company} — StudentShifts</title>
         <meta name="description" content={`${job.title} in ${job.location}. Pay: ${job.pay}. Apply now on StudentShifts.`} />

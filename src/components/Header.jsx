@@ -140,25 +140,25 @@ export default function Header() {
                   return (
                     <>
                       <div style={{ position: "relative", display: "inline-block" }}>
-                        <button aria-label="Liked jobs" aria-current={isLiked ? "page" : undefined} onClick={() => setPage("likedJobs")} style={{ ...navBtn(isLiked), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                        <button aria-label="Liked jobs" aria-current={isLiked ? "page" : undefined} onClick={() => setPage("likedJobs")} className={isLiked ? "nav-active-underline" : ""} style={{ ...navBtn(isLiked), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                           <HeartIcon active={isLiked} color={isLiked ? "var(--color-brand)" : "white"} /> <span className="nav-label">Liked</span>
                         </button>
                         {likedJobs.length > 0 && <span className={`notif-dot${isLiked ? " notif-dot--active" : ""}`}>{likedJobs.length}</span>}
                       </div>
                       <div style={{ position: "relative", display: "inline-block" }}>
-                        <button aria-label="Applied jobs" aria-current={isApplied ? "page" : undefined} onClick={() => setPage("appliedJobs")} style={{ ...navBtn(isApplied), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                        <button aria-label="Applied jobs" aria-current={isApplied ? "page" : undefined} onClick={() => setPage("appliedJobs")} className={isApplied ? "nav-active-underline" : ""} style={{ ...navBtn(isApplied), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                           <DocumentIcon active={isApplied} color={isApplied ? "var(--color-brand)" : "white"} /> <span className="nav-label">Applied</span>
                         </button>
                         {notifCount > 0 && <span className={`notif-dot${isApplied ? " notif-dot--active" : ""}`}>{notifCount}</span>}
                       </div>
                       <div style={{ position: "relative", display: "inline-block" }}>
-                        <button aria-label="Messages" aria-current={isMessages ? "page" : undefined} onClick={() => setPage("messages")} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                        <button aria-label="Messages" aria-current={isMessages ? "page" : undefined} onClick={() => setPage("messages")} className={isMessages ? "nav-active-underline" : ""} style={{ ...navBtn(isMessages), display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
                           <ChatIcon active={isMessages} color={isMessages ? "var(--color-brand)" : "white"} /> <span className="nav-label">Messages</span>
                         </button>
                         {msgCount > 0 && <span className={`notif-dot${isMessages ? " notif-dot--active" : ""}`}>{msgCount}</span>}
                       </div>
                       <div style={{ position: "relative", display: "inline-block" }}>
-                        <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
+                        <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} className={isAccount ? "nav-active-underline" : ""} style={{ ...navBtn(isAccount), display: "inline-flex", alignItems: "center", gap: "0.45rem" }}>
                           {currentUser.profilePhoto
                             ? <img loading="lazy" src={supabaseImg(currentUser.profilePhoto, 64)} alt="Profile" style={{ width: "22px", height: "22px", borderRadius: "50%", objectFit: "cover", flexShrink: 0, border: isAccount ? "2px solid var(--color-brand)" : "none" }} />
                             : <PersonIcon color={isAccount ? "var(--color-brand)" : "white"} />
@@ -282,6 +282,16 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
   });
 
+  /* #18 — brief bounce animation on icon when tapping a tab */
+  const bounceIcon = (e) => {
+    const icon = e.currentTarget.querySelector("svg, img");
+    if (!icon) return;
+    icon.classList.remove("nav-icon-bounce");
+    void icon.offsetWidth;
+    icon.classList.add("nav-icon-bounce");
+    icon.addEventListener("animationend", () => icon.classList.remove("nav-icon-bounce"), { once: true });
+  };
+
   return (
     <nav aria-label="Main navigation" style={{
       position: "fixed", bottom: 0, left: 0, right: 0, height: "64px",
@@ -292,7 +302,7 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
 
       {/* Liked */}
       <div style={{ flex: 1, position: "relative" }}>
-        <button aria-label="Liked jobs" aria-current={isLiked ? "page" : undefined} onClick={() => setPage("likedJobs")} style={{ ...tab(isLiked), width: "100%", height: "100%" }}>
+        <button aria-label="Liked jobs" aria-current={isLiked ? "page" : undefined} onClick={(e) => { bounceIcon(e); setPage("likedJobs"); }} style={{ ...tab(isLiked), width: "100%", height: "100%" }}>
           <HeartIcon active={isLiked} />
           Liked
         </button>
@@ -301,7 +311,7 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
 
       {/* Applied */}
       <div style={{ flex: 1, position: "relative" }}>
-        <button aria-label="Applied jobs" aria-current={isApplied ? "page" : undefined} onClick={() => setPage("appliedJobs")} style={{ ...tab(isApplied), width: "100%", height: "100%" }}>
+        <button aria-label="Applied jobs" aria-current={isApplied ? "page" : undefined} onClick={(e) => { bounceIcon(e); setPage("appliedJobs"); }} style={{ ...tab(isApplied), width: "100%", height: "100%" }}>
           <DocumentIcon active={isApplied} />
           Applied
         </button>
@@ -309,14 +319,14 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
       </div>
 
       {/* Home — centre */}
-      <button aria-label="Home" aria-current={isHome ? "page" : undefined} onClick={() => setPage("studentDashboard")} style={tab(isHome)}>
+      <button aria-label="Home" aria-current={isHome ? "page" : undefined} onClick={(e) => { bounceIcon(e); setPage("studentDashboard"); }} style={tab(isHome)}>
         <HomeIcon active={isHome} />
         Home
       </button>
 
       {/* Messages */}
       <div style={{ flex: 1, position: "relative" }}>
-        <button aria-label="Messages" aria-current={isMessages ? "page" : undefined} onClick={() => setPage("messages")} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
+        <button aria-label="Messages" aria-current={isMessages ? "page" : undefined} onClick={(e) => { bounceIcon(e); setPage("messages"); }} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
           <ChatIcon active={isMessages} />
           Messages
         </button>
@@ -325,7 +335,7 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
 
       {/* Account */}
       <div style={{ flex: 1, position: "relative" }}>
-        <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={{ ...tab(isAccount), width: "100%", height: "100%" }}>
+        <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={(e) => { bounceIcon(e); setPage("account"); }} style={{ ...tab(isAccount), width: "100%", height: "100%" }}>
           {currentUser?.profilePhoto
             ? <img loading="lazy" src={supabaseImg(currentUser.profilePhoto, 64)} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
             : <PersonIcon color={isAccount ? "var(--color-brand)" : "#64748b"} />

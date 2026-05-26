@@ -110,8 +110,20 @@ export default function LeaderboardPage() {
                   boxShadow: i < 3 ? "0 2px 10px rgba(0,0,0,0.07)" : "none",
                 }}
               >
-                <div style={{ fontSize: i < 3 ? "1.6rem" : "1rem", fontWeight: 800, color: i < 3 ? undefined : "#94a3b8", minWidth: "2rem", textAlign: "center" }}>
-                  {i < 3 ? medals[i] : `#${i + 1}`}
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0, minWidth: "2.5rem" }}>
+                  {i === 0 && (
+                    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" style={{ marginBottom: "2px" }}>
+                      <path d="M6 9H3.5a2.5 2.5 0 0 1 0-5H6"/>
+                      <path d="M18 9h2.5a2.5 2.5 0 0 0 0-5H18"/>
+                      <path d="M4 22h16"/>
+                      <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/>
+                      <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/>
+                      <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/>
+                    </svg>
+                  )}
+                  <span style={{ fontSize: i < 3 ? "1.6rem" : "1rem", fontWeight: 800, color: i < 3 ? undefined : "#94a3b8", textAlign: "center" }}>
+                    {i < 3 ? medals[i] : `#${i + 1}`}
+                  </span>
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ margin: 0, fontWeight: 700, fontSize: "1rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{c.name}</p>
