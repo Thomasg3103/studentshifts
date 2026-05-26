@@ -289,3 +289,43 @@ AS $$
   ORDER BY p.id, a.updated_at DESC;
 $$;
 GRANT EXECUTE ON FUNCTION get_company_past_hires(uuid) TO authenticated;
+
+-- ── 11. Bulk reliability scores (avoids N+1 calls in Browse Students) ────────
+CREATE OR REPLACE FUNCTION get_reliability_scores_bulk(p_student_ids uuid[])
+RETURNS TABLE (
+  student_id  uuid,
+  label       text,
+  total_apps  int,
+  withdrawals int,
+  accepted    int
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT
+    sid.student_id,
+    CASE
+      WHEN COUNT(a.id) = 0 THEN 'New'
+      WHEN COUNT(a.id) FILTER (WHERE a.withdraw_reason IS NOT NULL) >= 3
+        OR (COUNT(a.id) >= 5
+            AND COUNT(a.id) FILTER (WHERE a.withdraw_reason IS NOT NULL)::float
+                / NULLIF(COUNT(a.id), 0) >= 0.4)
+        THEN 'Flagged'
+      WHEN COUNT(a.id) FILTER (WHERE a.status = 'Accepted') >= 2
+        OR (COUNT(a.id) >= 5
+            AND COUNT(a.id) FILTER (WHERE a.withdraw_reason IS NOT NULL) = 0)
+        THEN 'Reliable'
+      ELSE 'New'
+    END AS label,
+    COUNT(a.id)::int                                                    AS total_apps,
+    COUNT(a.id) FILTER (WHERE a.withdraw_reason IS NOT NULL)::int       AS withdrawals,
+    COUNT(a.id) FILTER (WHERE a.status = 'Accepted')::int              AS accepted
+  FROM unnest(p_student_ids) AS sid(student_id)
+  LEFT JOIN applications a ON a.student_id = sid.student_id
+  GROUP BY sid.student_id;
+END;
+$$;
+GRANT EXECUTE ON FUNCTION get_reliability_scores_bulk(uuid[]) TO authenticated;

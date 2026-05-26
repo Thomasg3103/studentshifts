@@ -25,7 +25,7 @@ function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }
   );
 }
 
-export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onDuplicate, onSaveTemplate, onNotifyStudents, notifying, notified }) {
+export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onDuplicate, onSaveTemplate, onNotifyStudents, notifying, notified, matchesData, onLoadMatches }) {
   const isActive  = posting.status === "Active";
   const today     = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Expired";
@@ -47,6 +47,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
   const [templateSaved,     setTemplateSaved]     = useState(false);
   const [templateNameInput, setTemplateNameInput] = useState("");
   const [showTemplateInput, setShowTemplateInput] = useState(false);
+  const [showMatches,       setShowMatches]       = useState(false);
   const deadlineClose = posting.deadline && posting.deadline > today && (new Date(posting.deadline) - new Date(today)) / 86400000 <= 3;
 
   const deadlineLabel = posting.deadline
@@ -60,6 +61,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
   };
 
   return (
+    <>
     <div
       className="job-posting-card"
       onMouseEnter={() => setHovered(true)}
@@ -149,6 +151,16 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
 
           {/* Secondary actions */}
           <div style={{ display: "flex", gap: "0.35rem", marginLeft: "auto" }}>
+            {onLoadMatches && isActive && posting.days?.length > 0 && (
+              <button
+                onClick={() => {
+                  setShowMatches(v => !v);
+                  if (!matchesData?.loaded && !matchesData?.loading) onLoadMatches();
+                }}
+                style={{ ...actionBtn, color: showMatches ? "var(--color-brand)" : "#374151", borderColor: showMatches ? "var(--color-brand)" : "#e2e8f0", backgroundColor: showMatches ? "#fce7f3" : "var(--color-bg-elevated, white)" }}
+                title="See which verified students are available for these shifts"
+              >🎯 Matches</button>
+            )}
             {onNotifyStudents && isActive && (
               notified ? (
                 <span style={{ ...actionBtn, color: "#16a34a", cursor: "default" }}>✓ Notified</span>
@@ -229,5 +241,52 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
         />
       )}
     </div>
+
+    {/* Smart Matches panel */}
+    {showMatches && (
+      <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "1rem 1.25rem" }}>
+        <p style={{ margin: "0 0 0.65rem", fontSize: "0.78rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          🎯 Available Students for {posting.title}
+        </p>
+        {matchesData?.loading && (
+          <p style={{ margin: 0, fontSize: "0.83rem", color: "var(--color-text-secondary, #64748b)" }}>Finding matches…</p>
+        )}
+        {matchesData?.loaded && matchesData.students.length === 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", padding: "0.75rem 1rem", backgroundColor: "#fffbeb", border: "1.5px solid #fcd34d", borderRadius: "0.6rem" }}>
+            <span>⚠️</span>
+            <p style={{ margin: 0, fontSize: "0.82rem", color: "#92400e" }}>No verified students have matching availability right now. Try the <strong>📣 Notify</strong> button to alert students as soon as they mark availability.</p>
+          </div>
+        )}
+        {matchesData?.loaded && matchesData.students.length > 0 && (
+          <>
+            {matchesData.students.map((s, i) => {
+              const isExact = s.match_score === posting.days?.length;
+              return (
+                <div key={s.student_id} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.55rem 0", borderBottom: i < matchesData.students.length - 1 ? "1px solid var(--color-border-light, #e2e8f0)" : "none" }}>
+                  {s.profile_photo ? (
+                    <img src={s.profile_photo} alt={s.student_name} style={{ width: "34px", height: "34px", borderRadius: "50%", objectFit: "cover", flexShrink: 0 }} loading="lazy" />
+                  ) : (
+                    <div style={{ width: "34px", height: "34px", borderRadius: "50%", backgroundColor: "#fce7f3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: "700", fontSize: "0.85rem", color: "var(--color-brand)" }}>
+                      {s.student_name?.charAt(0)?.toUpperCase() || "?"}
+                    </div>
+                  )}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontWeight: "700", fontSize: "0.85rem", color: "var(--color-text-primary, #0f172a)" }}>{s.student_name}</p>
+                    {s.bio && <p style={{ margin: 0, fontSize: "0.73rem", color: "var(--color-text-secondary, #64748b)", overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis" }}>{s.bio}</p>}
+                  </div>
+                  <span style={{ fontSize: "0.72rem", fontWeight: "700", whiteSpace: "nowrap", padding: "0.18rem 0.5rem", borderRadius: "999px", backgroundColor: isExact ? "#fce7f3" : "#f8fafc", color: isExact ? "var(--color-brand)" : "#64748b", border: `1px solid ${isExact ? "var(--color-brand)" : "#e2e8f0"}` }}>
+                    {s.match_score}/{posting.days?.length} shifts
+                  </span>
+                </div>
+              );
+            })}
+            {matchesData.students.length === 5 && (
+              <p style={{ margin: "0.65rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", textAlign: "center" }}>Showing top 5 — use <strong>Browse Students → Match to Job</strong> to see all.</p>
+            )}
+          </>
+        )}
+      </div>
+    )}
+    </>
   );
 }

@@ -10,11 +10,14 @@ const PAGE_SIZE = 20;
 export default function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, _companyName, chatStudent, setChatStudent, _setPage, likedStudentIds, applicantStudentIds, onToggleLike, postings = [] }) {
   const [filterByIndustries, setFilterByIndustries] = useState(true);
   const [sortBy, setSortBy] = useState("default");
+  const [selectedJobId, setSelectedJobId] = useState("");
+  const [reliabilityMap, setReliabilityMap] = useState({});
+  const [reliabilityLoading, setReliabilityLoading] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [shortlistFor, setShortlistFor] = useState(null);
   const [hiredThisMonth, setHiredThisMonth] = useState(0);
 
-  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filterByIndustries, sortBy]);
+  useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filterByIndustries, sortBy, selectedJobId]);
 
   useEffect(() => {
     if (!companyId) return;
@@ -26,6 +29,25 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       .gte("updated_at", start.toISOString())
       .then(({ count }) => { if (count != null) setHiredThisMonth(count); });
   }, [companyId]);
+  // Load reliability scores when sort mode requires them
+  useEffect(() => {
+    if (sortBy !== "reliability_first" || !students.length) return;
+    const missing = students.filter(s => !reliabilityMap[s.id]).map(s => s.id);
+    if (!missing.length) return;
+    setReliabilityLoading(true);
+    supabase.rpc("get_reliability_scores_bulk", { p_student_ids: missing })
+      .then(({ data }) => {
+        if (!data) return;
+        setReliabilityMap(prev => {
+          const next = { ...prev };
+          data.forEach(r => { next[r.student_id] = r.label; });
+          return next;
+        });
+      })
+      .catch(console.warn)
+      .finally(() => setReliabilityLoading(false));
+  }, [sortBy, students.length]);
+
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
@@ -220,14 +242,30 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     return starts.length ? starts.reduce((a, b) => a + b, 0) / starts.length : Infinity;
   };
 
+  const selectedJob = postings.find(p => p.id === Number(selectedJobId) || p.id === selectedJobId) || null;
+  const jobMatchScore = (s) => {
+    if (!selectedJob?.days?.length || !s.availability) return 0;
+    return selectedJob.days.filter(day => (s.availability[day] || []).length > 0).length;
+  };
+
+  const reliabilityRank = label => label === "Reliable" ? 0 : label === "New" ? 1 : 2;
+
   const displayStudents = [...filtered].sort((a, b) => {
     switch (sortBy) {
-      case "most_available": return dayCount(b.availability) - dayCount(a.availability);
-      case "weekends_first": return (hasWeekend(b.availability) ? 1 : 0) - (hasWeekend(a.availability) ? 1 : 0);
-      case "earliest":       return avgStart(a.availability) - avgStart(b.availability);
-      default:               return 0;
+      case "most_available":    return dayCount(b.availability) - dayCount(a.availability);
+      case "weekends_first":    return (hasWeekend(b.availability) ? 1 : 0) - (hasWeekend(a.availability) ? 1 : 0);
+      case "earliest":          return avgStart(a.availability) - avgStart(b.availability);
+      case "match_job":         return jobMatchScore(b) - jobMatchScore(a);
+      case "reliability_first": return reliabilityRank(reliabilityMap[a.id]) - reliabilityRank(reliabilityMap[b.id]);
+      default:                  return 0;
     }
   });
+
+  const perfectMatchCount = sortBy === "match_job" && selectedJob
+    ? displayStudents.filter(s => jobMatchScore(s) === selectedJob.days.length).length
+    : 0;
+  const showGoodEnough = sortBy === "match_job" && selectedJob && displayStudents.length > 0 && perfectMatchCount < displayStudents.length;
+
   const visibleStudents = displayStudents.slice(0, visibleCount);
 
   return (
@@ -262,16 +300,41 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
           </button>
           <select
             value={sortBy}
-            onChange={e => setSortBy(e.target.value)}
+            onChange={e => { setSortBy(e.target.value); if (e.target.value !== "match_job") setSelectedJobId(""); }}
             style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid #e2e8f0", backgroundColor: sortBy !== "default" ? "#fce7f3" : "var(--color-bg-elevated, white)", color: sortBy !== "default" ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
           >
             <option value="default">Sort: Default</option>
             <option value="most_available">Most Days Available</option>
             <option value="weekends_first">Weekend Work</option>
             <option value="earliest">Earliest Starts</option>
+            {postings.filter(p => p.status === "Active").length > 0 && <option value="match_job">Match to Job</option>}
+            <option value="reliability_first">Reliability {reliabilityLoading ? "(loading…)" : ""}</option>
           </select>
+          {sortBy === "match_job" && (
+            <select
+              value={selectedJobId}
+              onChange={e => setSelectedJobId(e.target.value)}
+              style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid var(--color-brand)", backgroundColor: "#fce7f3", color: "var(--color-brand)", cursor: "pointer", fontFamily: "inherit", outline: "none" }}
+            >
+              <option value="">Pick a job…</option>
+              {postings.filter(p => p.status === "Active").map(p => (
+                <option key={p.id} value={p.id}>{p.title}</option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
+      {showGoodEnough && (
+        <div style={{ backgroundColor: "#fffbeb", border: "1.5px solid #fcd34d", borderRadius: "0.75rem", padding: "0.75rem 1rem", display: "flex", alignItems: "center", gap: "0.65rem" }}>
+          <span style={{ fontSize: "1.1rem", flexShrink: 0 }}>⚠️</span>
+          <p style={{ margin: 0, fontSize: "0.8rem", color: "#92400e", lineHeight: 1.4 }}>
+            {perfectMatchCount > 0
+              ? <><strong>{perfectMatchCount}</strong> student{perfectMatchCount !== 1 ? "s" : ""} match all shift days — the rest are partial matches shown below.</>
+              : <>No exact availability match for <strong>{selectedJob?.title}</strong> right now — showing your closest {displayStudents.length} student{displayStudents.length !== 1 ? "s" : ""}.</>
+            }
+          </p>
+        </div>
+      )}
       {displayStudents.length === 0 && (
         <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
           <div style={{ fontSize: "2rem", marginBottom: "0.65rem" }}>🔍</div>
@@ -300,10 +363,21 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.2rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0, flexWrap: "wrap" }}>
                 <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{s.name}</p>
                 {hasApplied && (
                   <span className="badge badge-sm badge-green" style={{ whiteSpace: "nowrap", flexShrink: 0 }}>Applied ✓</span>
+                )}
+                {reliabilityMap[s.id] === "Reliable" && (
+                  <span className="badge badge-sm" style={{ whiteSpace: "nowrap", flexShrink: 0, backgroundColor: "#dcfce7", color: "#15803d", border: "1px solid #86efac" }}>✓ Reliable</span>
+                )}
+                {reliabilityMap[s.id] === "Flagged" && (
+                  <span className="badge badge-sm" style={{ whiteSpace: "nowrap", flexShrink: 0, backgroundColor: "#fef2f2", color: "#b91c1c", border: "1px solid #fca5a5" }}>⚠ Flagged</span>
+                )}
+                {sortBy === "match_job" && selectedJob && (
+                  <span className="badge badge-sm" style={{ whiteSpace: "nowrap", flexShrink: 0, backgroundColor: jobMatchScore(s) === selectedJob.days.length ? "#fce7f3" : "#f8fafc", color: jobMatchScore(s) === selectedJob.days.length ? "var(--color-brand)" : "#64748b", border: `1px solid ${jobMatchScore(s) === selectedJob.days.length ? "var(--color-brand)" : "#e2e8f0"}` }}>
+                    🎯 {jobMatchScore(s)}/{selectedJob.days.length} shifts
+                  </span>
                 )}
               </div>
               <button

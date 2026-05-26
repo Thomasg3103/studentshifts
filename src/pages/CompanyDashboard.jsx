@@ -300,6 +300,7 @@ export default function CompanyDashboard() {
 
   const [notifyingJobIds, setNotifyingJobIds] = useState(new Set());
   const [notifiedJobIds, setNotifiedJobIds]   = useState(new Set());
+  const [matchesData, setMatchesData]         = useState({});
 
   const handleNotifyStudents = async (posting) => {
     if (notifyingJobIds.has(posting.id) || notifiedJobIds.has(posting.id)) return;
@@ -326,6 +327,16 @@ export default function CompanyDashboard() {
     } finally {
       setNotifyingJobIds(prev => { const s = new Set(prev); s.delete(posting.id); return s; });
     }
+  };
+
+  const handleLoadMatches = async (jobId) => {
+    if (matchesData[jobId]?.loaded || matchesData[jobId]?.loading) return;
+    setMatchesData(prev => ({ ...prev, [jobId]: { loading: true, loaded: false, students: [] } }));
+    const { data, error } = await supabase.rpc("get_matched_students_for_job", { p_job_id: jobId });
+    setMatchesData(prev => ({
+      ...prev,
+      [jobId]: { loading: false, loaded: true, students: error ? [] : (data || []).slice(0, 5), error: error?.message || null },
+    }));
   };
 
   const toggleStatus = async (id) => {
@@ -867,6 +878,8 @@ export default function CompanyDashboard() {
                 onNotifyStudents={() => handleNotifyStudents(posting)}
                 notifying={notifyingJobIds.has(posting.id)}
                 notified={notifiedJobIds.has(posting.id)}
+                matchesData={matchesData[posting.id]}
+                onLoadMatches={() => handleLoadMatches(posting.id)}
                 onSaveTemplate={async (name) => {
                   const templateData = {
                     title: posting.title, category: posting.category, location: posting.location,
