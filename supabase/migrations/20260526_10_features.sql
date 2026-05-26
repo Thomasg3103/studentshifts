@@ -22,7 +22,7 @@ CREATE POLICY "templates_company_all"
 -- ── 3. Shift-full waitlist ────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS job_waitlist (
   id         uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
-  job_id     uuid        NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
+  job_id     bigint      NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
   student_id uuid        NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
   created_at timestamptz DEFAULT now(),
   UNIQUE (job_id, student_id)
@@ -178,7 +178,7 @@ GRANT EXECUTE ON FUNCTION count_matching_students(text[], text) TO authenticated
 -- by the send-email Edge Function when it detects type 'expiry-reminders'.
 -- The frontend CompanyDashboard also shows a banner for jobs expiring in 48h.
 CREATE OR REPLACE FUNCTION get_jobs_expiring_soon(hours_ahead int DEFAULT 48)
-RETURNS TABLE(job_id uuid, company_id uuid, title text, deadline date, applicant_count bigint)
+RETURNS TABLE(job_id bigint, company_id uuid, title text, deadline date, applicant_count bigint)
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = public
