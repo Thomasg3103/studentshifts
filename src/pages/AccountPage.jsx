@@ -509,7 +509,7 @@ export default function AccountPage() {
 
   // ── Sidebar cards (students) ──────────────────────────────────────────────
   const SidebarAvailability = () => (
-    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.85rem 0.9rem", marginBottom: "0.75rem", borderTop: "3px solid var(--color-brand)" }}>
+    <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "0.85rem 0.9rem", marginBottom: "0.75rem", borderTop: "3px solid var(--color-brand)" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
         <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-brand)" }}>My Availability</p>
       </div>
@@ -519,8 +519,8 @@ export default function AccountPage() {
   );
 
   const SidebarPrefs = () => (
-    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.85rem 0.9rem" }}>
-      <p style={{ margin: "0 0 0.5rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>Job Preferences</p>
+    <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "0.85rem 0.9rem" }}>
+      <p style={{ margin: "0 0 0.5rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)" }}>Job Preferences</p>
       <p style={{ fontSize: "0.73rem", color: "#6b7280", marginBottom: "0.65rem", lineHeight: 1.4 }}>Industries you're interested in.</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
         {Object.keys(jobCategories).map(cat => {
@@ -543,8 +543,8 @@ export default function AccountPage() {
 
   // ── Right column content (shared pieces) ─────────────────────────────────
   const LocationSection = () => (
-    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.75rem" }}>My Location</p>
+    <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.75rem" }}>My Location</p>
       <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.85rem", lineHeight: 1.4 }}>
         Set your address so we can show job distances. Never shared publicly.
       </p>
@@ -554,8 +554,8 @@ export default function AccountPage() {
             padding: "0.5rem 0.9rem", borderRadius: "0.5rem", cursor: "pointer",
             minHeight: "44px", display: "inline-flex", alignItems: "center",
             border: `1.5px solid ${locationType === val ? "#3b82f6" : "#d1d5db"}`,
-            backgroundColor: locationType === val ? "#eff6ff" : "white",
-            color: locationType === val ? "#1d4ed8" : "#374151",
+            backgroundColor: locationType === val ? "#eff6ff" : "var(--color-bg-elevated, white)",
+            color: locationType === val ? "#1d4ed8" : "var(--color-text-primary, #374151)",
             fontWeight: locationType === val ? "700" : "500",
             fontSize: "0.9rem", fontFamily: "inherit",
           }}>{label}</button>
@@ -596,7 +596,7 @@ export default function AccountPage() {
             <button type="button" onClick={handleManualGeocode} disabled={locationLoading} style={{ flex: 1, padding: "0.5rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
               {locationLoading ? "Finding…" : "Find Address"}
             </button>
-            <button type="button" onClick={() => setShowManual(false)} style={{ padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "white", color: "#6b7280", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+            <button type="button" onClick={() => setShowManual(false)} style={{ padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1.5px solid var(--color-border-light, #d1d5db)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #6b7280)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
           </div>
         </div>
       )}
@@ -1056,7 +1056,7 @@ export default function AccountPage() {
                     <input
                       readOnly
                       value={`https://studentshifts.ie/signup?ref=${referralCode}`}
-                      style={{ flex: 1, padding: "0.5rem 0.7rem", borderRadius: "0.6rem", border: "1.5px solid #c4b5fd", fontSize: "0.78rem", color: "#1e293b", backgroundColor: "white", fontFamily: "monospace", outline: "none" }}
+                      style={{ flex: 1, padding: "0.5rem 0.7rem", borderRadius: "0.6rem", border: "1.5px solid #c4b5fd", fontSize: "0.78rem", color: "var(--color-text-primary, #1e293b)", backgroundColor: "var(--color-bg-elevated, white)", fontFamily: "monospace", outline: "none" }}
                       onClick={e => e.target.select()}
                     />
                     <button
@@ -1168,7 +1168,7 @@ export default function AccountPage() {
         {/* ── Delete modal ── */}
         {showDeleteModal && (
           <div onClick={() => setShowDeleteModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-            <div ref={deleteModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+            <div ref={deleteModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fff1f2", border: "2px solid #fecdd3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>⚠️</div>
               <h3 id="delete-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Delete your account?</h3>
               <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1.25rem" }}>This is permanent. Your profile, CV, and all data will be deleted.</p>
@@ -1178,7 +1178,7 @@ export default function AccountPage() {
               <input value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder="DELETE" style={{ ...inputStyle, marginBottom: "0.75rem", borderColor: deleteConfirm === "DELETE" ? "#ef4444" : "#e2e8f0" }} />
               {deleteError && <p style={{ fontSize: "0.8rem", color: "#ef4444", margin: "0 0 0.75rem" }}>{deleteError}</p>}
               <div style={{ display: "flex", gap: "0.75rem" }}>
-                <button onClick={() => setShowDeleteModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Cancel</button>
+                <button onClick={() => setShowDeleteModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Cancel</button>
                 <button onClick={handleDeleteAccount} disabled={deleteConfirm !== "DELETE" || !deletePassword || deleting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: deleteConfirm === "DELETE" && deletePassword ? "#dc2626" : "#fca5a5", color: "white", fontWeight: "700", cursor: deleteConfirm === "DELETE" && deletePassword && !deleting ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.9rem" }}>
                   {deleting ? "Deleting…" : "Delete"}
                 </button>
@@ -1190,14 +1190,14 @@ export default function AccountPage() {
         {/* ── Profile preview modal ── */}
         {showProfilePreview && (
           <div onClick={() => setShowProfilePreview(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-            <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Profile preview" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "1.5rem", maxWidth: "400px", width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
+            <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Profile preview" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "1.5rem", maxWidth: "400px", width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
                 <h3 style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "#1e293b" }}>How companies see your profile</h3>
-                <button onClick={() => setShowProfilePreview(false)} style={{ width: "30px", height: "30px", borderRadius: "0.4rem", border: "1px solid #e2e8f0", backgroundColor: "white", cursor: "pointer", color: "#64748b", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}>✕</button>
+                <button onClick={() => setShowProfilePreview(false)} style={{ width: "30px", height: "30px", borderRadius: "0.4rem", border: "1px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", cursor: "pointer", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}>✕</button>
               </div>
 
               {/* Avatar + name */}
-              <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", marginBottom: "1.25rem", padding: "0.85rem", backgroundColor: "#f8fafc", borderRadius: "0.75rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", marginBottom: "1.25rem", padding: "0.85rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.75rem" }}>
                 <div style={{ width: "52px", height: "52px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {currentUser.profilePhoto
                     ? <img src={currentUser.profilePhoto} alt={currentUser.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -1241,12 +1241,12 @@ export default function AccountPage() {
         {/* ── Logout modal ── */}
         {showLogoutModal && (
           <div onClick={() => setShowLogoutModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-            <div ref={logoutModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="logout-modal-title" style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
+            <div ref={logoutModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="logout-modal-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fff1f2", border: "2px solid #fecdd3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>👋</div>
               <h3 id="logout-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Log out?</h3>
               <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.5rem" }}>You'll need to sign back in to access your account.</p>
               <div style={{ display: "flex", gap: "0.75rem" }}>
-                <button onClick={() => setShowLogoutModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Stay</button>
+                <button onClick={() => setShowLogoutModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Stay</button>
                 <button onClick={confirmLogout} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: "#f43f5e", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Log Out</button>
               </div>
             </div>
@@ -1279,10 +1279,10 @@ function PreviewRow({ ok, warn, label, detail, truncate }) {
 function Collapsible({ title, defaultOpen = false, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", marginBottom: "0.75rem", overflow: "hidden" }}>
+    <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", marginBottom: "0.75rem", overflow: "hidden" }}>
       <button type="button" onClick={() => setOpen(o => !o)} style={{ width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.85rem 1.1rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}>
-        <span style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>{title}</span>
-        <span style={{ color: "#64748b", fontSize: "0.85rem", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▾</span>
+        <span style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)" }}>{title}</span>
+        <span style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "0.85rem", display: "inline-block", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>▾</span>
       </button>
       {open && <div style={{ padding: "0 1.1rem 1rem" }}>{children}</div>}
     </div>
@@ -1291,8 +1291,8 @@ function Collapsible({ title, defaultOpen = false, children }) {
 
 function Section({ title, children }) {
   return (
-    <div style={{ backgroundColor: "white", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748b", marginBottom: "0.75rem" }}>{title}</p>
+    <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--color-text-secondary, #64748b)", marginBottom: "0.75rem" }}>{title}</p>
       {children}
     </div>
   );
@@ -1359,11 +1359,11 @@ function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
 
   return (
     <div style={{ marginBottom: "0.9rem" }}>
-      <label style={{ display: "block", fontWeight: "600", fontSize: "0.875rem", marginBottom: "0.25rem", color: "#374151" }}>
+      <label style={{ display: "block", fontWeight: "600", fontSize: "0.875rem", marginBottom: "0.25rem", color: "var(--color-text-primary, #374151)" }}>
         {label} {required && !existingName && <span style={{ color: "#ef4444" }}>*</span>}
       </label>
-      <p style={{ fontSize: "0.75rem", color: "#6b7280", marginBottom: "0.35rem" }}>{hint}</p>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", border: `1.5px dashed ${uploadError ? "#fca5a5" : existingName || uploaded ? "#22c55e" : "#d1d5db"}`, borderRadius: "0.5rem", padding: "0.5rem 0.75rem", backgroundColor: uploadError ? "#fff1f2" : existingName || uploaded ? "#f0fdf4" : "white", overflow: "hidden" }}>
+      <p style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.35rem" }}>{hint}</p>
+      <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", border: `1.5px dashed ${uploadError ? "#fca5a5" : existingName || uploaded ? "#22c55e" : "var(--color-border-light, #d1d5db)"}`, borderRadius: "0.5rem", padding: "0.5rem 0.75rem", backgroundColor: uploadError ? "#fff1f2" : existingName || uploaded ? "#f0fdf4" : "var(--color-bg-elevated, white)", overflow: "hidden" }}>
         <label style={{ cursor: uploading ? "not-allowed" : "pointer", fontSize: "0.8rem", fontWeight: "600", color: uploading ? "#64748b" : "#3b82f6", whiteSpace: "nowrap", flexShrink: 0 }}>
           {uploading ? "Uploading…" : existingName ? "Change" : "Choose file"}
           <input type="file" accept={accept} style={{ display: "none" }} onChange={handleChange} disabled={uploading} />
@@ -1417,6 +1417,6 @@ function AvailabilityPicker({ value, onChange }) {
   );
 }
 
-const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "#374151", marginBottom: "0.3rem" };
-const inputStyle = { width: "100%", padding: "0.6rem 0.75rem", marginBottom: "1rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b", backgroundColor: "white" };
+const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "var(--color-text-primary, #374151)", marginBottom: "0.3rem" };
+const inputStyle = { width: "100%", padding: "0.6rem 0.75rem", marginBottom: "1rem", borderRadius: "0.65rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)", backgroundColor: "var(--color-bg-elevated, white)" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };
