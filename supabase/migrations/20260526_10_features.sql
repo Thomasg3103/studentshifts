@@ -279,7 +279,7 @@ AS $$
     s.profile_photo_url AS profile_photo,
     s.bio,
     j.title        AS job_title,
-    a.updated_at   AS hired_at
+    a.created_at   AS hired_at
   FROM applications a
   JOIN jobs j     ON j.id = a.job_id
   JOIN profiles p ON p.id = a.student_id
