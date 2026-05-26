@@ -28,11 +28,13 @@ ALTER TABLE forum_posts ENABLE ROW LEVEL SECURITY;
 ALTER TABLE forum_votes ENABLE ROW LEVEL SECURITY;
 
 -- Anyone can read posts
-CREATE POLICY IF NOT EXISTS "forum_posts_select"
+DROP POLICY IF EXISTS "forum_posts_select" ON forum_posts;
+CREATE POLICY "forum_posts_select"
   ON forum_posts FOR SELECT USING (true);
 
 -- Verified students can create posts
-CREATE POLICY IF NOT EXISTS "forum_posts_insert"
+DROP POLICY IF EXISTS "forum_posts_insert" ON forum_posts;
+CREATE POLICY "forum_posts_insert"
   ON forum_posts FOR INSERT
   WITH CHECK (
     auth.uid() = author_id
@@ -42,19 +44,23 @@ CREATE POLICY IF NOT EXISTS "forum_posts_insert"
   );
 
 -- Author can delete their own posts
-CREATE POLICY IF NOT EXISTS "forum_posts_delete"
+DROP POLICY IF EXISTS "forum_posts_delete" ON forum_posts;
+CREATE POLICY "forum_posts_delete"
   ON forum_posts FOR DELETE USING (author_id = auth.uid());
 
 -- Anyone can read votes
-CREATE POLICY IF NOT EXISTS "forum_votes_select"
+DROP POLICY IF EXISTS "forum_votes_select" ON forum_votes;
+CREATE POLICY "forum_votes_select"
   ON forum_votes FOR SELECT USING (true);
 
 -- Authenticated users can vote
-CREATE POLICY IF NOT EXISTS "forum_votes_insert"
+DROP POLICY IF EXISTS "forum_votes_insert" ON forum_votes;
+CREATE POLICY "forum_votes_insert"
   ON forum_votes FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Users can remove their own vote
-CREATE POLICY IF NOT EXISTS "forum_votes_delete"
+DROP POLICY IF EXISTS "forum_votes_delete" ON forum_votes;
+CREATE POLICY "forum_votes_delete"
   ON forum_votes FOR DELETE USING (user_id = auth.uid());
 
 -- 4. RPC: toggle_forum_vote — atomically votes/unvotes and updates post upvote count

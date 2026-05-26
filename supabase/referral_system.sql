@@ -20,12 +20,14 @@ CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id);
 ALTER TABLE referrals ENABLE ROW LEVEL SECURITY;
 
 -- Referrer can see their own referrals
-CREATE POLICY IF NOT EXISTS "referrals_select_own"
+DROP POLICY IF EXISTS "referrals_select_own" ON referrals;
+CREATE POLICY "referrals_select_own"
   ON referrals FOR SELECT
   USING (referrer_id = auth.uid());
 
 -- Anyone authenticated can insert a referral (called on signup)
-CREATE POLICY IF NOT EXISTS "referrals_insert"
+DROP POLICY IF EXISTS "referrals_insert" ON referrals;
+CREATE POLICY "referrals_insert"
   ON referrals FOR INSERT
   WITH CHECK (true);
 
