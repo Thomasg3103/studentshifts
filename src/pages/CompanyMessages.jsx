@@ -47,8 +47,8 @@ function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMess
     <button onClick={onClick} style={{
       display: "flex", alignItems: "center", gap: "0.85rem",
       padding: "0.85rem 1rem", borderRadius: "0.75rem",
-      backgroundColor: isUnread ? "#fdf2f8" : "white",
-      border: `1.5px solid ${isUnread ? "#fce7f3" : "#e5e7eb"}`,
+      backgroundColor: isUnread ? "#fdf2f8" : "var(--color-bg-elevated, white)",
+      border: `1.5px solid ${isUnread ? "#fce7f3" : "var(--color-border-light, #e5e7eb)"}`,
       cursor: "pointer", textAlign: "left", width: "100%", fontFamily: "inherit",
     }}>
       <Avatar url={avatarUrl} name={avatarName || name} />
@@ -220,7 +220,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
         }
       </div>
       {!input && !loading && !loadError && messages.length === 0 && (
-        <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "white", borderTop: "1.5px solid #e5e7eb" }}>
+        <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid var(--color-border-light, #e5e7eb)" }}>
           <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
             {quickReplies.map(qr => (
@@ -234,13 +234,13 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
         </div>
       )}
       {input.length > 3800 && (
-        <div style={{ padding: "0.25rem 1rem 0", backgroundColor: "white" }}>
+        <div style={{ padding: "0.25rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)" }}>
           <span style={{ fontSize: "0.72rem", color: input.length >= 4000 ? "#ef4444" : "#f97316", fontWeight: 600 }}>
             {input.length}/4000 characters
           </span>
         </div>
       )}
-      <div style={{ padding: "0.75rem 1rem", borderTop: input ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "white" }}>
+      <div style={{ padding: "0.75rem 1rem", borderTop: input ? "1.5px solid var(--color-border-light, #e5e7eb)" : "none", display: "flex", gap: "0.5rem", backgroundColor: "var(--color-bg-elevated, white)" }}>
         <input
           ref={inputRef}
           aria-label={`Message ${studentName}`}
@@ -304,7 +304,7 @@ export default function CompanyMessages() {
     const isDirect = active.jobId === null;
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 80px)" }}>
-        <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid #e5e7eb", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "white", flexShrink: 0 }}>
+        <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid var(--color-border-light, #e5e7eb)", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "var(--color-bg-elevated, white)", flexShrink: 0 }}>
           <button aria-label="Back to conversations" onClick={goBack} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "#6b7280" }}>←</button>
           <Avatar url={active.profilePhotoUrl} name={active.studentName} size={38} />
           <div>
