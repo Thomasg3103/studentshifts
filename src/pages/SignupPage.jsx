@@ -98,6 +98,8 @@ export default function SignupPage() {
         setError("Please enter a valid email address.");
       } else if (msg.includes("timed out")) {
         setError(e.message);
+      } else if (msg.includes("rate limit") || msg.includes("too many") || msg.includes("over_email_send_rate_limit") || msg.includes("email rate limit")) {
+        setError("Too many sign-up attempts. Please wait a few minutes and try again.");
       } else {
         setError("Something went wrong. Please try again.");
       }
