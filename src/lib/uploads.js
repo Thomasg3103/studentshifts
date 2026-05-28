@@ -40,18 +40,18 @@ export async function uploadVerificationDocs(userId, studentIdFile, governmentId
     uploadDocument(userId, studentIdFile, "verification-docs", "student_id"),
     uploadDocument(userId, governmentIdFile, "verification-docs", "government_id"),
   ]);
-  const { error } = await withTimeout(
+  const { data: updated, error } = await withTimeout(
     supabase.from("students").update({
       student_id_url: studentIdPath,
       gov_id_url: govIdPath,
       status: "pending_review",
-    }).eq("id", userId),
+    }).eq("id", userId).select("id"),
     10000, "Failed to save document details — please try again."
   );
-  if (error) {
-    // L16: roll back uploaded files so the bucket doesn't accumulate orphaned docs
+  if (error || !updated?.length) {
+    // Roll back uploaded files — either DB error or no row found to update
     await supabase.storage.from("verification-docs").remove([studentIdPath, govIdPath]).catch(() => {});
-    throw error;
+    throw error || new Error("Account not found — please sign out, sign back in, and try again.");
   }
 }
 
