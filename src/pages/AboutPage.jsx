@@ -30,9 +30,7 @@ export default function AboutPage() {
 
       {/* Hero */}
       <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
-        <div style={{ width: "72px", height: "72px", borderRadius: "1.25rem", background: "linear-gradient(135deg, #f43f5e, #e11d48)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", boxShadow: "0 8px 24px rgba(244,63,94,0.35)" }}>
-          <img loading="lazy" src="/favicon.svg" alt="StudentShifts" style={{ width: "40px", height: "45px" }} />
-        </div>
+        <img loading="lazy" src="/favicon.svg" alt="StudentShifts" style={{ width: "72px", height: "72px", display: "block", margin: "0 auto 1rem" }} />
         <h1 style={{ fontWeight: "800", fontSize: "2rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.5rem" }}>About StudentShifts</h1>
         <p style={{ color: "#64748b", fontSize: "1rem", maxWidth: "520px", margin: "0 auto", lineHeight: "1.7" }}>
           We connect students in Galway with flexible part-time work that fits around their studies, lifestyle, and ambitions.
