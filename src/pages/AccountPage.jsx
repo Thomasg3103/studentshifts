@@ -726,13 +726,21 @@ export default function AccountPage() {
             /* ── Student single-column layout ── */
             <div>
 
-              {/* Only show verification docs section if not both stored */}
-              {!docsStored && (
+              {/* Verification docs — hide for verified students; admin clears URLs on approval */}
+              {currentUser.verificationStatus === "verified" ? (
+                <div style={{ backgroundColor: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: "0.85rem", padding: "0.75rem 1rem", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <span style={{ fontSize: "1rem" }}>✅</span>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: "700", fontSize: "0.85rem", color: "#15803d" }}>Identity Verified</p>
+                    <p style={{ margin: 0, fontSize: "0.75rem", color: "#166534" }}>Your Student ID and Government ID have been reviewed and approved.</p>
+                  </div>
+                </div>
+              ) : !docsStored ? (
                 <Collapsible title="Verification Documents" defaultOpen>
                   <DocRow label="Student ID Card" filename={currentUser.studentIdCardName} />
                   <DocRow label="Government ID"   filename={currentUser.governmentIdName} />
                 </Collapsible>
-              )}
+              ) : null}
 
               <LocationSection />
 
