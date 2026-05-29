@@ -42,8 +42,14 @@ export default function AppFooter() {
 
           <div>
             <p style={fHead}>Let's Connect</p>
-            <FLink href="https://www.instagram.com/studentshifts/">Instagram</FLink>
-            <FLink href="https://www.linkedin.com/company/studentshifts/">LinkedIn</FLink>
+            <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.25rem" }}>
+              <a href="https://www.instagram.com/studentshifts/" target="_blank" rel="noopener noreferrer" title="StudentShifts on Instagram" style={{ display: "inline-block", width: "40px", height: "40px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, transition: "opacity 0.15s", opacity: 1 }} onMouseEnter={e => e.currentTarget.style.opacity = "0.8"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
+                <img src="/instagram-icon.svg" alt="Instagram" width="40" height="40" style={{ display: "block" }} />
+              </a>
+              <a href="https://www.linkedin.com/company/studentshifts/" target="_blank" rel="noopener noreferrer" title="StudentShifts on LinkedIn" style={{ display: "inline-block", width: "40px", height: "40px", borderRadius: "10px", overflow: "hidden", flexShrink: 0, transition: "opacity 0.15s", opacity: 1 }} onMouseEnter={e => e.currentTarget.style.opacity = "0.8"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
+                <img src="/linkedin-icon.svg" alt="LinkedIn" width="40" height="40" style={{ display: "block" }} />
+              </a>
+            </div>
           </div>
 
         </div>
