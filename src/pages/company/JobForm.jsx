@@ -413,7 +413,22 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       </label>
 
       <div>
-        <label style={labelStyle}>Days Available *</label>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.25rem" }}>
+          <label style={{ ...labelStyle, marginBottom: 0 }}>Days Available *</label>
+          <button
+            type="button"
+            onClick={() => {
+              const allSelected = weekdays.every(d => formData.days.includes(d));
+              setFormData(prev => ({
+                ...prev,
+                days: allSelected ? [] : [...weekdays],
+              }));
+            }}
+            style={{ padding: "0.2rem 0.65rem", borderRadius: "0.4rem", cursor: "pointer", border: `1.5px solid ${weekdays.every(d => formData.days.includes(d)) ? "#3b82f6" : "#d1d5db"}`, backgroundColor: weekdays.every(d => formData.days.includes(d)) ? "#eff6ff" : "var(--color-bg-elevated, white)", color: weekdays.every(d => formData.days.includes(d)) ? "#1d4ed8" : "#374151", fontWeight: "700", fontSize: "0.75rem", fontFamily: "inherit" }}
+          >
+            All Week
+          </button>
+        </div>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.35rem" }}>
           {weekdays.map(day => {
             const active = formData.days.includes(day);
