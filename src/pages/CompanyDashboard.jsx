@@ -669,7 +669,7 @@ export default function CompanyDashboard() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showHeatmap ? "1rem" : 0 }}>
             <div>
               <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#1e293b" }}>Student Availability</p>
-              <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>When verified students are free â€" use this to plan your job times</p>
+              <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>When verified students are free — use this to plan your job times</p>
             </div>
             <button onClick={() => setShowHeatmap(p => !p)} style={{ padding: "0.35rem 0.85rem", borderRadius: "0.5rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
               {showHeatmap ? "Hide" : "Show"}
@@ -889,8 +889,9 @@ export default function CompanyDashboard() {
                     screeningQuestions: posting.screeningQuestions, photos: posting.photos,
                     photoCrops: posting.photoCrops,
                   };
-                  const { data } = await supabase.from("job_templates").insert({ company_id: currentUser.id, name, data: templateData }).select("id, name, data, created_at").single();
-                  if (data) { setTemplates(prev => [data, ...prev]); setTemplatesLoaded(true); }
+                  const { data, error } = await supabase.from("job_templates").insert({ company_id: currentUser.id, name, data: templateData }).select("id, name, data, created_at").single();
+                  if (error) { toast.error("Failed to save template — please try again."); return; }
+                  if (data) { setTemplates(prev => [data, ...prev]); setTemplatesLoaded(true); toast.success(`Template "${name}" saved.`); }
                 }}
               />
             ))}

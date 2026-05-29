@@ -1045,7 +1045,7 @@ RETURNS TABLE (
   cover_letter_url text,
   profile_photo_url text
 )
-LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE call_count bigint;
 BEGIN
   -- Rate limit: max 60 calls per minute per company (prevents rapid applicant enumeration)
@@ -1090,7 +1090,7 @@ RETURNS TABLE (
   job_preferences   text[],
   allow_company_dm  boolean
 )
-LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
+LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE call_count bigint;
 BEGIN
   IF NOT is_admin() AND NOT EXISTS (
