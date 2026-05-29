@@ -219,7 +219,7 @@ export default function StudentShiftsWeb() {
                 navigate("/company", { replace: true });
               } else if (user.role === "company" && user.verificationStatus !== "verified" && currPath.startsWith("/company")) {
                 navigate("/", { replace: true });
-              } else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected" || user.verificationStatus === "pending_review")) {
+              } else if (user.role === "student" && user.verificationStatus !== "verified") {
                 navigate("/verify", { replace: true });
               }
               if (user.role === "student") await loadStudentData(user.id);
@@ -264,7 +264,7 @@ export default function StudentShiftsWeb() {
           if (user.role === "admin") { navigate("/admin", { replace: true }); }
           else if (user.role === "company" && user.verificationStatus === "verified") { navigate("/company", { replace: true }); }
           else if (user.role === "company") { navigate("/", { replace: true }); }
-          else if (user.role === "student" && (!user.studentIdPath || user.verificationStatus === "rejected" || user.verificationStatus === "pending_review")) { navigate("/verify", { replace: true }); }
+          else if (user.role === "student" && user.verificationStatus !== "verified") { navigate("/verify", { replace: true }); }
           else { navigate("/", { replace: true }); }
           if (user.role === "student") await loadStudentData(user.id);
         } catch (e) {
@@ -432,7 +432,7 @@ export default function StudentShiftsWeb() {
                   ? <LandingPage />
                   : currentUser?.role === "company" && currentUser?.verificationStatus !== "verified"
                   ? <PendingCompanyPage />
-                  : currentUser?.role === "student" && (!currentUser?.studentIdPath || currentUser?.verificationStatus === "pending_review" || currentUser?.verificationStatus === "rejected")
+                  : currentUser?.role === "student" && currentUser?.verificationStatus !== "verified"
                   ? <VerifyDocsPage />
                   : <StudentDashboard restoreScrollY={restoreScrollY} />
               } />
