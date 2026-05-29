@@ -253,7 +253,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
             const isCurrent = i === currentIdx;
             const interviewRound = applicant.interviewRound || 1;
             const crumbLabel = s === "interview"
-              ? (isCurrent && interviewRound > 1 ? `Interview Rd ${interviewRound}` : "Interview")
+              ? `Interview Rd ${interviewRound}`
               : { applied: "Applied", shortlisted: "Shortlisted", trial: "Trial", decision: "Decision" }[s];
             return (
               <span key={s} style={{ display: "flex", alignItems: "center", flex: 1, minWidth: 0 }}>

@@ -37,7 +37,7 @@ export const buildDynamicStages = (applicants) => {
     { key: "shortlisted", label: "Shortlisted" },
     ...Array.from({ length: maxRound }, (_, i) => ({
       key:   `interview_${i + 1}`,
-      label: i === 0 ? "Interview" : `Interview Rd ${i + 1}`,
+      label: `Interview Rd ${i + 1}`,
     })),
     { key: "trial",    label: "Trial" },
     { key: "decision", label: "Decision" },

@@ -753,7 +753,8 @@ CREATE INDEX IF NOT EXISTS idx_rpc_rate_log_user_rpc ON rpc_rate_log(user_id, rp
 -- Limited to 50 IDs per call and 200 calls per day per user.
 CREATE OR REPLACE FUNCTION get_user_emails(user_ids uuid[])
 RETURNS TABLE(id uuid, email text)
-LANGUAGE plpgsql SECURITY DEFINER VOLATILE AS $$
+LANGUAGE plpgsql SECURITY DEFINER VOLATILE
+SET search_path = public AS $$
 DECLARE
   caller_role text;
   daily_count bigint;
