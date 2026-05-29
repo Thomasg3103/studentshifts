@@ -4,7 +4,7 @@ import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
 
 const CONTACT_EMAIL = "privacy@studentshifts.ie";
-const LAST_UPDATED  = "20 April 2026";
+const LAST_UPDATED  = "29 May 2026";
 
 export default function TermsOfServicePage() {
   const { setPage } = useApp();
@@ -85,10 +85,11 @@ export default function TermsOfServicePage() {
           </ul>
         </Section>
 
-        <Section title="6. Job Applications (Students)">
+        <Section title="6. Job Applications &amp; Profile Visibility (Students)">
           <ul style={list}>
             <li>By applying for a job, you consent to your name, CV, and cover letter being shared with the relevant employer.</li>
-            <li>You confirm that all information in your application is truthful and accurate.</li>
+            <li><strong>By uploading a CV or LinkedIn URL to your profile, you consent to verified companies being able to view that information via the Browse Students feature, without you having applied to them.</strong> You can remove your CV or LinkedIn URL from your profile at any time from the Account page.</li>
+            <li>You confirm that all information in your application and profile is truthful and accurate.</li>
             <li>StudentShifts does not guarantee any job offer or employment outcome.</li>
           </ul>
         </Section>
