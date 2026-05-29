@@ -119,7 +119,10 @@ function LocationStep({ onNext, onBack, onSkip }) {
 
 /* ── Step 2: Availability ── */
 function AvailabilityStep({ onDone, onBack }) {
+  const { currentUser, setCurrentUser } = useApp();
   const [selected, setSelected] = useState({});
+  const [expanded, setExpanded] = useState({});
+  const [saving, setSaving]     = useState(false);
 
   const toggle = (day, slot) => {
     setSelected(prev => {
@@ -129,37 +132,52 @@ function AvailabilityStep({ onDone, onBack }) {
     });
   };
 
-  const toggleDay = (day) => {
-    setSelected(prev => {
-      const cur = prev[day] || [];
-      return { ...prev, [day]: cur.length > 0 ? [] : [...timeSlots] };
-    });
+  const toggleExpanded = (day) => {
+    setExpanded(prev => ({ ...prev, [day]: !prev[day] }));
   };
 
   const hasAny = Object.values(selected).some(v => v.length > 0);
+
+  const handleDone = async () => {
+    if (hasAny) {
+      setSaving(true);
+      try {
+        const { updateStudentProfile } = await import("../lib/auth");
+        await updateStudentProfile(currentUser.id, { availability: selected });
+        setCurrentUser(prev => ({ ...prev, availability: selected }));
+      } catch (e) {
+        console.warn("Could not save availability:", e);
+      }
+      setSaving(false);
+    }
+    onDone();
+  };
 
   return (
     <>
       <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📅</div>
       <h2 style={{ margin: "0 0 0.35rem", fontWeight: 800, fontSize: "1.25rem", color: "#1e293b" }}>When can you work?</h2>
       <p style={{ margin: "0 0 1rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.55 }}>
-        Tap a day to select typical hours. You can update this any time in Account.
+        Tap a day to expand it, then select your available time slots. You can update this any time in Account.
       </p>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", maxHeight: "320px", overflowY: "auto", marginBottom: "1rem" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.35rem", marginBottom: "1rem" }}>
         {weekdays.map(day => {
           const daySlots = selected[day] || [];
+          const isOpen   = !!expanded[day];
           const isActive = daySlots.length > 0;
           return (
             <div key={day} style={{ border: `1.5px solid ${isActive ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.6rem", overflow: "hidden", backgroundColor: isActive ? "#fdf2f8" : "white" }}>
               <button
-                onClick={() => toggleDay(day)}
+                onClick={() => toggleExpanded(day)}
                 style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.5rem 0.8rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
               >
                 <span style={{ fontWeight: 700, fontSize: "0.875rem", color: isActive ? "var(--color-brand)" : "#374151" }}>{day}</span>
-                <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{isActive ? `${daySlots.length} slots selected` : "Off"}</span>
+                <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                  {isActive ? `${daySlots.length} selected` : isOpen ? "—" : "Off"}
+                </span>
               </button>
-              {isActive && (
+              {(isOpen || isActive) && (
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", padding: "0 0.8rem 0.6rem" }}>
                   {timeSlots.map(slot => (
                     <button key={slot} onClick={() => toggle(day, slot)}
@@ -175,8 +193,8 @@ function AvailabilityStep({ onDone, onBack }) {
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-        <button onClick={() => onDone(hasAny ? selected : null)} style={btnPrimary}>
-          {hasAny ? "Save Availability & Finish" : "Finish Without Setting Availability"}
+        <button onClick={handleDone} disabled={saving} style={{ ...btnPrimary, opacity: saving ? 0.7 : 1 }}>
+          {saving ? "Saving…" : hasAny ? "Save Availability & Finish" : "Finish Without Setting Availability"}
         </button>
         <button onClick={onBack} style={btnOutline}>← Back</button>
       </div>
