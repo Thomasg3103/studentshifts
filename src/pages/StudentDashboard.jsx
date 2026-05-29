@@ -648,7 +648,7 @@ export default function StudentDashboard({ restoreScrollY }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs, currentUser, jobMatchScore, appliedJobs]);
 
-  // Sorted jobs — Best Match uses match score, urgent always floats first
+  // Sorted jobs — urgent floats first only on default (no explicit sort selected)
   const sortedJobs = useMemo(() => {
     const sorted = [...filteredJobs].sort((a, b) => {
       if (sortBy === "payHigh")     return payNum(b.pay) - payNum(a.pay);
@@ -659,6 +659,7 @@ export default function StudentDashboard({ restoreScrollY }) {
       if (sortBy === "distanceFar")  { const da = jobDistance(a) ?? -Infinity; const db = jobDistance(b) ?? -Infinity; return db - da; }
       return jobMatchScore(b) - jobMatchScore(a);
     });
+    if (sortBy) return sorted;
     return [...sorted.filter(j => j.isUrgent), ...sorted.filter(j => !j.isUrgent)];
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filteredJobs, sortBy, jobDistance, jobMatchScore]);
