@@ -400,14 +400,15 @@ input[type="password"]::-ms-clear {
   font-size: 0.9rem;
   color: #94a3b8;
   pointer-events: none;
-  transition: transform 0.18s ease, font-size 0.18s ease, color 0.18s ease;
+  transition: top 0.18s ease, transform 0.18s ease, color 0.18s ease;
   transform-origin: left top;
 }
 .float-field input:focus ~ label,
 .float-field input:not(:placeholder-shown) ~ label,
 .float-field textarea:focus ~ label,
 .float-field textarea:not(:placeholder-shown) ~ label {
-  transform: translateY(-130%) scale(0.75);
+  top: 0.32rem;
+  transform: scale(0.75);
   color: var(--color-brand);
   font-weight: 600;
 }
