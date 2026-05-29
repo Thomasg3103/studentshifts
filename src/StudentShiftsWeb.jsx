@@ -259,8 +259,6 @@ export default function StudentShiftsWeb() {
             const metaIndustries = session.user.user_metadata?.industries;
             if (metaIndustries?.length && !user.industries?.length) saveCompanyIndustries(user.id, metaIndustries);
           }
-          const justVerified = window.location.hash.includes("type=signup") || window.location.hash.includes("type=email");
-          if (justVerified) { navigate("/email-verified", { replace: true }); return; }
           if (user.role === "admin") { navigate("/admin", { replace: true }); }
           else if (user.role === "company" && user.verificationStatus === "verified") { navigate("/company", { replace: true }); }
           else if (user.role === "company") { navigate("/", { replace: true }); }
