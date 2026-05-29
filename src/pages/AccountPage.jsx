@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
@@ -38,6 +39,7 @@ const PART_TIME_SKILLS = [
 ];
 
 export default function AccountPage() {
+  const navigate = useNavigate();
   const { currentUser, setCurrentUser, setPage, setLikedJobs, setAppliedJobs, setStudentLocation, darkMode, toggleDarkMode } = useApp();
   const { supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: subscribePush, unsubscribe: unsubscribePush } = usePushNotifications(currentUser?.id);
   const [availability, setAvailability]         = useState(currentUser.availability || {});
@@ -71,6 +73,7 @@ export default function AccountPage() {
   const [profilePhoto, setProfilePhoto]         = useState(currentUser.profilePhoto || "");
   const [photoUploading, setPhotoUploading]     = useState(false);
   const availDebounceRef = useRef(null);
+  const [showBackToTop, setShowBackToTop]        = useState(false);
   // Track whether bio / linkedin / website have been edited but not yet saved (dirty state)
   const [dirtyFields, setDirtyFields]           = useState(false);
   const [referralCode, setReferralCode]         = useState(null);
@@ -93,6 +96,12 @@ export default function AccountPage() {
 
   useEffect(() => {
     return () => { if (availDebounceRef.current) clearTimeout(availDebounceRef.current); };
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => setShowBackToTop(window.scrollY > 400);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   // Load notification preferences
@@ -627,6 +636,12 @@ export default function AccountPage() {
   const BottomActions = () => (
     <>
       <div style={{ borderTop: "1.5px solid #e2e8f0", marginBottom: "1rem", marginTop: "0.25rem" }} />
+      <button
+        onClick={() => navigate("/")}
+        style={{ ...btnBase, width: "100%", marginBottom: "0.75rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 14px rgba(162,29,84,0.3)" }}
+      >
+        ← Back to Home
+      </button>
       {/* Appearance */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", padding: "0.65rem 0.85rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.65rem", border: "1.5px solid var(--color-border-light, #e2e8f0)" }}>
         <div>
@@ -1343,6 +1358,17 @@ export default function AccountPage() {
           </div>
         )}
       </div>
+
+      {/* Back to top */}
+      {showBackToTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Back to top"
+          style={{ position: "fixed", bottom: "1.5rem", right: "1.25rem", zIndex: 900, width: "44px", height: "44px", borderRadius: "50%", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontSize: "1.1rem", cursor: "pointer", boxShadow: "0 4px 16px rgba(162,29,84,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}
+        >
+          ↑
+        </button>
+      )}
 
       {/* Spinner keyframe — injected as a style tag */}
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
