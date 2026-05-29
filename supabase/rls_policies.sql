@@ -690,7 +690,9 @@ $$;
 -- Returns true if this was a new approval (prevents duplicate emails when two admins click simultaneously).
 DROP FUNCTION IF EXISTS approve_company(uuid);
 CREATE FUNCTION approve_company(company_id uuid)
-RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER AS $$
+RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public
+AS $$
 DECLARE rows_affected int;
 BEGIN
   IF NOT is_admin() THEN
@@ -707,8 +709,11 @@ END;
 $$;
 
 -- Reject a company: sets status = 'rejected'. Admin only.
-CREATE OR REPLACE FUNCTION reject_company(company_id uuid)
-RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
+DROP FUNCTION IF EXISTS reject_company(uuid);
+CREATE FUNCTION reject_company(company_id uuid)
+RETURNS void LANGUAGE plpgsql SECURITY DEFINER
+SET search_path = public
+AS $$
 BEGIN
   IF NOT is_admin() THEN
     RAISE EXCEPTION 'Unauthorised: admin only';

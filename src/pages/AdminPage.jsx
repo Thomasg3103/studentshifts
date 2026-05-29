@@ -446,7 +446,7 @@ export default function AdminPage() {
                       </p>
                       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
                         <a
-                          href={`https://search.cro.ie/company/CompanySearch.aspx?company_num=${encodeURIComponent(c.croNumber)}&business_ind=A`}
+                          href={`https://core.cro.ie/`}
                           target="_blank"
                           rel="noreferrer"
                           style={verifyLinkStyle}
