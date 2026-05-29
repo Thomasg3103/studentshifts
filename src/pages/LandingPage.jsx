@@ -90,12 +90,18 @@ export default function LandingPage() {
         <meta name="description" content="Find flexible part-time work that fits your college timetable. Apply to verified Irish employers in one click — no cover letter, no experience needed. Free to join." />
         <link rel="canonical" href="https://studentshifts.ie/" />
         <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="StudentShifts" />
         <meta property="og:title" content="StudentShifts — Part-Time Jobs for Irish Students" />
         <meta property="og:description" content="Find flexible part-time work that fits your college timetable. Apply to verified Irish employers in one click — free to join." />
         <meta property="og:url" content="https://studentshifts.ie/" />
+        <meta property="og:image" content="https://studentshifts.ie/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="StudentShifts — Part-Time Jobs for Irish Students" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="StudentShifts — Part-Time Jobs for Irish Students" />
         <meta name="twitter:description" content="Find flexible part-time work that fits your college timetable. Apply to verified Irish employers in one click — free to join." />
+        <meta name="twitter:image" content="https://studentshifts.ie/og-image.png" />
       </Helmet>
 
       {/* ── Header ── */}

@@ -11,12 +11,18 @@ export default function AboutPage() {
         <meta name="description" content="Learn about StudentShifts — the platform connecting Irish students with flexible part-time and short-term work." />
         <link rel="canonical" href="https://studentshifts.ie/about" />
         <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="StudentShifts" />
         <meta property="og:title" content="About StudentShifts — Connecting Students with Part-Time Jobs in Ireland" />
         <meta property="og:description" content="Learn about StudentShifts — the platform connecting Irish students with flexible part-time and short-term work." />
         <meta property="og:url" content="https://studentshifts.ie/about" />
+        <meta property="og:image" content="https://studentshifts.ie/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="StudentShifts — Part-Time Jobs for Irish Students" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="About StudentShifts — Connecting Students with Part-Time Jobs in Ireland" />
         <meta name="twitter:description" content="Learn about StudentShifts — the platform connecting Irish students with flexible part-time and short-term work." />
+        <meta name="twitter:image" content="https://studentshifts.ie/og-image.png" />
         <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "About", item: "https://studentshifts.ie/about" }] })}</script>
       </Helmet>
       <BackButton />

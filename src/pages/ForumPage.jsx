@@ -138,6 +138,19 @@ export default function ForumPage() {
       <Helmet>
         <title>Community Forum — StudentShifts</title>
         <meta name="description" content="Tips, advice, and job talk from students across Ireland." />
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="StudentShifts" />
+        <meta property="og:title" content="Community Forum — StudentShifts" />
+        <meta property="og:description" content="Tips, advice, and job talk from students across Ireland." />
+        <meta property="og:url" content="https://studentshifts.ie/forum" />
+        <meta property="og:image" content="https://studentshifts.ie/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="StudentShifts — Part-Time Jobs for Irish Students" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Community Forum — StudentShifts" />
+        <meta name="twitter:description" content="Tips, advice, and job talk from students across Ireland." />
+        <meta name="twitter:image" content="https://studentshifts.ie/og-image.png" />
       </Helmet>
 
       <div style={{ maxWidth: "760px", margin: "0 auto", padding: "2rem 1.25rem" }}>

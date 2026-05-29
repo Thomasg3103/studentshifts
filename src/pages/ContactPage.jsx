@@ -13,12 +13,18 @@ export default function ContactPage() {
         <meta name="description" content="Get in touch with the StudentShifts team. We're a small team based in Ireland and aim to reply within one working day." />
         <link rel="canonical" href="https://studentshifts.ie/contact" />
         <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="StudentShifts" />
         <meta property="og:title" content="Contact Us — StudentShifts" />
         <meta property="og:description" content="Get in touch with the StudentShifts team. We're a small team based in Ireland and aim to reply within one working day." />
         <meta property="og:url" content="https://studentshifts.ie/contact" />
+        <meta property="og:image" content="https://studentshifts.ie/og-image.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="StudentShifts — Part-Time Jobs for Irish Students" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Contact Us — StudentShifts" />
         <meta name="twitter:description" content="Get in touch with the StudentShifts team. We're a small team based in Ireland and aim to reply within one working day." />
+        <meta name="twitter:image" content="https://studentshifts.ie/og-image.png" />
         <script type="application/ld+json">{JSON.stringify({ "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [{ "@type": "ListItem", position: 1, name: "Home", item: "https://studentshifts.ie/" }, { "@type": "ListItem", position: 2, name: "Contact", item: "https://studentshifts.ie/contact" }] })}</script>
       </Helmet>
       <BackButton />
