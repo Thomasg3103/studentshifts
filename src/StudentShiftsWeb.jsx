@@ -558,7 +558,7 @@ function EmailVerifiedPage() {
       if (currentUser.role === "admin") navigate("/admin", { replace: true });
       else if (currentUser.role === "company" && currentUser.verificationStatus === "verified") navigate("/company", { replace: true });
       else if (currentUser.role === "company") navigate("/", { replace: true });
-      else if (currentUser.role === "student" && (!currentUser.studentIdPath || currentUser.verificationStatus === "rejected")) navigate("/verify", { replace: true });
+      else if (currentUser.role === "student" && currentUser.verificationStatus !== "verified") navigate("/verify", { replace: true });
       else navigate("/", { replace: true });
     }, 2000);
     return () => clearTimeout(timer);
