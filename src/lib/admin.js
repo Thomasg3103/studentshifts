@@ -34,8 +34,8 @@ export async function fetchAvailabilityHeatmap() {
 
 export async function fetchPendingStudents() {
   const { data, error } = await withTimeout(
-    () => supabase.rpc("get_pending_students"),
-    12000
+    supabase.rpc("get_pending_students"),
+    7000
   );
   if (error) throw error;
   return (data || []).map(s => ({
@@ -50,8 +50,8 @@ export async function fetchPendingStudents() {
 
 export async function fetchPendingCompanies() {
   const { data, error } = await withTimeout(
-    () => supabase.rpc("get_pending_companies"),
-    12000
+    supabase.rpc("get_pending_companies"),
+    7000
   );
   if (error) throw error;
   return (data || []).map(c => ({
