@@ -509,7 +509,8 @@ export default function AccountPage() {
   };
 
   // ── Derived ──────────────────────────────────────────────────────────────
-  const docsStored = !!(currentUser.studentIdCardName && currentUser.governmentIdName);
+  const docsStored = !!(currentUser.studentIdCardName && currentUser.governmentIdName)
+    || currentUser.verificationStatus === "verified";
 
   const profileFields = isStudent ? [
     { label: "CV",       done: !!currentUser.cvName },
