@@ -528,12 +528,37 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
               </div>
             )}
             {s.job_preferences?.length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.5rem" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
                 {s.job_preferences.map(p => (
                   <span key={p} className="badge badge-sm badge-green">{p}</span>
                 ))}
               </div>
             )}
+            {s.work_experience_entries?.length > 0 && (() => {
+              const jobSector = selectedJob?.category || null;
+              const matchingSectors = new Set([...(companyIndustries || []), ...(jobSector ? [jobSector] : [])]);
+              const matchCount = s.work_experience_entries.filter(e => matchingSectors.has(e.sector)).length;
+              return (
+                <div style={{ marginBottom: "0.4rem" }}>
+                  {matchCount > 0 && (
+                    <p style={{ margin: "0 0 0.25rem", fontSize: "0.7rem", fontWeight: "700", color: "#16a34a" }}>
+                      ✓ {matchCount}/{s.work_experience_entries.length} experience match{matchCount !== 1 ? "es" : ""}
+                    </p>
+                  )}
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                    {s.work_experience_entries.map((e, i) => {
+                      const dur = { under1: "< 1 yr", "1to3": "1–3 yrs", "3plus": "3+ yrs" }[e.duration] || e.duration;
+                      const isMatch = matchingSectors.has(e.sector);
+                      return (
+                        <span key={i} style={{ fontSize: "0.72rem", fontWeight: "600", padding: "0.15rem 0.5rem", borderRadius: "999px", backgroundColor: isMatch ? "#dcfce7" : "#f3f4f6", color: isMatch ? "#15803d" : "#64748b", border: `1px solid ${isMatch ? "#86efac" : "#e2e8f0"}` }}>
+                          {e.sector} · {e.role} · {dur}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
             <StudentAvailabilityRow availability={s.availability} />
             <div style={{ marginTop: "0.75rem", display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
               <button

@@ -1094,17 +1094,18 @@ DROP FUNCTION IF EXISTS get_all_verified_students();
 DROP FUNCTION IF EXISTS get_all_verified_students(int, int);
 CREATE FUNCTION get_all_verified_students(p_limit int DEFAULT 200, p_offset int DEFAULT 0)
 RETURNS TABLE (
-  id                uuid,
-  name              text,
-  bio               text,
-  skills            text[],
-  linkedin          text,
-  cv_url            text,
-  profile_photo_url text,
-  location_display  text,
-  availability      jsonb,
-  job_preferences   text[],
-  allow_company_dm  boolean
+  id                        uuid,
+  name                      text,
+  bio                       text,
+  skills                    text[],
+  linkedin                  text,
+  cv_url                    text,
+  profile_photo_url         text,
+  location_display          text,
+  availability              jsonb,
+  job_preferences           text[],
+  allow_company_dm          boolean,
+  work_experience_entries   jsonb
 )
 LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE call_count bigint;
@@ -1130,7 +1131,8 @@ BEGIN
   RETURN QUERY
     SELECT p.id, p.name, s.bio, s.skills, s.linkedin, s.cv_url, s.profile_photo_url,
            s.location_display, s.availability, s.job_preferences,
-           COALESCE(s.allow_company_dm, TRUE)
+           COALESCE(s.allow_company_dm, TRUE),
+           COALESCE(s.work_experience_entries, '[]'::jsonb)
     FROM students s
     JOIN profiles p ON p.id = s.id
     WHERE s.status = 'verified'

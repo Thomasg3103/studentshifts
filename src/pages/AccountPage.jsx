@@ -79,6 +79,11 @@ export default function AccountPage() {
   const [transport, setTransport]               = useState(currentUser.transport || []);
   const [canStart, setCanStart]                 = useState(currentUser.canStart || "");
   const [workExperience, setWorkExperience]     = useState(currentUser.workExperience || "");
+  const [workExperienceEntries, setWorkExperienceEntries] = useState(currentUser.workExperienceEntries || []);
+  const [showAddExp, setShowAddExp]             = useState(false);
+  const [newExpSector, setNewExpSector]         = useState("");
+  const [newExpRole, setNewExpRole]             = useState("");
+  const [newExpDuration, setNewExpDuration]     = useState("");
   const [rightToWork, setRightToWork]           = useState(currentUser.rightToWork || false);
   const [driverLicence, setDriverLicence]       = useState(currentUser.driverLicence || false);
   const [showProfilePreview, setShowProfilePreview] = useState(false);
@@ -786,21 +791,106 @@ export default function AccountPage() {
                   })}
                 </div>
 
-                {/* Experience + Can start */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem" }}>
-                  <div>
-                    <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.3rem" }}>Work experience</label>
-                    <select value={workExperience} onChange={e => { setWorkExperience(e.target.value); saveField({ work_experience: e.target.value }, { workExperience: e.target.value }); }}
-                      style={{ width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.8rem", fontFamily: "inherit", color: workExperience ? "#1e293b" : "#64748b", backgroundColor: "var(--color-bg-elevated, white)" }}>
-                      <option value="">Select…</option>
-                      <option value="none">No experience</option>
-                      <option value="under1">Under 1 year</option>
-                      <option value="1to3">1–3 years</option>
-                      <option value="3plus">3+ years</option>
-                    </select>
+                {/* Experience entries */}
+                <div>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
+                    <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151" }}>Work Experience</label>
+                    {!showAddExp && (
+                      <button type="button" onClick={() => { setNewExpSector(""); setNewExpRole(""); setNewExpDuration(""); setShowAddExp(true); }}
+                        style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.75rem", fontWeight: "700", color: "var(--color-brand)", fontFamily: "inherit", padding: 0 }}>
+                        + Add
+                      </button>
+                    )}
                   </div>
-                  <div>
-                    <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.3rem" }}>Can start</label>
+
+                  {workExperienceEntries.length > 0 && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.5rem" }}>
+                      {workExperienceEntries.map((entry, idx) => {
+                        const durLabel = { under1: "Under 1 yr", "1to3": "1–3 yrs", "3plus": "3+ yrs" }[entry.duration] || entry.duration;
+                        return (
+                          <div key={idx} style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", backgroundColor: "#fce7f3", border: "1.5px solid var(--color-brand)", borderRadius: "999px", padding: "0.2rem 0.6rem", fontSize: "0.75rem", fontWeight: "600", color: "var(--color-brand)" }}>
+                            <span>{entry.sector} · {entry.role} · {durLabel}</span>
+                            <button type="button" onClick={() => {
+                              const next = workExperienceEntries.filter((_, i) => i !== idx);
+                              setWorkExperienceEntries(next);
+                              saveField({ work_experience_entries: next }, { workExperienceEntries: next });
+                            }} style={{ background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1, fontSize: "0.85rem", color: "var(--color-brand)", fontFamily: "inherit" }}>×</button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {workExperienceEntries.length === 0 && !showAddExp && (
+                    <p style={{ fontSize: "0.78rem", color: "#94a3b8", margin: "0 0 0.5rem", fontStyle: "italic" }}>No experience added yet</p>
+                  )}
+
+                  {showAddExp && (
+                    <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.75rem", marginBottom: "0.5rem" }}>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "0.5rem" }}>
+                        <div>
+                          <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.2rem" }}>Sector</label>
+                          <select value={newExpSector} onChange={e => { setNewExpSector(e.target.value); setNewExpRole(""); }}
+                            style={{ width: "100%", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", backgroundColor: "var(--color-bg-elevated, white)", color: newExpSector ? "#1e293b" : "#94a3b8" }}>
+                            <option value="">Sector…</option>
+                            {Object.keys(jobCategories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                          </select>
+                        </div>
+                        <div>
+                          <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.2rem" }}>Duration</label>
+                          <select value={newExpDuration} onChange={e => setNewExpDuration(e.target.value)}
+                            style={{ width: "100%", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", backgroundColor: "var(--color-bg-elevated, white)", color: newExpDuration ? "#1e293b" : "#94a3b8" }}>
+                            <option value="">Duration…</option>
+                            <option value="under1">Under 1 year</option>
+                            <option value="1to3">1–3 years</option>
+                            <option value="3plus">3+ years</option>
+                          </select>
+                        </div>
+                      </div>
+                      <div style={{ marginBottom: "0.5rem" }}>
+                        <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.2rem" }}>Role / Job Title</label>
+                        {newExpSector && (jobCategories[newExpSector] || []).length > 0 ? (
+                          <select value={newExpRole} onChange={e => setNewExpRole(e.target.value)}
+                            style={{ width: "100%", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", backgroundColor: "var(--color-bg-elevated, white)", color: newExpRole ? "#1e293b" : "#94a3b8" }}>
+                            <option value="">Select role…</option>
+                            {(jobCategories[newExpSector] || []).map(r => <option key={r} value={r}>{r}</option>)}
+                            <option value="__other__">Other…</option>
+                          </select>
+                        ) : (
+                          <input value={newExpRole} onChange={e => setNewExpRole(e.target.value)} placeholder="e.g. Bar Staff"
+                            style={{ width: "100%", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", boxSizing: "border-box" }} />
+                        )}
+                        {newExpRole === "__other__" && (
+                          <input autoFocus value={""} onChange={e => setNewExpRole(e.target.value)} placeholder="Type role…"
+                            style={{ width: "100%", marginTop: "0.35rem", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", boxSizing: "border-box" }} />
+                        )}
+                      </div>
+                      <div style={{ display: "flex", gap: "0.4rem" }}>
+                        <button type="button"
+                          disabled={!newExpSector || !newExpRole || newExpRole === "__other__" || !newExpDuration}
+                          onClick={() => {
+                            const entry = { sector: newExpSector, role: newExpRole, duration: newExpDuration };
+                            const next = [...workExperienceEntries, entry];
+                            setWorkExperienceEntries(next);
+                            saveField({ work_experience_entries: next }, { workExperienceEntries: next });
+                            setShowAddExp(false);
+                            setNewExpSector(""); setNewExpRole(""); setNewExpDuration("");
+                          }}
+                          style={{ flex: 1, padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: (!newExpSector || !newExpRole || newExpRole === "__other__" || !newExpDuration) ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: (!newExpSector || !newExpRole || newExpRole === "__other__" || !newExpDuration) ? 0.5 : 1 }}>
+                          Add Entry
+                        </button>
+                        <button type="button" onClick={() => setShowAddExp(false)}
+                          style={{ padding: "0.45rem 0.75rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", background: "none", color: "#64748b", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Can start */}
+                <div>
+                  <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.3rem" }}>Can start</label>
                     <select value={canStart} onChange={e => { setCanStart(e.target.value); saveField({ can_start: e.target.value }, { canStart: e.target.value }); }}
                       style={{ width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.8rem", fontFamily: "inherit", color: canStart ? "#1e293b" : "#64748b", backgroundColor: "var(--color-bg-elevated, white)" }}>
                       <option value="">Select…</option>
@@ -809,7 +899,6 @@ export default function AccountPage() {
                       <option value="2weeks">Within 2 weeks</option>
                       <option value="1month">Within 1 month</option>
                     </select>
-                  </div>
                 </div>
               </div>
 
@@ -851,7 +940,7 @@ export default function AccountPage() {
                     onChange={e => { setLinkedIn(e.target.value); setDirtyFields(true); }}
                     onBlur={() => {
                       setDirtyFields(false);
-                      if (linkedIn && !/^https:\/\/(www\.)?linkedin\.com\//.test(linkedIn)) {
+                      if (linkedIn && !/^https:\/\/([a-zA-Z0-9-]+\.)?linkedin\.com\//.test(linkedIn)) {
                         toast.error("Please enter a valid LinkedIn URL (e.g. https://linkedin.com/in/yourname)");
                         return;
                       }
@@ -1224,7 +1313,10 @@ export default function AccountPage() {
                   <PreviewRow ok={rightToWork} label="Right to work in Ireland" />
                   <PreviewRow ok={driverLicence} warn label="Driver's licence" />
                   {transport.length > 0 && <PreviewRow ok label="Transport" detail={transport.join(", ")} />}
-                  {workExperience && <PreviewRow ok label="Experience" detail={{ none: "None", under1: "Under 1 yr", "1to3": "1–3 yrs", "3plus": "3+ yrs" }[workExperience] || workExperience} />}
+                  {workExperienceEntries.length > 0 && workExperienceEntries.map((e, i) => {
+                    const dur = { under1: "Under 1 yr", "1to3": "1–3 yrs", "3plus": "3+ yrs" }[e.duration] || e.duration;
+                    return <PreviewRow key={i} ok label="Experience" detail={`${e.sector} · ${e.role} · ${dur}`} />;
+                  })}
                   {canStart && <PreviewRow ok label="Can start" detail={{ immediately: "Immediately", "1week": "Within 1 wk", "2weeks": "Within 2 wks", "1month": "Within 1 mo" }[canStart] || canStart} />}
                 </div>
               </div>

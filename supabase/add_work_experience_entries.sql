@@ -1,7 +1,12 @@
--- Add cv_url to Browse Students RPC + allow verified companies to view student CVs.
+-- Add structured work experience entries to students table.
+-- Each entry: { sector: string, role: string, duration: "under1"|"1to3"|"3plus" }
 -- Run this in Supabase SQL Editor.
 
--- 1. Update RPC to return cv_url
+-- 1. Add column
+ALTER TABLE students
+  ADD COLUMN IF NOT EXISTS work_experience_entries jsonb NOT NULL DEFAULT '[]';
+
+-- 2. Update RPC to return work_experience_entries
 DROP FUNCTION IF EXISTS get_all_verified_students(int, int);
 CREATE FUNCTION get_all_verified_students(p_limit int DEFAULT 200, p_offset int DEFAULT 0)
 RETURNS TABLE (
@@ -51,20 +56,5 @@ BEGIN
     LIMIT p_limit OFFSET p_offset;
 END;
 $$;
-
--- 2. Allow verified companies to view CVs of verified students via Browse Students
-DROP POLICY IF EXISTS "documents: company browse student cv" ON storage.objects;
-CREATE POLICY "documents: company browse student cv" ON storage.objects
-  FOR SELECT USING (
-    bucket_id = 'documents' AND
-    split_part(name, '/', 2) LIKE 'cv.%' AND
-    EXISTS (
-      SELECT 1 FROM companies c WHERE c.id = auth.uid() AND c.status = 'verified'
-    ) AND
-    EXISTS (
-      SELECT 1 FROM students s
-      WHERE s.id::text = (storage.foldername(name))[1] AND s.status = 'verified'
-    )
-  );
 
 NOTIFY pgrst, 'reload schema';

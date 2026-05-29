@@ -92,8 +92,9 @@ function normaliseProfile(profile) {
     } : null,
     transport:          extra.transport        || [],
     canStart:           extra.can_start        || "",
-    workExperience:     extra.work_experience  || "",
-    rightToWork:        extra.right_to_work    || false,
+    workExperience:        extra.work_experience         || "",
+    workExperienceEntries: extra.work_experience_entries || [],
+    rightToWork:           extra.right_to_work           || false,
     driverLicence:      extra.driver_licence   || false,
   };
 }
