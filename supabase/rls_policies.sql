@@ -1600,8 +1600,13 @@ BEGIN
       ON CONFLICT (id) DO NOTHING;
   ELSIF user_role = 'company' THEN
     -- Companies have no doc upload step; go straight to admin review queue
-    INSERT INTO public.companies (id, cro_number, status)
-      VALUES (NEW.id, NEW.raw_user_meta_data->>'cro_number', 'pending_review')
+    INSERT INTO public.companies (id, company_name, cro_number, status)
+      VALUES (
+        NEW.id,
+        COALESCE(NEW.raw_user_meta_data->>'company_name', NEW.raw_user_meta_data->>'name', 'Company'),
+        NEW.raw_user_meta_data->>'cro_number',
+        'pending_review'
+      )
       ON CONFLICT (id) DO NOTHING;
   END IF;
 

@@ -136,33 +136,31 @@ export default function AdminPage() {
       const isNew = await approveStudent(student.id);
       setStudents(prev => prev.filter(s => s.id !== student.id));
       if (isNew) {
-        // S7: delete verification doc files from storage now that they've been reviewed.
-        // The RPC already nulls the URLs; here we remove the actual files so they
-        // don't accumulate indefinitely in the verification-docs bucket.
-        const { supabase: sb } = await import("../lib/supabase");
-        const { data: verifyFiles } = await sb.storage.from("verification-docs").list(student.id).catch(() => ({ data: null }));
-        if (verifyFiles?.length) {
-          await sb.storage.from("verification-docs")
-            .remove(verifyFiles.map(f => `${student.id}/${f.name}`))
-            .catch(e => console.warn("Verification doc cleanup failed:", e.message));
-        }
-        if (student.email) {
-          try {
-            await sendEmail({
-              to: student.email,
-              subject: "Your StudentShifts account has been approved!",
-              html: emailStudentApproved(student.name),
-              magicLinkEmail: student.email,
-              redirectTo: import.meta.env.VITE_SITE_URL || "https://studentshifts.ie",
-            });
-            toast.success(`${student.name} approved and notified.`);
-          } catch (e) {
-            console.warn("Approval email failed:", e.message);
-            toast.error("Approved, but notification email failed to send.");
+        toast.success(`${student.name} approved.`);
+        // Fire-and-forget: storage cleanup + email don't block the UI
+        (async () => {
+          // S7: delete verification doc files from storage now that they've been reviewed.
+          const { supabase: sb } = await import("../lib/supabase");
+          const { data: verifyFiles } = await sb.storage.from("verification-docs").list(student.id).catch(() => ({ data: null }));
+          if (verifyFiles?.length) {
+            await sb.storage.from("verification-docs")
+              .remove(verifyFiles.map(f => `${student.id}/${f.name}`))
+              .catch(e => console.warn("Verification doc cleanup failed:", e.message));
           }
-        } else {
-          toast.success(`${student.name} approved.`);
-        }
+          if (student.email) {
+            try {
+              await sendEmail({
+                to: student.email,
+                subject: "Your StudentShifts account has been approved!",
+                html: emailStudentApproved(student.name),
+                magicLinkEmail: student.email,
+                redirectTo: import.meta.env.VITE_SITE_URL || "https://studentshifts.ie",
+              });
+            } catch (e) {
+              console.warn("Approval email failed:", e.message);
+            }
+          }
+        })();
       } else {
         toast("Already approved by another admin.");
       }
@@ -184,20 +182,16 @@ export default function AdminPage() {
     try {
       await rejectStudent(student.id);
       setStudents(prev => prev.filter(s => s.id !== student.id));
-      if (student.email) {
-        try {
-          await sendEmail({
-            to: student.email,
-            subject: "StudentShifts verification update",
-            html: emailStudentRejected(student.name),
-            magicLinkEmail: student.email,
-            redirectTo: window.location.origin,
-          });
-        } catch (e) {
-          console.warn("Rejection email failed:", e.message);
-        }
-      }
       toast(`${student.name} rejected.`);
+      if (student.email) {
+        sendEmail({
+          to: student.email,
+          subject: "StudentShifts verification update",
+          html: emailStudentRejected(student.name),
+          magicLinkEmail: student.email,
+          redirectTo: window.location.origin,
+        }).catch(e => console.warn("Rejection email failed:", e.message));
+      }
     } catch (e) {
       Sentry.captureException(e);
       toast.error(e.message || "Failed to reject. Please try again."); // F-H19
@@ -215,20 +209,13 @@ export default function AdminPage() {
       const isNew = await approveCompany(company.id);
       setCompanies(prev => prev.filter(c => c.id !== company.id));
       if (isNew) {
+        toast.success(`${company.name} approved.`);
         if (company.email) {
-          try {
-            await sendEmail({
-              to: company.email,
-              subject: "Your StudentShifts company account has been verified!",
-              html: emailCompanyApproved(company.name, import.meta.env.VITE_SITE_URL || "https://studentshifts.ie"),
-            });
-            toast.success(`${company.name} approved and notified.`);
-          } catch (e) {
-            console.warn("Approval email failed:", e.message);
-            toast.error("Approved, but notification email failed to send.");
-          }
-        } else {
-          toast.success(`${company.name} approved.`);
+          sendEmail({
+            to: company.email,
+            subject: "Your StudentShifts company account has been verified!",
+            html: emailCompanyApproved(company.name, import.meta.env.VITE_SITE_URL || "https://studentshifts.ie"),
+          }).catch(e => console.warn("Approval email failed:", e.message));
         }
       } else {
         toast("Already approved by another admin.");
@@ -250,18 +237,14 @@ export default function AdminPage() {
     try {
       await rejectCompany(company.id);
       setCompanies(prev => prev.filter(c => c.id !== company.id));
-      if (company.email) {
-        try {
-          await sendEmail({
-            to: company.email,
-            subject: "StudentShifts company verification update",
-            html: emailCompanyRejected(company.name),
-          });
-        } catch (e) {
-          console.warn("Rejection email failed:", e.message);
-        }
-      }
       toast(`${company.name} rejected.`);
+      if (company.email) {
+        sendEmail({
+          to: company.email,
+          subject: "StudentShifts company verification update",
+          html: emailCompanyRejected(company.name),
+        }).catch(e => console.warn("Rejection email failed:", e.message));
+      }
     } catch (e) {
       Sentry.captureException(e);
       toast.error(e.message || "Failed to reject. Please try again."); // F-H19
