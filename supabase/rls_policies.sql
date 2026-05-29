@@ -498,6 +498,7 @@ DROP POLICY IF EXISTS "documents: own upload"                  ON storage.object
 DROP POLICY IF EXISTS "documents: own update"                  ON storage.objects;
 DROP POLICY IF EXISTS "documents: own delete"                  ON storage.objects;
 DROP POLICY IF EXISTS "documents: company read applicant docs" ON storage.objects;
+DROP POLICY IF EXISTS "documents: company browse student cv"  ON storage.objects;
 
 -- Students can read their own documents
 CREATE POLICY "documents: own read" ON storage.objects
@@ -543,6 +544,20 @@ CREATE POLICY "documents: company read applicant docs" ON storage.objects
       JOIN jobs j ON j.id = a.job_id
       WHERE j.company_id = auth.uid()
         AND a.student_id::text = (storage.foldername(name))[1]
+    )
+  );
+
+-- Verified companies can view CVs of verified students via Browse Students
+CREATE POLICY "documents: company browse student cv" ON storage.objects
+  FOR SELECT USING (
+    bucket_id = 'documents' AND
+    split_part(name, '/', 2) LIKE 'cv.%' AND
+    EXISTS (
+      SELECT 1 FROM companies c WHERE c.id = auth.uid() AND c.status = 'verified'
+    ) AND
+    EXISTS (
+      SELECT 1 FROM students s
+      WHERE s.id::text = (storage.foldername(name))[1] AND s.status = 'verified'
     )
   );
 
@@ -1084,6 +1099,7 @@ RETURNS TABLE (
   bio               text,
   skills            text[],
   linkedin          text,
+  cv_url            text,
   profile_photo_url text,
   location_display  text,
   availability      jsonb,
@@ -1112,7 +1128,7 @@ BEGIN
     INSERT INTO rpc_rate_log (user_id, rpc_name) VALUES (auth.uid(), 'get_all_verified_students');
   END IF;
   RETURN QUERY
-    SELECT p.id, p.name, s.bio, s.skills, s.linkedin, s.profile_photo_url,
+    SELECT p.id, p.name, s.bio, s.skills, s.linkedin, s.cv_url, s.profile_photo_url,
            s.location_display, s.availability, s.job_preferences,
            COALESCE(s.allow_company_dm, TRUE)
     FROM students s

@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { supabase } from "../../lib/supabase";
 import { fetchAllMessagesWithStudent, sendMessage, sendEmail } from "../../lib/auth";
+import { getSignedDocumentUrl } from "../../lib/uploads";
 import { StudentAvailabilityRow } from "./shared";
 
 const PAGE_SIZE = 20;
@@ -23,6 +24,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [shortlistFor, setShortlistFor] = useState(null);
   const [hiredThisMonth, setHiredThisMonth] = useState(0);
+  const [cvLoading, setCvLoading] = useState(new Set());
 
   useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filterByIndustries, locationFilter, sortBy, selectedJobId]);
 
@@ -324,6 +326,18 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       .length;
   };
 
+  const viewCV = async (studentId, cvUrl) => {
+    setCvLoading(prev => new Set(prev).add(studentId));
+    try {
+      const url = await getSignedDocumentUrl("documents", cvUrl);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      toast.error("Could not open CV — please try again.");
+    } finally {
+      setCvLoading(prev => { const n = new Set(prev); n.delete(studentId); return n; });
+    }
+  };
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
 
@@ -530,6 +544,25 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
               >
                 {s.allow_company_dm === false ? "DMs Off" : "Message"}
               </button>
+              {s.cv_url && (
+                <button
+                  onClick={() => viewCV(s.id, s.cv_url)}
+                  disabled={cvLoading.has(s.id)}
+                  style={{ padding: "0.5rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#374151", fontWeight: "700", fontSize: "0.82rem", cursor: cvLoading.has(s.id) ? "wait" : "pointer", fontFamily: "inherit", whiteSpace: "nowrap", opacity: cvLoading.has(s.id) ? 0.6 : 1 }}
+                >
+                  {cvLoading.has(s.id) ? "Opening…" : "📄 CV"}
+                </button>
+              )}
+              {s.linkedin && (
+                <a
+                  href={s.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ padding: "0.5rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#0a66c2", fontWeight: "700", fontSize: "0.82rem", textDecoration: "none", display: "inline-flex", alignItems: "center", whiteSpace: "nowrap" }}
+                >
+                  in LinkedIn
+                </a>
+              )}
               {postings.length > 0 && (
                 <button
                   onClick={() => setShortlistFor(shortlistFor === s.id ? null : s.id)}
