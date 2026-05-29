@@ -467,7 +467,6 @@ export default function AccountPage() {
     setDeleting(true);
     setDeleteError("");
     try {
-      await verifyPassword(currentUser.email, deletePassword);
       await deleteAccount();
       try { await signOut(); } catch (e) { console.warn("Sign-out after delete failed:", e); }
       for (const key of Object.keys(localStorage)) {
@@ -1173,14 +1172,12 @@ export default function AccountPage() {
               <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fff1f2", border: "2px solid #fecdd3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>⚠️</div>
               <h3 id="delete-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Delete your account?</h3>
               <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1.25rem" }}>This is permanent. Your profile, CV, and all data will be deleted.</p>
-              <p style={{ fontSize: "0.8rem", fontWeight: "600", color: "#374151", margin: "0 0 0.4rem", textAlign: "left" }}>Enter your password to confirm</p>
-              <input type="password" value={deletePassword} onChange={e => setDeletePassword(e.target.value)} placeholder="Password" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
               <p style={{ fontSize: "0.8rem", fontWeight: "600", color: "#374151", margin: "0 0 0.4rem", textAlign: "left" }}>Type <strong>DELETE</strong> to confirm</p>
               <input value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder="DELETE" style={{ ...inputStyle, marginBottom: "0.75rem", borderColor: deleteConfirm === "DELETE" ? "#ef4444" : "#e2e8f0" }} />
               {deleteError && <p style={{ fontSize: "0.8rem", color: "#ef4444", margin: "0 0 0.75rem" }}>{deleteError}</p>}
               <div style={{ display: "flex", gap: "0.75rem" }}>
                 <button onClick={() => setShowDeleteModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Cancel</button>
-                <button onClick={handleDeleteAccount} disabled={deleteConfirm !== "DELETE" || !deletePassword || deleting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: deleteConfirm === "DELETE" && deletePassword ? "#dc2626" : "#fca5a5", color: "white", fontWeight: "700", cursor: deleteConfirm === "DELETE" && deletePassword && !deleting ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.9rem" }}>
+                <button onClick={handleDeleteAccount} disabled={deleteConfirm !== "DELETE" || deleting} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: deleteConfirm === "DELETE" ? "#dc2626" : "#fca5a5", color: "white", fontWeight: "700", cursor: deleteConfirm === "DELETE" && !deleting ? "pointer" : "not-allowed", fontFamily: "inherit", fontSize: "0.9rem" }}>
                   {deleting ? "Deleting…" : "Delete"}
                 </button>
               </div>
