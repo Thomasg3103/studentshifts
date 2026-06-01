@@ -425,7 +425,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                   <div key={i} style={{ backgroundColor: "#faf5ff", border: "1.5px solid #e9d5ff", borderRadius: "0.6rem", padding: "0.65rem 0.75rem" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.45rem" }}>
                       <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#7c3aed", color: "white", fontSize: "0.65rem", fontWeight: "900", flexShrink: 0 }}>{i + 1}</span>
-                      <p style={{ margin: 0, fontSize: "0.72rem", fontWeight: "800", color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.05em" }}>Interview</p>
+                      <p style={{ margin: 0, fontSize: "0.72rem", fontWeight: "800", color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.05em" }}>Interview Rd</p>
                     </div>
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.45rem" }}>
                       <input

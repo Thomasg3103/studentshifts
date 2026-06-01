@@ -56,7 +56,7 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1300 }} />
       <div ref={modalRef} role="dialog" aria-modal="true" aria-label={`Send Interview ${roundNumber} Invite`} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1301, backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", padding: "1.75rem", width: "min(440px,92vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)", maxHeight: "90vh", overflowY: "auto" }}>
-        <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Send Interview {roundNumber} Invite</h3>
+        <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Send Interview Rd {roundNumber} Invite</h3>
         <p style={{ margin: "0 0 1rem", fontSize: "0.82rem", color: "#64748b" }}>To: <strong>{applicant.name}</strong></p>
 
         {/* Mode toggle */}
