@@ -556,8 +556,8 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
             {applicant.status === "Pending" && <button disabled title="Coming soon — flag if applicant is not responding" style={{ ...panelActionBtn("danger"), opacity: 0.4, cursor: "default", fontSize: "0.78rem" }}>🚫 Flag as Ghosted · Soon</button>}
           </>)}
           {stage === "trial" && (<>
-            <button onClick={() => setTrialInviteOpen(true)} style={panelActionBtn("secondary")}>Send Trial Invite</button>
-            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("primary")}>Move to Decision</button>
+            <button onClick={() => setTrialInviteOpen(true)} style={panelActionBtn("purple")}>Send Trial Invite</button>
+            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("green")}>Move to Decision</button>
             <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("danger")}>Decline Applicant</button>
             {applicant.status === "Pending" && <button disabled title="Coming soon — flag if applicant is not responding" style={{ ...panelActionBtn("danger"), opacity: 0.4, cursor: "default", fontSize: "0.78rem" }}>🚫 Flag as Ghosted · Soon</button>}
           </>)}
