@@ -487,46 +487,6 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                   </div>
                 );
               })()}
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-                {interviewRounds.map((round, i) => (
-                  <div key={i} style={{ backgroundColor: "#faf5ff", border: "1.5px solid #e9d5ff", borderRadius: "0.6rem", padding: "0.65rem 0.75rem" }}>
-                    <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.45rem" }}>
-                      <input
-                        type="date"
-                        value={round.date}
-                        min={new Date().toISOString().split("T")[0]}
-                        onChange={e => {
-                          const v = e.target.value;
-                          setInterviewRounds(prev => prev.map((r, idx) => idx === i ? { ...r, date: v } : r));
-                        }}
-                        onBlur={() => onSaveInterviewRoundsData?.(applicant.id, interviewRounds)}
-                        style={{ flex: 1, minWidth: "120px", padding: "0.4rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", fontSize: "0.8rem", fontFamily: "inherit", color: "var(--color-text-body, #374151)", backgroundColor: "var(--color-bg-elevated, white)" }}
-                      />
-                      <input
-                        type="time"
-                        value={round.time}
-                        onChange={e => {
-                          const v = e.target.value;
-                          setInterviewRounds(prev => prev.map((r, idx) => idx === i ? { ...r, time: v } : r));
-                        }}
-                        onBlur={() => onSaveInterviewRoundsData?.(applicant.id, interviewRounds)}
-                        style={{ flex: 1, minWidth: "90px", padding: "0.4rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", fontSize: "0.8rem", fontFamily: "inherit", color: "var(--color-text-body, #374151)", backgroundColor: "var(--color-bg-elevated, white)" }}
-                      />
-                    </div>
-                    {stage === "interview" && (
-                      <button
-                        onClick={() => setInviteModalOpen(i)}
-                        style={{ width: "100%", padding: "0.4rem", borderRadius: "0.4rem", border: "1px solid #e9d5ff", backgroundColor: "var(--color-bg-elevated, white)", color: "#7c3aed", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
-                      >
-                        Send Invite
-                      </button>
-                    )}
-                    <button disabled title="Coming soon — share a calendar booking link" style={{ width: "100%", marginTop: "0.3rem", padding: "0.4rem", borderRadius: "0.4rem", border: "1px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #94a3b8)", fontWeight: "600", fontSize: "0.75rem", cursor: "default", fontFamily: "inherit" }}>
-                      📅 Pick a Time · Soon
-                    </button>
-                  </div>
-                ))}
-              </div>
             </Section>
           )}
 
