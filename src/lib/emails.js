@@ -9,9 +9,9 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
-export async function sendEmail({ to, subject, html, magicLinkEmail, redirectTo }) {
+export async function sendEmail({ to, ...rest }) {
   const { error } = await supabase.functions.invoke("send-email", {
-    body: { to, subject, html, magicLinkEmail, redirectTo },
+    body: { to, ...rest },
   });
   if (error) throw new Error(error.message || "Email send failed");
 }
