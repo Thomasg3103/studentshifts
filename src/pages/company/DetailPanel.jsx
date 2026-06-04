@@ -450,12 +450,14 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                         style={{ flex: 1, minWidth: "90px", padding: "0.4rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #e9d5ff", fontSize: "0.8rem", fontFamily: "inherit", color: "var(--color-text-body, #374151)", backgroundColor: "var(--color-bg-elevated, white)" }}
                       />
                     </div>
-                    <button
-                      onClick={() => setInviteModalOpen(i)}
-                      style={{ width: "100%", padding: "0.4rem", borderRadius: "0.4rem", border: "1px solid #e9d5ff", backgroundColor: "var(--color-bg-elevated, white)", color: "#7c3aed", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
-                    >
-                      Send Invite
-                    </button>
+                    {stage === "interview" && (
+                      <button
+                        onClick={() => setInviteModalOpen(i)}
+                        style={{ width: "100%", padding: "0.4rem", borderRadius: "0.4rem", border: "1px solid #e9d5ff", backgroundColor: "var(--color-bg-elevated, white)", color: "#7c3aed", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
+                      >
+                        Send Invite
+                      </button>
+                    )}
                     <button disabled title="Coming soon — share a calendar booking link" style={{ width: "100%", marginTop: "0.3rem", padding: "0.4rem", borderRadius: "0.4rem", border: "1px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #94a3b8)", fontWeight: "600", fontSize: "0.75rem", cursor: "default", fontFamily: "inherit" }}>
                       📅 Pick a Time · Soon
                     </button>
@@ -589,8 +591,8 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
         <InterviewInviteModal
           applicant={applicant}
           roundNumber={1}
-          date=""
-          time=""
+          date={interviewRounds[0]?.date || ""}
+          time={interviewRounds[0]?.time || ""}
           onClose={() => setShortlistInviteOpen(false)}
           onSend={async (note, teamsLink, date, time) => {
             await onSendInterviewInvite?.(applicant.id, date || "", time || "", note, teamsLink);
