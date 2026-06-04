@@ -32,7 +32,7 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
             validSlots.map(s => ({ application_id: applicant.id, slot_time: `${s.date}T${s.time}:00` }))
           );
         } catch { /* best effort — email still sends */ }
-        await onSend(note, teamsLink, validSlots[0].date, validSlots[0].time, validSlots);
+        await onSend(note, teamsLink, "", "", validSlots);
       } else {
         await onSend(note, teamsLink, date, time, null);
       }

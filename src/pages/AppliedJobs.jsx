@@ -8,6 +8,7 @@ import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
 import { removeApplication } from "../lib/auth";
 import { fetchInterviewSlots, selectInterviewSlot } from "../lib/applications";
+import { supabase } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
 
@@ -101,9 +102,13 @@ function InterviewSlotPicker({ applicationId }) {
     if (selecting) return;
     setSelecting(slotId);
     try {
-      await selectInterviewSlot(slotId, applicationId);
+      await selectInterviewSlot(slotId);
       setSlots(prev => prev.map(s => ({ ...s, selected: s.id === slotId })));
       toast.success("Interview time confirmed!");
+      // Notify company — fire and forget, failure is non-fatal
+      supabase.functions.invoke("send-email", {
+        body: { type: "slot_confirmed", slotId, applicationId },
+      }).catch(() => {});
     } catch (e) {
       Sentry.captureException(e);
       toast.error("Could not confirm your time — please try again.");

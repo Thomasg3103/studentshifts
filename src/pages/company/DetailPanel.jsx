@@ -102,6 +102,46 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   };
 
   const [interviewRounds, setInterviewRounds] = useState(() => buildRounds(applicant));
+  const [interviewSlots, setInterviewSlots]   = useState([]); // slots offered to student
+
+  // Load interview slots and subscribe to realtime when panel is open at interview stage
+  useEffect(() => {
+    const stage = applicant.pipelineStage || "applied";
+    if (stage !== "interview") { setInterviewSlots([]); return; }
+
+    supabase.from("interview_slots")
+      .select("id, slot_time, selected")
+      .eq("application_id", applicant.id)
+      .order("slot_time")
+      .then(({ data }) => setInterviewSlots(data || []));
+
+    const channel = supabase.channel(`slots-company:${applicant.id}`)
+      .on("postgres_changes", {
+        event: "UPDATE",
+        schema: "public",
+        table: "interview_slots",
+        filter: `application_id=eq.${applicant.id}`,
+      }, (payload) => {
+        setInterviewSlots(prev => prev.map(s =>
+          s.id === payload.new.id ? { ...s, selected: payload.new.selected } : s
+        ));
+        // If this update marks a slot as selected, auto-fill the round card
+        if (payload.new.selected) {
+          const st = payload.new.slot_time;
+          const [datePart, timePart = ""] = st.split("T");
+          const timeOnly = timePart.slice(0, 5);
+          setInterviewRounds(prev => {
+            const updated = [...prev];
+            if (updated[0]) updated[0] = { ...updated[0], date: datePart, time: timeOnly };
+            return updated;
+          });
+        }
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applicant.id, applicant.pipelineStage]);
 
   // Sync all local state when switching to a different applicant
   useEffect(() => {
@@ -420,6 +460,31 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
           {/* Interview rounds — shortlisted and interview stages */}
           {(stage === "shortlisted" || stage === "interview") && (
             <Section label="Interview Schedule">
+              {/* Slot status banner — shown when company offered time options */}
+              {interviewSlots.length > 0 && (() => {
+                const confirmed = interviewSlots.find(s => s.selected);
+                if (confirmed) {
+                  const [dp, tp = ""] = confirmed.slot_time.split("T");
+                  const timeOnly = tp.slice(0, 5);
+                  return (
+                    <div style={{ marginBottom: "0.75rem", padding: "0.6rem 0.85rem", backgroundColor: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: "0.6rem" }}>
+                      <p style={{ margin: 0, fontSize: "0.72rem", fontWeight: "800", color: "#16a34a", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.2rem" }}>Student Confirmed</p>
+                      <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "700", color: "#1e293b" }}>{dp} at {timeOnly}</p>
+                    </div>
+                  );
+                }
+                return (
+                  <div style={{ marginBottom: "0.75rem", padding: "0.6rem 0.85rem", backgroundColor: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: "0.6rem" }}>
+                    <p style={{ margin: "0 0 0.3rem", fontSize: "0.72rem", fontWeight: "800", color: "#b45309", textTransform: "uppercase", letterSpacing: "0.05em" }}>Waiting for Student</p>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+                      {interviewSlots.map((s, i) => {
+                        const [dp, tp = ""] = s.slot_time.split("T");
+                        return <p key={s.id} style={{ margin: 0, fontSize: "0.78rem", color: "#374151" }}>{i + 1}. {dp} at {tp.slice(0, 5)}</p>;
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
               <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
                 {interviewRounds.map((round, i) => (
                   <div key={i} style={{ backgroundColor: "#faf5ff", border: "1.5px solid #e9d5ff", borderRadius: "0.6rem", padding: "0.65rem 0.75rem" }}>

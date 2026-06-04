@@ -82,20 +82,14 @@ export async function fetchInterviewSlots(applicationId) {
   return data || [];
 }
 
-export async function selectInterviewSlot(slotId, applicationId) {
+export async function selectInterviewSlot(slotId) {
   await ensureValidSession();
-  const { error: e1 } = await withTimeout(
-    () => supabase.from("interview_slots").update({ selected: false }).eq("application_id", applicationId),
+  const { error } = await withTimeout(
+    () => supabase.rpc("confirm_interview_slot", { p_slot_id: slotId }),
     10000,
-    "Slot update timed out"
+    "Slot confirmation timed out"
   );
-  if (e1) throw e1;
-  const { error: e2 } = await withTimeout(
-    () => supabase.from("interview_slots").update({ selected: true }).eq("id", slotId),
-    10000,
-    "Slot update timed out"
-  );
-  if (e2) throw e2;
+  if (error) throw error;
 }
 
 export async function removeApplication(userId, jobId, withdrawReason = null) {
