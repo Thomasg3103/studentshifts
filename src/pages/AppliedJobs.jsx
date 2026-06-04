@@ -83,8 +83,9 @@ function formatSlot(slotTime) {
 }
 
 function InterviewSlotPicker({ applicationId }) {
-  const [slots, setSlots]       = useState(null); // null = loading
-  const [selecting, setSelecting] = useState(null); // slotId being confirmed
+  const [slots, setSlots]       = useState(null);  // null = loading
+  const [pending, setPending]   = useState(null);  // slotId tapped but not yet confirmed
+  const [confirming, setConfirming] = useState(false); // network in flight
 
   useEffect(() => {
     if (!applicationId) return;
@@ -94,26 +95,27 @@ function InterviewSlotPicker({ applicationId }) {
   }, [applicationId]);
 
   if (!applicationId || slots === null) return null;
-  if (!slots.length) return null; // no slots offered — fall through to default nudge
+  if (!slots.length) return null;
 
   const selectedSlot = slots.find(s => s.selected);
+  const pendingSlot  = pending ? slots.find(s => s.id === pending) : null;
 
-  const handleSelect = async (slotId) => {
-    if (selecting) return;
-    setSelecting(slotId);
+  const handleConfirm = async () => {
+    if (!pending || confirming) return;
+    setConfirming(true);
     try {
-      await selectInterviewSlot(slotId);
-      setSlots(prev => prev.map(s => ({ ...s, selected: s.id === slotId })));
+      await selectInterviewSlot(pending);
+      setSlots(prev => prev.map(s => ({ ...s, selected: s.id === pending })));
+      setPending(null);
       toast.success("Interview time confirmed!");
-      // Notify company — fire and forget, failure is non-fatal
       supabase.functions.invoke("send-email", {
-        body: { type: "slot_confirmed", slotId, applicationId },
+        body: { type: "slot_confirmed", slotId: pending, applicationId },
       }).catch(() => {});
     } catch (e) {
       Sentry.captureException(e);
       toast.error("Could not confirm your time — please try again.");
     } finally {
-      setSelecting(null);
+      setConfirming(false);
     }
   };
 
@@ -122,37 +124,66 @@ function InterviewSlotPicker({ applicationId }) {
       <p style={{ margin: "0 0 0.55rem", fontSize: "0.78rem", fontWeight: "800", color: "#7c3aed" }}>
         {selectedSlot ? "✓ Interview time confirmed" : "Pick your interview time"}
       </p>
+
       <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
         {slots.map(slot => {
-          const isSelected = slot.selected;
-          const isLoading  = selecting === slot.id;
+          const isConfirmed = slot.selected;
+          const isPending   = slot.id === pending;
           return (
             <button
               key={slot.id}
-              onClick={() => !isSelected && handleSelect(slot.id)}
-              disabled={!!selecting}
+              onClick={() => !isConfirmed && !confirming && setPending(slot.id)}
+              disabled={confirming}
               style={{
                 padding: "0.55rem 0.8rem",
                 borderRadius: "0.5rem",
-                border: `1.5px solid ${isSelected ? "#7c3aed" : "#ddd6fe"}`,
-                backgroundColor: isSelected ? "#7c3aed" : "white",
-                color: isSelected ? "white" : "#374151",
-                fontWeight: isSelected ? "700" : "500",
+                border: `1.5px solid ${isConfirmed ? "#7c3aed" : isPending ? "#f59e0b" : "#ddd6fe"}`,
+                backgroundColor: isConfirmed ? "#7c3aed" : isPending ? "#fffbeb" : "white",
+                color: isConfirmed ? "white" : isPending ? "#92400e" : "#374151",
+                fontWeight: isConfirmed || isPending ? "700" : "500",
                 fontSize: "0.82rem",
-                cursor: isSelected || selecting ? "default" : "pointer",
+                cursor: isConfirmed || confirming ? "default" : "pointer",
                 fontFamily: "inherit",
                 textAlign: "left",
-                opacity: isLoading ? 0.6 : 1,
               }}
             >
-              {isLoading ? "Confirming…" : `${isSelected ? "✓ " : ""}${formatSlot(slot.slot_time)}`}
+              {isConfirmed ? `✓ ${formatSlot(slot.slot_time)}` : isPending ? `● ${formatSlot(slot.slot_time)}` : formatSlot(slot.slot_time)}
             </button>
           );
         })}
       </div>
-      {!selectedSlot && (
+
+      {/* Confirmation prompt */}
+      {pendingSlot && (
+        <div style={{ marginTop: "0.65rem", padding: "0.65rem 0.75rem", backgroundColor: "#fffbeb", border: "1.5px solid #fde68a", borderRadius: "0.6rem" }}>
+          <p style={{ margin: "0 0 0.5rem", fontSize: "0.8rem", fontWeight: "700", color: "#92400e" }}>
+            Confirm this time?
+          </p>
+          <p style={{ margin: "0 0 0.6rem", fontSize: "0.82rem", color: "#1e293b", fontWeight: "600" }}>
+            {formatSlot(pendingSlot.slot_time)}
+          </p>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button
+              onClick={() => setPending(null)}
+              disabled={confirming}
+              style={{ flex: 1, padding: "0.45rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.78rem", cursor: confirming ? "default" : "pointer", fontFamily: "inherit" }}
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleConfirm}
+              disabled={confirming}
+              style={{ flex: 2, padding: "0.45rem", borderRadius: "0.45rem", border: "none", background: "linear-gradient(135deg,#7c3aed,#A21D54)", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: confirming ? "default" : "pointer", fontFamily: "inherit", opacity: confirming ? 0.7 : 1 }}
+            >
+              {confirming ? "Confirming…" : "Yes, confirm this time"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!selectedSlot && !pendingSlot && (
         <p style={{ margin: "0.45rem 0 0", fontSize: "0.7rem", color: "#7c3aed", fontWeight: "500" }}>
-          Tap a time to confirm your attendance.
+          Tap a time to select, then confirm.
         </p>
       )}
     </div>
