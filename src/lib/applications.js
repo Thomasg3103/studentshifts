@@ -59,7 +59,7 @@ export async function createApplication(userId, jobId, preferredShift = null, sc
 export async function fetchApplicationStatuses(userId) {
   await ensureValidSession();
   const { data, error } = await withTimeout(
-    supabase.from("applications").select("job_id, status, pipeline_stage, preferred_shift").eq("student_id", userId),
+    supabase.from("applications").select("id, job_id, status, pipeline_stage, preferred_shift").eq("student_id", userId),
     10000
   );
   if (error) throw error;
@@ -67,7 +67,35 @@ export async function fetchApplicationStatuses(userId) {
     status: r.status,
     pipeline_stage: r.pipeline_stage || "applied",
     preferred_shift: r.preferred_shift || null,
+    application_id: r.id,
   }]));
+}
+
+export async function fetchInterviewSlots(applicationId) {
+  await ensureValidSession();
+  const { data, error } = await withTimeout(
+    () => supabase.from("interview_slots").select("id, slot_time, selected").eq("application_id", applicationId).order("slot_time"),
+    10000,
+    "Slot fetch timed out"
+  );
+  if (error) throw error;
+  return data || [];
+}
+
+export async function selectInterviewSlot(slotId, applicationId) {
+  await ensureValidSession();
+  const { error: e1 } = await withTimeout(
+    () => supabase.from("interview_slots").update({ selected: false }).eq("application_id", applicationId),
+    10000,
+    "Slot update timed out"
+  );
+  if (e1) throw e1;
+  const { error: e2 } = await withTimeout(
+    () => supabase.from("interview_slots").update({ selected: true }).eq("id", slotId),
+    10000,
+    "Slot update timed out"
+  );
+  if (e2) throw e2;
 }
 
 export async function removeApplication(userId, jobId, withdrawReason = null) {

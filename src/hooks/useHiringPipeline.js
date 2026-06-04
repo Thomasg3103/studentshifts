@@ -141,25 +141,27 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
     return email;
   };
 
-  const handleSendInterviewInvite = async (applicationId, date, time, note, teamsLink) => {
+  const handleSendInterviewInvite = async (applicationId, date, time, note, teamsLink, slots = null) => {
     const applicant = activePosting?.applicants?.find(a => a.id === applicationId);
     if (!applicant) throw new Error("Applicant not found.");
     try {
       const studentEmail = await getStudentEmail(applicant.studentId);
       const jobTitle = activePosting?.title || "";
+      const emailPayload = {
+        to: studentEmail,
+        templateType: "interview_invite",
+        studentName: applicant.name,
+        jobTitle,
+        date,
+        time,
+        note,
+        teamsLink,
+        magicLinkEmail: studentEmail,
+        redirectTo: window.location.origin,
+      };
+      if (slots?.length) emailPayload.slots = slots;
       await Promise.all([
-        sendEmail({
-          to: studentEmail,
-          templateType: "interview_invite",
-          studentName: applicant.name,
-          jobTitle,
-          date,
-          time,
-          note,
-          teamsLink,
-          magicLinkEmail: studentEmail,
-          redirectTo: window.location.origin,
-        }),
+        sendEmail(emailPayload),
         saveInterviewSchedule(applicationId, date, time).catch(() => {}),
       ]);
       applyToPosting(p => ({

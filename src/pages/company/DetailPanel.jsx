@@ -511,8 +511,8 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
             date={interviewRounds[inviteModalOpen]?.date || ""}
             time={interviewRounds[inviteModalOpen]?.time || ""}
             onClose={() => setInviteModalOpen(null)}
-            onSend={async (note, teamsLink, date, time) => {
-              await onSendInterviewInvite?.(applicant.id, date || "", time || "", note, teamsLink);
+            onSend={async (note, teamsLink, date, time, slots) => {
+              await onSendInterviewInvite?.(applicant.id, date || "", time || "", note, teamsLink, slots);
             }}
           />
         )}
@@ -577,11 +577,11 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
           date=""
           time=""
           onClose={() => setNextRoundInviteOpen(false)}
-          onSend={async (note, teamsLink, date, time) => {
+          onSend={async (note, teamsLink, date, time, slots) => {
             const newRounds = [...interviewRounds, { date: date || "", time: time || "" }];
             setInterviewRounds(newRounds);
             await onIncrementRound?.(applicant.id, applicant.interviewRound || 1, newRounds);
-            await onSendInterviewInvite?.(applicant.id, date || "", time || "", note, teamsLink);
+            await onSendInterviewInvite?.(applicant.id, date || "", time || "", note, teamsLink, slots);
           }}
         />
       )}
@@ -594,8 +594,8 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
           date={interviewRounds[0]?.date || ""}
           time={interviewRounds[0]?.time || ""}
           onClose={() => setShortlistInviteOpen(false)}
-          onSend={async (note, teamsLink, date, time) => {
-            await onSendInterviewInvite?.(applicant.id, date || "", time || "", note, teamsLink);
+          onSend={async (note, teamsLink, date, time, slots) => {
+            await onSendInterviewInvite?.(applicant.id, date || "", time || "", note, teamsLink, slots);
             onStageAction(applicant.id, "interview_1");
           }}
         />

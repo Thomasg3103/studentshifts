@@ -26,20 +26,15 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
       if (mode === "slots") {
         const validSlots = slots.filter(s => s.date && s.time);
         if (!validSlots.length) { setError("Add at least one date and time slot."); setSending(false); return; }
-        // Save slots to DB
-        const { data: appData } = await supabase
-          .from("applications")
-          .select("id")
-          .eq("student_id", applicant.studentId)
-          .single();
-        if (appData?.id) {
+        // Save slots to DB using application ID directly
+        try {
           await supabase.from("interview_slots").insert(
-            validSlots.map(s => ({ application_id: appData.id, slot_time: `${s.date}T${s.time}:00` }))
+            validSlots.map(s => ({ application_id: applicant.id, slot_time: `${s.date}T${s.time}:00` }))
           );
-        }
-        await onSend(note + (note ? "\n\n" : "") + "Please pick a time that works for you from the options below.", teamsLink, validSlots[0].date, validSlots[0].time);
+        } catch { /* best effort — email still sends */ }
+        await onSend(note, teamsLink, validSlots[0].date, validSlots[0].time, validSlots);
       } else {
-        await onSend(note, teamsLink, date, time);
+        await onSend(note, teamsLink, date, time, null);
       }
       onClose();
     } catch (e) {

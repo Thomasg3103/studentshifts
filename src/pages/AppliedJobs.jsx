@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import * as Sentry from "@sentry/react";
@@ -7,6 +7,7 @@ import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import "../StudentShiftWeb.css";
 import { removeApplication } from "../lib/auth";
+import { fetchInterviewSlots, selectInterviewSlot } from "../lib/applications";
 import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
 
@@ -68,6 +69,91 @@ function PipelineStrip({ stage, status }) {
 // Sort order: Accepted first, Rejected second, Pending last
 const STATUS_ORDER = { Accepted: 0, Rejected: 1, Pending: 2 };
 
+function formatSlot(slotTime) {
+  // Parse without timezone conversion — company entered local date/time
+  const [datePart, timePart = ""] = slotTime.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour = 0, min = 0] = timePart.split(":").map(Number);
+  const d = new Date(year, month - 1, day, hour, min);
+  const weekday = d.toLocaleDateString("en-IE", { weekday: "short" });
+  const dayStr  = d.toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" });
+  const timeStr = `${String(hour).padStart(2, "0")}:${String(min).padStart(2, "0")}`;
+  return `${weekday} ${dayStr} at ${timeStr}`;
+}
+
+function InterviewSlotPicker({ applicationId }) {
+  const [slots, setSlots]       = useState(null); // null = loading
+  const [selecting, setSelecting] = useState(null); // slotId being confirmed
+
+  useEffect(() => {
+    if (!applicationId) return;
+    fetchInterviewSlots(applicationId)
+      .then(data => setSlots(data))
+      .catch(() => setSlots([]));
+  }, [applicationId]);
+
+  if (!applicationId || slots === null) return null;
+  if (!slots.length) return null; // no slots offered — fall through to default nudge
+
+  const selectedSlot = slots.find(s => s.selected);
+
+  const handleSelect = async (slotId) => {
+    if (selecting) return;
+    setSelecting(slotId);
+    try {
+      await selectInterviewSlot(slotId, applicationId);
+      setSlots(prev => prev.map(s => ({ ...s, selected: s.id === slotId })));
+      toast.success("Interview time confirmed!");
+    } catch (e) {
+      Sentry.captureException(e);
+      toast.error("Could not confirm your time — please try again.");
+    } finally {
+      setSelecting(null);
+    }
+  };
+
+  return (
+    <div style={{ margin: "0 1rem 0.65rem", padding: "0.75rem", backgroundColor: "#f5f3ff", border: "1.5px solid #ddd6fe", borderRadius: "0.75rem" }}>
+      <p style={{ margin: "0 0 0.55rem", fontSize: "0.78rem", fontWeight: "800", color: "#7c3aed" }}>
+        {selectedSlot ? "✓ Interview time confirmed" : "Pick your interview time"}
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+        {slots.map(slot => {
+          const isSelected = slot.selected;
+          const isLoading  = selecting === slot.id;
+          return (
+            <button
+              key={slot.id}
+              onClick={() => !isSelected && handleSelect(slot.id)}
+              disabled={!!selecting}
+              style={{
+                padding: "0.55rem 0.8rem",
+                borderRadius: "0.5rem",
+                border: `1.5px solid ${isSelected ? "#7c3aed" : "#ddd6fe"}`,
+                backgroundColor: isSelected ? "#7c3aed" : "white",
+                color: isSelected ? "white" : "#374151",
+                fontWeight: isSelected ? "700" : "500",
+                fontSize: "0.82rem",
+                cursor: isSelected || selecting ? "default" : "pointer",
+                fontFamily: "inherit",
+                textAlign: "left",
+                opacity: isLoading ? 0.6 : 1,
+              }}
+            >
+              {isLoading ? "Confirming…" : `${isSelected ? "✓ " : ""}${formatSlot(slot.slot_time)}`}
+            </button>
+          );
+        })}
+      </div>
+      {!selectedSlot && (
+        <p style={{ margin: "0.45rem 0 0", fontSize: "0.7rem", color: "#7c3aed", fontWeight: "500" }}>
+          Tap a time to confirm your attendance.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, onCancel }) {
   const panelRef = useRef(null);
   useFocusTrap(panelRef, onCancel);
@@ -105,7 +191,7 @@ function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, 
   );
 }
 
-function AppliedJobCard({ job, status, pipelineStage, preferredShift, onRemove, onMessage }) {
+function AppliedJobCard({ job, status, pipelineStage, preferredShift, applicationId, onRemove, onMessage }) {
   const { setSelectedJob, setPage } = useApp();
   const s = STATUS_STYLE[status] || STATUS_STYLE.Pending;
   const photo = supabaseImg(job.photos?.[0] || null, 240);
@@ -169,11 +255,16 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, onRemove, 
         </div>
       )}
 
-      {/* Contextual message nudge — shortlisted / interview */}
-      {advancedStage && (
+      {/* Interview slot picker — only when interview stage has offered slots */}
+      {pipelineStage === "interview" && status === "Pending" && (
+        <InterviewSlotPicker applicationId={applicationId} />
+      )}
+
+      {/* Contextual message nudge — shortlisted / trial (interview handled above) */}
+      {advancedStage && pipelineStage !== "interview" && (
         <div style={{ margin: "0 1rem 0.65rem", padding: "0.5rem 0.75rem", backgroundColor: "#f0f9ff", border: "1.5px solid #bae6fd", borderRadius: "0.6rem", display: "flex", alignItems: "center", gap: "0.6rem", justifyContent: "space-between" }}>
           <p style={{ margin: 0, fontSize: "0.78rem", color: "#0369a1", fontWeight: 600 }}>
-            {pipelineStage === "shortlisted" ? "You've been shortlisted! The company may reach out soon." : pipelineStage === "trial" ? "Trial shift scheduled — check your messages for details." : "Interview stage — check your messages for an invite."}
+            {pipelineStage === "shortlisted" ? "You've been shortlisted! The company may reach out soon." : "Trial shift scheduled — check your messages for details."}
           </p>
           <button onClick={() => onMessage()} style={{ padding: "0.35rem 0.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #0ea5e9, #0284c7)", color: "white", fontWeight: 700, fontSize: "0.72rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap", flexShrink: 0 }}>
             Messages
@@ -258,6 +349,7 @@ export default function AppliedJobs() {
   const getStatus = (jobId) => statuses[jobId]?.status || "Pending";
   const getStage  = (jobId) => statuses[jobId]?.pipeline_stage || "applied";
   const getShift  = (jobId) => statuses[jobId]?.preferred_shift || null;
+  const getAppId  = (jobId) => statuses[jobId]?.application_id || null;
 
   // Sort: Accepted → Rejected → Pending; ties keep original order
   const sorted = [...appliedJobs].sort((a, b) => {
@@ -294,6 +386,7 @@ export default function AppliedJobs() {
                 status={getStatus(job.id)}
                 pipelineStage={getStage(job.id)}
                 preferredShift={getShift(job.id)}
+                applicationId={getAppId(job.id)}
                 onRemove={handleRemoveRequest}
                 onMessage={handleMessage}
               />
