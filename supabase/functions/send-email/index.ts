@@ -218,7 +218,7 @@ Deno.serve(async (req: Request) => {
       const safeSubject = `New applicant for ${String(job.title).replace(/[\r\n]/g, "")}`;
 
       // L4: log BEFORE send so Brevo timeout can't skip the rate-limit increment
-      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+      try { await adminClient.from("email_sends_log").insert({ user_id: user.id }); } catch { /* ignore */ }
 
       const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
@@ -296,7 +296,7 @@ Deno.serve(async (req: Request) => {
       }
 
       // L4: log BEFORE send
-      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+      try { await adminClient.from("email_sends_log").insert({ user_id: user.id }); } catch { /* ignore */ }
 
       const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
@@ -369,7 +369,7 @@ Deno.serve(async (req: Request) => {
   </table>
 </body></html>`;
       // L4: log BEFORE send
-      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+      try { await adminClient.from("email_sends_log").insert({ user_id: user.id }); } catch { /* ignore */ }
 
       await Promise.allSettled(emails.map((email: string) =>
         fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
@@ -450,7 +450,7 @@ Deno.serve(async (req: Request) => {
         html = html.replaceAll("MAGIC_LINK_PLACEHOLDER", FRONTEND_URL);
       }
 
-      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+      try { await adminClient.from("email_sends_log").insert({ user_id: user.id }); } catch { /* ignore */ }
       const subject = `Interview Invitation${jTitle ? ` — ${String(jt).replace(/[\r\n]/g, "")}` : ""} at ${String(companyName).replace(/[\r\n]/g, "")}`;
       const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
@@ -520,7 +520,7 @@ Deno.serve(async (req: Request) => {
         html = html.replaceAll("MAGIC_LINK_PLACEHOLDER", FRONTEND_URL);
       }
 
-      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+      try { await adminClient.from("email_sends_log").insert({ user_id: user.id }); } catch { /* ignore */ }
       const subject = `Trial Shift Invitation from ${String(companyName).replace(/[\r\n]/g, "")}`;
       const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
@@ -649,7 +649,7 @@ Deno.serve(async (req: Request) => {
       "Rate limit exceeded",
       "Invalid email address",
     ];
-    const safe = SAFE_PREFIXES.some(prefix => msg.startsWith(prefix)) ? msg : `Debug: ${msg}`;
+    const safe = SAFE_PREFIXES.some(prefix => msg.startsWith(prefix)) ? msg : "Internal server error";
     const status = safe === "Internal server error" ? 500 : safe.startsWith("Unauthorised") ? 401 : 400;
     console.error("send-email error:", msg);
     return new Response(JSON.stringify({ error: safe }), {
