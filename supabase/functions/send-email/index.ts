@@ -387,6 +387,156 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // ── interview_invite (company caller) ──
+    if (body.templateType === "interview_invite") {
+      if (profile?.role !== "company") throw new Error("Unauthorised");
+      const { to: toField, studentName: sn, jobTitle: jt, date: dt, time: tm, note: nt, teamsLink: tl, magicLinkEmail: mle, redirectTo: rto } = body;
+      const recipient = typeof toField === "string" ? toField : null;
+      if (!recipient || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) throw new Error("Missing required fields: to");
+      // Verify the recipient is an applicant of this company
+      const { data: allowedRows } = await adminClient.rpc("get_company_applicant_emails", { company_uuid: user.id });
+      const allowedSet = new Set<string>((allowedRows || []).map((r: { email: string }) => r.email));
+      if (!allowedSet.has(recipient)) throw new Error("Unauthorised: recipient is not an applicant of this company");
+
+      const apiKey = Deno.env.get("BREVO_API_KEY");
+      if (!apiKey) throw new Error("BREVO_API_KEY not set");
+
+      const studentName = escapeHtml(sn || "there");
+      const cName       = escapeHtml(companyName);
+      const jTitle      = jt ? escapeHtml(jt) : "";
+      const safeNote    = nt ? escapeHtml(nt) : "";
+      const safeTeams   = tl && /^https?:\/\//i.test(tl) ? escapeHtml(tl) : "";
+      const whenLine    = dt && tm ? `${escapeHtml(dt)} at ${escapeHtml(tm)}` : dt ? escapeHtml(dt) : tm ? escapeHtml(tm) : "To be confirmed";
+
+      let html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafafa;padding:32px 16px;"><tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+      <tr><td align="center" style="background:linear-gradient(135deg,#7c3aed,#A21D54);padding:36px 24px 32px;">
+        <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">StudentShifts</p>
+        <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Find your next shift</p>
+      </td></tr>
+      <tr><td style="padding:36px 32px 28px;">
+        <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">You've been invited to interview!</p>
+        <p style="margin:0 0 20px;font-size:15px;color:#64748b;line-height:1.6;">Hi ${studentName},<br/><br/><strong style="color:#1e293b;">${cName}</strong> would like to invite you for an interview${jTitle ? ` for the <strong style="color:#1e293b;">${jTitle}</strong> position` : ""} on StudentShifts.</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;"><tr>
+          <td style="background-color:#fce7f3;border:1.5px solid #e9d5ff;border-radius:10px;padding:16px 20px;">
+            <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:0.05em;">Interview Details</p>
+            ${jTitle ? `<p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>Role:</strong> ${jTitle}</p>` : ""}
+            <p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>When:</strong> ${whenLine}</p>
+            ${safeNote ? `<p style="margin:8px 0 0;font-size:14px;color:#374151;line-height:1.5;"><strong>Note from ${cName}:</strong><br/>${safeNote}</p>` : ""}
+            ${safeTeams ? `<p style="margin:10px 0 0;font-size:14px;color:#1e293b;"><strong>Teams Link:</strong> <a href="${safeTeams}" style="color:#A21D54;">${safeTeams}</a></p>` : ""}
+          </td>
+        </tr></table>
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">
+          <a href="MAGIC_LINK_PLACEHOLDER" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#A21D54);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Open StudentShifts →</a>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
+        <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
+
+      if (mle && mle === recipient) {
+        try {
+          const linkRes = await fetchWithTimeout(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+            method: "POST",
+            headers: { "apikey": serviceKey, "Authorization": `Bearer ${serviceKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "magiclink", email: mle, options: { redirect_to: rto || FRONTEND_URL } }),
+          });
+          const linkData = await linkRes.json();
+          html = html.replaceAll("MAGIC_LINK_PLACEHOLDER", linkData.action_link || FRONTEND_URL);
+        } catch { html = html.replaceAll("MAGIC_LINK_PLACEHOLDER", FRONTEND_URL); }
+      } else {
+        html = html.replaceAll("MAGIC_LINK_PLACEHOLDER", FRONTEND_URL);
+      }
+
+      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+      const subject = `Interview Invitation${jTitle ? ` — ${String(jt).replace(/[\r\n]/g, "")}` : ""} at ${String(companyName).replace(/[\r\n]/g, "")}`;
+      const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: { "api-key": apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" }, to: [{ email: recipient }], subject, htmlContent: html }),
+      });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(`Brevo error: ${(err as { message?: string }).message || res.status}`); }
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // ── trial_invite (company caller) ──
+    if (body.templateType === "trial_invite") {
+      if (profile?.role !== "company") throw new Error("Unauthorised");
+      const { to: toField, studentName: sn, jobTitle: jt, date: dt, time: tm, note: nt, magicLinkEmail: mle, redirectTo: rto } = body;
+      const recipient = typeof toField === "string" ? toField : null;
+      if (!recipient || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) throw new Error("Missing required fields: to");
+      const { data: allowedRows } = await adminClient.rpc("get_company_applicant_emails", { company_uuid: user.id });
+      const allowedSet = new Set<string>((allowedRows || []).map((r: { email: string }) => r.email));
+      if (!allowedSet.has(recipient)) throw new Error("Unauthorised: recipient is not an applicant of this company");
+
+      const apiKey = Deno.env.get("BREVO_API_KEY");
+      if (!apiKey) throw new Error("BREVO_API_KEY not set");
+
+      const studentName = escapeHtml(sn || "there");
+      const cName       = escapeHtml(companyName);
+      const jTitle      = escapeHtml(jt || "");
+      const safeNote    = nt ? escapeHtml(nt) : "";
+      const whenLine    = dt && tm ? `${escapeHtml(dt)} at ${escapeHtml(tm)}` : dt ? escapeHtml(dt) : tm ? escapeHtml(tm) : "To be confirmed";
+
+      let html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafafa;padding:32px 16px;"><tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+      <tr><td align="center" style="background:linear-gradient(135deg,#0ea5e9,#0284c7);padding:36px 24px 32px;">
+        <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">StudentShifts</p>
+        <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Find your next shift</p>
+      </td></tr>
+      <tr><td style="padding:36px 32px 28px;">
+        <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">You've been invited to a trial shift!</p>
+        <p style="margin:0 0 20px;font-size:15px;color:#64748b;line-height:1.6;">Hi ${studentName},<br/><br/>Great news — <strong style="color:#1e293b;">${cName}</strong> would like to invite you to a trial shift for <strong style="color:#1e293b;">${jTitle}</strong>.</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;"><tr>
+          <td style="background-color:#e0f2fe;border:1.5px solid #bae6fd;border-radius:10px;padding:16px 20px;">
+            <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:0.05em;">Trial Shift Details</p>
+            <p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>When:</strong> ${whenLine}</p>
+            ${safeNote ? `<p style="margin:8px 0 0;font-size:14px;color:#374151;line-height:1.5;"><strong>Note from ${cName}:</strong><br/>${safeNote}</p>` : ""}
+          </td>
+        </tr></table>
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">
+          <a href="MAGIC_LINK_PLACEHOLDER" style="display:inline-block;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Open StudentShifts →</a>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
+        <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
+
+      if (mle && mle === recipient) {
+        try {
+          const linkRes = await fetchWithTimeout(`${supabaseUrl}/auth/v1/admin/generate_link`, {
+            method: "POST",
+            headers: { "apikey": serviceKey, "Authorization": `Bearer ${serviceKey}`, "Content-Type": "application/json" },
+            body: JSON.stringify({ type: "magiclink", email: mle, options: { redirect_to: rto || FRONTEND_URL } }),
+          });
+          const linkData = await linkRes.json();
+          html = html.replaceAll("MAGIC_LINK_PLACEHOLDER", linkData.action_link || FRONTEND_URL);
+        } catch { html = html.replaceAll("MAGIC_LINK_PLACEHOLDER", FRONTEND_URL); }
+      } else {
+        html = html.replaceAll("MAGIC_LINK_PLACEHOLDER", FRONTEND_URL);
+      }
+
+      await adminClient.from("email_sends_log").insert({ user_id: user.id }).catch(() => {});
+      const subject = `Trial Shift Invitation from ${String(companyName).replace(/[\r\n]/g, "")}`;
+      const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: { "api-key": apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" }, to: [{ email: recipient }], subject, htmlContent: html }),
+      });
+      if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(`Brevo error: ${(err as { message?: string }).message || res.status}`); }
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // ── standard email send (admin caller only — companies must use templateType) ──
     // S5: reject raw html from company callers to prevent phishing via our Brevo account.
     if (profile?.role === "company") throw new Error("Unauthorised: companies must use templateType");

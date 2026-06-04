@@ -150,8 +150,13 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
       await Promise.all([
         sendEmail({
           to: studentEmail,
-          subject: `Interview Invitation — ${jobTitle ? `${jobTitle} at ` : ""}${currentUser.name}`,
-          html: emailInterviewInvite(applicant.name, currentUser.name, jobTitle, date, time, note, teamsLink),
+          templateType: "interview_invite",
+          studentName: applicant.name,
+          jobTitle,
+          date,
+          time,
+          note,
+          teamsLink,
           magicLinkEmail: studentEmail,
           redirectTo: window.location.origin,
         }),
@@ -177,8 +182,12 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
       const studentEmail = await getStudentEmail(applicant.studentId);
       await sendEmail({
         to: studentEmail,
-        subject: `Trial Shift Invitation from ${currentUser.name}`,
-        html: emailTrialInvite(applicant.name, currentUser.name, activePosting.title, date, time, note),
+        templateType: "trial_invite",
+        studentName: applicant.name,
+        jobTitle: activePosting.title,
+        date,
+        time,
+        note,
         magicLinkEmail: studentEmail,
         redirectTo: window.location.origin,
       });
