@@ -165,9 +165,8 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
     setInput("");
 
     try {
-      const real = await sendMessage(jobId, studentId, companyId, senderId, text);
-      // Swap optimistic entry for the confirmed DB row (has real id + server timestamp)
-      setMessages(prev => prev.map(m => m.id === optId ? real : m));
+      await sendMessage(jobId, studentId, companyId, senderId, text);
+      // Optimistic message stays visible; Realtime will replace it with the real row
     } catch (e) {
       console.error("Send failed:", e);
       setMessages(prev => prev.filter(m => m.id !== optId));
