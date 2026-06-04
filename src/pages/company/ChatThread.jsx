@@ -25,14 +25,22 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
         .catch(() => setLoading(false));
     });
 
+    const isDirect = jobId === null;
     channel = supabase
-      .channel(`msgs_${jobId}_${studentId}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter: `and(job_id=eq.${jobId},student_id=eq.${studentId})` },
+      .channel(isDirect ? `direct_${companyId}_${studentId}` : `msgs_${jobId}_${studentId}`)
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" },
         payload => {
           const msg = payload.new;
+          const isRelevant = isDirect
+            ? (msg.student_id === studentId && msg.company_id === companyId && msg.job_id === null)
+            : (msg.job_id === jobId && msg.student_id === studentId);
+          if (!isRelevant) return;
           setMessages(prev => {
             if (prev.some(m => m.id === msg.id)) return prev;
-            return [...prev, msg];
+            const withoutOptimistic = prev.filter(m =>
+              !(typeof m.id === "string" && m.id.startsWith("opt_") && m.sender_id === msg.sender_id && m.text === msg.text)
+            );
+            return [...withoutOptimistic, msg];
           });
         })
       .subscribe();
@@ -48,12 +56,17 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
     const text = input.trim();
     if (!text || sending) return;
     setSending(true);
+
+    const optId = `opt_${Date.now()}`;
+    setMessages(prev => [...prev, { id: optId, sender_id: senderId, text, created_at: new Date().toISOString() }]);
     setInput("");
+
     try {
       const { sendMessage } = await import("../../lib/auth");
       await sendMessage(jobId, studentId, companyId, senderId, text);
     } catch (e) {
       Sentry.captureException(e);
+      setMessages(prev => prev.filter(m => m.id !== optId));
       setInput(text);
       toast.error("Failed to send message — please try again.");
     } finally {
