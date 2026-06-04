@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
+import { TimeWheelPicker } from "./TimeWheelPicker";
 
 export function TrialInviteModal({ applicant, date: initialDate, time: initialTime, onClose, onSend }) {
   const [date, setDate]     = useState(initialDate || "");
@@ -33,15 +34,14 @@ export function TrialInviteModal({ applicant, date: initialDate, time: initialTi
         <p style={{ margin: "0 0 1.1rem", fontSize: "0.82rem", color: "#64748b" }}>To: <strong>{applicant.name}</strong></p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Date</label>
-              <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: "100%", padding: "0.5rem 0.55rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", fontFamily: "inherit", boxSizing: "border-box", color: "#374151" }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Time</label>
-              <input type="time" value={time} onChange={e => setTime(e.target.value)} style={{ width: "100%", padding: "0.5rem 0.55rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", fontFamily: "inherit", boxSizing: "border-box", color: "#374151" }} />
-            </div>
+          <div>
+            <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Date</label>
+            <input type="date" value={date} onChange={e => setDate(e.target.value)} style={{ width: "100%", padding: "0.5rem 0.55rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", fontFamily: "inherit", boxSizing: "border-box", color: "#374151" }} />
+          </div>
+          <div>
+            <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.5rem" }}>Time</label>
+            {time && <p style={{ margin: "0 0 0.4rem", fontSize: "0.82rem", color: "#7c3aed", fontWeight: "700" }}>Selected: {time}</p>}
+            <TimeWheelPicker value={time} onSave={setTime} />
           </div>
           <div>
             <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Note to student <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>

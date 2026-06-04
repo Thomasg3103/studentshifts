@@ -2,6 +2,7 @@ import { useState, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { supabase } from "../../lib/supabase";
+import { TimeWheelPicker } from "./TimeWheelPicker";
 
 export function InterviewInviteModal({ applicant, roundNumber, date: initialDate, time: initialTime, onClose, onSend }) {
   const [mode, setMode]           = useState("fixed"); // "fixed" | "slots"
@@ -65,14 +66,15 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {mode === "fixed" ? (
-            <div style={{ display: "flex", gap: "0.5rem" }}>
-              <div style={{ flex: 1 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+              <div>
                 <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Date</label>
                 <input type="date" value={date} onChange={e => setDate(e.target.value)} style={inputStyle} />
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Time</label>
-                <input type="time" value={time} onChange={e => setTime(e.target.value)} style={inputStyle} />
+              <div>
+                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.5rem" }}>Time</label>
+                {time && <p style={{ margin: "0 0 0.4rem", fontSize: "0.82rem", color: "#7c3aed", fontWeight: "700" }}>Selected: {time}</p>}
+                <TimeWheelPicker value={time} onSave={setTime} />
               </div>
             </div>
           ) : (
