@@ -13,7 +13,14 @@ export async function sendEmail({ to, ...rest }) {
   const { error } = await supabase.functions.invoke("send-email", {
     body: { to, ...rest },
   });
-  if (error) throw new Error(error.message || "Email send failed");
+  if (error) {
+    // Extract real error body from FunctionsHttpError context
+    const body = error.context instanceof Response
+      ? await error.context.json().catch(() => null)
+      : (error.context ?? null);
+    const detail = body?.error || error.message || "Email send failed";
+    throw new Error(detail);
+  }
 }
 
 export function emailStudentApproved(name) {
