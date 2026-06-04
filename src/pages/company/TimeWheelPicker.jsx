@@ -118,13 +118,28 @@ export function TimeWheelPicker({ value = "", onSave }) {
 
   const timeStr = `${pad2(hour)}:${pad2(minute)}`;
 
+  const handleTextChange = (e) => {
+    const [h, m] = e.target.value.split(":").map(Number);
+    if (!isNaN(h) && !isNaN(m)) {
+      setHour(Math.max(0, Math.min(23, h)));
+      setMinute(Math.round(Math.max(0, Math.min(59, m)) / 5) * 5);
+    }
+  };
+
+  const inputStyle = {
+    width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.45rem",
+    border: "1.5px solid #e2e8f0", fontSize: "0.9rem", fontFamily: "inherit",
+    boxSizing: "border-box", color: "#374151", textAlign: "center",
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.85rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
         <StepCol label="Hour"   display={pad2(hour)}   onInc={incH} onDec={decH} />
         <span style={{ fontSize: "2.2rem", fontWeight: "800", color: "#7c3aed", marginTop: "1.5rem", lineHeight: 1 }}>:</span>
         <StepCol label="Min"    display={pad2(minute)} onInc={incM} onDec={decM} />
       </div>
+      <input type="time" value={timeStr} onChange={handleTextChange} style={inputStyle} />
       <SaveButton label={`Save — ${timeStr}`} onClick={() => onSave(timeStr)} />
     </div>
   );
@@ -154,13 +169,28 @@ export function DateStepper({ value = "", onSave }) {
   const dateStr = `${year}-${pad2(month)}-${pad2(safeDay)}`;
   const label   = `Save — ${pad2(safeDay)} ${MONTHS[month - 1]} ${year}`;
 
+  const handleDateInput = (e) => {
+    if (!e.target.value) return;
+    const d = new Date(e.target.value + "T00:00:00");
+    setYear(d.getFullYear());
+    setMonth(d.getMonth() + 1);
+    setDay(d.getDate());
+  };
+
+  const inputStyle = {
+    width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.45rem",
+    border: "1.5px solid #e2e8f0", fontSize: "0.9rem", fontFamily: "inherit",
+    boxSizing: "border-box", color: "#374151",
+  };
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.85rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.75rem" }}>
       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
         <StepCol label="Day"   display={pad2(safeDay)}        onInc={incDay}   onDec={decDay} />
         <StepCol label="Month" display={MONTHS[month - 1]}    onInc={incMonth} onDec={decMonth} wide />
         <StepCol label="Year"  display={String(year)}         onInc={incYear}  onDec={decYear}  wide />
       </div>
+      <input type="date" value={dateStr} onChange={handleDateInput} style={inputStyle} />
       <SaveButton label={label} onClick={() => onSave(dateStr)} />
     </div>
   );
