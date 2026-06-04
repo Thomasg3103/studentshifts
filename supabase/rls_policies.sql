@@ -781,7 +781,7 @@ BEGIN
         u.id = auth.uid()
         OR
         (caller_role = 'company' AND
-          EXISTS (SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified') AND
+          EXISTS (SELECT 1 FROM companies co WHERE co.id = auth.uid() AND co.status = 'verified') AND
           EXISTS (
             SELECT 1 FROM applications a
             JOIN jobs j ON j.id = a.job_id

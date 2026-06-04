@@ -1,6 +1,6 @@
--- Fix get_user_emails: add SET search_path = public so table references
--- (profiles, companies, applications, jobs, rpc_rate_log) resolve correctly
--- when the function runs as SECURITY DEFINER.
+-- Fix get_user_emails: add SET search_path = public + alias companies table
+-- to fix "column reference id is ambiguous" caused by RETURNS TABLE(id uuid)
+-- clashing with the unqualified id in the companies EXISTS subquery.
 -- Run this in the Supabase SQL Editor.
 
 CREATE OR REPLACE FUNCTION get_user_emails(user_ids uuid[])
@@ -33,7 +33,7 @@ BEGIN
         u.id = auth.uid()
         OR
         (caller_role = 'company' AND
-          EXISTS (SELECT 1 FROM companies WHERE id = auth.uid() AND status = 'verified') AND
+          EXISTS (SELECT 1 FROM companies co WHERE co.id = auth.uid() AND co.status = 'verified') AND
           EXISTS (
             SELECT 1 FROM applications a
             JOIN jobs j ON j.id = a.job_id
