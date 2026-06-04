@@ -22,6 +22,8 @@ const panelActionBtn = (variant) => {
     secondary: { backgroundColor: "var(--color-bg-elevated, white)",   color: "var(--color-text-body, #374151)",  border: "1px solid var(--color-border-light, #d1d5db)" },
     danger:    { backgroundColor: "var(--color-bg-elevated, white)",   color: "#b91c1c",  border: "1px solid #fca5a5" },
     accept:    { backgroundColor: "#15803d", color: "white",    border: "none" },
+    purple:    { backgroundColor: "#7c3aed", color: "white",    border: "none" },
+    green:     { backgroundColor: "#15803d", color: "white",    border: "none" },
   };
   const s = styles[variant] || styles.primary;
   return { width: "100%", padding: "0.65rem 1rem", borderRadius: "0.4rem", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit", letterSpacing: "-0.01em", ...s };
@@ -488,10 +490,6 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
                 {interviewRounds.map((round, i) => (
                   <div key={i} style={{ backgroundColor: "#faf5ff", border: "1.5px solid #e9d5ff", borderRadius: "0.6rem", padding: "0.65rem 0.75rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", marginBottom: "0.45rem" }}>
-                      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "20px", height: "20px", borderRadius: "50%", backgroundColor: "#7c3aed", color: "white", fontSize: "0.65rem", fontWeight: "900", flexShrink: 0 }}>{i + 1}</span>
-                      <p style={{ margin: 0, fontSize: "0.72rem", fontWeight: "800", color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.05em" }}>Interview Rd</p>
-                    </div>
                     <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.45rem" }}>
                       <input
                         type="date"
@@ -591,9 +589,9 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
             <button onClick={() => setShortlistInviteOpen(true)} style={panelActionBtn("primary")}>Send Interview Invite</button>
           )}
           {stage === "interview" && (<>
-            <button onClick={() => setNextRoundInviteOpen(true)} style={panelActionBtn("secondary")}>Schedule Next Round</button>
+            <button onClick={() => setNextRoundInviteOpen(true)} style={panelActionBtn("purple")}>Schedule Next Round</button>
             <button onClick={() => onStageAction(applicant.id, "trial")} style={panelActionBtn("primary")}>Advance to Trial</button>
-            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("secondary")}>Move to Decision</button>
+            <button onClick={() => onStageAction(applicant.id, "decision")} style={panelActionBtn("green")}>Move to Decision</button>
             <button onClick={() => onUpdateStatus(applicant.id, "Rejected", applicant)} style={panelActionBtn("danger")}>Decline Applicant</button>
             {applicant.status === "Pending" && <button disabled title="Coming soon — flag if applicant is not responding" style={{ ...panelActionBtn("danger"), opacity: 0.4, cursor: "default", fontSize: "0.78rem" }}>🚫 Flag as Ghosted · Soon</button>}
           </>)}
