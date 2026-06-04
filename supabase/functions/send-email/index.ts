@@ -649,7 +649,7 @@ Deno.serve(async (req: Request) => {
       "Rate limit exceeded",
       "Invalid email address",
     ];
-    const safe = SAFE_PREFIXES.some(prefix => msg.startsWith(prefix)) ? msg : "Internal server error";
+    const safe = SAFE_PREFIXES.some(prefix => msg.startsWith(prefix)) ? msg : `Debug: ${msg}`;
     const status = safe === "Internal server error" ? 500 : safe.startsWith("Unauthorised") ? 401 : 400;
     console.error("send-email error:", msg);
     return new Response(JSON.stringify({ error: safe }), {
