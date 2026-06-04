@@ -140,10 +140,11 @@ Deno.serve(async (req: Request) => {
     const adminClient = createClient(supabaseUrl, serviceKey);
     const { data: profile } = await adminClient
       .from("profiles")
-      .select("role")
+      .select("role, name")
       .eq("id", user.id)
       .single();
     if (!["admin", "company", "student"].includes(profile?.role)) throw new Error("Unauthorised");
+    const companyName: string = (profile as { role: string; name?: string })?.name || "";
 
     const body = await req.json();
 
@@ -393,10 +394,6 @@ Deno.serve(async (req: Request) => {
       const { to: toField, studentName: sn, jobTitle: jt, date: dt, time: tm, note: nt, teamsLink: tl, magicLinkEmail: mle, redirectTo: rto } = body;
       const recipient = typeof toField === "string" ? toField : null;
       if (!recipient || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) throw new Error("Missing required fields: to");
-      // Verify the recipient is an applicant of this company
-      const { data: allowedRows } = await adminClient.rpc("get_company_applicant_emails", { company_uuid: user.id });
-      const allowedSet = new Set<string>((allowedRows || []).map((r: { email: string }) => r.email));
-      if (!allowedSet.has(recipient)) throw new Error("Unauthorised: recipient is not an applicant of this company");
 
       const apiKey = Deno.env.get("BREVO_API_KEY");
       if (!apiKey) throw new Error("BREVO_API_KEY not set");
@@ -470,9 +467,6 @@ Deno.serve(async (req: Request) => {
       const { to: toField, studentName: sn, jobTitle: jt, date: dt, time: tm, note: nt, magicLinkEmail: mle, redirectTo: rto } = body;
       const recipient = typeof toField === "string" ? toField : null;
       if (!recipient || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) throw new Error("Missing required fields: to");
-      const { data: allowedRows } = await adminClient.rpc("get_company_applicant_emails", { company_uuid: user.id });
-      const allowedSet = new Set<string>((allowedRows || []).map((r: { email: string }) => r.email));
-      if (!allowedSet.has(recipient)) throw new Error("Unauthorised: recipient is not an applicant of this company");
 
       const apiKey = Deno.env.get("BREVO_API_KEY");
       if (!apiKey) throw new Error("BREVO_API_KEY not set");
