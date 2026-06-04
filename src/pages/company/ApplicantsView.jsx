@@ -46,7 +46,7 @@ export const buildDynamicStages = (applicants) => {
 
 /* ─── ApplicantRow ───────────────────────────────────────────────────────── */
 
-function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist, isSelected, onToggleSelect, isInvited }) {
+function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist, isSelected, onToggleSelect, isInvited, selectionMode }) {
   const isDecision = applicant.pipelineStage === "decision" && applicant.status === "Pending";
   const isApplied  = applicant.pipelineStage === "applied"  && applicant.status === "Pending";
   const [hireLoading, setHireLoading] = useState(false);
@@ -66,8 +66,8 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist,
         onClick={onClick}
         style={{ width: "100%", display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.85rem 1rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
       >
-        {/* Checkbox — pending only */}
-        {applicant.status === "Pending" && (
+        {/* Checkbox — pending only, shown in selection mode */}
+        {applicant.status === "Pending" && selectionMode && (
           <div onClick={e => { e.stopPropagation(); onToggleSelect?.(); }} style={{ flexShrink: 0, display: "flex", alignItems: "center" }}>
             <input type="checkbox" checked={isSelected || false} aria-label={`Select ${applicant.name}`} onChange={() => {}} onClick={e => { e.stopPropagation(); onToggleSelect?.(); }} style={{ cursor: "pointer", accentColor: "var(--color-brand)", width: "15px", height: "15px" }} />
           </div>
@@ -300,6 +300,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
   const [filterTransport, setFilterTransport]     = useState(""); // "" | "Own car" | "Public transport" | "Cycling / walking"
   const [filterCanStart, setFilterCanStart]       = useState(""); // "" | "immediately" | "1week" | "2weeks" | "1month"
   const [filterExperience, setFilterExperience]   = useState(""); // "" | "none" | "under1" | "1to3" | "3plus"
+  const [selectionMode, setSelectionMode]         = useState(false);
   const [selectedIds, setSelectedIds]             = useState(new Set());
   const [invitedIds, setInvitedIds]               = useState(new Set());
   const [bulkShortlisting, setBulkShortlisting]   = useState(false);
@@ -377,7 +378,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
       await onStageChange(id, "shortlisted", undefined).catch(() => {});
     }
     setBulkShortlisting(false);
-    setSelectedIds(new Set());
+    exitSelectionMode();
     toast.success(`${pendingApplied.length} applicant${pendingApplied.length !== 1 ? "s" : ""} shortlisted`);
   };
 
@@ -399,7 +400,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
       if (applicant) await onUpdateStatus(id, "Rejected", applicant);
     }
     setBulkDeclining(false);
-    setSelectedIds(new Set());
+    exitSelectionMode();
     setPendingDeclineIds([]);
   };
 
@@ -413,11 +414,19 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
     setInvitedIds(prev => new Set([...prev, applicationId]));
   };
 
-  const toggleSelect = (id) => setSelectedIds(prev => {
-    const next = new Set(prev);
-    if (next.has(id)) next.delete(id); else next.add(id);
-    return next;
-  });
+  const toggleSelect = (id) => {
+    setSelectionMode(true);
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const exitSelectionMode = () => {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  };
 
   return (
     <div>
@@ -619,36 +628,48 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
       )}
 
       {activeStage !== "calendar" && (<>
-      {/* Stage summary */}
-      <p style={{ margin: "0 0 0.85rem", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>
-        {(search.trim() || activeFilterCount > 0)
-          ? `${visible.length} of ${stageApplicants.length} shown${activeFilterCount > 0 ? ` (${activeFilterCount} filter${activeFilterCount !== 1 ? "s" : ""} active)` : ""} · ${posting.applicants.length} total`
-          : stageApplicants.length === 0 ? "No applicants in this stage"
-          : `${stageApplicants.length} applicant${stageApplicants.length !== 1 ? "s" : ""} in this stage · ${posting.applicants.length} total`
-        }
-      </p>
-
-      {/* Select-all row */}
+      {/* Stage summary + select controls */}
       {(() => {
         const pendingInStage = stageApplicants.filter(a => a.status === "Pending");
-        if (pendingInStage.length === 0) return null;
-        const allSelected = pendingInStage.every(a => selectedIds.has(a.id));
+        const allSelected = pendingInStage.length > 0 && pendingInStage.every(a => selectedIds.has(a.id));
         return (
-          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem", padding: "0 0.25rem" }}>
-            <input
-              type="checkbox"
-              checked={allSelected}
-              aria-label={allSelected ? "Deselect all pending applicants" : `Select all ${pendingInStage.length} pending applicants`}
-              onChange={e => {
-                const ids = pendingInStage.map(a => a.id);
-                if (e.target.checked) setSelectedIds(prev => new Set([...prev, ...ids]));
-                else setSelectedIds(prev => { const next = new Set(prev); ids.forEach(id => next.delete(id)); return next; });
-              }}
-              style={{ cursor: "pointer", accentColor: "var(--color-brand)", width: "15px", height: "15px" }}
-            />
-            <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>
-              {allSelected ? "Deselect all" : `Select all ${pendingInStage.length} pending`}
-            </span>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>
+              {(search.trim() || activeFilterCount > 0)
+                ? `${visible.length} of ${stageApplicants.length} shown${activeFilterCount > 0 ? ` (${activeFilterCount} filter${activeFilterCount !== 1 ? "s" : ""} active)` : ""} · ${posting.applicants.length} total`
+                : stageApplicants.length === 0 ? "No applicants in this stage"
+                : `${stageApplicants.length} applicant${stageApplicants.length !== 1 ? "s" : ""} in this stage · ${posting.applicants.length} total`
+              }
+            </p>
+            {pendingInStage.length > 0 && (
+              selectionMode ? (
+                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <button
+                    onClick={() => {
+                      const ids = pendingInStage.map(a => a.id);
+                      if (allSelected) setSelectedIds(prev => { const next = new Set(prev); ids.forEach(id => next.delete(id)); return next; });
+                      else setSelectedIds(prev => new Set([...prev, ...ids]));
+                    }}
+                    style={{ padding: "0.3rem 0.7rem", borderRadius: "0.4rem", border: "1.5px solid var(--color-brand)", background: "none", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}
+                  >
+                    {allSelected ? "Deselect All" : "Select All"}
+                  </button>
+                  <button
+                    onClick={exitSelectionMode}
+                    style={{ padding: "0.3rem 0.7rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", background: "none", color: "#64748b", fontWeight: "600", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setSelectionMode(true)}
+                  style={{ padding: "0.3rem 0.7rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", background: "none", color: "#64748b", fontWeight: "600", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}
+                >
+                  Select
+                </button>
+              )
+            )}
           </div>
         );
       })()}
@@ -676,6 +697,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
               isSelected={selectedIds.has(applicant.id)}
               onToggleSelect={() => toggleSelect(applicant.id)}
               isInvited={invitedIds.has(applicant.id)}
+              selectionMode={selectionMode}
               onClick={() => setSelectedApplicant(applicant)}
               onHire={(a) => onUpdateStatus(a.id, "Accepted", a)}
               onDecline={(a) => onUpdateStatus(a.id, "Rejected", a)}
@@ -695,7 +717,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
         <div style={{ position: "sticky", bottom: 0, backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid #e2e8f0", padding: "0.7rem 0", marginTop: "0.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", zIndex: 10, boxShadow: "0 -4px 16px rgba(0,0,0,0.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <span style={{ fontSize: "0.82rem", fontWeight: "800", color: "var(--color-text-primary, #1e293b)" }}>{selectedIds.size} selected</span>
-            <button onClick={() => setSelectedIds(new Set())} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", padding: 0 }}>Clear</button>
+            <button onClick={exitSelectionMode} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", padding: 0 }}>Clear</button>
           </div>
           <div style={{ display: "flex", gap: "0.5rem" }}>
             {activeStage === "applied" && (
