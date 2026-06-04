@@ -714,7 +714,7 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
 
       {/* Bulk action bar — floats above liked students when selection is active */}
       {selectedIds.size > 0 && (
-        <div style={{ position: "sticky", bottom: 0, backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid #e2e8f0", padding: "0.7rem 0", marginTop: "0.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", zIndex: 10, boxShadow: "0 -4px 16px rgba(0,0,0,0.07)" }}>
+        <div style={{ position: "sticky", bottom: 0, backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid #e2e8f0", padding: "0.7rem 1.25rem", marginTop: "0.75rem", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", zIndex: 10, boxShadow: "0 -4px 16px rgba(0,0,0,0.07)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <span style={{ fontSize: "0.82rem", fontWeight: "800", color: "var(--color-text-primary, #1e293b)" }}>{selectedIds.size} selected</span>
             <button onClick={exitSelectionMode} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", fontFamily: "inherit", padding: 0 }}>Clear</button>
