@@ -65,10 +65,10 @@ export async function fetchAllMessagesWithStudent(studentId, companyId) {
 
 export async function sendMessage(jobId, studentId, companyId, senderId, text) {
   await ensureValidSession();
-  const { error } = await withTimeout(
+  const { data, error } = await withTimeout(
     supabase.from("chat_messages").insert({
       job_id: jobId ?? null, student_id: studentId, company_id: companyId, sender_id: senderId, text,
-    }),
+    }).select("id, sender_id, text, created_at").single(),
     10000
   );
   if (error) throw error;
@@ -78,6 +78,7 @@ export async function sendMessage(jobId, studentId, companyId, senderId, text) {
       body: { user_id: recipientId, title: "New message", body: text.slice(0, 100), url: "/" },
     }).catch(() => {});
   }
+  return data;
 }
 
 export async function fetchCompanyDirectConversations(companyId) {

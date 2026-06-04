@@ -117,25 +117,24 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
       .finally(() => setLoading(false));
 
     const channelName = isDirect ? `direct_${companyId}_${studentId}` : `msgs_${jobId}_${studentId}`;
-    const filter = isDirect
-      ? `and(student_id=eq.${studentId},company_id=eq.${companyId},job_id=is.null)`
-      : `and(job_id=eq.${jobId},student_id=eq.${studentId})`;
 
     const channel = supabase
       .channel(channelName)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages", filter },
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" },
         payload => {
           const { new: msg } = payload;
           const isRelevant = isDirect
             ? (msg.student_id === studentId && msg.company_id === companyId && msg.job_id === null)
             : (msg.job_id === jobId && msg.student_id === studentId);
-          if (isRelevant) {
-            setMessages(prev => {
-              // Deduplicate: skip if message with same id already present
-              if (prev.some(m => m.id === msg.id)) return prev;
-              return [...prev, msg];
-            });
-          }
+          if (!isRelevant) return;
+          setMessages(prev => {
+            if (prev.some(m => m.id === msg.id)) return prev;
+            // Replace matching optimistic message (same sender + text) with the confirmed row
+            const withoutOptimistic = prev.filter(m =>
+              !(typeof m.id === "string" && m.id.startsWith("opt_") && m.sender_id === msg.sender_id && m.text === msg.text)
+            );
+            return [...withoutOptimistic, msg];
+          });
         })
       .subscribe();
 
@@ -159,13 +158,21 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
     const text = input.trim();
     if (!text || sending) return;
     setSending(true);
+
+    const optId = `opt_${Date.now()}`;
+    const optimistic = { id: optId, sender_id: senderId, text, created_at: new Date().toISOString() };
+    setMessages(prev => [...prev, optimistic]);
+    setInput("");
+
     try {
-      await sendMessage(jobId, studentId, companyId, senderId, text);
-      setInput("");
+      const real = await sendMessage(jobId, studentId, companyId, senderId, text);
+      // Swap optimistic entry for the confirmed DB row (has real id + server timestamp)
+      setMessages(prev => prev.map(m => m.id === optId ? real : m));
     } catch (e) {
       console.error("Send failed:", e);
+      setMessages(prev => prev.filter(m => m.id !== optId));
+      setInput(text);
       toast.error("Couldn't send message. Please try again.");
-      // Input is NOT cleared on failure so user can retry
     } finally {
       setSending(false);
       inputRef.current?.focus();
