@@ -239,6 +239,104 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    // ── slot_confirmed notification (student caller → company) ──
+    if (body.type === "slot_confirmed") {
+      if (profile?.role !== "student") throw new Error("Unauthorised");
+      const { slotId, applicationId } = body;
+      if (!slotId || typeof slotId !== "string" || !UUID_RE.test(slotId)) throw new Error("Missing required field: slotId");
+      if (!applicationId) throw new Error("Missing required field: applicationId");
+
+      // Rate limit: 20 per hour (generous — student can re-pick multiple times)
+      const slotWindowStart = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { count: slotCount } = await adminClient
+        .from("email_sends_log")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id)
+        .gte("sent_at", slotWindowStart);
+      if ((slotCount ?? 0) >= 20) throw new Error("Rate limit exceeded. Please wait before sending more emails.");
+
+      // Verify the slot belongs to this student's application
+      const { data: slotRow, error: slotErr } = await adminClient
+        .from("interview_slots")
+        .select("id, slot_time, application_id")
+        .eq("id", slotId)
+        .eq("application_id", applicationId)
+        .single();
+      if (slotErr || !slotRow) throw new Error("Unauthorised");
+
+      const { data: app, error: appErr } = await adminClient
+        .from("applications")
+        .select("id, student_id, job_id")
+        .eq("id", applicationId)
+        .eq("student_id", user.id)
+        .single();
+      if (appErr || !app) throw new Error("Unauthorised");
+
+      const { data: slotJob, error: slotJobErr } = await adminClient
+        .from("jobs")
+        .select("title, company_id")
+        .eq("id", app.job_id)
+        .single();
+      if (slotJobErr || !slotJob) throw new Error("Unauthorised");
+
+      const { data: slotCompanyAuth } = await adminClient.auth.admin.getUserById(slotJob.company_id);
+      if (!slotCompanyAuth?.user?.email) throw new Error("Unauthorised");
+      const slotCompanyEmail = slotCompanyAuth.user.email;
+
+      const { data: slotCompanyProfile } = await adminClient.from("profiles").select("name").eq("id", slotJob.company_id).single();
+      const slotCName = escapeHtml(slotCompanyProfile?.name || "there");
+      const { data: slotStudentProfile } = await adminClient.from("profiles").select("name").eq("id", user.id).single();
+      const slotStudentName = escapeHtml(slotStudentProfile?.name || "A student");
+      const slotJobTitle = escapeHtml(String(slotJob.title));
+
+      // Format slot time (UTC-safe)
+      const slotDt = new Date(slotRow.slot_time);
+      const slotDateStr = slotDt.toLocaleDateString("en-IE", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+      const slotTimeStr = slotDt.toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit", timeZone: "UTC" });
+      const slotWhenLine = `${escapeHtml(slotDateStr)} at ${escapeHtml(slotTimeStr)}`;
+
+      const apiKey = Deno.env.get("BREVO_API_KEY");
+      if (!apiKey) throw new Error("BREVO_API_KEY not set");
+
+      const slotHtml = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafafa;padding:32px 16px;"><tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+      <tr><td align="center" style="background:linear-gradient(135deg,#7c3aed,#A21D54);padding:36px 24px 32px;">
+        <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">StudentShifts</p>
+        <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Find your next shift</p>
+      </td></tr>
+      <tr><td style="padding:36px 32px 28px;">
+        <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">Interview time confirmed!</p>
+        <p style="margin:0 0 20px;font-size:15px;color:#64748b;line-height:1.6;">Hi ${slotCName},<br/><br/><strong style="color:#1e293b;">${slotStudentName}</strong> has confirmed their interview time for the <strong style="color:#1e293b;">${slotJobTitle}</strong> role.</p>
+        <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;"><tr>
+          <td style="background-color:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:16px 20px;">
+            <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#16a34a;text-transform:uppercase;letter-spacing:0.05em;">Confirmed Interview Time</p>
+            <p style="margin:0;font-size:15px;font-weight:700;color:#1e293b;">${slotWhenLine}</p>
+          </td>
+        </tr></table>
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">
+          <a href="${escapeHtml(FRONTEND_URL)}" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#A21D54);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Open Dashboard →</a>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
+        <p style="margin:0;font-size:12px;color:#64748b;">StudentShifts &mdash; helping students find flexible work in Ireland</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
+
+      try { await adminClient.from("email_sends_log").insert({ user_id: user.id }); } catch { /* ignore */ }
+      const slotSubject = `${String(slotStudentProfile?.name || "A student").replace(/[\r\n]/g, "")} confirmed their interview — ${String(slotJob.title).replace(/[\r\n]/g, "")}`;
+      const slotRes = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: { "api-key": apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" }, to: [{ email: slotCompanyEmail }], subject: slotSubject, htmlContent: slotHtml }),
+      });
+      if (!slotRes.ok) { const err = await slotRes.json().catch(() => ({})); throw new Error(`Brevo error: ${(err as { message?: string }).message || slotRes.status}`); }
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // ── company_interested template (company caller, S5) ──
     // Companies cannot pass arbitrary html — use this template type instead.
     if (body.templateType === "company_interested") {
@@ -391,7 +489,7 @@ Deno.serve(async (req: Request) => {
     // ── interview_invite (company caller) ──
     if (body.templateType === "interview_invite") {
       if (profile?.role !== "company") throw new Error("Unauthorised");
-      const { to: toField, studentName: sn, jobTitle: jt, date: dt, time: tm, note: nt, teamsLink: tl, magicLinkEmail: mle, redirectTo: rto } = body;
+      const { to: toField, studentName: sn, jobTitle: jt, date: dt, time: tm, note: nt, teamsLink: tl, slots: rawSlots, magicLinkEmail: mle, redirectTo: rto } = body;
       const recipient = typeof toField === "string" ? toField : null;
       if (!recipient || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(recipient)) throw new Error("Missing required fields: to");
 
@@ -403,7 +501,21 @@ Deno.serve(async (req: Request) => {
       const jTitle      = jt ? escapeHtml(jt) : "";
       const safeNote    = nt ? escapeHtml(nt) : "";
       const safeTeams   = tl && /^https?:\/\//i.test(tl) ? escapeHtml(tl) : "";
-      const whenLine    = dt && tm ? `${escapeHtml(dt)} at ${escapeHtml(tm)}` : dt ? escapeHtml(dt) : tm ? escapeHtml(tm) : "To be confirmed";
+
+      // Build the time/slot section of the email
+      type Slot = { date: string; time: string };
+      const validSlots: Slot[] = Array.isArray(rawSlots)
+        ? (rawSlots as Slot[]).filter((s: Slot) => s && typeof s.date === "string" && typeof s.time === "string")
+        : [];
+
+      const timeSectionHtml = validSlots.length > 1
+        ? `<p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#7c3aed;">Available times — please log in to pick one:</p>
+${validSlots.map((s: Slot, i: number) =>
+  `<p style="margin:0 0 6px;font-size:14px;color:#1e293b;padding:8px 12px;background:#f5f3ff;border-radius:6px;">${i + 1}. ${escapeHtml(s.date)} at ${escapeHtml(s.time)}</p>`
+).join("\n")}`
+        : `<p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>When:</strong> ${
+            dt && tm ? `${escapeHtml(dt)} at ${escapeHtml(tm)}` : dt ? escapeHtml(dt) : tm ? escapeHtml(tm) : "To be confirmed"
+          }</p>`;
 
       let html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
 <body style="margin:0;padding:0;background-color:#fafafa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
@@ -420,7 +532,7 @@ Deno.serve(async (req: Request) => {
           <td style="background-color:#fce7f3;border:1.5px solid #e9d5ff;border-radius:10px;padding:16px 20px;">
             <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:0.05em;">Interview Details</p>
             ${jTitle ? `<p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>Role:</strong> ${jTitle}</p>` : ""}
-            <p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>When:</strong> ${whenLine}</p>
+            ${timeSectionHtml}
             ${safeNote ? `<p style="margin:8px 0 0;font-size:14px;color:#374151;line-height:1.5;"><strong>Note from ${cName}:</strong><br/>${safeNote}</p>` : ""}
             ${safeTeams ? `<p style="margin:10px 0 0;font-size:14px;color:#1e293b;"><strong>Teams Link:</strong> <a href="${safeTeams}" style="color:#A21D54;">${safeTeams}</a></p>` : ""}
           </td>

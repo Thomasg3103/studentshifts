@@ -1,4 +1,6 @@
 -- 10 new features
+
+
 -- Run each block separately in Supabase SQL Editor if batching causes issues.
 
 -- ── 1. Withdraw reason on applications ───────────────────────────────────────
