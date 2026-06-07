@@ -828,7 +828,7 @@ $$;
 -- Atomically appends a day to jobs.filled_shifts, or fills all shifts when p_day is NULL.
 -- FOR UPDATE lock prevents the concurrent same-shift double-hire race condition (R3-H30).
 -- Called only by the hire-applicant Edge Function (service role).
-CREATE OR REPLACE FUNCTION add_filled_shift(p_job_id uuid, p_day text)
+CREATE OR REPLACE FUNCTION add_filled_shift(p_job_id bigint, p_day text)
 RETURNS TABLE(new_filled text[], all_filled boolean)
 LANGUAGE plpgsql SECURITY DEFINER AS $$
 DECLARE
@@ -873,7 +873,7 @@ RETURNS TABLE (
   notify_student_ids    uuid[],
   all_shifts_filled     boolean,
   new_filled_shifts     text[],
-  out_job_id            uuid,
+  out_job_id            bigint,
   out_job_title         text
 )
 LANGUAGE plpgsql SECURITY DEFINER AS $$
@@ -990,7 +990,8 @@ $$;
 -- F5: Cascades to applications, chat_messages, liked_jobs (no DB-level FK CASCADE).
 -- S14: Blocks deletion if any applicant has been Accepted (hired) for this job.
 DROP FUNCTION IF EXISTS delete_job_cascade(uuid);
-CREATE FUNCTION delete_job_cascade(p_job_id uuid)
+DROP FUNCTION IF EXISTS delete_job_cascade(bigint);
+CREATE FUNCTION delete_job_cascade(p_job_id bigint)
 RETURNS void LANGUAGE plpgsql SECURITY DEFINER AS $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM jobs WHERE id = p_job_id AND company_id = auth.uid()) THEN
@@ -1003,8 +1004,8 @@ BEGIN
   DELETE FROM liked_jobs    WHERE job_id = p_job_id;
   DELETE FROM applications  WHERE job_id = p_job_id;
   DELETE FROM jobs          WHERE id = p_job_id;
-  INSERT INTO audit_log (actor_id, action, target_id)
-    VALUES (auth.uid(), 'delete_job', p_job_id);
+  INSERT INTO audit_log (actor_id, action, metadata)
+    VALUES (auth.uid(), 'delete_job', jsonb_build_object('job_id', p_job_id));
 END;
 $$;
 
@@ -1578,8 +1579,8 @@ LIMIT 25;
 
 DROP FUNCTION IF EXISTS get_job_applicant_counts(uuid[]);
 DROP FUNCTION IF EXISTS get_job_applicant_counts(bigint[]);
-CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids uuid[])
-RETURNS TABLE(job_id uuid, applicant_count bigint)
+CREATE OR REPLACE FUNCTION get_job_applicant_counts(job_ids bigint[])
+RETURNS TABLE(job_id bigint, applicant_count bigint)
 LANGUAGE plpgsql SECURITY DEFINER STABLE AS $$
 BEGIN
   IF auth.uid() IS NULL THEN
