@@ -1456,13 +1456,15 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
 
   return (
     <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.75rem" }}>My Location</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
+        <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: 0 }}>My Location</p>
+        <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ padding: "0.3rem 0.6rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.7rem", cursor: locationLoading ? "not-allowed" : "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+          {locationLoading ? "Getting…" : "📡 GPS"}
+        </button>
+      </div>
       <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.85rem", lineHeight: 1.4 }}>
         Set your address so we can show job distances. Never shared publicly.
       </p>
-      <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ width: "100%", padding: "0.55rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.85rem", cursor: locationLoading ? "not-allowed" : "pointer", fontFamily: "inherit", marginBottom: "0.75rem" }}>
-        {locationLoading ? "Getting location…" : "📡 Use my current GPS location"}
-      </button>
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
         <input
           aria-label="Enter Eircode or address"
