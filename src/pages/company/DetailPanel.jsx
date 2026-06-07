@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, lazy, Suspense } from "react";
+﻿import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { supabaseImg } from "../../utils/img";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
@@ -254,21 +254,21 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
       >
         {/* Header */}
         <div style={{ padding: "1.25rem 1.5rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "flex-start", gap: "0.85rem", flexShrink: 0 }}>
-          <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "var(--color-bg-surface, #f1f5f9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {applicant.profilePhoto
               ? <img loading="lazy" src={supabaseImg(applicant.profilePhoto, 88)} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               : <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
             }
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: "0 0 0.3rem", fontWeight: "700", fontSize: "0.975rem", color: "#0f172a", letterSpacing: "-0.01em" }}>{applicant.name}</p>
+            <p style={{ margin: "0 0 0.3rem", fontWeight: "700", fontSize: "0.975rem", color: "var(--color-text-primary, #0f172a)", letterSpacing: "-0.01em" }}>{applicant.name}</p>
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
               <StatusBadge status={applicant.status} />
               {reliabilityScore && (() => {
                 const lbl = reliabilityScore.label;
                 const styles = {
                   Reliable: { bg: "#dcfce7", color: "#15803d", border: "#86efac" },
-                  New:      { bg: "#f1f5f9", color: "#64748b", border: "#cbd5e1" },
+                  New:      { bg: "#f1f5f9", color: "var(--color-text-secondary, #64748b)", border: "#cbd5e1" },
                   Flagged:  { bg: "#fee2e2", color: "#b91c1c", border: "#fca5a5" },
                 };
                 const s = styles[lbl] || styles.New;
@@ -279,7 +279,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                 );
               })()}
               {applicant.preferredShift && (
-                <span style={{ fontSize: "0.72rem", color: "#64748b" }}>{applicant.preferredShift}</span>
+                <span style={{ fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>{applicant.preferredShift}</span>
               )}
             </div>
           </div>
@@ -338,7 +338,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               </div>
               {applicant.transport?.length > 0 && (
                 <div style={{ marginTop: "0.5rem" }}>
-                  <p style={{ margin: "0 0 0.3rem", fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Transport</p>
+                  <p style={{ margin: "0 0 0.3rem", fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Transport</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
                     {applicant.transport.map(t => <span key={t} className="badge badge-sm badge-gray">{t}</span>)}
                   </div>
@@ -348,16 +348,16 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                 <div style={{ display: "flex", gap: "0.75rem", marginTop: "0.5rem", flexWrap: "wrap" }}>
                   {applicant.workExperience && (
                     <div>
-                      <p style={{ margin: "0 0 0.15rem", fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Experience</p>
-                      <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: "600", color: "#374151" }}>
+                      <p style={{ margin: "0 0 0.15rem", fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Experience</p>
+                      <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: "600", color: "var(--color-text-body, #374151)" }}>
                         {{ none: "None", under1: "Under 1 yr", "1to3": "1–3 yrs", "3plus": "3+ yrs" }[applicant.workExperience] || applicant.workExperience}
                       </p>
                     </div>
                   )}
                   {applicant.canStart && (
                     <div>
-                      <p style={{ margin: "0 0 0.15rem", fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em" }}>Can start</p>
-                      <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: "600", color: "#374151" }}>
+                      <p style={{ margin: "0 0 0.15rem", fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.04em" }}>Can start</p>
+                      <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: "600", color: "var(--color-text-body, #374151)" }}>
                         {{ immediately: "Immediately", "1week": "Within 1 wk", "2weeks": "Within 2 wks", "1month": "Within 1 mo" }[applicant.canStart] || applicant.canStart}
                       </p>
                     </div>
@@ -395,7 +395,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "0.55rem 0.85rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", backgroundColor: profileOpen ? "var(--color-bg-surface, #f8fafc)" : "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "700", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
             >
               <span>{profileOpen ? "Hide Profile" : "View Profile"}</span>
-              <span style={{ fontSize: "0.7rem", color: "#64748b" }}>{profileOpen ? "▲" : "▼"}</span>
+              <span style={{ fontSize: "0.7rem", color: "var(--color-text-secondary, #64748b)" }}>{profileOpen ? "▲" : "▼"}</span>
             </button>
           )}
 
@@ -414,13 +414,13 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                     <span key={s} className="badge badge-sm badge-blue">{s}</span>
                   ))}
                 </div>
-              ) : <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b", fontStyle: "italic" }}>Not listed</p>}
+              ) : <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)", fontStyle: "italic" }}>Not listed</p>}
             </Section>
 
             <Section label="LinkedIn">
               {applicant.linkedin && /^https?:\/\//i.test(applicant.linkedin)
                 ? <a href={applicant.linkedin} target="_blank" rel="noreferrer" style={{ fontSize: "0.85rem", color: "#0a66c2", fontWeight: "600", textDecoration: "underline", display: "flex", alignItems: "center", gap: "0.3rem" }}>🔗 View LinkedIn Profile</a>
-                : <p style={{ margin: 0, fontSize: "0.85rem", color: "#64748b", fontStyle: "italic" }}>Not provided</p>
+                : <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)", fontStyle: "italic" }}>Not provided</p>
               }
             </Section>
 
@@ -454,7 +454,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
               rows={3}
               maxLength={4000}
               autoComplete="off"
-              style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.5, color: "#374151" }}
+              style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", lineHeight: 1.5, color: "var(--color-text-body, #374151)" }}
             />
             <div style={{ textAlign: "right", fontSize: "0.72rem", color: notes.length >= 3800 ? "#ef4444" : "#64748b", marginTop: "0.2rem" }}>{notes.length}/4000</div>
           </Section>
@@ -468,7 +468,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                 <Section label="Interview Schedule">
                   <div style={{ padding: "0.6rem 0.85rem", backgroundColor: "#f0fdf4", border: "1.5px solid #bbf7d0", borderRadius: "0.6rem" }}>
                     <p style={{ margin: 0, fontSize: "0.72rem", fontWeight: "800", color: "#16a34a", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.2rem" }}>Student Confirmed</p>
-                    <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "700", color: "#1e293b" }}>{dp} at {tp.slice(0, 5)}</p>
+                    <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "700", color: "var(--color-text-primary, #1e293b)" }}>{dp} at {tp.slice(0, 5)}</p>
                   </div>
                 </Section>
               );
@@ -480,7 +480,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
                     {interviewSlots.map((s, i) => {
                       const [dp, tp = ""] = s.slot_time.split("T");
-                      return <p key={s.id} style={{ margin: 0, fontSize: "0.78rem", color: "#374151" }}>{i + 1}. {dp} at {tp.slice(0, 5)}</p>;
+                      return <p key={s.id} style={{ margin: 0, fontSize: "0.78rem", color: "var(--color-text-body, #374151)" }}>{i + 1}. {dp} at {tp.slice(0, 5)}</p>;
                     })}
                   </div>
                 </div>

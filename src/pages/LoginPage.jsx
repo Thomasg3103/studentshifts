@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
@@ -73,7 +73,7 @@ export default function LoginPage() {
         <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
           <div style={{ marginBottom: "1.75rem" }}>
             <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Reset password</h1>
-            <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>
+            <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>
               {resetSent ? "Check your email for a reset link." : "Enter your email and we'll send you a reset link."}
             </p>
           </div>
@@ -137,7 +137,7 @@ export default function LoginPage() {
 
         <div style={{ marginBottom: "1.75rem" }}>
           <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Welcome back</h1>
-          <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Sign in to find your next shift</p>
+          <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>Sign in to find your next shift</p>
         </div>
 
         {error && (
@@ -173,7 +173,7 @@ export default function LoginPage() {
             type="button"
             aria-label={showPassword ? "Hide password" : "Show password"}
             onClick={() => setShowPassword(p => !p)}
-            style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", padding: 0, cursor: "pointer", color: "#64748b", fontSize: "1.1rem", lineHeight: 1, minWidth: "44px", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}
+            style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--color-text-secondary, #64748b)", fontSize: "1.1rem", lineHeight: 1, minWidth: "44px", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
             {showPassword ? "🙈" : "👁"}
           </button>
@@ -193,7 +193,7 @@ export default function LoginPage() {
         </button>
         <button onClick={() => setPage("studentDashboard")} style={btnHome}>← Back to Home</button>
 
-        <p style={{ marginTop: "1.25rem", fontSize: "0.875rem", color: "#64748b" }}>
+        <p style={{ marginTop: "1.25rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)" }}>
           Don't have an account?{" "}
           <span style={{ color: "var(--color-brand)", cursor: "pointer", fontWeight: "700" }} onClick={() => setPage("signup")}>
             Create one free
@@ -209,5 +209,5 @@ const fieldStyle = { width: "100%", padding: "0.72rem 1rem", margin: "0.4rem 0",
 const srOnly     = { position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", marginTop: "0.6rem", fontSize: "0.95rem", fontFamily: "inherit" };
 const btnPrimary = { ...btnBase, background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)", marginTop: "1rem" };
-const btnGhost   = { ...btnBase, backgroundColor: "var(--color-bg-subtle, #fafafa)", color: "#64748b", boxShadow: "none" };
+const btnGhost   = { ...btnBase, backgroundColor: "var(--color-bg-subtle, #fafafa)", color: "var(--color-text-secondary, #64748b)", boxShadow: "none" };
 const btnHome    = { ...btnBase, marginTop: "0.75rem", background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 4px 18px rgba(244,63,94,0.35)" };

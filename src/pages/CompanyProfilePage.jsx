@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase, withTimeout } from "../lib/supabase";
@@ -55,7 +55,7 @@ export default function CompanyProfilePage() {
     return (
       <PageWrapper>
         <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <p style={{ color: "#64748b", fontWeight: "600" }}>Loading…</p>
+          <p style={{ color: "var(--color-text-secondary, #64748b)", fontWeight: "600" }}>Loading…</p>
         </div>
       </PageWrapper>
     );
@@ -67,7 +67,7 @@ export default function CompanyProfilePage() {
         <div style={{ minHeight: "60vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "0.75rem" }}>
           <div style={{ fontSize: "3rem" }}>🏢</div>
           <p style={{ fontWeight: "700", fontSize: "1.1rem", color: "var(--color-text-primary, #1e293b)", margin: 0 }}>Company not found</p>
-          <p style={{ color: "#64748b", margin: 0, fontSize: "0.9rem" }}>This company profile doesn't exist or isn't verified yet.</p>
+          <p style={{ color: "var(--color-text-secondary, #64748b)", margin: 0, fontSize: "0.9rem" }}>This company profile doesn't exist or isn't verified yet.</p>
           <button onClick={() => navigate(-1)} style={{ marginTop: "0.5rem", padding: "0.5rem 1.25rem", borderRadius: "2rem", border: "none", backgroundColor: "var(--color-brand)", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}>Go back</button>
         </div>
       </PageWrapper>
@@ -105,7 +105,7 @@ export default function CompanyProfilePage() {
           </div>
           <div style={{ padding: "1.75rem" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "1.25rem", flexWrap: "wrap" }}>
-            <div style={{ width: "64px", height: "64px", borderRadius: "0.75rem", backgroundColor: "#f1f5f9", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", flexShrink: 0 }}>🏢</div>
+            <div style={{ width: "64px", height: "64px", borderRadius: "0.75rem", backgroundColor: "var(--color-bg-surface, #f1f5f9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", flexShrink: 0 }}>🏢</div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", flexWrap: "wrap", marginBottom: "0.2rem" }}>
                 <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)", letterSpacing: "-0.02em" }}>{company.name}</h1>
@@ -113,7 +113,7 @@ export default function CompanyProfilePage() {
                   <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#854d0e", backgroundColor: "#fef9c3", borderRadius: "999px", padding: "0.2rem 0.6rem", border: "1.5px solid #fde68a" }}>⭐ Featured Employer</span>
                 )}
               </div>
-              {industryList && <p style={{ margin: "0 0 0.5rem", fontSize: "0.8rem", color: "#64748b", fontWeight: "600" }}>{industryList}</p>}
+              {industryList && <p style={{ margin: "0 0 0.5rem", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "600" }}>{industryList}</p>}
               {company.website && (
                 <a href={company.website.startsWith("http") ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.83rem", color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>
                   🔗 {company.website.replace(/^https?:\/\//, "")}
@@ -122,7 +122,7 @@ export default function CompanyProfilePage() {
             </div>
           </div>
           {company.bio && (
-            <p style={{ margin: "1.1rem 0 0", fontSize: "0.9rem", color: "#374151", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{company.bio}</p>
+            <p style={{ margin: "1.1rem 0 0", fontSize: "0.9rem", color: "var(--color-text-body, #374151)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{company.bio}</p>
           )}
           </div>
         </div>
@@ -131,13 +131,13 @@ export default function CompanyProfilePage() {
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem", marginBottom: "1.5rem" }}>
           <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
             <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)" }}>{jobs.length}</p>
-            <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>Active Jobs</p>
+            <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "600" }}>Active Jobs</p>
           </div>
           <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
             <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)" }}>
               {hireStats ? hireStats.total_hired : "—"}
             </p>
-            <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>Total Hired</p>
+            <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "600" }}>Total Hired</p>
             {hireStats?.hired_this_month > 0 && (
               <p style={{ margin: "0.2rem 0 0", fontSize: "0.65rem", color: "#16a34a", fontWeight: "700" }}>+{hireStats.hired_this_month} this month</p>
             )}
@@ -146,9 +146,9 @@ export default function CompanyProfilePage() {
             {responseRate && responseRate.total_received > 0 ? (
               <>
                 <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)" }}>{responseRate.response_rate_pct}%</p>
-                <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>Response Rate</p>
+                <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "600" }}>Response Rate</p>
                 {responseRate.avg_hours !== null && (
-                  <p style={{ margin: "0.2rem 0 0", fontSize: "0.65rem", color: "#64748b" }}>
+                  <p style={{ margin: "0.2rem 0 0", fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)" }}>
                     avg {responseRate.avg_hours < 1
                       ? `${Math.round(responseRate.avg_hours * 60)}m`
                       : `${responseRate.avg_hours}h`}
@@ -173,7 +173,7 @@ export default function CompanyProfilePage() {
         {/* Active jobs */}
         <h2 style={{ margin: "0 0 1rem", fontSize: "1.05rem", fontWeight: "700", color: "var(--color-text-primary, #0f172a)" }}>Open Positions ({jobs.length})</h2>
         {jobs.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "2.5rem 1rem", backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "0.85rem", border: "1.5px solid #e2e8f0", color: "#64748b" }}>
+          <div style={{ textAlign: "center", padding: "2.5rem 1rem", backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "0.85rem", border: "1.5px solid #e2e8f0", color: "var(--color-text-secondary, #64748b)" }}>
             <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📋</div>
             <p style={{ margin: 0, fontWeight: "600" }}>No open positions right now</p>
             <p style={{ margin: "0.25rem 0 0", fontSize: "0.85rem" }}>Check back soon — new shifts are posted regularly.</p>
@@ -194,7 +194,7 @@ export default function CompanyProfilePage() {
                       <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #0f172a)" }}>{job.title}</p>
                       {job.is_urgent && <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "#dc2626", backgroundColor: "#fee2e2", borderRadius: "999px", padding: "0.1rem 0.5rem" }}>Urgent</span>}
                     </div>
-                    <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "#64748b" }}>
+                    <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)" }}>
                       📍 {job.location} &nbsp;·&nbsp; 💰 {job.pay} &nbsp;·&nbsp; {job.category}
                     </p>
                     {job.days?.length > 0 && (

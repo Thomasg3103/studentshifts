@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useApp } from "../context/AppContext";
 
@@ -43,19 +43,19 @@ export default function CompanyOnboardingBanner({ onPostJob }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="company-onboarding-title"
-        style={{ backgroundColor: "white", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "420px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)", textAlign: "center" }}
+        style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "420px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)", textAlign: "center" }}
       >
         <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>🎉</div>
-        <h2 id="company-onboarding-title" style={{ margin: "0 0 0.5rem", fontWeight: 800, fontSize: "1.4rem", color: "#1e293b" }}>
+        <h2 id="company-onboarding-title" style={{ margin: "0 0 0.5rem", fontWeight: 800, fontSize: "1.4rem", color: "var(--color-text-primary, #1e293b)" }}>
           You're approved, {currentUser?.name?.split(" ")[0] || "there"}!
         </h2>
-        <p style={{ margin: "0 0 0.75rem", fontSize: "0.9rem", color: "#64748b", lineHeight: 1.65 }}>
+        <p style={{ margin: "0 0 0.75rem", fontSize: "0.9rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.65 }}>
           Your company account has been verified. You can now post jobs and start connecting with students.
         </p>
 
         <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #86efac", borderRadius: "0.75rem", padding: "0.85rem 1rem", marginBottom: "1.5rem", textAlign: "left" }}>
           <p style={{ margin: "0 0 0.4rem", fontWeight: 700, fontSize: "0.875rem", color: "#15803d" }}>Get started in 3 steps:</p>
-          <ol style={{ margin: 0, paddingLeft: "1.2rem", fontSize: "0.85rem", color: "#374151", lineHeight: 1.7 }}>
+          <ol style={{ margin: 0, paddingLeft: "1.2rem", fontSize: "0.85rem", color: "var(--color-text-body, #374151)", lineHeight: 1.7 }}>
             <li>Post your first job listing</li>
             <li>Review applicants in your pipeline</li>
             <li>Accept students and start chatting</li>
@@ -71,7 +71,7 @@ export default function CompanyOnboardingBanner({ onPostJob }) {
           </button>
           <button
             onClick={dismiss}
-            style={{ background: "none", border: "none", color: "#64748b", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", padding: "0.4rem" }}
+            style={{ background: "none", border: "none", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", padding: "0.4rem" }}
           >
             Explore dashboard first
           </button>

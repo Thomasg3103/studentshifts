@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const NOW     = new Date();
@@ -71,7 +71,7 @@ function StepCol({ label, display, onInc, onDec, wide = false, color = "#7c3aed"
         textAlign: "center",
         fontSize: wide ? "1.6rem" : "2rem",
         fontWeight: "800",
-        color: "#1e293b",
+        color: "var(--color-text-primary, #1e293b)",
         lineHeight: 1.15,
         padding: "0.1rem 0",
       }}>
@@ -129,7 +129,7 @@ export function TimeWheelPicker({ value = "", onSave }) {
   const inputStyle = {
     width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.45rem",
     border: "1.5px solid #e2e8f0", fontSize: "0.9rem", fontFamily: "inherit",
-    boxSizing: "border-box", color: "#374151", textAlign: "center",
+    boxSizing: "border-box", color: "var(--color-text-body, #374151)", textAlign: "center",
   };
 
   return (
@@ -180,7 +180,7 @@ export function DateStepper({ value = "", onSave }) {
   const inputStyle = {
     width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.45rem",
     border: "1.5px solid #e2e8f0", fontSize: "0.9rem", fontFamily: "inherit",
-    boxSizing: "border-box", color: "#374151",
+    boxSizing: "border-box", color: "var(--color-text-body, #374151)",
   };
 
   return (

@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { supabaseImg } from "../../utils/img";
@@ -31,11 +31,11 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.5)", zIndex: 1200 }} />
-      <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Close Job" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1201, backgroundColor: "white", borderRadius: "1rem", padding: "1.75rem", width: "min(420px,90vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
+      <div ref={modalRef} role="dialog" aria-modal="true" aria-label="Close Job" style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1201, backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", padding: "1.75rem", width: "min(420px,90vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
 
         {mode === null && (<>
-          <h3 style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.1rem", color: "#1e293b" }}>Close this Job</h3>
-          <p style={{ margin: "0 0 1.25rem", fontSize: "0.85rem", color: "#64748b" }}>How did this hiring process end?</p>
+          <h3 style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.1rem", color: "var(--color-text-primary, #1e293b)" }}>Close this Job</h3>
+          <p style={{ margin: "0 0 1.25rem", fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)" }}>How did this hiring process end?</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
             <button onClick={() => setMode("found")} style={closeOptBtn("var(--color-brand)", "#fce7f3", "#fce7f3")}>
               <span style={{ fontWeight: "700" }}>Found a Student</span>
@@ -47,7 +47,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
             </button>
             <button onClick={() => confirm({ foundStudent: false, closeReason: "no_longer_needed" })} disabled={confirming} style={closeOptBtn("#64748b", "#f8fafc", "#e2e8f0")}>
               <span style={{ fontWeight: "700" }}>Job No Longer Needed</span>
-              <span style={{ fontSize: "0.75rem", color: "#64748b" }}>Position was cancelled or filled internally</span>
+              <span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>Position was cancelled or filled internally</span>
             </button>
           </div>
           <button onClick={onClose} style={{ marginTop: "1rem", width: "100%", padding: "0.55rem", borderRadius: "0.5rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
@@ -55,10 +55,10 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
 
         {mode === "found" && (<>
           <button onClick={() => setMode(null)} style={{ background: "none", border: "none", color: "var(--color-brand)", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit", padding: 0, marginBottom: "0.75rem" }}>← Back</button>
-          <h3 style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Who did you hire?</h3>
-          <p style={{ margin: "0 0 1rem", fontSize: "0.82rem", color: "#64748b" }}>They'll get an acceptance email. Everyone else will be declined.</p>
+          <h3 style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.05rem", color: "var(--color-text-primary, #1e293b)" }}>Who did you hire?</h3>
+          <p style={{ margin: "0 0 1rem", fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)" }}>They'll get an acceptance email. Everyone else will be declined.</p>
           {decisionApplicants.length === 0 ? (
-            <p style={{ fontSize: "0.85rem", color: "#64748b", fontStyle: "italic", marginBottom: "1rem" }}>No applicants in the Decision stage yet — advance candidates first.</p>
+            <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)", fontStyle: "italic", marginBottom: "1rem" }}>No applicants in the Decision stage yet — advance candidates first.</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1rem" }}>
               {decisionApplicants.map(a => (
@@ -79,7 +79,7 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
                       : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
                     }
                   </div>
-                  <span style={{ fontWeight: "600", fontSize: "0.875rem", color: "#1e293b" }}>{a.name}</span>
+                  <span style={{ fontWeight: "600", fontSize: "0.875rem", color: "var(--color-text-primary, #1e293b)" }}>{a.name}</span>
                   {winner?.id === a.id && <span style={{ marginLeft: "auto", color: "var(--color-brand)", fontSize: "0.9rem" }}>✓</span>}
                 </button>
               ))}

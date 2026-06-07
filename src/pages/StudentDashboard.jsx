@@ -982,7 +982,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                   <>
                     <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>🔍</div>
                     <p style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>No jobs match your filters</p>
-                    <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem", color: "#6b7280" }}>
+                    <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem", color: "var(--color-text-secondary, #6b7280)" }}>
                       {firstBlockingFilter
                         ? <><strong style={{ color: "var(--color-text-body, #374151)" }}>{firstBlockingFilter}</strong> has no matches — try widening it.</>
                         : "Try removing some filters."}
@@ -995,7 +995,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                   <>
                     <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>📋</div>
                     <p style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: "0.4rem" }}>No jobs available right now</p>
-                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>Check back soon — new shifts are posted regularly.</p>
+                    <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #6b7280)" }}>Check back soon — new shifts are posted regularly.</p>
                   </>
                 )}
               </div>
@@ -1062,7 +1062,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                           })}
                         </div>
                         {(job.filledShifts || []).length > 0 && (
-                          <p style={{ margin: "0.25rem 0 0", fontSize: isPhone ? "0.68rem" : "0.75rem", color: "#6b7280", fontWeight: 500 }}>
+                          <p style={{ margin: "0.25rem 0 0", fontSize: isPhone ? "0.68rem" : "0.75rem", color: "var(--color-text-secondary, #6b7280)", fontWeight: 500 }}>
                             {job.filledShifts.length} of {job.days.length} shift{job.days.length !== 1 ? "s" : ""} filled
                           </p>
                         )}

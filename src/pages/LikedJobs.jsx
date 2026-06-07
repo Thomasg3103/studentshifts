@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
@@ -26,12 +26,12 @@ export default function LikedJobs() {
     <BackButton />
     <PageWrapper>
       <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
-        <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>❤️ Liked Jobs</h1>
-        <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Jobs you've saved for later</p>
+        <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "var(--color-text-primary, #1e293b)" }}>❤️ Liked Jobs</h1>
+        <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>Jobs you've saved for later</p>
       </div>
 
       {likedJobs.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #6b7280)" }}>
           <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>❤️</p>
           <p style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "0.4rem" }}>No liked jobs yet</p>
           <p style={{ fontSize: "0.875rem", marginBottom: "1.5rem" }}>Browse available jobs and like the ones that interest you.</p>
@@ -74,7 +74,7 @@ export default function LikedJobs() {
                         <button aria-label={`Remove ${job.title} from liked jobs`} onClick={() => removeLike(job)} style={btnRed}>Unsave</button>
                       </div>
                     </div>
-                    <p style={{ color: "#6b7280", marginBottom: "0.15rem", fontSize: "0.85rem" }}>{job.company} · {job.location}</p>
+                    <p style={{ color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.15rem", fontSize: "0.85rem" }}>{job.company} · {job.location}</p>
                     <p style={{ fontWeight: "700", color: isClosed ? "#64748b" : "#111827", marginBottom: "0.4rem", fontSize: "0.9rem" }}>{job.pay}</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: (!isClosed && !isApplied) ? "0.5rem" : 0 }}>
                       {(job.days || []).map(day => (
@@ -97,7 +97,7 @@ export default function LikedJobs() {
                       <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#10b981" }}>✅ Applied</span>
                     )}
                     {isClosed && (
-                      <span style={{ fontSize: "0.75rem", color: "#64748b", fontWeight: 600 }}>
+                      <span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600 }}>
                         {job.status === "Expired" ? "This listing has expired" : "This position has been filled"}
                       </span>
                     )}

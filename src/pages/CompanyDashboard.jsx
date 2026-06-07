@@ -596,8 +596,8 @@ export default function CompanyDashboard() {
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem", gap: "1rem", flexWrap: "wrap" }}>
         <div>
-          <p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>Company Dashboard</p>
-          <h1 style={{ fontSize: "1.65rem", fontWeight: "800", margin: 0, color: "#0f172a", letterSpacing: "-0.02em" }}>{currentUser?.name || "Company"}</h1>
+          <p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Company Dashboard</p>
+          <h1 style={{ fontSize: "1.65rem", fontWeight: "800", margin: 0, color: "var(--color-text-primary, #0f172a)", letterSpacing: "-0.02em" }}>{currentUser?.name || "Company"}</h1>
         </div>
         {isVerified && activeTab === "jobs" && <button onClick={openCreate} style={{ ...btnGreen, borderRadius: "2rem", padding: "0.55rem 1.4rem", fontSize: "0.9rem" }}>+ New Job</button>}
       </div>
@@ -668,8 +668,8 @@ export default function CompanyDashboard() {
         <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.25rem", marginBottom: "1.5rem" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showHeatmap ? "1rem" : 0 }}>
             <div>
-              <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#1e293b" }}>Student Availability</p>
-              <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>When verified students are free — use this to plan your job times</p>
+              <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "var(--color-text-primary, #1e293b)" }}>Student Availability</p>
+              <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>When verified students are free — use this to plan your job times</p>
             </div>
             <button onClick={() => setShowHeatmap(p => !p)} style={{ padding: "0.35rem 0.85rem", borderRadius: "0.5rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
               {showHeatmap ? "Hide" : "Show"}
@@ -720,16 +720,16 @@ export default function CompanyDashboard() {
       {activeTab === "templates" && (
         <div>
           <div style={{ marginBottom: "1.25rem" }}>
-            <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "#0f172a" }}>Job Templates</p>
-            <p style={{ margin: "0.2rem 0 0", fontSize: "0.83rem", color: "#64748b" }}>Save a job posting as a template to repost it in one click — great for recurring shifts.</p>
+            <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #0f172a)" }}>Job Templates</p>
+            <p style={{ margin: "0.2rem 0 0", fontSize: "0.83rem", color: "var(--color-text-secondary, #64748b)" }}>Save a job posting as a template to repost it in one click — great for recurring shifts.</p>
           </div>
           {!templatesLoaded ? (
-            <p style={{ fontSize: "0.875rem", color: "#64748b", textAlign: "center", padding: "2rem 0" }}>Loading…</p>
+            <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", textAlign: "center", padding: "2rem 0" }}>Loading…</p>
           ) : templates.length === 0 ? (
             <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📋</div>
-              <p style={{ fontWeight: "700", color: "#1e293b", marginBottom: "0.25rem" }}>No templates yet</p>
-              <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1.25rem" }}>Click "Save as Template" on any job posting to save it here.</p>
+              <p style={{ fontWeight: "700", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.25rem" }}>No templates yet</p>
+              <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1.25rem" }}>Click "Save as Template" on any job posting to save it here.</p>
               <button onClick={() => setActiveTab("jobs")} style={{ padding: "0.5rem 1.25rem", borderRadius: "2rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}>Go to My Jobs →</button>
             </div>
           ) : (
@@ -737,8 +737,8 @@ export default function CompanyDashboard() {
               {templates.map(t => (
                 <div key={t.id} style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "0.85rem 1rem", display: "flex", alignItems: "center", gap: "0.85rem", justifyContent: "space-between", flexWrap: "wrap" }}>
                   <div>
-                    <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#0f172a" }}>{t.name}</p>
-                    <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>
+                    <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "var(--color-text-primary, #0f172a)" }}>{t.name}</p>
+                    <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>
                       {t.data?.category || ""}
                       {t.data?.location ? ` · ${t.data.location}` : ""}
                       {t.data?.pay ? ` · ${t.data.pay}` : ""}
@@ -772,16 +772,16 @@ export default function CompanyDashboard() {
       {activeTab === "talent" && (
         <div>
           <div style={{ marginBottom: "1.25rem" }}>
-            <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "#0f172a" }}>Talent Pool</p>
-            <p style={{ margin: "0.2rem 0 0", fontSize: "0.83rem", color: "#64748b" }}>Students you've previously hired — easy to re-engage for future shifts.</p>
+            <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #0f172a)" }}>Talent Pool</p>
+            <p style={{ margin: "0.2rem 0 0", fontSize: "0.83rem", color: "var(--color-text-secondary, #64748b)" }}>Students you've previously hired — easy to re-engage for future shifts.</p>
           </div>
           {!talentPoolLoaded ? (
-            <p style={{ fontSize: "0.875rem", color: "#64748b", textAlign: "center", padding: "2rem 0" }}>Loading…</p>
+            <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", textAlign: "center", padding: "2rem 0" }}>Loading…</p>
           ) : talentPool.length === 0 ? (
             <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>👥</div>
-              <p style={{ fontWeight: "700", color: "#1e293b", marginBottom: "0.25rem" }}>No hired students yet</p>
-              <p style={{ fontSize: "0.85rem", color: "#64748b" }}>Students you hire will appear here so you can quickly re-hire them.</p>
+              <p style={{ fontWeight: "700", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.25rem" }}>No hired students yet</p>
+              <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)" }}>Students you hire will appear here so you can quickly re-hire them.</p>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
@@ -849,7 +849,7 @@ export default function CompanyDashboard() {
           <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "#fff1f2", borderRadius: "1rem", border: "1.5px solid #fca5a5" }}>
             <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>⚠️</div>
             <p style={{ fontWeight: "700", color: "#b91c1c", fontSize: "1rem", marginBottom: "0.4rem" }}>Couldn't load your job postings</p>
-            <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.25rem" }}>Check your connection and try again.</p>
+            <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1.25rem" }}>Check your connection and try again.</p>
             <button
               onClick={() => { setLoadError(false); setLoading(true); setLoadRetryKey(k => k + 1); }}
               style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", border: "none", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
@@ -858,8 +858,8 @@ export default function CompanyDashboard() {
         ) : postings.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1rem", color: "var(--color-text-secondary, #6b7280)", backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)" }}>
             <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>ðŸ"‹</div>
-            <p style={{ fontSize: "1.15rem", fontWeight: "700", color: "#1e293b", marginBottom: "0.4rem" }}>No job postings yet</p>
-            <p style={{ marginBottom: "1.75rem", fontSize: "0.9rem", color: "#64748b" }}>
+            <p style={{ fontSize: "1.15rem", fontWeight: "700", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.4rem" }}>No job postings yet</p>
+            <p style={{ marginBottom: "1.75rem", fontSize: "0.9rem", color: "var(--color-text-secondary, #64748b)" }}>
               {isVerified ? "Create your first posting to start receiving applicants." : "Your account must be verified before you can post jobs."}
             </p>
             {isVerified && <button onClick={openCreate} style={{ ...btnGreen, borderRadius: "2rem", padding: "0.55rem 1.4rem" }}>+ Create Job Posting</button>}
@@ -906,8 +906,8 @@ export default function CompanyDashboard() {
             {/* Header */}
             <div style={{ height: "60px", padding: "0 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: "1rem" }}>
               <div style={{ display: "flex", alignItems: "baseline", gap: "0.65rem", flex: 1, minWidth: 0 }}>
-                <h2 id="applicants-modal-title" style={{ margin: 0, fontWeight: "700", fontSize: "1.05rem", color: "#0f172a", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>{activePosting.title}</h2>
-                <span style={{ fontSize: "0.78rem", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.location} Â· {activePosting.pay}</span>
+                <h2 id="applicants-modal-title" style={{ margin: 0, fontWeight: "700", fontSize: "1.05rem", color: "var(--color-text-primary, #0f172a)", letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>{activePosting.title}</h2>
+                <span style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.location} Â· {activePosting.pay}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
                 {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (

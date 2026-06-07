@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import * as Sentry from "@sentry/react";
@@ -159,14 +159,14 @@ function InterviewSlotPicker({ applicationId }) {
           <p style={{ margin: "0 0 0.5rem", fontSize: "0.8rem", fontWeight: "700", color: "#92400e" }}>
             Confirm this time?
           </p>
-          <p style={{ margin: "0 0 0.6rem", fontSize: "0.82rem", color: "#1e293b", fontWeight: "600" }}>
+          <p style={{ margin: "0 0 0.6rem", fontSize: "0.82rem", color: "var(--color-text-primary, #1e293b)", fontWeight: "600" }}>
             {formatSlot(pendingSlot.slot_time)}
           </p>
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <button
               onClick={() => setPending(null)}
               disabled={confirming}
-              style={{ flex: 1, padding: "0.45rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#374151", fontWeight: "600", fontSize: "0.78rem", cursor: confirming ? "default" : "pointer", fontFamily: "inherit" }}
+              style={{ flex: 1, padding: "0.45rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.78rem", cursor: confirming ? "default" : "pointer", fontFamily: "inherit" }}
             >
               Cancel
             </button>
@@ -206,12 +206,12 @@ function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, 
         aria-labelledby="confirm-dialog-title"
         style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "1.75rem 1.5rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
       >
-        <h3 id="confirm-dialog-title" style={{ fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.4rem", color: "#1e293b" }}>{title}</h3>
-        <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1.5rem", lineHeight: 1.55 }}>{message}</p>
+        <h3 id="confirm-dialog-title" style={{ fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.4rem", color: "var(--color-text-primary, #1e293b)" }}>{title}</h3>
+        <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", margin: "0 0 1.5rem", lineHeight: 1.55 }}>{message}</p>
         <div style={{ display: "flex", gap: "0.75rem" }}>
           <button
             onClick={onCancel}
-            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
+            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
           >
             Keep Application
           </button>
@@ -257,7 +257,7 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, applicatio
         <div style={{ flex: 1, padding: "0.85rem 1rem", minWidth: 0 }}>
           {/* Title row */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.15rem" }}>
-            <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "#1e293b" }}>{job.title}</h2>
+            <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "var(--color-text-primary, #1e293b)" }}>{job.title}</h2>
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexShrink: 0 }}>
               <span className={`badge badge-sm ${s.cls}`} style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>
                 {s.icon} {s.label}
@@ -266,11 +266,11 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, applicatio
             </div>
           </div>
 
-          <p style={{ color: "#6b7280", fontSize: "0.82rem", margin: "0 0 0.1rem" }}>{job.company} · {job.location}</p>
-          <p style={{ fontWeight: "700", color: "#111827", margin: "0 0 0.3rem", fontSize: "0.88rem" }}>{job.pay}</p>
+          <p style={{ color: "var(--color-text-secondary, #6b7280)", fontSize: "0.82rem", margin: "0 0 0.1rem" }}>{job.company} · {job.location}</p>
+          <p style={{ fontWeight: "700", color: "var(--color-text-primary, #111827)", margin: "0 0 0.3rem", fontSize: "0.88rem" }}>{job.pay}</p>
 
           {preferredShift && status === "Pending" && (
-            <p style={{ fontSize: "0.72rem", color: "#6b7280", margin: "0 0 0.3rem" }}>
+            <p style={{ fontSize: "0.72rem", color: "var(--color-text-secondary, #6b7280)", margin: "0 0 0.3rem" }}>
               Shift: <strong>{preferredShift}</strong>
             </p>
           )}
@@ -401,12 +401,12 @@ export default function AppliedJobs() {
     <BackButton />
     <PageWrapper>
       <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
-        <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>✅ Applied Jobs</h1>
-        <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Track your applications and hear back from employers</p>
+        <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "var(--color-text-primary, #1e293b)" }}>✅ Applied Jobs</h1>
+        <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>Track your applications and hear back from employers</p>
       </div>
 
       {appliedJobs.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #6b7280)" }}>
           <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>📋</p>
           <p style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "0.4rem" }}>No applications yet</p>
           <p style={{ fontSize: "0.875rem", marginBottom: "1.5rem" }}>Find a job you like and hit Apply to get started.</p>
@@ -474,8 +474,8 @@ function WithdrawReasonDialog({ job, reason, onReasonChange, onConfirm, onCancel
         aria-labelledby="withdraw-dialog-title"
         style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "1.75rem 1.5rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}
       >
-        <h3 id="withdraw-dialog-title" style={{ fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.25rem", color: "#1e293b" }}>Withdraw application?</h3>
-        <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1rem", lineHeight: 1.55 }}>
+        <h3 id="withdraw-dialog-title" style={{ fontWeight: 800, fontSize: "1.1rem", margin: "0 0 0.25rem", color: "var(--color-text-primary, #1e293b)" }}>Withdraw application?</h3>
+        <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", margin: "0 0 1rem", lineHeight: 1.55 }}>
           {job.title} at {job.company} — why are you withdrawing?
         </p>
         <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.25rem" }}>
@@ -492,7 +492,7 @@ function WithdrawReasonDialog({ job, reason, onReasonChange, onConfirm, onCancel
         <div style={{ display: "flex", gap: "0.75rem" }}>
           <button
             onClick={onCancel}
-            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
+            style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem" }}
           >
             Keep Application
           </button>

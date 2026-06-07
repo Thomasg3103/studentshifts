@@ -1,4 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
+﻿/* eslint-disable react-refresh/only-export-components */
 /* ─── Shared constants and small utility components ─────────────────────── */
 
 export const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -15,7 +15,7 @@ export function StudentAvailabilityRow({ availability }) {
 
   return (
     <div>
-      <p style={{ fontSize: "0.7rem", fontWeight: "700", color: "#6b7280", textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 0.3rem" }}>Availability</p>
+      <p style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--color-text-secondary, #6b7280)", textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 0.3rem" }}>Availability</p>
       <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap" }}>
         {weekdays.map(day => {
           const slots = availability[day] || [];
@@ -66,8 +66,8 @@ export function StatCard({ label, value }) {
       borderRadius: "0.75rem", padding: "1rem 1.25rem",
       boxShadow: "0 1px 4px rgba(0,0,0,0.04)",
     }}>
-      <p style={{ fontSize: "0.65rem", color: "#64748b", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.4rem" }}>{label}</p>
-      <p style={{ fontSize: "1.85rem", fontWeight: "800", color: "#0f172a", margin: 0, lineHeight: 1, letterSpacing: "-0.02em" }}>{value}</p>
+      <p style={{ fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.08em", margin: "0 0 0.4rem" }}>{label}</p>
+      <p style={{ fontSize: "1.85rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)", margin: 0, lineHeight: 1, letterSpacing: "-0.02em" }}>{value}</p>
     </div>
   );
 }
@@ -75,7 +75,7 @@ export function StatCard({ label, value }) {
 export function Section({ label, children }) {
   return (
     <div>
-      <p style={{ margin: "0 0 0.5rem", fontSize: "0.65rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</p>
+      <p style={{ margin: "0 0 0.5rem", fontSize: "0.65rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</p>
       {children}
     </div>
   );
@@ -100,7 +100,7 @@ export function Modal({ title, children, onClose }) {
         }}>
         <div style={{ padding: "1.5rem 1.5rem 0", flexShrink: 0, display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
           <h2 style={{ fontWeight: "700", fontSize: "1.1rem", margin: 0 }}>{title}</h2>
-          <button aria-label={`Close ${title}`} onClick={onClose} style={{ background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer", color: "#6b7280", lineHeight: 1 }}>×</button>
+          <button aria-label={`Close ${title}`} onClick={onClose} style={{ background: "none", border: "none", fontSize: "1.4rem", cursor: "pointer", color: "var(--color-text-secondary, #6b7280)", lineHeight: 1 }}>×</button>
         </div>
         <div style={{ overflowY: "auto", flex: 1, padding: "0 1.5rem 1.5rem" }}>
           {children}
@@ -123,9 +123,9 @@ export function AvailabilityHeatmap({ data }) {
       <table style={{ borderCollapse: "collapse", fontSize: "0.65rem", width: "100%", minWidth: "480px" }}>
         <thead>
           <tr>
-            <th style={{ padding: "0 0.4rem 0.4rem 0", textAlign: "left", color: "#64748b", fontWeight: "600", minWidth: "72px" }}></th>
+            <th style={{ padding: "0 0.4rem 0.4rem 0", textAlign: "left", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", minWidth: "72px" }}></th>
             {SLOTS.map(s => (
-              <th key={s} style={{ padding: "0 2px 0.4rem", textAlign: "center", color: "#64748b", fontWeight: "600", whiteSpace: "nowrap" }}>
+              <th key={s} style={{ padding: "0 2px 0.4rem", textAlign: "center", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", whiteSpace: "nowrap" }}>
                 {s.slice(0,2)}
               </th>
             ))}
@@ -159,7 +159,7 @@ export function AvailabilityHeatmap({ data }) {
           })}
         </tbody>
       </table>
-      <p style={{ fontSize: "0.7rem", color: "#64748b", marginTop: "0.5rem", marginBottom: 0 }}>
+      <p style={{ fontSize: "0.7rem", color: "var(--color-text-secondary, #64748b)", marginTop: "0.5rem", marginBottom: 0 }}>
         Numbers show how many verified students are free at each time. Hover a cell for details.
       </p>
     </div>

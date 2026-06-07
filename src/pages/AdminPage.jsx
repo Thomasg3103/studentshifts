@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { Helmet } from "react-helmet-async";
@@ -265,13 +265,13 @@ export default function AdminPage() {
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem", gap: "1rem" }}>
           <div>
             <h1 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Admin Dashboard</h1>
-            <p style={{ margin: 0, color: "#64748b", fontSize: "0.9rem" }}>Pending verification requests</p>
+            <p style={{ margin: 0, color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>Pending verification requests</p>
           </div>
           {/* F-M10: refresh button */}
           <button
             onClick={loadData}
             disabled={loading}
-            style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#64748b", fontWeight: "600", fontSize: "0.82rem", cursor: loading ? "default" : "pointer", fontFamily: "inherit", opacity: loading ? 0.5 : 1, flexShrink: 0 }}
+            style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.82rem", cursor: loading ? "default" : "pointer", fontFamily: "inherit", opacity: loading ? 0.5 : 1, flexShrink: 0 }}
           >
             {loading ? "Loading…" : "↻ Refresh"}
           </button>
@@ -326,11 +326,11 @@ export default function AdminPage() {
 
         {tab === "featured" ? (
           <div>
-            <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "#64748b" }}>
+            <p style={{ margin: "0 0 1rem", fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)" }}>
               Featured employers get a ⭐ badge on their job cards and profile. Toggle to feature or unfeature a verified company.
             </p>
             {verifiedLoading ? (
-              <p style={{ color: "#64748b" }}>Loading…</p>
+              <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
             ) : !verifiedCompanies?.length ? (
               <EmptyState label="No verified companies yet" />
             ) : (
@@ -374,7 +374,7 @@ export default function AdminPage() {
             onTestLaunch={handleTestLaunchEmail}
           />
         ) : loading ? (
-          <p style={{ color: "#64748b" }}>Loading…</p>
+          <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
         ) : tab === "students" ? (
           students.length === 0 ? (
             <EmptyState label="No pending student requests" />
@@ -384,7 +384,7 @@ export default function AdminPage() {
                 <div key={s.id} style={cardStyle}>
                   <div style={{ marginBottom: "0.85rem" }}>
                     <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>{s.name}</p>
-                    {s.email && <p style={{ margin: "0.15rem 0 0", fontSize: "0.8rem", color: "#64748b" }}>{s.email}</p>}
+                    {s.email && <p style={{ margin: "0.15rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)" }}>{s.email}</p>}
                   </div>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
                     {s.studentIdUrl && (
@@ -431,7 +431,7 @@ export default function AdminPage() {
                   <div style={{ marginBottom: "0.85rem" }}>
                     <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>{c.name}</p>
                     {c.email && (
-                      <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "#64748b", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                      <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                         <span style={{ fontSize: "0.7rem", backgroundColor: "#dcfce7", color: "#16a34a", fontWeight: "700", padding: "0.1rem 0.45rem", borderRadius: "999px", textTransform: "uppercase", letterSpacing: "0.04em" }}>✓ Email verified</span>
                         {c.email}
                       </p>
@@ -462,7 +462,7 @@ export default function AdminPage() {
                           🔍 SoloCheck →
                         </a>
                       </div>
-                      <p style={{ margin: "0.45rem 0 0", fontSize: "0.72rem", color: "#64748b" }}>
+                      <p style={{ margin: "0.45rem 0 0", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>
                         Search the CRO number above on cro.ie and confirm the company name matches <strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{c.name}</strong>.
                       </p>
                     </div>
@@ -506,7 +506,7 @@ export default function AdminPage() {
             <p id="reject-modal-title" style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.05rem", color: "var(--color-text-primary, #1e293b)" }}>
               Reject {rejectConfirm.type === "student" ? "Student" : "Company"}?
             </p>
-            <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.5 }}>
+            <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.5 }}>
               {rejectConfirm.type === "student"
                 ? <><strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{rejectConfirm.item.name}</strong> will be notified and can re-submit their documents.</>
                 : <><strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{rejectConfirm.item.name}</strong> will need to contact support to re-apply.</>}
@@ -514,7 +514,7 @@ export default function AdminPage() {
             <div style={{ display: "flex", gap: "0.6rem", justifyContent: "flex-end" }}>
               <button
                 onClick={() => setRejectConfirm(null)}
-                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
+                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
               >
                 Cancel
               </button>
@@ -541,7 +541,7 @@ export default function AdminPage() {
 
 function EmptyState({ label }) {
   return (
-    <div style={{ textAlign: "center", padding: "3rem 0", color: "#64748b" }}>
+    <div style={{ textAlign: "center", padding: "3rem 0", color: "var(--color-text-secondary, #64748b)" }}>
       <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>✅</div>
       <p style={{ fontWeight: "600", margin: 0 }}>{label}</p>
     </div>
@@ -552,7 +552,7 @@ function SignupsPanel({ signups, loading, launchSending, testSending, onRefresh,
   const [search, setSearch] = useState("");
 
   if (loading || signups === null) {
-    return <p style={{ color: "#64748b" }}>Loading…</p>;
+    return <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>;
   }
 
   const now   = new Date();
@@ -581,7 +581,7 @@ function SignupsPanel({ signups, loading, launchSending, testSending, onRefresh,
           { label: "Not emailed", value: unsent },
         ].map(({ label, value }) => (
           <div key={label} style={{ background: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1rem 1.25rem" }}>
-            <p style={{ margin: "0 0 0.25rem", fontSize: "0.72rem", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b" }}>{label}</p>
+            <p style={{ margin: "0 0 0.25rem", fontSize: "0.72rem", fontWeight: "700", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)" }}>{label}</p>
             <p style={{ margin: 0, fontSize: "2rem", fontWeight: "800", background: "linear-gradient(135deg,var(--color-brand),#C2185B)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>{value}</p>
           </div>
         ))}
@@ -600,7 +600,7 @@ function SignupsPanel({ signups, loading, launchSending, testSending, onRefresh,
         />
         <button
           onClick={onRefresh}
-          style={{ padding: "0.55rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#64748b", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
+          style={{ padding: "0.55rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.82rem", cursor: "pointer", fontFamily: "inherit" }}
         >
           ↺ Refresh
         </button>
@@ -636,10 +636,10 @@ function SignupsPanel({ signups, loading, launchSending, testSending, onRefresh,
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ margin: 0, fontWeight: "600", fontSize: "0.875rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.name}</p>
-                  <p style={{ margin: 0, fontSize: "0.78rem", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.email}</p>
+                  <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.email}</p>
                 </div>
                 <div style={{ textAlign: "right", flexShrink: 0 }}>
-                  <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>{date}</p>
+                  <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>{date}</p>
                   {s.launch_email_sent_at && (
                     <p style={{ margin: "0.1rem 0 0", fontSize: "0.68rem", color: "#16a34a", fontWeight: "600" }}>✓ Emailed</p>
                   )}

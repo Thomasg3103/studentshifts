@@ -117,7 +117,7 @@ export function PdfModal({ url, label, fileName, onClose }) {
           )}
           {isDocx ? (
             docxLoading ? (
-              <p style={{ color: "#64748b", textAlign: "center", marginTop: "2rem" }}>Loading document…</p>
+              <p style={{ color: "var(--color-text-secondary, #64748b)", textAlign: "center", marginTop: "2rem" }}>Loading document…</p>
             ) : docxError ? (
               <p style={{ color: "#e11d48", textAlign: "center", marginTop: "2rem" }}>{docxError}</p>
             ) : (
@@ -128,7 +128,7 @@ export function PdfModal({ url, label, fileName, onClose }) {
                   FORBID_TAGS: ["script","form","iframe","object","embed","svg","math"],
                   FORBID_ATTR: ["style","action","onerror","onload","onclick","onmouseover"],
                 }) }}
-                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "0.9rem", lineHeight: 1.7, color: "#1e293b", maxWidth: "680px", margin: "0 auto", padding: "1rem" }}
+                style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontSize: "0.9rem", lineHeight: 1.7, color: "var(--color-text-primary, #1e293b)", maxWidth: "680px", margin: "0 auto", padding: "1rem" }}
               />
             )
           ) : (

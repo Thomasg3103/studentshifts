@@ -8,8 +8,8 @@ import { supabase } from "../../lib/supabase";
 
 /* ─── Local style constants (used only in JobForm) ───────────────────────── */
 
-const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "#374151", marginBottom: "0.25rem" };
-const inputStyle  = { width: "100%", padding: "0.6rem 0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "#1e293b" };
+const labelStyle = { display: "block", fontWeight: "600", fontSize: "0.875rem", color: "var(--color-text-body, #374151)", marginBottom: "0.25rem" };
+const inputStyle  = { width: "100%", padding: "0.6rem 0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", boxSizing: "border-box", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)" };
 
 const btnBase  = { padding: "0.6rem 1.1rem", borderRadius: "0.5rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.875rem", fontFamily: "inherit", letterSpacing: "-0.01em" };
 const btnGreen = { ...btnBase, backgroundColor: "#059669" };
@@ -240,7 +240,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
 
       {/* Location with geocoding */}
       <div>
-        <label htmlFor="form-location" style={labelStyle}>Location * <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem" }}>(Eircode or full address)</span></label>
+        <label htmlFor="form-location" style={labelStyle}>Location * <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem" }}>(Eircode or full address)</span></label>
         <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
           <input
             id="form-location"
@@ -264,7 +264,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         {formData.lat && formData.lng && !showManual && (
           <div style={{ backgroundColor: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: "0.5rem", padding: "0.45rem 0.75rem", marginBottom: "0.4rem" }}>
             <p style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: "700", margin: 0 }}>✓ Location pinned</p>
-            <p style={{ fontSize: "0.7rem", color: "#374151", margin: "0.15rem 0 0" }}>{formData.location}</p>
+            <p style={{ fontSize: "0.7rem", color: "var(--color-text-body, #374151)", margin: "0.15rem 0 0" }}>{formData.location}</p>
           </div>
         )}
 
@@ -273,15 +273,15 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           <p style={{ fontSize: "0.75rem", color: "#ef4444", margin: "0 0 0.3rem" }}>{locError}</p>
         )}
         {!showManual && !formData.lat && (
-          <button type="button" onClick={() => setShowManual(true)} style={{ background: "none", border: "none", padding: 0, color: "#6b7280", fontSize: "0.75rem", cursor: "pointer", textDecoration: "underline" }}>
+          <button type="button" onClick={() => setShowManual(true)} style={{ background: "none", border: "none", padding: 0, color: "var(--color-text-secondary, #6b7280)", fontSize: "0.75rem", cursor: "pointer", textDecoration: "underline" }}>
             Enter address manually instead
           </button>
         )}
 
         {/* Manual address form */}
         {showManual && (
-          <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.25rem" }}>
-            <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", marginBottom: "0.6rem" }}>Enter address manually</p>
+          <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e5e7eb)", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.25rem" }}>
+            <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-body, #374151)", marginBottom: "0.6rem" }}>Enter address manually</p>
             <input aria-label="Address line 1" value={manualLine1} onChange={e => setManualLine1(e.target.value)} placeholder="Address Line 1" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
             <input aria-label="Address line 2" value={manualLine2} onChange={e => setManualLine2(e.target.value)} placeholder="Address Line 2 (optional)" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
             <input aria-label="Town or city" value={manualCity} onChange={e => setManualCity(e.target.value)} placeholder="Town / City" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
@@ -300,7 +300,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       <div>
         <label htmlFor="form-pay" style={labelStyle}>Pay *</label>
         <div style={{ position: "relative" }}>
-          <span style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "#374151", fontWeight: "600", pointerEvents: "none" }}>€</span>
+          <span style={{ position: "absolute", left: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-body, #374151)", fontWeight: "600", pointerEvents: "none" }}>€</span>
           <input
             id="form-pay"
             type="number"
@@ -312,12 +312,12 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
             placeholder="12.50"
             style={{ ...inputStyle, paddingLeft: "1.8rem", paddingRight: "2.8rem" }}
           />
-          <span style={{ position: "absolute", right: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "#64748b", fontSize: "0.82rem", pointerEvents: "none" }}>/hr</span>
+          <span style={{ position: "absolute", right: "0.9rem", top: "50%", transform: "translateY(-50%)", color: "var(--color-text-secondary, #64748b)", fontSize: "0.82rem", pointerEvents: "none" }}>/hr</span>
         </div>
       </div>
 
       <div>
-        <label style={labelStyle}>Job Description <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem" }}>(optional)</span></label>
+        <label style={labelStyle}>Job Description <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem" }}>(optional)</span></label>
         <RichTextEditor
           value={formData.description || ""}
           onChange={html => setFormData(prev => ({ ...prev, description: html }))}
@@ -333,14 +333,14 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           onChange={e => setFormData(prev => ({ ...prev, sickPay: e.target.checked }))}
           style={{ width: "16px", height: "16px", cursor: "pointer" }}
         />
-        <span style={{ fontWeight: "600", fontSize: "0.875rem", color: "#374151" }}>
+        <span style={{ fontWeight: "600", fontSize: "0.875rem", color: "var(--color-text-body, #374151)" }}>
           Sick pay included
         </span>
       </label>
 
       {/* Holidays */}
       <div>
-        <label htmlFor="form-holidays" style={labelStyle}>Holiday Entitlement <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem" }}>(optional)</span></label>
+        <label htmlFor="form-holidays" style={labelStyle}>Holiday Entitlement <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem" }}>(optional)</span></label>
         <input
           id="form-holidays"
           type="text"
@@ -353,7 +353,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       </div>
 
       <div>
-        <label htmlFor="form-deadline" style={labelStyle}>Application Deadline <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem" }}>(optional)</span></label>
+        <label htmlFor="form-deadline" style={labelStyle}>Application Deadline <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem" }}>(optional)</span></label>
         <input
           id="form-deadline"
           type="date"
@@ -377,7 +377,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           <span style={{ fontWeight: 700, fontSize: "0.875rem", color: formData.isUrgent ? "#dc2626" : "#374151" }}>
             🔴 Urgent — shift needs filling today
           </span>
-          <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "#64748b" }}>
+          <p style={{ margin: "0.1rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>
             Shows a red URGENT badge on the job feed to attract fast applicants.
           </p>
         </div>
@@ -406,9 +406,9 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           }}
           style={{ width: "16px", height: "16px", cursor: "pointer" }}
         />
-        <span style={{ fontWeight: "600", fontSize: "0.875rem", color: "#374151" }}>
+        <span style={{ fontWeight: "600", fontSize: "0.875rem", color: "var(--color-text-body, #374151)" }}>
           Weekend work required
-          <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem", display: "block" }}>Automatically selects Saturday & Sunday below</span>
+          <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem", display: "block" }}>Automatically selects Saturday & Sunday below</span>
         </span>
       </label>
 
@@ -478,7 +478,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       <div>
         <label style={labelStyle}>
           Photos *
-          <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem", marginLeft: "0.4rem" }}>
+          <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem", marginLeft: "0.4rem" }}>
             {totalPhotos}/10 — at least 1 required
           </span>
         </label>
@@ -495,11 +495,11 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           return src ? (
             <div style={{ marginBottom: "0.75rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
-                <p style={{ fontSize: "0.75rem", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.04em", margin: 0 }}>Preview · drag to reposition</p>
+                <p style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #6b7280)", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.04em", margin: 0 }}>Preview · drag to reposition</p>
                 <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
                   <button type="button" onClick={() => { setCrop(safeIdx, { zoom: 1, offsetX: 0, offsetY: 0 }); }} style={{ ...zoomBtn, color: "var(--color-brand)" }}>Reset</button>
                   <button type="button" onClick={() => { const nz = Math.max(1, getCrop(safeIdx).zoom - 0.25); setCrop(safeIdx, { zoom: nz }); }} style={zoomBtn}>−</button>
-                  <span style={{ fontSize: "0.72rem", color: "#6b7280", minWidth: "32px", textAlign: "center" }}>{Math.round(crop.zoom * 100)}%</span>
+                  <span style={{ fontSize: "0.72rem", color: "var(--color-text-secondary, #6b7280)", minWidth: "32px", textAlign: "center" }}>{Math.round(crop.zoom * 100)}%</span>
                   <button type="button" onClick={() => { const nz = Math.min(4, getCrop(safeIdx).zoom + 0.25); setCrop(safeIdx, { zoom: nz }); }} style={zoomBtn}>+</button>
                 </div>
               </div>
@@ -561,14 +561,14 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       <div>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.4rem" }}>
           <div>
-            <label style={labelStyle}>Screening Questions <span style={{ fontWeight: "400", color: "#64748b", fontSize: "0.8rem" }}>(optional)</span></label>
-            <p style={{ margin: "0 0 0.5rem", fontSize: "0.75rem", color: "#64748b" }}>Up to 5 questions shown to students when applying. Yes/No questions can auto-flag mismatches.</p>
+            <label style={labelStyle}>Screening Questions <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem" }}>(optional)</span></label>
+            <p style={{ margin: "0 0 0.5rem", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>Up to 5 questions shown to students when applying. Yes/No questions can auto-flag mismatches.</p>
           </div>
         </div>
         {(formData.screeningQuestions || []).map((q, i) => (
           <div key={i} style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.6rem", padding: "0.7rem 0.85rem", marginBottom: "0.5rem" }}>
             <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.45rem" }}>
-              <span style={{ fontSize: "0.72rem", fontWeight: "800", color: "#64748b", paddingTop: "0.1rem", flexShrink: 0 }}>Q{i + 1}</span>
+              <span style={{ fontSize: "0.72rem", fontWeight: "800", color: "var(--color-text-secondary, #64748b)", paddingTop: "0.1rem", flexShrink: 0 }}>Q{i + 1}</span>
               <input
                 placeholder="e.g. Are you over 18?"
                 value={q.question}
@@ -595,7 +595,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
                 <option value="text">Free text</option>
               </select>
               {(q.type || "yes_no") === "yes_no" && (
-                <label style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.78rem", fontWeight: "600", color: "#374151", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "0.35rem", fontSize: "0.78rem", fontWeight: "600", color: "var(--color-text-body, #374151)", cursor: "pointer" }}>
                   <input type="checkbox" checked={q.knockout_if_no || false} onChange={e => {
                     const qs = [...(formData.screeningQuestions || [])];
                     qs[i] = { ...qs[i], knockout_if_no: e.target.checked };

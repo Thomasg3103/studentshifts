@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+﻿import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
@@ -33,7 +33,7 @@ export default function ContactPage() {
 
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <h1 style={{ fontWeight: 800, fontSize: "2rem", color: "var(--color-text-primary, #1e293b)", margin: "0 0 0.4rem" }}>Contact Us</h1>
-          <p style={{ color: "#64748b", fontSize: "0.95rem", margin: 0 }}>We're a small team — we'll get back to you as soon as we can.</p>
+          <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "0.95rem", margin: 0 }}>We're a small team — we'll get back to you as soon as we can.</p>
         </div>
 
         {/* Email */}
@@ -58,7 +58,7 @@ export default function ContactPage() {
 
         {/* Help shortcut */}
         <div style={{ textAlign: "center" }}>
-          <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "0.75rem" }}>
+          <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "0.75rem" }}>
             Looking for answers to common questions?
           </p>
           <button
@@ -74,6 +74,6 @@ export default function ContactPage() {
   );
 }
 
-const labelStyle = { margin: "0 0 0.2rem", fontWeight: 700, fontSize: "0.78rem", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em" };
+const labelStyle = { margin: "0 0 0.2rem", fontWeight: 700, fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em" };
 const linkStyle  = { display: "block", color: "var(--color-brand)", fontWeight: 700, fontSize: "1rem", textDecoration: "none", marginBottom: "0.3rem" };
-const hintStyle  = { margin: 0, fontSize: "0.8rem", color: "#64748b" };
+const hintStyle  = { margin: 0, fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)" };

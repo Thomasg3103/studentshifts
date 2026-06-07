@@ -32,7 +32,7 @@ export default function AboutPage() {
       <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
         <img loading="lazy" src="/favicon.svg" alt="StudentShifts" style={{ width: "72px", height: "72px", display: "block", margin: "0 auto 1rem" }} />
         <h1 style={{ fontWeight: "800", fontSize: "2rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.5rem" }}>About StudentShifts</h1>
-        <p style={{ color: "#64748b", fontSize: "1rem", maxWidth: "520px", margin: "0 auto", lineHeight: "1.7" }}>
+        <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "1rem", maxWidth: "520px", margin: "0 auto", lineHeight: "1.7" }}>
           We connect students in Galway with flexible part-time work that fits around their studies, lifestyle, and ambitions.
         </p>
       </div>
@@ -56,7 +56,7 @@ export default function AboutPage() {
             <div key={step} style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", textAlign: "center" }}>
               <div style={{ fontSize: "2rem", marginBottom: "0.6rem" }}>{icon}</div>
               <p style={{ fontWeight: "700", fontSize: "0.9rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.4rem" }}>{step}</p>
-              <p style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: "1.6", margin: 0 }}>{desc}</p>
+              <p style={{ fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", lineHeight: "1.6", margin: 0 }}>{desc}</p>
             </div>
           ))}
         </div>
@@ -127,4 +127,4 @@ function Section({ title, children }) {
   );
 }
 
-const bodyText = { fontSize: "0.92rem", color: "#374151", lineHeight: "1.75", margin: 0 };
+const bodyText = { fontSize: "0.92rem", color: "var(--color-text-body, #374151)", lineHeight: "1.75", margin: 0 };

@@ -75,9 +75,9 @@ export default function Header() {
       onClick={() => setMenuOpen(o => !o)}
       style={{ background: "transparent", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.5rem", width: "44px", height: "44px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px", cursor: "pointer", flexShrink: 0 }}
     >
-      <span style={{ width: "18px", height: "2px", background: "white", borderRadius: "1px", display: "block" }} />
-      <span style={{ width: "18px", height: "2px", background: "white", borderRadius: "1px", display: "block" }} />
-      <span style={{ width: "18px", height: "2px", background: "white", borderRadius: "1px", display: "block" }} />
+      <span style={{ width: "18px", height: "2px", background: "var(--color-bg-elevated, white)", borderRadius: "1px", display: "block" }} />
+      <span style={{ width: "18px", height: "2px", background: "var(--color-bg-elevated, white)", borderRadius: "1px", display: "block" }} />
+      <span style={{ width: "18px", height: "2px", background: "var(--color-bg-elevated, white)", borderRadius: "1px", display: "block" }} />
     </button>
   );
 
@@ -492,7 +492,7 @@ const navBtnOutline = {
 };
 const navBtnActive = {
   padding: "0.45rem 1.1rem", borderRadius: "2rem",
-  backgroundColor: "white", color: "var(--color-brand)",
+  backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-brand)",
   border: "1.5px solid white",
   cursor: "default", fontWeight: "800", fontSize: "0.82rem", fontFamily: "inherit",
   boxShadow: "0 2px 8px rgba(0,0,0,0.12)",

@@ -1,4 +1,4 @@
-import { Component } from "react";
+﻿import { Component } from "react";
 import * as Sentry from "@sentry/react";
 
 export default class ErrorBoundary extends Component {
@@ -42,8 +42,8 @@ export default class ErrorBoundary extends Component {
         <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--color-bg-subtle, #fafafa)", padding: "2rem" }}>
           <div style={{ textAlign: "center", maxWidth: "480px" }}>
             <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>⚠️</div>
-            <h2 style={{ fontWeight: "800", fontSize: "1.4rem", color: "#1e293b", marginBottom: "0.5rem" }}>Something went wrong</h2>
-            <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "0.75rem" }}>
+            <h2 style={{ fontWeight: "800", fontSize: "1.4rem", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.5rem" }}>Something went wrong</h2>
+            <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "0.75rem" }}>
               We couldn't load StudentShifts. This is usually a temporary issue — please refresh the page.
             </p>
             <p style={{ color: "#b91c1c", fontSize: "0.78rem", fontFamily: "monospace", backgroundColor: "#fff1f2", border: "1px solid #fca5a5", borderRadius: "0.5rem", padding: "0.5rem 0.75rem", marginBottom: "1.5rem", wordBreak: "break-word", textAlign: "left" }}>

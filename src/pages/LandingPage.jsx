@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "../lib/supabase";
@@ -142,9 +142,9 @@ export default function LandingPage() {
             onClick={() => setMenuOpen(o => !o)}
             style={{ background: "transparent", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.5rem", width: "38px", height: "38px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "4px", cursor: "pointer" }}
           >
-            <span style={{ width: "18px", height: "2px", background: "white", borderRadius: "1px", display: "block" }} />
-            <span style={{ width: "18px", height: "2px", background: "white", borderRadius: "1px", display: "block" }} />
-            <span style={{ width: "18px", height: "2px", background: "white", borderRadius: "1px", display: "block" }} />
+            <span style={{ width: "18px", height: "2px", background: "var(--color-bg-elevated, white)", borderRadius: "1px", display: "block" }} />
+            <span style={{ width: "18px", height: "2px", background: "var(--color-bg-elevated, white)", borderRadius: "1px", display: "block" }} />
+            <span style={{ width: "18px", height: "2px", background: "var(--color-bg-elevated, white)", borderRadius: "1px", display: "block" }} />
           </button>
 
           {menuOpen && (
@@ -239,8 +239,8 @@ export default function LandingPage() {
           {HOW_IT_WORKS.map(({ icon, step, desc }) => (
             <div key={step} style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "1rem", padding: "1.5rem", textAlign: "center" }}>
               <div style={{ fontSize: "2.5rem", marginBottom: "0.6rem" }}>{icon}</div>
-              <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "#1e293b", margin: "0 0 0.4rem" }}>{step}</p>
-              <p style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.6, margin: 0 }}>{desc}</p>
+              <p style={{ fontWeight: 700, fontSize: "0.9rem", color: "var(--color-text-primary, #1e293b)", margin: "0 0 0.4rem" }}>{step}</p>
+              <p style={{ fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.6, margin: 0 }}>{desc}</p>
             </div>
           ))}
         </div>
@@ -266,8 +266,8 @@ export default function LandingPage() {
         <SectionHeading>Hiring Students?</SectionHeading>
         <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "1.25rem", padding: "2rem 2rem", display: "flex", gap: "2.5rem", alignItems: "center", flexWrap: "wrap", marginBottom: "3.5rem" }}>
           <div style={{ flex: 1, minWidth: "220px" }}>
-            <h3 style={{ fontWeight: 800, fontSize: "1.3rem", color: "#1e293b", margin: "0 0 0.6rem" }}>Post shifts, find reliable students</h3>
-            <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.75, margin: "0 0 1.25rem" }}>
+            <h3 style={{ fontWeight: 800, fontSize: "1.3rem", color: "var(--color-text-primary, #1e293b)", margin: "0 0 0.6rem" }}>Post shifts, find reliable students</h3>
+            <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem", lineHeight: 1.75, margin: "0 0 1.25rem" }}>
               StudentShifts gives you access to a pool of verified, motivated students looking for exactly the flexible work you're offering.
               Post a shift in minutes — no recruitment agency fees, ever.
             </p>
@@ -280,7 +280,7 @@ export default function LandingPage() {
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", flexShrink: 0 }}>
             {["✅ Verified student profiles", "📋 One-click application review", "💬 Direct message candidates", "🆓 Free to post — always"].map(point => (
-              <div key={point} style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.88rem", fontWeight: 600, color: "#374151" }}>{point}</div>
+              <div key={point} style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-body, #374151)" }}>{point}</div>
             ))}
           </div>
         </div>

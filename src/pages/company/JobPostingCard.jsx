@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { supabaseImg } from "../../utils/img";
 
 function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }) {
@@ -56,7 +56,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
 
   const actionBtn = {
     padding: "0.32rem 0.7rem", border: "1px solid #e2e8f0", borderRadius: "0.4rem",
-    background: "var(--color-bg-elevated, white)", cursor: "pointer", color: "#374151",
+    background: "var(--color-bg-elevated, white)", cursor: "pointer", color: "var(--color-text-body, #374151)",
     fontSize: "0.76rem", fontWeight: "600", fontFamily: "inherit", whiteSpace: "nowrap",
   };
 
@@ -83,7 +83,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
             <img loading="lazy" src={photo} alt={posting.title} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           </div>
         ) : (
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f1f5f9" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--color-bg-surface, #f1f5f9)" }}>
             <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
           </div>
         )}
@@ -94,7 +94,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
 
         {/* Title + status badge */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
-          <h2 style={{ fontWeight: "700", fontSize: "1.05rem", margin: 0, color: "#0f172a", lineHeight: 1.3 }}>
+          <h2 style={{ fontWeight: "700", fontSize: "1.05rem", margin: 0, color: "var(--color-text-primary, #0f172a)", lineHeight: 1.3 }}>
             {posting.title}
           </h2>
           <span className={`badge badge-tag ${isActive ? "badge-green" : isExpired ? "badge-red" : "badge-gray"}`} style={{ textTransform: "uppercase", letterSpacing: "0.05em", flexShrink: 0 }}>
@@ -103,7 +103,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
         </div>
 
         {/* Location · pay */}
-        <p style={{ fontSize: "0.85rem", color: "#64748b", margin: 0 }}>
+        <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)", margin: 0 }}>
           {posting.location} · {posting.pay}
         </p>
 
@@ -144,7 +144,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
           )}
 
           {postedAgo && (
-            <span style={{ fontSize: "0.72rem", color: "#64748b", whiteSpace: "nowrap" }}>
+            <span style={{ fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap" }}>
               Posted {postedAgo}
             </span>
           )}

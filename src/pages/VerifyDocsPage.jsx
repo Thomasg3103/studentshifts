@@ -9,7 +9,7 @@ import { useApp } from "../context/AppContext";
 function StepBar({ step, total, label }) {
   return (
     <div style={{ marginBottom: "1.5rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", fontSize: "0.74rem", fontWeight: "600", color: "#64748b" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", fontSize: "0.74rem", fontWeight: "600", color: "var(--color-text-secondary, #64748b)" }}>
         <span>Step {step} of {total}</span>
         <span>{label}</span>
       </div>
@@ -76,7 +76,7 @@ export default function VerifyDocsPage() {
         <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>⏳</div>
           <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Documents submitted</h2>
-          <p style={{ color: "#64748b", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.25rem" }}>
+          <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem", lineHeight: 1.6, marginBottom: "1.25rem" }}>
             Your student ID and government ID are under review by our team. We'll email you once your account is verified — usually within 24 hours on weekdays.
           </p>
           <div style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "0.75rem", padding: "0.85rem 1rem", marginBottom: "1.5rem", color: "#0369a1", fontSize: "0.85rem", lineHeight: 1.5 }}>
@@ -106,7 +106,7 @@ export default function VerifyDocsPage() {
           <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>
             {isRejected ? "Verification not approved" : "Verify your identity"}
           </h2>
-          <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>
+          <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>
             {isRejected ? "Please re-submit clearer photos of your documents" : "One last step before you can apply for jobs"}
           </p>
         </div>
@@ -128,7 +128,7 @@ export default function VerifyDocsPage() {
         )}
 
         <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.85rem", padding: "1rem 1.25rem", border: "1px solid #e2e8f0" }}>
-          <p style={{ margin: "0 0 0.75rem", fontSize: "0.76rem", color: "#64748b", lineHeight: 1.5 }}>
+          <p style={{ margin: "0 0 0.75rem", fontSize: "0.76rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.5 }}>
             Accepted formats: JPG, PNG, WebP, PDF, Word (.doc/.docx) &nbsp;·&nbsp; Max size: 10 MB per file
           </p>
           <FileUpload
@@ -164,7 +164,7 @@ export default function VerifyDocsPage() {
         <div ref={availabilityPromptRef} role="dialog" aria-modal="true" aria-labelledby="availability-prompt-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
           <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>📅</div>
           <h3 id="availability-prompt-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "var(--color-text-primary, #1e293b)" }}>Documents submitted!</h3>
-          <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.5rem", lineHeight: 1.6 }}>
+          <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1.5rem", lineHeight: 1.6 }}>
             While you wait for verification, set your available times. Companies use this to plan rosters — it helps you get noticed faster.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
@@ -176,7 +176,7 @@ export default function VerifyDocsPage() {
             </button>
             <button
               onClick={() => { setShowAvailabilityPrompt(false); setPage("studentDashboard"); }}
-              style={{ padding: "0.75rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#64748b", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
+              style={{ padding: "0.75rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
             >
               Skip for Now
             </button>
@@ -191,10 +191,10 @@ export default function VerifyDocsPage() {
 function FileUpload({ label, hint, accept, onChange, file }) {
   return (
     <div style={{ marginBottom: "0.9rem" }}>
-      <label style={{ display: "block", fontWeight: "600", fontSize: "0.875rem", marginBottom: "0.2rem", color: "#374151" }}>
+      <label style={{ display: "block", fontWeight: "600", fontSize: "0.875rem", marginBottom: "0.2rem", color: "var(--color-text-body, #374151)" }}>
         {label} <span style={{ color: "#f43f5e" }}>*</span>
       </label>
-      <p style={{ fontSize: "0.75rem", color: "#64748b", marginBottom: "0.35rem", marginTop: 0 }}>{hint}</p>
+      <p style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "0.35rem", marginTop: 0 }}>{hint}</p>
       <div style={{ border: `1.5px dashed ${file ? "#10b981" : "#e2e8f0"}`, borderRadius: "0.6rem", padding: "0.55rem 0.75rem", backgroundColor: file ? "#f0fdf4" : "white" }}>
         <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: file ? "0.4rem" : 0 }}>
           <label style={{ cursor: "pointer", fontSize: "0.78rem", fontWeight: "600", color: "var(--color-brand)", whiteSpace: "nowrap", padding: "0.3rem 0.65rem", borderRadius: "0.4rem", border: "1.5px solid var(--color-brand)", lineHeight: 1.4 }}>

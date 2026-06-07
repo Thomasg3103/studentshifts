@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+﻿import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 const CONTACT_EMAIL = "privacy@studentshifts.ie";
@@ -27,7 +27,7 @@ export default function PrivacyPolicyPage() {
       </Helmet>
       <BackButton />
     <PageWrapper narrow>
-      <div style={{ maxWidth: "680px", margin: "0 auto", color: "#1e293b", fontFamily: "inherit" }}>
+      <div style={{ maxWidth: "680px", margin: "0 auto", color: "var(--color-text-primary, #1e293b)", fontFamily: "inherit" }}>
 
         <h1 style={h1}>Privacy Policy</h1>
         <p style={meta}>Last updated: {LAST_UPDATED}</p>
@@ -171,8 +171,8 @@ export default function PrivacyPolicyPage() {
         </Section>
 
         <div style={{ borderTop: "1px solid #e2e8f0", marginTop: "2rem", paddingTop: "1.25rem" }}>
-          <p style={{ ...body, color: "#64748b", fontSize: "0.8rem" }}>
-            StudentShifts &middot; Ireland &middot; <a href={`mailto:${CONTACT_EMAIL}`} style={{ ...link, color: "#64748b" }}>{CONTACT_EMAIL}</a>
+          <p style={{ ...body, color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem" }}>
+            StudentShifts &middot; Ireland &middot; <a href={`mailto:${CONTACT_EMAIL}`} style={{ ...link, color: "var(--color-text-secondary, #64748b)" }}>{CONTACT_EMAIL}</a>
           </p>
         </div>
 
@@ -204,7 +204,7 @@ function Table({ rows }) {
         <tbody>
           {rows.map(([data, purpose, basis], i) => (
             <tr key={i} style={{ borderBottom: "1px solid #fafafa" }}>
-              <td style={{ padding: "0.55rem 0.75rem", color: "#1e293b", fontWeight: "600" }}>{data}</td>
+              <td style={{ padding: "0.55rem 0.75rem", color: "var(--color-text-primary, #1e293b)", fontWeight: "600" }}>{data}</td>
               <td style={{ padding: "0.55rem 0.75rem", color: "#475569" }}>{purpose}</td>
               <td style={{ padding: "0.55rem 0.75rem", color: "var(--color-brand)", fontWeight: "600" }}>{basis}</td>
             </tr>
@@ -215,9 +215,9 @@ function Table({ rows }) {
   );
 }
 
-const h1     = { margin: "0.5rem 0 0.25rem", fontWeight: "800", fontSize: "2rem", color: "#1e293b" };
-const h2     = { margin: "0 0 0.6rem", fontWeight: "700", fontSize: "1.1rem", color: "#1e293b" };
-const meta   = { margin: "0 0 2rem", fontSize: "0.82rem", color: "#64748b" };
+const h1     = { margin: "0.5rem 0 0.25rem", fontWeight: "800", fontSize: "2rem", color: "var(--color-text-primary, #1e293b)" };
+const h2     = { margin: "0 0 0.6rem", fontWeight: "700", fontSize: "1.1rem", color: "var(--color-text-primary, #1e293b)" };
+const meta   = { margin: "0 0 2rem", fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)" };
 const body   = { margin: "0 0 0.75rem", fontSize: "0.9rem", color: "#475569", lineHeight: 1.7 };
 const list   = { paddingLeft: "1.25rem", margin: "0 0 0.75rem", fontSize: "0.9rem", color: "#475569", lineHeight: 1.8 };
 const link   = { color: "var(--color-brand)", textDecoration: "none", fontWeight: "600" };

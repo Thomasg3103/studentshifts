@@ -259,11 +259,11 @@ export default function JobDetails({ job }) {
         {distanceKm !== null
           ? formatDistance(distanceKm)
           : !loc
-          ? <span style={{ color: "#64748b", fontWeight: 500, fontSize: "0.82rem" }}>Set your location in Account</span>
-          : <span style={{ color: "#64748b", fontWeight: 500, fontSize: "0.82rem" }}>Not available for this job</span>}
+          ? <span style={{ color: "var(--color-text-secondary, #64748b)", fontWeight: 500, fontSize: "0.82rem" }}>Set your location in Account</span>
+          : <span style={{ color: "var(--color-text-secondary, #64748b)", fontWeight: 500, fontSize: "0.82rem" }}>Not available for this job</span>}
       </DetailCard>
       {job.sickPay !== undefined && <DetailCard label="🏥 Sick Pay">{job.sickPay ? "Yes" : "No"}</DetailCard>}
-      <DetailCard label="🏖️ Holidays">{job.holidays || <span style={{ color: "#64748b", fontWeight: 500, fontSize: "0.82rem" }}>Not specified</span>}</DetailCard>
+      <DetailCard label="🏖️ Holidays">{job.holidays || <span style={{ color: "var(--color-text-secondary, #64748b)", fontWeight: 500, fontSize: "0.82rem" }}>Not specified</span>}</DetailCard>
       {job.weekendRequired && <DetailCard label="📆 Schedule">Weekend availability required</DetailCard>}
       {deadlineStr && <DetailCard label="⏰ Apply By">{deadlineStr}</DetailCard>}
     </div>
@@ -323,11 +323,11 @@ export default function JobDetails({ job }) {
       </Helmet>
 
       {/* Breadcrumb */}
-      <nav aria-label="Breadcrumb" style={{ padding: "0.6rem 1.25rem", fontSize: "0.8rem", color: "#64748b", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+      <nav aria-label="Breadcrumb" style={{ padding: "0.6rem 1.25rem", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         <ol style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
           <li><a href="/" style={{ color: "var(--color-brand)", fontWeight: 600, textDecoration: "none" }}>Jobs</a></li>
           <li aria-hidden="true">/</li>
-          <li style={{ color: "#64748b" }}>{job.title} at {job.company}</li>
+          <li style={{ color: "var(--color-text-secondary, #64748b)" }}>{job.title} at {job.company}</li>
         </ol>
       </nav>
 
@@ -378,8 +378,8 @@ export default function JobDetails({ job }) {
               </div>
               {/* Title + company — centred */}
               <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
-                <h1 style={{ fontWeight: 800, fontSize: "2.7rem", margin: "0 0 0.2rem", color: "#1e293b", lineHeight: 1.1 }}>{job.title}</h1>
-                <p style={{ color: "#64748b", fontSize: "1.8rem", margin: 0, fontWeight: 500 }}>{job.company}</p>
+                <h1 style={{ fontWeight: 800, fontSize: "2.7rem", margin: "0 0 0.2rem", color: "var(--color-text-primary, #1e293b)", lineHeight: 1.1 }}>{job.title}</h1>
+                <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "1.8rem", margin: 0, fontWeight: 500 }}>{job.company}</p>
               </div>
               {/* Right: heart + apply, or single green tick when applied */}
               {isApplied ? (
@@ -404,7 +404,7 @@ export default function JobDetails({ job }) {
                       if (job.status === "Closed" || job.status === "Expired") {
                         return (
                           <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem" }}>
-                            <div style={{ ...btn, background: "#e2e8f0", color: "#64748b", cursor: "default", textAlign: "center" }}>
+                            <div style={{ ...btn, background: "#e2e8f0", color: "var(--color-text-secondary, #64748b)", cursor: "default", textAlign: "center" }}>
                               {job.status === "Closed" ? "Position Filled" : "Expired"}
                             </div>
                             {job.status === "Closed" && currentUser?.role === "student" && waitlistStatus !== null && (
@@ -460,7 +460,7 @@ export default function JobDetails({ job }) {
             {/* Similar Jobs */}
             {similarJobs.length > 0 && (
               <div style={{ marginBottom: "1.5rem" }}>
-                <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.75rem" }}>Similar Jobs</p>
+                <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.75rem" }}>Similar Jobs</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
                   {similarJobs.map(sj => {
                     const sjPhoto = sj.photos?.[0] || null;
@@ -471,7 +471,7 @@ export default function JobDetails({ job }) {
                         onClick={() => { setSelectedJob(sj); }}
                         style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.65rem 0.85rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", cursor: "pointer", fontFamily: "inherit", textAlign: "left", width: "100%" }}
                       >
-                        <div style={{ width: "44px", height: "44px", borderRadius: "0.5rem", overflow: "hidden", flexShrink: 0, position: "relative", backgroundColor: "#f1f5f9" }}>
+                        <div style={{ width: "44px", height: "44px", borderRadius: "0.5rem", overflow: "hidden", flexShrink: 0, position: "relative", backgroundColor: "var(--color-bg-surface, #f1f5f9)" }}>
                           {sjPhoto ? (
                             <div style={{ position: "absolute", inset: 0, transform: `translate(${sjCrop.offsetX}%, ${sjCrop.offsetY}%) scale(${sjCrop.zoom})`, transformOrigin: "center" }}>
                               <img loading="lazy" src={`${sjPhoto}?width=88&quality=70`} alt={sj.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -483,10 +483,10 @@ export default function JobDetails({ job }) {
                           )}
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <p style={{ margin: 0, fontWeight: 700, fontSize: "0.88rem", color: "#1e293b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sj.title}</p>
-                          <p style={{ margin: "0.1rem 0 0", fontSize: "0.78rem", color: "#64748b", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sj.company} · {sj.location}</p>
+                          <p style={{ margin: 0, fontWeight: 700, fontSize: "0.88rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sj.title}</p>
+                          <p style={{ margin: "0.1rem 0 0", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sj.company} · {sj.location}</p>
                         </div>
-                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "#374151", flexShrink: 0 }}>{sj.pay}</span>
+                        <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-body, #374151)", flexShrink: 0 }}>{sj.pay}</span>
                       </button>
                     );
                   })}
@@ -510,7 +510,7 @@ export default function JobDetails({ job }) {
         <div onClick={() => setReportOpen(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
           <div ref={reportModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="report-modal-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
             <h3 id="report-modal-title" style={{ fontWeight: 800, fontSize: "1.1rem", marginBottom: "0.25rem", color: "var(--color-text-primary, #1e293b)" }}>Report Job</h3>
-            <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "1rem", lineHeight: 1.5 }}>Let us know what's wrong with this listing and we'll look into it.</p>
+            <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1rem", lineHeight: 1.5 }}>Let us know what's wrong with this listing and we'll look into it.</p>
             <textarea
               value={reportReason}
               onChange={e => setReportReason(e.target.value)}
@@ -542,8 +542,8 @@ export default function JobDetails({ job }) {
             {applyModal === "noCV" ? (
         <>
           <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fef9c3", border: "2px solid #fde047", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>📄</div>
-          <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "#1e293b" }}>No CV uploaded</h3>
-          <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.5rem", lineHeight: 1.5 }}>
+          <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "var(--color-text-primary, #1e293b)" }}>No CV uploaded</h3>
+          <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1.5rem", lineHeight: 1.5 }}>
             You need to upload a CV before you can apply for jobs. Head to your Account page to add one.
           </p>
           <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -554,8 +554,8 @@ export default function JobDetails({ job }) {
       ) : applyModal === "notVerified" ? (
         <>
           <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fff7ed", border: "2px solid #fed7aa", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>🔒</div>
-          <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "#1e293b" }}>Account not yet verified</h3>
-          <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.5rem", lineHeight: 1.5 }}>
+          <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "var(--color-text-primary, #1e293b)" }}>Account not yet verified</h3>
+          <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1.5rem", lineHeight: 1.5 }}>
             {currentUser?.verificationStatus === "pending_review"
               ? "Your documents are under review. You'll be able to apply once your account is verified."
               : "You need to upload your verification documents before applying for jobs."}
@@ -565,8 +565,8 @@ export default function JobDetails({ job }) {
       ) : applyModal === "shifts" ? (
               <>
                 <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#f5f3ff", border: "2px solid #c4b5fd", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>🗓️</div>
-                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Available Shifts</h3>
-                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "1.25rem" }}>This job has {job.days.length} shifts available. You can apply to all of them, or pick a specific shift you prefer.</p>
+                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.25rem", color: "var(--color-text-primary, #1e293b)" }}>Available Shifts</h3>
+                <p style={{ fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1.25rem" }}>This job has {job.days.length} shifts available. You can apply to all of them, or pick a specific shift you prefer.</p>
                 <div style={{ display: "flex", gap: "0.6rem", flexDirection: "column" }}>
                   <button onClick={() => setApplyModal("confirm")} style={{ width: "100%", padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit" }}>Apply to All Shifts</button>
                   <div style={{ display: "flex", gap: "0.6rem" }}>
@@ -578,8 +578,8 @@ export default function JobDetails({ job }) {
             ) : applyModal === "pickShift" ? (
               <>
                 <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#f5f3ff", border: "2px solid #c4b5fd", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>🗓️</div>
-                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.25rem", color: "#1e293b" }}>Pick a Shift</h3>
-                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "1rem" }}>Select the shift that works for you.</p>
+                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.25rem", color: "var(--color-text-primary, #1e293b)" }}>Pick a Shift</h3>
+                <p style={{ fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1rem" }}>Select the shift that works for you.</p>
                 <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.4rem", marginBottom: "1.25rem" }}>
                   {job.days.map(day => {
                     const t = job.times?.[day];
@@ -603,12 +603,12 @@ export default function JobDetails({ job }) {
             ) : applyModal === "confirm" ? (
               <>
                 <div style={{ width: "56px", height: "56px", borderRadius: "1rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem", boxShadow: "0 8px 20px rgba(162,29,84,0.35)" }}>📋</div>
-                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "#1e293b" }}>Apply for {job.title}?</h3>
-                <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: selectedDay ? "0.6rem" : "1.5rem" }}>{job.company} — your CV will be shared with the employer.</p>
+                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.4rem", color: "var(--color-text-primary, #1e293b)" }}>Apply for {job.title}?</h3>
+                <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", marginBottom: selectedDay ? "0.6rem" : "1.5rem" }}>{job.company} — your CV will be shared with the employer.</p>
                 {selectedDay && (
                   <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem", padding: "0.65rem 0.9rem", marginBottom: "1.25rem", textAlign: "left" }}>
                     <p style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 0.25rem" }}>Preferred shift</p>
-                    <p style={{ fontSize: "0.88rem", color: "#374151", fontWeight: "600", margin: 0 }}>
+                    <p style={{ fontSize: "0.88rem", color: "var(--color-text-body, #374151)", fontWeight: "600", margin: 0 }}>
                       {selectedDay}{(() => { const t = job.times?.[selectedDay]; const s = Array.isArray(t) ? t.join(", ") : t; return s ? ` · ${s}` : ""; })()}
                     </p>
                   </div>
@@ -632,12 +632,12 @@ export default function JobDetails({ job }) {
             ) : applyModal === "screening" ? (
               <>
                 <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#f5f3ff", border: "2px solid #c4b5fd", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>📝</div>
-                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.3rem", color: "#1e293b" }}>Quick Questions</h3>
-                <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "1.25rem" }}>{job.company} has a few questions for applicants.</p>
+                <h3 style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.3rem", color: "var(--color-text-primary, #1e293b)" }}>Quick Questions</h3>
+                <p style={{ fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1.25rem" }}>{job.company} has a few questions for applicants.</p>
                 <div style={{ textAlign: "left", display: "flex", flexDirection: "column", gap: "0.85rem", marginBottom: "1.25rem" }}>
                   {screeningAnswers.map((a, i) => (
                     <div key={i}>
-                      <p style={{ margin: "0 0 0.4rem", fontSize: "0.85rem", fontWeight: "700", color: "#1e293b" }}>{a.question}</p>
+                      <p style={{ margin: "0 0 0.4rem", fontSize: "0.85rem", fontWeight: "700", color: "var(--color-text-primary, #1e293b)" }}>{a.question}</p>
                       {a.type === "yes_no" ? (
                         <div style={{ display: "flex", gap: "0.5rem" }}>
                           {["yes", "no"].map(val => (
@@ -654,7 +654,7 @@ export default function JobDetails({ job }) {
                           placeholder="Your answer…"
                           rows={2}
                           maxLength={500}
-                          style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.83rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", color: "#374151" }}
+                          style={{ width: "100%", padding: "0.55rem 0.7rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.83rem", fontFamily: "inherit", resize: "vertical", boxSizing: "border-box", color: "var(--color-text-body, #374151)" }}
                         />
                       )}
                     </div>

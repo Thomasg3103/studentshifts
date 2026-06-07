@@ -1,4 +1,4 @@
-import { Helmet } from "react-helmet-async";
+﻿import { Helmet } from "react-helmet-async";
 import { useApp } from "../context/AppContext";
 import { signOut } from "../lib/auth";
 
@@ -23,17 +23,17 @@ export default function PendingCompanyPage() {
         }}>
           {isRejected ? "✕" : "⏳"}
         </div>
-        <h1 style={{ margin: "0 0 0.5rem", fontSize: "1.35rem", fontWeight: 800, color: "#1e293b" }}>
+        <h1 style={{ margin: "0 0 0.5rem", fontSize: "1.35rem", fontWeight: 800, color: "var(--color-text-primary, #1e293b)" }}>
           {isRejected ? "Verification Unsuccessful" : "Awaiting Verification"}
         </h1>
-        <p style={{ margin: "0 0 1.75rem", fontSize: "0.9rem", color: "#64748b", lineHeight: 1.6 }}>
+        <p style={{ margin: "0 0 1.75rem", fontSize: "0.9rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.6 }}>
           {isRejected
             ? "Your company account could not be verified. This may be due to an invalid CRO number or unclear details. Please contact us at support@studentshifts.ie to resolve this."
             : "Your company account is under review. We typically verify accounts within 1–2 business days. You'll receive an email once approved."}
         </p>
         <button
           onClick={handleSignOut}
-          style={{ padding: "0.75rem 2rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", background: "#fff", color: "#374151", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit" }}
+          style={{ padding: "0.75rem 2rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", background: "#fff", color: "var(--color-text-body, #374151)", fontWeight: 600, fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit" }}
         >
           Sign Out
         </button>

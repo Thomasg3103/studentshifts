@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
@@ -10,7 +10,7 @@ import { useApp } from "../context/AppContext";
 function StepBar({ step, total, label }) {
   return (
     <div style={{ marginBottom: "1.5rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", fontSize: "0.74rem", fontWeight: "600", color: "#64748b" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem", fontSize: "0.74rem", fontWeight: "600", color: "var(--color-text-secondary, #64748b)" }}>
         <span>Step {step} of {total}</span>
         <span>{label}</span>
       </div>
@@ -115,7 +115,7 @@ export default function SignupPage() {
         <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📬</div>
           <h1 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Almost there!</h1>
-          <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
+          <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
             We sent a confirmation link to <strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{email}</strong>.
           </p>
 
@@ -137,7 +137,7 @@ export default function SignupPage() {
             </div>
           </div>
 
-          <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "0.75rem" }}>Didn't get the email? Check your spam folder.</p>
+          <p style={{ fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "0.75rem" }}>Didn't get the email? Check your spam folder.</p>
           <button
             onClick={handleResend}
             disabled={resendCooldown > 0}
@@ -157,14 +157,14 @@ export default function SignupPage() {
         <div style={{ maxWidth: "440px", margin: "0 auto", textAlign: "center" }}>
           <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📬</div>
           <h1 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Check your email</h1>
-          <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
+          <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
             We sent a confirmation link to <strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{email}</strong>.<br />
             Click it to activate your account.
           </p>
           <div style={{ backgroundColor: "#f0fdf4", border: "1px solid #86efac", borderRadius: "0.75rem", padding: "0.85rem 1rem", marginBottom: "1.5rem", color: "#16a34a", fontSize: "0.85rem", fontWeight: "500" }}>
             ✅ Once confirmed you'll be able to log in.
           </div>
-          <p style={{ fontSize: "0.82rem", color: "#64748b", marginBottom: "0.75rem" }}>Didn't get it? Check your spam folder.</p>
+          <p style={{ fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "0.75rem" }}>Didn't get it? Check your spam folder.</p>
           <button
             onClick={handleResend}
             disabled={resendCooldown > 0}
@@ -198,7 +198,7 @@ export default function SignupPage() {
 
         <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
           <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Create account</h1>
-          <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Join StudentShifts — it's free</p>
+          <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>Join StudentShifts — it's free</p>
         </div>
 
         {error && (
@@ -265,7 +265,7 @@ export default function SignupPage() {
             type="button"
             aria-label={showPassword ? "Hide password" : "Show password"}
             onClick={() => setShowPassword(p => !p)}
-            style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", padding: 0, cursor: "pointer", color: "#64748b", fontSize: "1.1rem", lineHeight: 1, minWidth: "44px", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}
+            style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--color-text-secondary, #64748b)", fontSize: "1.1rem", lineHeight: 1, minWidth: "44px", minHeight: "44px", display: "flex", alignItems: "center", justifyContent: "center" }}
           >
             {showPassword ? "🙈" : "👁"}
           </button>
@@ -299,7 +299,7 @@ export default function SignupPage() {
               maxLength={8}
               style={{ ...inputStyle, marginBottom: 0 }}
             />
-            <p style={{ margin: "0.3rem 0 0", fontSize: "0.76rem", color: "#64748b", lineHeight: 1.4 }}>
+            <p style={{ margin: "0.3rem 0 0", fontSize: "0.76rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.4 }}>
               Your Companies Registration Office number — find it at{" "}
               <a href="https://search.cro.ie" target="_blank" rel="noreferrer" style={{ color: "var(--color-brand)", fontWeight: "600" }}>search.cro.ie</a>.
               Used by our admin to verify your company.
@@ -310,8 +310,8 @@ export default function SignupPage() {
         {/* Industries — company only */}
         {role === "company" && (
           <div style={{ marginBottom: "0.75rem" }}>
-            <p style={{ fontWeight: "700", fontSize: "0.875rem", color: "#374151", marginBottom: "0.35rem" }}>
-              Industries <span style={{ fontWeight: "400", color: "#64748b" }}>(optional — select all that apply)</span>
+            <p style={{ fontWeight: "700", fontSize: "0.875rem", color: "var(--color-text-body, #374151)", marginBottom: "0.35rem" }}>
+              Industries <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)" }}>(optional — select all that apply)</span>
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
               {Object.keys(jobCategories).map(cat => (
@@ -374,7 +374,7 @@ export default function SignupPage() {
           {loading ? "Creating account…" : "Create Account →"}
         </button>
         <button onClick={() => setPage("studentDashboard")} style={btnHome}>← Back to Home</button>
-        <p style={{ marginTop: "1.25rem", fontSize: "0.875rem", color: "#64748b", textAlign: "center" }}>
+        <p style={{ marginTop: "1.25rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", textAlign: "center" }}>
           Already have an account?{" "}
           <button
             type="button"

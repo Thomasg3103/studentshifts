@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 import toast from "react-hot-toast";
 import PageWrapper from "../components/PageWrapper";
@@ -183,13 +183,13 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
       <div ref={msgListRef} style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
         {!loading && hasMore && (
           <div style={{ textAlign: "center", marginBottom: "0.5rem" }}>
-            <button onClick={loadEarlier} disabled={loadingMore} style={{ padding: "0.35rem 1rem", borderRadius: "999px", border: "1.5px solid #e5e7eb", background: "var(--color-bg-elevated, white)", color: "#64748b", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: loadingMore ? 0.6 : 1 }}>
+            <button onClick={loadEarlier} disabled={loadingMore} style={{ padding: "0.35rem 1rem", borderRadius: "999px", border: "1.5px solid var(--color-border-light, #e5e7eb)", background: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: loadingMore ? 0.6 : 1 }}>
               {loadingMore ? "Loading…" : "Load earlier messages"}
             </button>
           </div>
         )}
         {loading
-          ? <p style={{ color: "#64748b", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
+          ? <p style={{ color: "var(--color-text-secondary, #64748b)", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
           : loadError
             ? (
               <div style={{ textAlign: "center", marginTop: "2rem" }}>
@@ -215,7 +215,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
                   <line x1="9" y1="10" x2="15" y2="10"/>
                   <line x1="9" y1="14" x2="12" y2="14"/>
                 </svg>
-                <p style={{ color: "#64748b", fontWeight: 600, fontSize: "0.9rem", margin: 0 }}>No messages yet</p>
+                <p style={{ color: "var(--color-text-secondary, #64748b)", fontWeight: 600, fontSize: "0.9rem", margin: 0 }}>No messages yet</p>
                 <p style={{ color: "#94a3b8", fontSize: "0.8rem", margin: 0 }}>Say hello to start the conversation!</p>
               </div>
             )
@@ -243,7 +243,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
                       padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45,
                       wordBreak: "break-word", whiteSpace: "pre-wrap",
                     }}>{m.text}</div>
-                    <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
+                    <p style={{ fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
                       {formatMsgTime(m.created_at)}
                     </p>
                   </div>
@@ -359,21 +359,21 @@ export default function Messages() {
     <BackButton />
     <PageWrapper>
       <div style={{ textAlign: "center", marginBottom: "1.5rem" }}>
-        <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>💬 Messages</h1>
-        <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Chat with employers</p>
+        <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "var(--color-text-primary, #1e293b)" }}>💬 Messages</h1>
+        <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>Chat with employers</p>
       </div>
 
       {loading ? (
         <JobRowsSkeleton count={4} />
       ) : fetchError && conversations.length === 0 && directConvs.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #6b7280)" }}>
           <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</p>
-          <p style={{ fontSize: "1rem", fontWeight: "600", color: "#1e293b", marginBottom: "0.4rem" }}>Couldn't load conversations</p>
+          <p style={{ fontSize: "1rem", fontWeight: "600", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.4rem" }}>Couldn't load conversations</p>
           <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>This usually fixes itself — tap retry.</p>
           <button onClick={() => setRefreshKey(k => k + 1)} style={btnPrimary}>Retry</button>
         </div>
       ) : conversations.length === 0 && directConvs.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #6b7280)" }}>
           <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💬</p>
           <p style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "0.4rem" }}>No conversations yet</p>
           <p style={{ fontSize: "0.875rem", marginBottom: "1.5rem" }}>Once an employer accepts your application or messages you directly, you can chat here.</p>
@@ -381,7 +381,7 @@ export default function Messages() {
         </div>
       ) : (
         <>
-          <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#f1f5f9", borderRadius: "0.65rem", padding: "0.2rem", marginBottom: "1rem" }}>
+          <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "var(--color-bg-surface, #f1f5f9)", borderRadius: "0.65rem", padding: "0.2rem", marginBottom: "1rem" }}>
             {[
               { key: "jobs",   label: "Job Chats",       unread: jobsUnread },
               { key: "direct", label: "Direct Messages", unread: directUnread },
@@ -403,7 +403,7 @@ export default function Messages() {
           {tab === "direct" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
               {directConvs.length === 0
-                ? <p style={{ textAlign: "center", color: "#64748b", padding: "2rem 1rem", fontSize: "0.875rem" }}>No direct messages yet. Companies can message you from Browse Students.</p>
+                ? <p style={{ textAlign: "center", color: "var(--color-text-secondary, #64748b)", padding: "2rem 1rem", fontSize: "0.875rem" }}>No direct messages yet. Companies can message you from Browse Students.</p>
                 : directConvs.map(conv => (
                   <ConvCard
                     key={`direct_${conv.companyId}`}
@@ -424,7 +424,7 @@ export default function Messages() {
           {tab === "jobs" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
               {conversations.length === 0
-                ? <p style={{ textAlign: "center", color: "#64748b", padding: "2rem 1rem", fontSize: "0.875rem" }}>No job chats yet. Get accepted to start chatting!</p>
+                ? <p style={{ textAlign: "center", color: "var(--color-text-secondary, #64748b)", padding: "2rem 1rem", fontSize: "0.875rem" }}>No job chats yet. Get accepted to start chatting!</p>
                 : conversations.map(conv => (
                   <ConvCard
                     key={conv.jobId}

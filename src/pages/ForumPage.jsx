@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 import { supabase, withTimeout } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
@@ -177,11 +177,11 @@ export default function ForumPage() {
         {/* New post form */}
         {showForm && (
           <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "1rem", padding: "1.25rem", marginBottom: "1.25rem", boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}>
-            <h3 style={{ margin: "0 0 1rem", fontWeight: 700, fontSize: "1rem", color: "#1e293b" }}>New Post</h3>
+            <h3 style={{ margin: "0 0 1rem", fontWeight: 700, fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>New Post</h3>
             <select
               value={newCategory}
               onChange={e => setNewCategory(e.target.value)}
-              style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", color: "#1e293b", marginBottom: "0.75rem" }}
+              style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.75rem" }}
             >
               {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
@@ -190,7 +190,7 @@ export default function ForumPage() {
               value={newTitle}
               onChange={e => setNewTitle(e.target.value)}
               maxLength={120}
-              style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", color: "#1e293b", marginBottom: "0.75rem", boxSizing: "border-box" }}
+              style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.75rem", boxSizing: "border-box" }}
             />
             <textarea
               placeholder="Share your tip, question, or experience…"
@@ -198,11 +198,11 @@ export default function ForumPage() {
               onChange={e => setNewBody(e.target.value)}
               maxLength={1000}
               rows={4}
-              style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", color: "#1e293b", resize: "vertical", boxSizing: "border-box", marginBottom: "0.75rem" }}
+              style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)", resize: "vertical", boxSizing: "border-box", marginBottom: "0.75rem" }}
             />
             {postError && <p style={{ margin: "0 0 0.6rem", fontSize: "0.8rem", color: "#ef4444" }}>{postError}</p>}
             <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-              <button onClick={() => { setShowForm(false); setPostError(""); }} style={{ padding: "0.5rem 1rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "#64748b", fontWeight: 600, fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
+              <button onClick={() => { setShowForm(false); setPostError(""); }} style={{ padding: "0.5rem 1rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
                 Cancel
               </button>
               <button onClick={handlePost} disabled={posting} style={{ padding: "0.5rem 1.25rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: 700, fontSize: "0.85rem", cursor: posting ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: posting ? 0.7 : 1 }}>

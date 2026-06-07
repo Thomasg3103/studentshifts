@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -54,7 +54,7 @@ function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMess
       <Avatar url={avatarUrl} name={avatarName || name} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: "0.4rem" }}>
-          <p style={{ margin: 0, fontWeight: isUnread ? "800" : "700", fontSize: "0.92rem", color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
+          <p style={{ margin: 0, fontWeight: isUnread ? "800" : "700", fontSize: "0.92rem", color: "var(--color-text-primary, #1e293b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</p>
           {timeStr && <p style={{ margin: 0, fontSize: "0.7rem", color: isUnread ? "var(--color-brand)" : "#64748b", flexShrink: 0 }}>{timeStr}</p>}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
@@ -181,13 +181,13 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
       <div ref={msgListRef} style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
         {!loading && hasMore && (
           <div style={{ textAlign: "center", marginBottom: "0.5rem" }}>
-            <button onClick={loadEarlier} disabled={loadingMore} style={{ padding: "0.35rem 1rem", borderRadius: "999px", border: "1.5px solid #e5e7eb", background: "var(--color-bg-elevated, white)", color: "#64748b", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: loadingMore ? 0.6 : 1 }}>
+            <button onClick={loadEarlier} disabled={loadingMore} style={{ padding: "0.35rem 1rem", borderRadius: "999px", border: "1.5px solid var(--color-border-light, #e5e7eb)", background: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontSize: "0.75rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", opacity: loadingMore ? 0.6 : 1 }}>
               {loadingMore ? "Loading…" : "Load earlier messages"}
             </button>
           </div>
         )}
         {loading
-          ? <p style={{ color: "#64748b", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
+          ? <p style={{ color: "var(--color-text-secondary, #64748b)", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
           : loadError
             ? (
               <div style={{ textAlign: "center", marginTop: "2rem" }}>
@@ -206,7 +206,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
               </div>
             )
           : messages.length === 0
-            ? <p style={{ color: "#64748b", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Start the conversation!</p>
+            ? <p style={{ color: "var(--color-text-secondary, #64748b)", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Start the conversation!</p>
             : messages.map(m => (
               <div key={m.id} style={{ alignSelf: m.sender_id === senderId ? "flex-end" : "flex-start", maxWidth: "80%" }}>
                 <div style={{
@@ -215,7 +215,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
                   padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45,
                   wordBreak: "break-word", whiteSpace: "pre-wrap",
                 }}>{m.text}</div>
-                <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
+                <p style={{ fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)", margin: "0.1rem 0 0", textAlign: m.sender_id === senderId ? "right" : "left" }}>
                   {formatMsgTime(m.created_at)}
                 </p>
               </div>
@@ -224,7 +224,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
       </div>
       {!input && !loading && !loadError && messages.length === 0 && (
         <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid var(--color-border-light, #e5e7eb)" }}>
-          <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+          <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
           <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
             {quickReplies.map(qr => (
               <button
@@ -308,11 +308,11 @@ export default function CompanyMessages() {
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 80px)" }}>
         <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid var(--color-border-light, #e5e7eb)", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "var(--color-bg-elevated, white)", flexShrink: 0 }}>
-          <button aria-label="Back to conversations" onClick={goBack} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "#6b7280" }}>←</button>
+          <button aria-label="Back to conversations" onClick={goBack} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "var(--color-text-secondary, #6b7280)" }}>←</button>
           <Avatar url={active.profilePhotoUrl} name={active.studentName} size={38} />
           <div>
-            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{active.studentName}</p>
-            <p style={{ margin: 0, fontSize: "0.78rem", color: "#6b7280" }}>{isDirect ? "Direct message" : active.title}</p>
+            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #1e293b)" }}>{active.studentName}</p>
+            <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--color-text-secondary, #6b7280)" }}>{isDirect ? "Direct message" : active.title}</p>
           </div>
         </div>
         <ChatThread key={`${active.jobId}_${active.studentId}`} jobId={active.jobId} studentId={active.studentId} companyId={currentUser.id} senderId={currentUser.id} studentName={active.studentName} jobTitle={active.title} />
@@ -329,27 +329,27 @@ export default function CompanyMessages() {
       <div style={{ position: "relative", textAlign: "center", marginBottom: "1.5rem" }}>
         <button
           onClick={() => navigate(-1)}
-          style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#64748b", fontWeight: 700, fontSize: "0.88rem", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.3rem 0" }}
+          style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary, #64748b)", fontWeight: 700, fontSize: "0.88rem", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: "0.35rem", padding: "0.3rem 0" }}
           onMouseEnter={e => e.currentTarget.style.color = "var(--color-brand)"}
           onMouseLeave={e => e.currentTarget.style.color = "#64748b"}
         >
           ← Back
         </button>
-        <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "#1e293b" }}>💬 Messages</h1>
-        <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Chat with students</p>
+        <h1 style={{ margin: 0, fontWeight: "800", fontSize: "1.85rem", color: "var(--color-text-primary, #1e293b)" }}>💬 Messages</h1>
+        <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>Chat with students</p>
       </div>
 
       {loading ? (
         <JobRowsSkeleton count={4} />
       ) : fetchError && conversations.length === 0 && directConvs.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #6b7280)" }}>
           <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</p>
-          <p style={{ fontSize: "1rem", fontWeight: "600", color: "#1e293b", marginBottom: "0.4rem" }}>Couldn't load conversations</p>
+          <p style={{ fontSize: "1rem", fontWeight: "600", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.4rem" }}>Couldn't load conversations</p>
           <p style={{ fontSize: "0.875rem", marginBottom: "1.25rem" }}>This usually fixes itself — tap retry.</p>
           <button onClick={() => setRefreshKey(k => k + 1)} style={btnPrimary}>Retry</button>
         </div>
       ) : conversations.length === 0 && directConvs.length === 0 ? (
-        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+        <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #6b7280)" }}>
           <p style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💬</p>
           <p style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "0.4rem" }}>No conversations yet</p>
           <p style={{ fontSize: "0.875rem", marginBottom: "1.5rem" }}>Accept an applicant or message a student from Browse Students to start chatting.</p>
@@ -357,7 +357,7 @@ export default function CompanyMessages() {
         </div>
       ) : (
         <>
-          <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "#f1f5f9", borderRadius: "0.65rem", padding: "0.2rem", marginBottom: "1rem" }}>
+          <div style={{ display: "flex", gap: "0.25rem", backgroundColor: "var(--color-bg-surface, #f1f5f9)", borderRadius: "0.65rem", padding: "0.2rem", marginBottom: "1rem" }}>
             {[
               { key: "jobs",   label: "Job Chats",       unread: jobsUnread },
               { key: "direct", label: "Direct Messages", unread: directUnread },
@@ -379,7 +379,7 @@ export default function CompanyMessages() {
           {tab === "direct" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
               {directConvs.length === 0
-                ? <p style={{ textAlign: "center", color: "#64748b", padding: "2rem 1rem", fontSize: "0.875rem" }}>No direct messages yet. Go to Browse Students and tap Message to start a conversation.</p>
+                ? <p style={{ textAlign: "center", color: "var(--color-text-secondary, #64748b)", padding: "2rem 1rem", fontSize: "0.875rem" }}>No direct messages yet. Go to Browse Students and tap Message to start a conversation.</p>
                 : directConvs.map(conv => (
                   <ConvCard
                     key={`direct_${conv.studentId}`}
@@ -400,7 +400,7 @@ export default function CompanyMessages() {
           {tab === "jobs" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
               {conversations.length === 0
-                ? <p style={{ textAlign: "center", color: "#64748b", padding: "2rem 1rem", fontSize: "0.875rem" }}>No job chats yet. Accept a student to start chatting!</p>
+                ? <p style={{ textAlign: "center", color: "var(--color-text-secondary, #64748b)", padding: "2rem 1rem", fontSize: "0.875rem" }}>No job chats yet. Accept a student to start chatting!</p>
                 : conversations.map(conv => (
                   <ConvCard
                     key={`${conv.jobId}_${conv.studentId}`}

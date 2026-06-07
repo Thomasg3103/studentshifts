@@ -1,4 +1,4 @@
-const SIZE = {
+﻿const SIZE = {
   sm: { fontSize: "0.8rem",  padding: "0.4rem 0.9rem"  },
   md: { fontSize: "0.9rem",  padding: "0.65rem 1.4rem" },
   lg: { fontSize: "1rem",    padding: "0.8rem 1.75rem"  },
@@ -13,7 +13,7 @@ const VARIANT = {
   },
   secondary: {
     background: "var(--color-bg-elevated, white)",
-    color: "#374151",
+    color: "var(--color-text-body, #374151)",
     border: "1.5px solid #e2e8f0",
     boxShadow: "none",
   },

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
@@ -71,8 +71,8 @@ export default function ResetPasswordPage() {
       <Helmet><title>Reset Password — StudentShifts</title><meta name="robots" content="noindex" /></Helmet>
       <div style={{ textAlign: "center", maxWidth: "420px", margin: "0 auto" }}>
         <div style={{ marginBottom: "1.75rem" }}>
-          <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Set new password</h2>
-          <p style={{ margin: "0.35rem 0 0", color: "#64748b", fontSize: "0.9rem" }}>Choose a strong password for your account</p>
+          <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Set new password</h2>
+          <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>Choose a strong password for your account</p>
         </div>
 
         {linkExpired ? (
@@ -114,7 +114,7 @@ export default function ResetPasswordPage() {
               onKeyDown={e => e.key === "Enter" && handleSubmit()}
               style={fieldStyle}
             />
-            <p style={{ fontSize: "0.78rem", color: "#64748b", textAlign: "left", margin: "0.1rem 0 0.5rem" }}>
+            <p style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", textAlign: "left", margin: "0.1rem 0 0.5rem" }}>
               Minimum 8 characters, must include a letter and a number
             </p>
             <button onClick={handleSubmit} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>
@@ -127,5 +127,5 @@ export default function ResetPasswordPage() {
   );
 }
 
-const fieldStyle = { width: "100%", padding: "0.72rem 1rem", margin: "0.4rem 0", display: "block", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", boxSizing: "border-box", fontSize: "0.95rem", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "#1e293b", outline: "none" };
+const fieldStyle = { width: "100%", padding: "0.72rem 1rem", margin: "0.4rem 0", display: "block", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", boxSizing: "border-box", fontSize: "0.95rem", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "var(--color-text-primary, #1e293b)", outline: "none" };
 const btnPrimary = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", marginTop: "0.6rem", fontSize: "0.95rem", fontFamily: "inherit", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" };

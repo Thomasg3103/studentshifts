@@ -410,7 +410,7 @@ export default function StudentShiftsWeb() {
   if (authLoading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--color-bg-subtle)" }}>
-        <div style={{ textAlign: "center", color: "#64748b" }}>
+        <div style={{ textAlign: "center", color: "var(--color-text-secondary, #64748b)" }}>
           <img loading="lazy" src="/favicon.svg" alt="StudentShifts" style={{ width: "48px", height: "54px", marginBottom: "0.5rem" }} />
           <p style={{ fontWeight: "600", fontFamily: "'Plus Jakarta Sans', sans-serif" }}>Loading StudentShifts…</p>
         </div>
@@ -514,7 +514,7 @@ function JobDetailsRoute({ selectedJob }) {
 
   if (loading) {
     return (
-      <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b" }}>
+      <div style={{ minHeight: "60vh", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--color-text-secondary, #64748b)" }}>
         <div style={{ textAlign: "center" }}>
           <div style={{ width: "40px", height: "40px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto 0.75rem" }} />
           <p style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", fontWeight: "600" }}>Loading job…</p>
@@ -534,8 +534,8 @@ function NotFoundPage() {
     <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <div style={{ textAlign: "center", maxWidth: "420px" }}>
         <div style={{ fontSize: "5rem", fontWeight: "900", color: "var(--color-brand)", lineHeight: 1, marginBottom: "0.5rem" }}>404</div>
-        <h1 style={{ margin: "0 0 0.75rem", fontWeight: "800", fontSize: "1.6rem", color: "#1e293b" }}>Page not found</h1>
-        <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.75rem" }}>
+        <h1 style={{ margin: "0 0 0.75rem", fontWeight: "800", fontSize: "1.6rem", color: "var(--color-text-primary, #1e293b)" }}>Page not found</h1>
+        <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.75rem" }}>
           The page you're looking for doesn't exist or has been moved.
         </p>
         <button
@@ -569,8 +569,8 @@ function EmailVerifiedPage() {
     <div style={{ minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "2rem" }}>
       <div style={{ textAlign: "center", maxWidth: "420px" }}>
         <div style={{ fontSize: "4rem", marginBottom: "1rem" }}>✅</div>
-        <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "#1e293b" }}>Email verified!</h2>
-        <p style={{ color: "#64748b", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
+        <h2 style={{ margin: "0 0 0.5rem", fontWeight: "800", fontSize: "1.8rem", color: "var(--color-text-primary, #1e293b)" }}>Email verified!</h2>
+        <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "0.95rem", lineHeight: 1.6, marginBottom: "1.5rem" }}>
           Your account is now active. Taking you to StudentShifts…
         </p>
         <div style={{ width: "48px", height: "48px", border: "4px solid #e5e7eb", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite", margin: "0 auto" }} />

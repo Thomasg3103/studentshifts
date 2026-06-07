@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { supabase } from "../../lib/supabase";
@@ -75,13 +75,13 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
   };
 
   return (
-    <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.5rem", position: "relative" }}>
-      <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", marginBottom: "0.5rem" }}>💬 Messages</p>
+    <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e5e7eb)", borderRadius: "0.5rem", padding: "0.75rem", marginTop: "0.5rem", position: "relative" }}>
+      <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-body, #374151)", marginBottom: "0.5rem" }}>💬 Messages</p>
       <div style={{ maxHeight: "200px", overflowY: "auto", marginBottom: "0.5rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
         {loading
-          ? <p style={{ fontSize: "0.8rem", color: "#64748b", textAlign: "center", padding: "0.5rem 0" }}>Loading…</p>
+          ? <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", textAlign: "center", padding: "0.5rem 0" }}>Loading…</p>
           : messages.length === 0
-            ? <p style={{ fontSize: "0.8rem", color: "#64748b", textAlign: "center", padding: "0.5rem 0" }}>No messages yet.</p>
+            ? <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", textAlign: "center", padding: "0.5rem 0" }}>No messages yet.</p>
             : messages.map((m, idx) => {
                 const isMine = m.sender_id === senderId;
                 const isLastMine = isMine && messages.slice(idx + 1).every(x => x.sender_id !== senderId);
@@ -90,7 +90,7 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
                     <div style={{ backgroundColor: isMine ? "#3b82f6" : "#e5e7eb", color: isMine ? "white" : "#111827", padding: "0.4rem 0.65rem", borderRadius: "0.55rem", fontSize: "0.8rem", lineHeight: 1.4 }}>
                       {m.text}
                     </div>
-                    <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: isMine ? "right" : "left", display: "flex", alignItems: "center", justifyContent: isMine ? "flex-end" : "flex-start", gap: "0.2rem" }}>
+                    <p style={{ fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)", margin: "0.1rem 0 0", textAlign: isMine ? "right" : "left", display: "flex", alignItems: "center", justifyContent: isMine ? "flex-end" : "flex-start", gap: "0.2rem" }}>
                       {new Date(m.created_at).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
                       {isMine && <span style={{ fontSize: "0.62rem", color: isLastMine ? "#3b82f6" : "#94a3b8", fontWeight: "700" }}>✓✓</span>}
                     </p>
@@ -105,7 +105,7 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
       </div>
       {!input && !loading && messages.length === 0 && (
         <div style={{ marginBottom: "0.4rem" }}>
-          <p style={{ margin: "0 0 0.3rem", fontSize: "0.65rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+          <p style={{ margin: "0 0 0.3rem", fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
           <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", scrollbarWidth: "none" }}>
             {quickReplies.map(qr => (
               <button key={qr.label} onMouseDown={e => { e.preventDefault(); setInput(qr.text); setTimeout(() => inputRef.current?.focus(), 0); }}

@@ -1,4 +1,4 @@
-export default function Input({
+﻿export default function Input({
   label,
   hint,
   error,
@@ -15,14 +15,14 @@ export default function Input({
       {label && (
         <label
           htmlFor={inputId}
-          style={{ fontSize: "0.875rem", fontWeight: 600, color: "#374151" }}
+          style={{ fontSize: "0.875rem", fontWeight: 600, color: "var(--color-text-body, #374151)" }}
         >
           {label}
           {required && <span style={{ color: "#f43f5e", marginLeft: "0.2rem" }}>*</span>}
         </label>
       )}
       {hint && !error && (
-        <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>{hint}</p>
+        <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>{hint}</p>
       )}
       <input
         id={inputId}
@@ -34,7 +34,7 @@ export default function Input({
           backgroundColor: error ? "#fff1f2" : "white",
           fontSize: "0.9rem",
           fontFamily: "inherit",
-          color: "#1e293b",
+          color: "var(--color-text-primary, #1e293b)",
           outline: "none",
           boxSizing: "border-box",
           ...inputStyle,

@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, useState } from "react";
+﻿import { useRef, useEffect, useCallback, useState } from "react";
 import DOMPurify from "dompurify";
 
 export default function RichTextEditor({ value, onChange, placeholder = "Start typing…" }) {
@@ -47,7 +47,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Start t
 
       <div style={{ position: "relative" }}>
         {isEmpty && (
-          <div style={{ position: "absolute", top: "0.85rem", left: "1rem", color: "#64748b", fontSize: "0.9rem", pointerEvents: "none", lineHeight: 1.65, userSelect: "none" }}>
+          <div style={{ position: "absolute", top: "0.85rem", left: "1rem", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem", pointerEvents: "none", lineHeight: 1.65, userSelect: "none" }}>
             {placeholder}
           </div>
         )}
@@ -59,7 +59,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Start t
           onKeyUp={refreshActive}
           onMouseUp={refreshActive}
           onFocus={refreshActive}
-          style={{ minHeight: "220px", maxHeight: "400px", overflowY: "auto", padding: "0.85rem 1rem", fontSize: "0.9rem", lineHeight: "1.65", color: "#1e293b", outline: "none", fontFamily: "inherit" }}
+          style={{ minHeight: "220px", maxHeight: "400px", overflowY: "auto", padding: "0.85rem 1rem", fontSize: "0.9rem", lineHeight: "1.65", color: "var(--color-text-primary, #1e293b)", outline: "none", fontFamily: "inherit" }}
         />
       </div>
     </div>

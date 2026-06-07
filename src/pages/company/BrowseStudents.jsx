@@ -154,23 +154,23 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     return (
       <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 280px)", minHeight: "400px", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", overflow: "hidden" }}>
         <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid var(--color-border-light, #e5e7eb)", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", flexShrink: 0 }}>
-          <button onClick={() => setChatStudent(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "#6b7280", padding: "0.2rem 0.5rem" }}>←</button>
+          <button onClick={() => setChatStudent(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1rem", color: "var(--color-text-secondary, #6b7280)", padding: "0.2rem 0.5rem" }}>←</button>
           <div>
-            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{chatStudent.name}</p>
-            <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>Direct Message</p>
+            <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #1e293b)" }}>{chatStudent.name}</p>
+            <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>Direct Message</p>
           </div>
         </div>
         <div ref={msgAreaRef} style={{ flex: 1, overflowY: "auto", padding: "1rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
           {chatLoading
-            ? <p style={{ color: "#64748b", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
+            ? <p style={{ color: "var(--color-text-secondary, #64748b)", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>Loading…</p>
             : chatMessages.length === 0
-              ? <p style={{ color: "#64748b", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Introduce yourself!</p>
+              ? <p style={{ color: "var(--color-text-secondary, #64748b)", textAlign: "center", fontSize: "0.85rem", marginTop: "2rem" }}>No messages yet. Introduce yourself!</p>
               : chatMessages.map(m => (
                 <div key={m.id} style={{ alignSelf: m.sender_id === companyId ? "flex-end" : "flex-start", maxWidth: "80%" }}>
                   <div style={{ backgroundColor: m.sender_id === companyId ? "var(--color-brand)" : "#e5e7eb", color: m.sender_id === companyId ? "white" : "#111827", padding: "0.5rem 0.8rem", borderRadius: "0.65rem", fontSize: "0.85rem", lineHeight: 1.45 }}>
                     {m.text}
                   </div>
-                  <p style={{ fontSize: "0.65rem", color: "#64748b", margin: "0.1rem 0 0", textAlign: m.sender_id === companyId ? "right" : "left" }}>
+                  <p style={{ fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)", margin: "0.1rem 0 0", textAlign: m.sender_id === companyId ? "right" : "left" }}>
                     {new Date(m.created_at).toLocaleTimeString("en-IE", { hour: "2-digit", minute: "2-digit" })}
                   </p>
                 </div>
@@ -182,7 +182,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
         )}
         {!chatInput && !chatLoading && chatMessages.length === 0 && (
           <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid var(--color-border-light, #e5e7eb)" }}>
-            <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
+            <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
             <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
               {browseQuickReplies.map(qr => (
                 <button key={qr.label} onMouseDown={e => { e.preventDefault(); setChatInput(qr.text); setTimeout(() => chatInputRef.current?.focus(), 0); }}
@@ -223,7 +223,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
   }
 
   if (!fetched && loading) {
-    return <p style={{ textAlign: "center", color: "#6b7280", padding: "3rem 1rem" }}>Loading students…</p>;
+    return <p style={{ textAlign: "center", color: "var(--color-text-secondary, #6b7280)", padding: "3rem 1rem" }}>Loading students…</p>;
   }
 
   if (fetched && error) {
@@ -231,14 +231,14 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       <div style={{ textAlign: "center", padding: "3rem 1rem", backgroundColor: "#fff1f2", borderRadius: "0.75rem", border: "1.5px solid #fca5a5" }}>
         <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>⚠️</p>
         <p style={{ fontWeight: "700", fontSize: "1rem", color: "#b91c1c", marginBottom: "0.4rem" }}>Could not load students</p>
-        <p style={{ fontSize: "0.85rem", color: "#64748b" }}>{error}</p>
+        <p style={{ fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)" }}>{error}</p>
       </div>
     );
   }
 
   if (fetched && students.length === 0) {
     return (
-      <div style={{ textAlign: "center", padding: "3rem 1rem", color: "#6b7280" }}>
+      <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #6b7280)" }}>
         <p style={{ fontSize: "1.5rem", marginBottom: "0.5rem" }}>🎓</p>
         <p style={{ fontWeight: "700", fontSize: "1rem", marginBottom: "0.4rem" }}>No verified students yet</p>
         <p style={{ fontSize: "0.875rem" }}>Verified students will appear here once they join.</p>
@@ -360,7 +360,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "0.5rem" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <p style={{ fontSize: "0.8rem", color: "#64748b", margin: 0 }}>
+            <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", margin: 0 }}>
               {displayStudents.length} of {students.length} verified student{students.length !== 1 ? "s" : ""}
               {filterByIndustries && companyIndustries.length > 0 ? " matching your industries" : ""}
             </p>
@@ -406,7 +406,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
               <div style={{ display: "flex", gap: "0.3rem", alignItems: "center" }}>
                 <input autoFocus value={alertName} onChange={e => setAlertName(e.target.value)} onKeyDown={e => { if (e.key === "Enter") saveAlert(); if (e.key === "Escape") { setShowSaveAlert(false); setAlertName(""); } }} placeholder="Alert name…" style={{ padding: "0.25rem 0.55rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", fontSize: "0.75rem", fontFamily: "inherit", width: "130px" }} />
                 <button onClick={saveAlert} disabled={!alertName.trim() || savingAlert} style={{ padding: "0.25rem 0.6rem", borderRadius: "0.4rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.75rem", cursor: alertName.trim() ? "pointer" : "default", fontFamily: "inherit" }}>Save</button>
-                <button onClick={() => { setShowSaveAlert(false); setAlertName(""); }} style={{ padding: "0.25rem 0.5rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", background: "none", color: "#64748b", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>×</button>
+                <button onClick={() => { setShowSaveAlert(false); setAlertName(""); }} style={{ padding: "0.25rem 0.5rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", background: "none", color: "var(--color-text-secondary, #64748b)", fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}>×</button>
               </div>
             ) : (
               <button onClick={() => { setAlertName(""); setShowSaveAlert(true); }} title="Save current filters as a named alert" style={{ padding: "0.3rem 0.65rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", cursor: "pointer", fontFamily: "inherit" }}>＋ Save Alert</button>
@@ -444,7 +444,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
                 <span style={{ width: "24px", textAlign: "center", fontSize: "0.78rem", fontWeight: "700", color: sliders[key] > 0 ? "var(--color-brand)" : "#94a3b8" }}>{sliders[key]}</span>
               </div>
             ))}
-            {sliders.reliability > 0 && reliabilityLoading && <p style={{ margin: 0, fontSize: "0.72rem", color: "#64748b" }}>Loading reliability data…</p>}
+            {sliders.reliability > 0 && reliabilityLoading && <p style={{ margin: 0, fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>Loading reliability data…</p>}
           </div>
         )}
       </div>
@@ -462,10 +462,10 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       {displayStudents.length === 0 && (
         <div style={{ textAlign: "center", padding: "3rem 1rem" }}>
           <div style={{ fontSize: "2rem", marginBottom: "0.65rem" }}>🔍</div>
-          <p style={{ margin: "0 0 0.35rem", fontWeight: "700", fontSize: "1rem", color: "#1e293b" }}>
+          <p style={{ margin: "0 0 0.35rem", fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>
             {locationFilter ? `No students found in "${locationFilter}"` : "No students match your industries"}
           </p>
-          <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.5 }}>
+          <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.5 }}>
             {locationFilter ? "Try a broader location or clear the filter." : <>Students need to set matching job preferences in their account.<br />You can browse all students instead.</>}
           </p>
           {locationFilter
@@ -478,7 +478,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
         const isLiked   = likedStudentIds?.has(s.id);
         const hasApplied = applicantStudentIds?.has(s.id);
         return (
-        <div key={s.id} style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e5e7eb", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
+        <div key={s.id} style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e5e7eb)", borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "1rem", alignItems: "flex-start" }}>
           <div style={{ width: "44px", height: "44px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
             {s.profile_photo_url
               ? <img loading="lazy" src={`${s.profile_photo_url}?width=100&quality=75`} alt={`${s.name} profile`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -488,7 +488,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.2rem" }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", minWidth: 0, flexWrap: "wrap" }}>
-                <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#1e293b" }}>{s.name}</p>
+                <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #1e293b)" }}>{s.name}</p>
                 {hasApplied && (
                   <span className="badge badge-sm badge-green" style={{ whiteSpace: "nowrap", flexShrink: 0 }}>Applied ✓</span>
                 )}
@@ -519,7 +519,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
               </button>
             </div>
             {s.location_display && <p style={{ margin: "0 0 0.2rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {s.location_display}</p>}
-            {s.bio && <p style={{ margin: "0 0 0.4rem", fontSize: "0.8rem", color: "#64748b", lineHeight: 1.5 }}>{s.bio.length > 160 ? s.bio.slice(0, 160).trimEnd() + "…" : s.bio}</p>}
+            {s.bio && <p style={{ margin: "0 0 0.4rem", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.5 }}>{s.bio.length > 160 ? s.bio.slice(0, 160).trimEnd() + "…" : s.bio}</p>}
             {s.skills?.length > 0 && (
               <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: "0.4rem" }}>
                 {s.skills.slice(0, 5).map(sk => (
@@ -573,7 +573,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
                 <button
                   onClick={() => viewCV(s.id, s.cv_url)}
                   disabled={cvLoading.has(s.id)}
-                  style={{ padding: "0.5rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#374151", fontWeight: "700", fontSize: "0.82rem", cursor: cvLoading.has(s.id) ? "wait" : "pointer", fontFamily: "inherit", whiteSpace: "nowrap", opacity: cvLoading.has(s.id) ? 0.6 : 1 }}
+                  style={{ padding: "0.5rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "700", fontSize: "0.82rem", cursor: cvLoading.has(s.id) ? "wait" : "pointer", fontFamily: "inherit", whiteSpace: "nowrap", opacity: cvLoading.has(s.id) ? 0.6 : 1 }}
                 >
                   {cvLoading.has(s.id) ? "Opening…" : "📄 CV"}
                 </button>
@@ -583,7 +583,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
                   href={s.linkedin}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{ padding: "0.5rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "white", color: "#0a66c2", fontWeight: "700", fontSize: "0.82rem", textDecoration: "none", display: "inline-flex", alignItems: "center", whiteSpace: "nowrap" }}
+                  style={{ padding: "0.5rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#0a66c2", fontWeight: "700", fontSize: "0.82rem", textDecoration: "none", display: "inline-flex", alignItems: "center", whiteSpace: "nowrap" }}
                 >
                   in LinkedIn
                 </a>
@@ -599,7 +599,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
             </div>
             {shortlistFor === s.id && postings.length > 0 && (
               <div style={{ marginTop: "0.5rem", padding: "0.65rem 0.85rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem" }}>
-                <p style={{ margin: "0 0 0.4rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Shortlist for which job?</p>
+                <p style={{ margin: "0 0 0.4rem", fontSize: "0.7rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Shortlist for which job?</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
                   {postings.filter(p => p.status === "Active").map(p => (
                     <button key={p.id} onClick={() => {
@@ -620,13 +620,13 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
         <div style={{ textAlign: "center", paddingTop: "0.5rem" }}>
           <button
             onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
-            style={{ padding: "0.6rem 1.75rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "#1e293b", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
+            style={{ padding: "0.6rem 1.75rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "var(--color-text-primary, #1e293b)", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
           >
             Load more ({displayStudents.length - visibleCount} remaining)
           </button>
         </div>
       ) : displayStudents.length > 0 && (
-        <p style={{ textAlign: "center", fontSize: "0.78rem", color: "#64748b", paddingTop: "0.5rem", margin: 0 }}>
+        <p style={{ textAlign: "center", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", paddingTop: "0.5rem", margin: 0 }}>
           All {displayStudents.length} student{displayStudents.length !== 1 ? "s" : ""} shown
         </p>
       )}

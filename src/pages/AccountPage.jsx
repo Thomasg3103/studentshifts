@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
@@ -528,7 +528,7 @@ export default function AccountPage() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
         <p style={{ margin: 0, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-brand)" }}>My Availability</p>
       </div>
-      <p style={{ fontSize: "0.73rem", color: "#6b7280", marginBottom: "0.65rem", lineHeight: 1.4 }}>Mark when you're free — companies match shifts to your timetable.</p>
+      <p style={{ fontSize: "0.73rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.65rem", lineHeight: 1.4 }}>Mark when you're free — companies match shifts to your timetable.</p>
       <TimetableGrid value={availability} onChange={handleAvailabilityChange} />
     </div>
   );
@@ -536,7 +536,7 @@ export default function AccountPage() {
   const SidebarPrefs = () => (
     <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "0.85rem 0.9rem" }}>
       <p style={{ margin: "0 0 0.5rem", fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)" }}>Job Preferences</p>
-      <p style={{ fontSize: "0.73rem", color: "#6b7280", marginBottom: "0.65rem", lineHeight: 1.4 }}>Industries you're interested in.</p>
+      <p style={{ fontSize: "0.73rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.65rem", lineHeight: 1.4 }}>Industries you're interested in.</p>
       <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
         {Object.keys(jobCategories).map(cat => {
           const active = jobPreferences.includes(cat);
@@ -560,7 +560,7 @@ export default function AccountPage() {
   const LocationSection = () => (
     <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
       <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.75rem" }}>My Location</p>
-      <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.85rem", lineHeight: 1.4 }}>
+      <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.85rem", lineHeight: 1.4 }}>
         Set your address so we can show job distances. Never shared publicly.
       </p>
       <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
@@ -592,17 +592,17 @@ export default function AccountPage() {
       {locationCoords && !showManual && (
         <div style={{ backgroundColor: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: "0.5rem", padding: "0.45rem 0.75rem", marginBottom: "0.4rem" }}>
           <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: "700" }}>✓ Location found</span>
-          <p style={{ color: "#374151", margin: "0.15rem 0 0", fontSize: "0.7rem" }}>{locationCoords.displayName}</p>
+          <p style={{ color: "var(--color-text-body, #374151)", margin: "0.15rem 0 0", fontSize: "0.7rem" }}>{locationCoords.displayName}</p>
         </div>
       )}
       {locationError && <p style={{ fontSize: "0.8rem", color: "#ef4444", margin: "0 0 0.4rem" }}>{locationError}</p>}
       {!showManual && !locationCoords && (
-        <button type="button" onClick={() => setShowManual(true)} style={{ background: "none", border: "none", padding: 0, color: "#6b7280", fontSize: "0.75rem", cursor: "pointer", textDecoration: "underline", marginBottom: "0.5rem", fontFamily: "inherit" }}>
+        <button type="button" onClick={() => setShowManual(true)} style={{ background: "none", border: "none", padding: 0, color: "var(--color-text-secondary, #6b7280)", fontSize: "0.75rem", cursor: "pointer", textDecoration: "underline", marginBottom: "0.5rem", fontFamily: "inherit" }}>
           Enter address manually
         </button>
       )}
       {showManual && (
-        <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e5e7eb", borderRadius: "0.5rem", padding: "0.75rem", marginBottom: "0.5rem" }}>
+        <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e5e7eb)", borderRadius: "0.5rem", padding: "0.75rem", marginBottom: "0.5rem" }}>
           <input value={manualLine1} onChange={e => setManualLine1(e.target.value)} placeholder="Address Line 1" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
           <input value={manualLine2} onChange={e => setManualLine2(e.target.value)} placeholder="Address Line 2 (optional)" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
           <input value={manualCity} onChange={e => setManualCity(e.target.value)} placeholder="Town / City" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
@@ -615,7 +615,7 @@ export default function AccountPage() {
           </div>
         </div>
       )}
-      <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
+      <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
         📡 Use my current GPS location
       </button>
     </div>
@@ -662,10 +662,10 @@ export default function AccountPage() {
         <button onClick={() => { setDeleteConfirm(""); setDeletePassword(""); setDeleteError(""); setShowDeleteModal(true); }} style={{ ...btnBase, flex: 1, backgroundColor: "transparent", border: "1.5px solid #fca5a5", color: "#dc2626", boxShadow: "none" }}>Delete Account</button>
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: "1.25rem", marginTop: "0.25rem", flexWrap: "wrap" }}>
-        <button onClick={handleChangePassword} disabled={changingPw} style={{ background: "none", border: "none", color: "#64748b", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
+        <button onClick={handleChangePassword} disabled={changingPw} style={{ background: "none", border: "none", color: "var(--color-text-secondary, #64748b)", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
           {changingPw ? "Sending…" : "Change Password"}
         </button>
-        <button onClick={handleExport} disabled={exporting} style={{ background: "none", border: "none", color: "#64748b", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
+        <button onClick={handleExport} disabled={exporting} style={{ background: "none", border: "none", color: "var(--color-text-secondary, #64748b)", fontSize: "0.78rem", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
           {exporting ? "Exporting…" : "Download My Data"}
         </button>
         {pushSupported && pushPermission !== "denied" && (
@@ -717,9 +717,9 @@ export default function AccountPage() {
                 <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={handlePhotoChange} disabled={photoUploading} />
               </label>
             </div>
-            <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "#64748b", fontWeight: "500" }}>Welcome back,</p>
-            <p style={{ margin: "0.1rem 0 0.1rem", fontWeight: "800", fontSize: "1.15rem", color: "#1e293b" }}>👋 {firstName}</p>
-            <p style={{ margin: 0, fontSize: "0.78rem", color: "#64748b" }}>{currentUser.email}</p>
+            <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "500" }}>Welcome back,</p>
+            <p style={{ margin: "0.1rem 0 0.1rem", fontWeight: "800", fontSize: "1.15rem", color: "var(--color-text-primary, #1e293b)" }}>👋 {firstName}</p>
+            <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)" }}>{currentUser.email}</p>
           </div>
 
           {isStudent ? (
@@ -746,13 +746,13 @@ export default function AccountPage() {
 
               {/* My Availability — collapsible, below location */}
               <Collapsible title="My Availability">
-                <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.75rem", lineHeight: 1.4 }}>Drag or tap to mark when you're free. Companies match shifts to your timetable.</p>
+                <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.75rem", lineHeight: 1.4 }}>Drag or tap to mark when you're free. Companies match shifts to your timetable.</p>
                 <TimetableGrid value={availability} onChange={handleAvailabilityChange} />
                 {Object.values(availability).some(s => s?.length > 0) && (
                   <button
                     type="button"
                     onClick={exportAvailabilityIcs}
-                    style={{ marginTop: "0.85rem", padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+                    style={{ marginTop: "0.85rem", padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
                   >
                     📅 Export to Calendar (.ics)
                   </button>
@@ -761,8 +761,8 @@ export default function AccountPage() {
 
               {/* Job Preferences */}
                 <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.5rem" }}>Job Preferences</p>
-                  <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.65rem" }}>Industries you're interested in.</p>
+                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.5rem" }}>Job Preferences</p>
+                  <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.65rem" }}>Industries you're interested in.</p>
                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
                     {Object.keys(jobCategories).map(cat => {
                       const active = jobPreferences.includes(cat);
@@ -784,8 +784,8 @@ export default function AccountPage() {
 
                 {/* Work Profile — structured fields for company filtering */}
               <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.15rem" }}>Work Profile</p>
-                <p style={{ fontSize: "0.78rem", color: "#6b7280", marginBottom: "0.85rem" }}>Helps companies filter applicants — takes 30 seconds.</p>
+                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.15rem" }}>Work Profile</p>
+                <p style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.85rem" }}>Helps companies filter applicants — takes 30 seconds.</p>
 
                 {/* Right to work + Driver's licence */}
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "0.85rem" }}>
@@ -801,7 +801,7 @@ export default function AccountPage() {
                 </div>
 
                 {/* Transport */}
-                <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", margin: "0 0 0.4rem" }}>How do you get to work?</p>
+                <p style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-body, #374151)", margin: "0 0 0.4rem" }}>How do you get to work?</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.85rem" }}>
                   {["Own car", "Public transport", "Cycling / walking"].map(opt => {
                     const active = transport.includes(opt);
@@ -818,7 +818,7 @@ export default function AccountPage() {
                 {/* Experience entries */}
                 <div>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
-                    <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151" }}>Work Experience</label>
+                    <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-body, #374151)" }}>Work Experience</label>
                     {!showAddExp && (
                       <button type="button" onClick={() => { setNewExpSector(""); setNewExpRole(""); setNewExpDuration(""); setShowAddExp(true); }}
                         style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.75rem", fontWeight: "700", color: "var(--color-brand)", fontFamily: "inherit", padding: 0 }}>
@@ -853,7 +853,7 @@ export default function AccountPage() {
                     <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.75rem", marginBottom: "0.5rem" }}>
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "0.5rem" }}>
                         <div>
-                          <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.2rem" }}>Sector</label>
+                          <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--color-text-body, #374151)", display: "block", marginBottom: "0.2rem" }}>Sector</label>
                           <select value={newExpSector} onChange={e => { setNewExpSector(e.target.value); setNewExpRole(""); }}
                             style={{ width: "100%", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", backgroundColor: "var(--color-bg-elevated, white)", color: newExpSector ? "#1e293b" : "#94a3b8" }}>
                             <option value="">Sector…</option>
@@ -861,7 +861,7 @@ export default function AccountPage() {
                           </select>
                         </div>
                         <div>
-                          <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.2rem" }}>Duration</label>
+                          <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--color-text-body, #374151)", display: "block", marginBottom: "0.2rem" }}>Duration</label>
                           <select value={newExpDuration} onChange={e => setNewExpDuration(e.target.value)}
                             style={{ width: "100%", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", backgroundColor: "var(--color-bg-elevated, white)", color: newExpDuration ? "#1e293b" : "#94a3b8" }}>
                             <option value="">Duration…</option>
@@ -872,7 +872,7 @@ export default function AccountPage() {
                         </div>
                       </div>
                       <div style={{ marginBottom: "0.5rem" }}>
-                        <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.2rem" }}>Role / Job Title</label>
+                        <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--color-text-body, #374151)", display: "block", marginBottom: "0.2rem" }}>Role / Job Title</label>
                         {newExpSector && (jobCategories[newExpSector] || []).length > 0 ? (
                           <select value={newExpRole} onChange={e => setNewExpRole(e.target.value)}
                             style={{ width: "100%", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", backgroundColor: "var(--color-bg-elevated, white)", color: newExpRole ? "#1e293b" : "#94a3b8" }}>
@@ -904,7 +904,7 @@ export default function AccountPage() {
                           Add Entry
                         </button>
                         <button type="button" onClick={() => setShowAddExp(false)}
-                          style={{ padding: "0.45rem 0.75rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", background: "none", color: "#64748b", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>
+                          style={{ padding: "0.45rem 0.75rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", background: "none", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>
                           Cancel
                         </button>
                       </div>
@@ -914,7 +914,7 @@ export default function AccountPage() {
 
                 {/* Can start */}
                 <div>
-                  <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "#374151", display: "block", marginBottom: "0.3rem" }}>Can start</label>
+                  <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-body, #374151)", display: "block", marginBottom: "0.3rem" }}>Can start</label>
                     <select value={canStart} onChange={e => { setCanStart(e.target.value); saveField({ can_start: e.target.value }, { canStart: e.target.value }); }}
                       style={{ width: "100%", padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.8rem", fontFamily: "inherit", color: canStart ? "#1e293b" : "#64748b", backgroundColor: "var(--color-bg-elevated, white)" }}>
                       <option value="">Select…</option>
@@ -928,7 +928,7 @@ export default function AccountPage() {
 
               {/* My Profile */}
                 <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1.25rem", marginBottom: "1rem" }}>
-                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 1rem" }}>My Profile</p>
+                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 1rem" }}>My Profile</p>
 
                   {/* Completeness bar */}
                   {(() => {
@@ -936,7 +936,7 @@ export default function AccountPage() {
                     return (
                       <div style={{ marginBottom: "1rem" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-                          <span style={{ fontSize: "0.8rem", fontWeight: "700", color: "#374151" }}>Profile Completeness</span>
+                          <span style={{ fontSize: "0.8rem", fontWeight: "700", color: "var(--color-text-body, #374151)" }}>Profile Completeness</span>
                           <span style={{ fontSize: "0.8rem", fontWeight: "700", color: pcColor }}>{done}/{profileFields.length}</span>
                         </div>
                         <div style={{ height: "8px", backgroundColor: "#e5e7eb", borderRadius: "999px", overflow: "hidden", marginBottom: "0.45rem" }}>
@@ -956,7 +956,7 @@ export default function AccountPage() {
                   <FileUpload label="CV" hint=".pdf or .docx — required to apply" accept=".pdf,.doc,.docx" onUpload={handleCvUpload} existingName={currentUser.cvName} required />
                   <FileUpload label="Cover Letter" hint=".pdf or .docx — optional" accept=".pdf,.doc,.docx" onUpload={handleCoverLetterUpload} existingName={currentUser.coverLetterName} />
 
-                  <label htmlFor="linkedin-url" style={labelStyle}>LinkedIn URL <span style={{ fontWeight: "400", color: "#64748b" }}>(optional)</span></label>
+                  <label htmlFor="linkedin-url" style={labelStyle}>LinkedIn URL <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)" }}>(optional)</span></label>
                   <input
                     id="linkedin-url"
                     placeholder="https://linkedin.com/in/yourname"
@@ -974,7 +974,7 @@ export default function AccountPage() {
                   />
 
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                    <label htmlFor="short-bio" style={labelStyle}>Short Bio <span style={{ fontWeight: "400", color: "#64748b" }}>(optional)</span></label>
+                    <label htmlFor="short-bio" style={labelStyle}>Short Bio <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)" }}>(optional)</span></label>
                     <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#64748b" }}>{bio.length}/500</span>
                   </div>
                   <textarea
@@ -988,7 +988,7 @@ export default function AccountPage() {
                     style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
                   />
 
-                  <label htmlFor="skills-input" style={labelStyle}>Skills <span style={{ fontWeight: "400", color: "#64748b" }}>(type to search, click to add)</span></label>
+                  <label htmlFor="skills-input" style={labelStyle}>Skills <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)" }}>(type to search, click to add)</span></label>
                   <div ref={skillWrapRef} style={{ position: "relative", marginBottom: "0.5rem" }}>
                     <input
                       id="skills-input"
@@ -1005,7 +1005,7 @@ export default function AccountPage() {
                             key={s}
                             type="button"
                             onMouseDown={e => { e.preventDefault(); addSkillFromSuggestion(s); }}
-                            style={{ display: "block", width: "100%", textAlign: "left", padding: "0.55rem 0.85rem", background: "none", border: "none", cursor: "pointer", fontSize: "0.85rem", color: "#1e293b", fontFamily: "inherit" }}
+                            style={{ display: "block", width: "100%", textAlign: "left", padding: "0.55rem 0.85rem", background: "none", border: "none", cursor: "pointer", fontSize: "0.85rem", color: "var(--color-text-primary, #1e293b)", fontFamily: "inherit" }}
                             onMouseEnter={e => e.currentTarget.style.backgroundColor = "#f8fafc"}
                             onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
                           >{s}</button>
@@ -1014,7 +1014,7 @@ export default function AccountPage() {
                     )}
                     {showSkillSuggestions && skillInput.trim().length > 0 && skillSuggestions.length === 0 && (
                       <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 20, backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.6rem", boxShadow: "0 4px 12px rgba(0,0,0,0.1)", padding: "0.6rem 0.85rem", marginTop: "0.25rem" }}>
-                        <p style={{ margin: 0, fontSize: "0.82rem", color: "#64748b" }}>No matching skills found</p>
+                        <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)" }}>No matching skills found</p>
                       </div>
                     )}
                   </div>
@@ -1023,7 +1023,7 @@ export default function AccountPage() {
                       {skills.map(s => (
                         <span key={s} style={{ fontSize: "0.8rem", backgroundColor: "#eff6ff", color: "#1d4ed8", border: "1.5px solid #bfdbfe", borderRadius: "999px", padding: "0.2rem 0.6rem", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                           {s}
-                          <button aria-label={`Remove skill: ${s}`} onClick={() => removeSkill(s)} style={{ background: "none", border: "none", cursor: "pointer", color: "#6b7280", fontSize: "0.8rem", padding: "0.25rem", lineHeight: 1, minWidth: "28px", minHeight: "28px", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>✕</button>
+                          <button aria-label={`Remove skill: ${s}`} onClick={() => removeSkill(s)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary, #6b7280)", fontSize: "0.8rem", padding: "0.25rem", lineHeight: 1, minWidth: "28px", minHeight: "28px", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>✕</button>
                         </span>
                       ))}
                     </div>
@@ -1041,8 +1041,8 @@ export default function AccountPage() {
               {/* Work History */}
               <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.5rem" }}>
-                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: 0 }}>Work History</p>
-                  {workHistory.length > 0 && <span style={{ fontSize: "0.72rem", color: "#64748b" }}>{workHistory.length} shift{workHistory.length !== 1 ? "s" : ""}</span>}
+                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: 0 }}>Work History</p>
+                  {workHistory.length > 0 && <span style={{ fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>{workHistory.length} shift{workHistory.length !== 1 ? "s" : ""}</span>}
                 </div>
                 {workHistory.length === 0 ? (
                   <p style={{ fontSize: "0.82rem", color: "#94a3b8", margin: 0 }}>Shifts you complete through StudentShifts will appear here.</p>
@@ -1051,8 +1051,8 @@ export default function AccountPage() {
                     {workHistory.map(app => (
                       <div key={app.id} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.55rem 0.75rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0" }}>
                         <div>
-                          <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "700", color: "#0f172a" }}>{app.jobs?.title || "Job"}</p>
-                          <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b" }}>{app.jobs?.location}{app.jobs?.pay ? ` · ${app.jobs.pay}` : ""}</p>
+                          <p style={{ margin: 0, fontSize: "0.85rem", fontWeight: "700", color: "var(--color-text-primary, #0f172a)" }}>{app.jobs?.title || "Job"}</p>
+                          <p style={{ margin: 0, fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>{app.jobs?.location}{app.jobs?.pay ? ` · ${app.jobs.pay}` : ""}</p>
                         </div>
                         <span style={{ fontSize: "0.72rem", color: "#16a34a", fontWeight: "700", backgroundColor: "#dcfce7", borderRadius: "999px", padding: "0.15rem 0.5rem", flexShrink: 0 }}>Hired</span>
                       </div>
@@ -1064,7 +1064,7 @@ export default function AccountPage() {
               {/* Skills Endorsements — placeholder */}
               <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem" }}>
-                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: 0 }}>Skills Endorsements</p>
+                  <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: 0 }}>Skills Endorsements</p>
                   <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "#7c3aed", backgroundColor: "#ede9fe", borderRadius: "999px", padding: "0.1rem 0.45rem" }}>Coming Soon</span>
                 </div>
                 <p style={{ fontSize: "0.82rem", color: "#94a3b8", margin: 0 }}>Companies you've worked with will be able to endorse your skills, making your profile stand out to future employers.</p>
@@ -1072,7 +1072,7 @@ export default function AccountPage() {
 
               {/* Job Alerts */}
               <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.5rem" }}>Job Alerts</p>
+                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.5rem" }}>Job Alerts</p>
                 <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
                   <input
                     type="checkbox"
@@ -1085,19 +1085,19 @@ export default function AccountPage() {
                     }}
                     style={{ width: "18px", height: "18px", cursor: "pointer", accentColor: "var(--color-brand)" }}
                   />
-                  <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "#374151" }}>
+                  <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-body, #374151)" }}>
                     Notify me when new jobs match my preferences
                   </span>
                 </label>
-                <p style={{ margin: "0.4rem 0 0", fontSize: "0.77rem", color: "#64748b", paddingLeft: "1.75rem" }}>
+                <p style={{ margin: "0.4rem 0 0", fontSize: "0.77rem", color: "var(--color-text-secondary, #64748b)", paddingLeft: "1.75rem" }}>
                   Alerts are sent when jobs matching your preferred categories are posted.
                 </p>
               </div>
 
               {/* Notification Preferences */}
               <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.6rem" }}>Notification Preferences</p>
-                <p style={{ fontSize: "0.78rem", color: "#6b7280", marginBottom: "0.85rem", lineHeight: 1.4 }}>Choose what you're notified about and how.</p>
+                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.6rem" }}>Notification Preferences</p>
+                <p style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.85rem", lineHeight: 1.4 }}>Choose what you're notified about and how.</p>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                   {[
                     { key: "new_message",      label: "New message from a company" },
@@ -1108,15 +1108,15 @@ export default function AccountPage() {
                     const pref = notifPrefs[key] || { push: true, email: true };
                     return (
                       <div key={key} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.55rem 0.75rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0" }}>
-                        <span style={{ fontSize: "0.82rem", fontWeight: "600", color: "#374151", flex: 1 }}>{label}</span>
+                        <span style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--color-text-body, #374151)", flex: 1 }}>{label}</span>
                         <div style={{ display: "flex", gap: "0.65rem", flexShrink: 0 }}>
                           {pushSupported && (
-                            <label style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer", fontSize: "0.72rem", color: "#64748b" }}>
+                            <label style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>
                               <input type="checkbox" checked={pref.push} onChange={() => toggleNotifPref(key, "push")} style={{ accentColor: "var(--color-brand)", width: "14px", height: "14px" }} />
                               Push
                             </label>
                           )}
-                          <label style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer", fontSize: "0.72rem", color: "#64748b" }}>
+                          <label style={{ display: "flex", alignItems: "center", gap: "0.3rem", cursor: "pointer", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>
                             <input type="checkbox" checked={pref.email} onChange={() => toggleNotifPref(key, "email")} style={{ accentColor: "var(--color-brand)", width: "14px", height: "14px" }} />
                             Email
                           </label>
@@ -1129,7 +1129,7 @@ export default function AccountPage() {
 
               {/* DM Consent */}
               <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#64748b", margin: "0 0 0.5rem" }}>Messaging</p>
+                <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.5rem" }}>Messaging</p>
                 <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
                   <input
                     type="checkbox"
@@ -1141,11 +1141,11 @@ export default function AccountPage() {
                     }}
                     style={{ width: "18px", height: "18px", cursor: "pointer", accentColor: "var(--color-brand)" }}
                   />
-                  <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "#374151" }}>
+                  <span style={{ fontSize: "0.88rem", fontWeight: 600, color: "var(--color-text-body, #374151)" }}>
                     Allow verified companies to send me messages before I apply
                   </span>
                 </label>
-                <p style={{ margin: "0.4rem 0 0", fontSize: "0.77rem", color: "#64748b", paddingLeft: "1.75rem" }}>
+                <p style={{ margin: "0.4rem 0 0", fontSize: "0.77rem", color: "var(--color-text-secondary, #64748b)", paddingLeft: "1.75rem" }}>
                   Companies can only contact you if they have been verified by StudentShifts.
                 </p>
               </div>
@@ -1189,7 +1189,7 @@ export default function AccountPage() {
               {/* Save status — above logout/delete */}
               {(saving || saved || saveError) && (
                 <div style={{ textAlign: "center", padding: "0.6rem 1rem", marginBottom: "0.75rem", borderRadius: "0.6rem", backgroundColor: saveError ? "#fff1f2" : saved ? "#f0fdf4" : "#f8fafc", border: `1.5px solid ${saveError ? "#fca5a5" : saved ? "#86efac" : "#e2e8f0"}` }}>
-                  {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>Saving…</p>}
+                  {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600 }}>Saving…</p>}
                   {saved  && <p style={{ margin: 0, fontSize: "0.8rem", color: "#16a34a", fontWeight: 700 }}>✓ Saved</p>}
                   {saveError && <p style={{ margin: 0, fontSize: "0.8rem", color: "#ef4444", fontWeight: 600 }}>{saveError}</p>}
                 </div>
@@ -1206,14 +1206,14 @@ export default function AccountPage() {
                 <InfoRow label="Role"  value="Company" />
                 {currentUser.croNumber && (
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem", fontSize: "0.9rem" }}>
-                    <span style={{ color: "#6b7280" }}>CRO Number</span>
-                    <span style={{ fontWeight: "600", color: "#111827", fontFamily: "monospace", fontSize: "0.92rem", letterSpacing: "0.05em" }}>{currentUser.croNumber}</span>
+                    <span style={{ color: "var(--color-text-secondary, #6b7280)" }}>CRO Number</span>
+                    <span style={{ fontWeight: "600", color: "var(--color-text-primary, #111827)", fontFamily: "monospace", fontSize: "0.92rem", letterSpacing: "0.05em" }}>{currentUser.croNumber}</span>
                   </div>
                 )}
               </Collapsible>
 
               <Section title="Company Profile">
-                <label style={labelStyle}>Company Bio <span style={{ fontWeight: "400", color: "#64748b" }}>(optional)</span></label>
+                <label style={labelStyle}>Company Bio <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)" }}>(optional)</span></label>
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-0.25rem", marginBottom: "0.25rem" }}>
                   <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#64748b" }}>{bio.length}/500</span>
                 </div>
@@ -1226,7 +1226,7 @@ export default function AccountPage() {
                   rows={4}
                   style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
                 />
-                <label style={labelStyle}>Website <span style={{ fontWeight: "400", color: "#64748b" }}>(optional)</span></label>
+                <label style={labelStyle}>Website <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)" }}>(optional)</span></label>
                 <input
                   placeholder="https://yourcompany.ie"
                   value={website}
@@ -1243,7 +1243,7 @@ export default function AccountPage() {
                 />
                 {(saving || saved || saveError) && (
                   <div style={{ textAlign: "center", padding: "0.4rem 0.75rem", borderRadius: "0.5rem", backgroundColor: saveError ? "#fff1f2" : saved ? "#f0fdf4" : "#f8fafc", border: `1.5px solid ${saveError ? "#fca5a5" : saved ? "#86efac" : "#e2e8f0"}` }}>
-                    {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>Saving…</p>}
+                    {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600 }}>Saving…</p>}
                     {saved  && <p style={{ margin: 0, fontSize: "0.8rem", color: "#16a34a", fontWeight: 700 }}>✓ Saved</p>}
                     {saveError && <p style={{ margin: 0, fontSize: "0.8rem", color: "#ef4444", fontWeight: 600 }}>{saveError}</p>}
                   </div>
@@ -1251,7 +1251,7 @@ export default function AccountPage() {
               </Section>
 
               <Section title="Our Industries">
-                <p style={{ fontSize: "0.8rem", color: "#6b7280", marginBottom: "0.9rem" }}>Which industries does your company hire in? Students matching these will appear in Browse Students.</p>
+                <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.9rem" }}>Which industries does your company hire in? Students matching these will appear in Browse Students.</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "1rem" }}>
                   {Object.keys(jobCategories).map(cat => {
                     const active = industries.includes(cat);
@@ -1283,9 +1283,9 @@ export default function AccountPage() {
           <div onClick={() => setShowDeleteModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
             <div ref={deleteModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="delete-modal-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fff1f2", border: "2px solid #fecdd3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>⚠️</div>
-              <h3 id="delete-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Delete your account?</h3>
-              <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 1.25rem" }}>This is permanent. Your profile, CV, and all data will be deleted.</p>
-              <p style={{ fontSize: "0.8rem", fontWeight: "600", color: "#374151", margin: "0 0 0.4rem", textAlign: "left" }}>Type <strong>DELETE</strong> to confirm</p>
+              <h3 id="delete-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "var(--color-text-primary, #1e293b)" }}>Delete your account?</h3>
+              <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", margin: "0 0 1.25rem" }}>This is permanent. Your profile, CV, and all data will be deleted.</p>
+              <p style={{ fontSize: "0.8rem", fontWeight: "600", color: "var(--color-text-body, #374151)", margin: "0 0 0.4rem", textAlign: "left" }}>Type <strong>DELETE</strong> to confirm</p>
               <input value={deleteConfirm} onChange={e => setDeleteConfirm(e.target.value)} placeholder="DELETE" style={{ ...inputStyle, marginBottom: "0.75rem", borderColor: deleteConfirm === "DELETE" ? "#ef4444" : "#e2e8f0" }} />
               {deleteError && <p style={{ fontSize: "0.8rem", color: "#ef4444", margin: "0 0 0.75rem" }}>{deleteError}</p>}
               <div style={{ display: "flex", gap: "0.75rem" }}>
@@ -1303,7 +1303,7 @@ export default function AccountPage() {
           <div onClick={() => setShowProfilePreview(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1200, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
             <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Profile preview" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "1.5rem", maxWidth: "400px", width: "100%", maxHeight: "85vh", overflowY: "auto", boxShadow: "0 24px 64px rgba(0,0,0,0.25)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1.25rem" }}>
-                <h3 style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "#1e293b" }}>How companies see your profile</h3>
+                <h3 style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>How companies see your profile</h3>
                 <button onClick={() => setShowProfilePreview(false)} style={{ width: "30px", height: "30px", borderRadius: "0.4rem", border: "1px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", cursor: "pointer", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "inherit" }}>✕</button>
               </div>
 
@@ -1316,7 +1316,7 @@ export default function AccountPage() {
                   }
                 </div>
                 <div>
-                  <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{currentUser.name}</p>
+                  <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #0f172a)" }}>{currentUser.name}</p>
                   {currentUser.verificationStatus === "verified" && (
                     <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#16a34a", backgroundColor: "#dcfce7", borderRadius: "999px", padding: "0.1rem 0.5rem" }}>✓ Verified Student</span>
                   )}
@@ -1333,7 +1333,7 @@ export default function AccountPage() {
 
                 {/* Work profile */}
                 <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: "0.75rem" }}>
-                  <p style={{ margin: "0 0 0.5rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Work Profile</p>
+                  <p style={{ margin: "0 0 0.5rem", fontSize: "0.7rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Work Profile</p>
                   <PreviewRow ok={rightToWork} label="Right to work in Ireland" />
                   <PreviewRow ok={driverLicence} warn label="Driver's licence" />
                   {transport.length > 0 && <PreviewRow ok label="Transport" detail={transport.join(", ")} />}
@@ -1357,8 +1357,8 @@ export default function AccountPage() {
           <div onClick={() => setShowLogoutModal(false)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
             <div ref={logoutModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="logout-modal-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
               <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fff1f2", border: "2px solid #fecdd3", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>👋</div>
-              <h3 id="logout-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "#1e293b" }}>Log out?</h3>
-              <p style={{ fontSize: "0.875rem", color: "#64748b", marginBottom: "1.5rem" }}>You'll need to sign back in to access your account.</p>
+              <h3 id="logout-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "var(--color-text-primary, #1e293b)" }}>Log out?</h3>
+              <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1.5rem" }}>You'll need to sign back in to access your account.</p>
               <div style={{ display: "flex", gap: "0.75rem" }}>
                 <button onClick={() => setShowLogoutModal(false)} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Stay</button>
                 <button onClick={confirmLogout} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: "#f43f5e", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Log Out</button>
@@ -1394,8 +1394,8 @@ function PreviewRow({ ok, warn, label, detail, truncate }) {
     <div style={{ display: "flex", gap: "0.55rem", alignItems: "flex-start", marginBottom: "0.35rem" }}>
       <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", width: "18px", height: "18px", borderRadius: "50%", flexShrink: 0, marginTop: "1px", backgroundColor: ok ? "#dcfce7" : warn ? "#fef3c7" : "#fee2e2", color, fontSize: "0.65rem", fontWeight: "900" }}>{icon}</span>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <span style={{ fontSize: "0.82rem", fontWeight: "600", color: "#374151" }}>{label}</span>
-        {detail && <span style={{ fontSize: "0.78rem", color: "#6b7280", marginLeft: "0.35rem", ...(truncate ? { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block", maxWidth: "200px", verticalAlign: "bottom" } : {}) }}>{detail}</span>}
+        <span style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--color-text-body, #374151)" }}>{label}</span>
+        {detail && <span style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #6b7280)", marginLeft: "0.35rem", ...(truncate ? { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block", maxWidth: "200px", verticalAlign: "bottom" } : {}) }}>{detail}</span>}
       </div>
     </div>
   );
@@ -1435,8 +1435,8 @@ function PersonIcon() {
 function InfoRow({ label, value }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.4rem", fontSize: "0.9rem" }}>
-      <span style={{ color: "#6b7280" }}>{label}</span>
-      <span style={{ fontWeight: "600", color: "#111827" }}>{value}</span>
+      <span style={{ color: "var(--color-text-secondary, #6b7280)" }}>{label}</span>
+      <span style={{ fontWeight: "600", color: "var(--color-text-primary, #111827)" }}>{value}</span>
     </div>
   );
 }
@@ -1444,7 +1444,7 @@ function InfoRow({ label, value }) {
 function DocRow({ label, filename }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem", fontSize: "0.875rem" }}>
-      <span style={{ color: "#6b7280" }}>{label}</span>
+      <span style={{ color: "var(--color-text-secondary, #6b7280)" }}>{label}</span>
       {filename
         ? <span style={{ color: "#16a34a", fontWeight: "600" }}>✓ Uploaded</span>
         : <span style={{ color: "#ef4444", fontWeight: "600" }}>Not uploaded</span>}

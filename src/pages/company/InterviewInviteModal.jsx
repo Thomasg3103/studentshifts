@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+﻿import { useState, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { supabase } from "../../lib/supabase";
@@ -46,17 +46,17 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
     }
   };
 
-  const inputStyle = { width: "100%", padding: "0.5rem 0.55rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", fontFamily: "inherit", boxSizing: "border-box", color: "#374151" };
+  const inputStyle = { width: "100%", padding: "0.5rem 0.55rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.9rem", fontFamily: "inherit", boxSizing: "border-box", color: "var(--color-text-body, #374151)" };
 
   return (
     <>
       <div onClick={onClose} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1300 }} />
       <div ref={modalRef} role="dialog" aria-modal="true" aria-label={`Send Interview ${roundNumber} Invite`} style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 1301, backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", padding: "1.75rem", width: "min(440px,92vw)", boxShadow: "0 24px 64px rgba(0,0,0,0.25)", maxHeight: "90vh", overflowY: "auto" }}>
-        <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#1e293b" }}>Send Interview Rd {roundNumber} Invite</h3>
-        <p style={{ margin: "0 0 1rem", fontSize: "0.82rem", color: "#64748b" }}>To: <strong>{applicant.name}</strong></p>
+        <h3 style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "var(--color-text-primary, #1e293b)" }}>Send Interview Rd {roundNumber} Invite</h3>
+        <p style={{ margin: "0 0 1rem", fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)" }}>To: <strong>{applicant.name}</strong></p>
 
         {/* Mode toggle */}
-        <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1.1rem", padding: "0.25rem", backgroundColor: "#f1f5f9", borderRadius: "0.6rem" }}>
+        <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1.1rem", padding: "0.25rem", backgroundColor: "var(--color-bg-surface, #f1f5f9)", borderRadius: "0.6rem" }}>
           {[{ val: "fixed", label: "Fixed Time" }, { val: "slots", label: "Let Student Pick" }].map(({ val, label }) => (
             <button key={val} onClick={() => setMode(val)} style={{ flex: 1, padding: "0.45rem", borderRadius: "0.45rem", border: "none", background: mode === val ? "var(--color-bg-elevated, white)" : "transparent", fontWeight: mode === val ? "700" : "500", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit", color: mode === val ? "#1e293b" : "#64748b", boxShadow: mode === val ? "0 1px 4px rgba(0,0,0,0.1)" : "none" }}>
               {label}
@@ -68,23 +68,23 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
           {mode === "fixed" ? (
             <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
               <div>
-                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.5rem" }}>Date</label>
+                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.5rem" }}>Date</label>
                 {date && <p style={{ margin: "0 0 0.4rem", fontSize: "0.82rem", color: "#7c3aed", fontWeight: "700" }}>Selected: {date}</p>}
                 <DateStepper value={date} onSave={setDate} />
               </div>
               <div>
-                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.5rem" }}>Time</label>
+                <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.5rem" }}>Time</label>
                 {time && <p style={{ margin: "0 0 0.4rem", fontSize: "0.82rem", color: "#7c3aed", fontWeight: "700" }}>Selected: {time}</p>}
                 <TimeWheelPicker value={time} onSave={setTime} />
               </div>
             </div>
           ) : (
             <div>
-              <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.45rem" }}>Available Time Slots</label>
+              <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.45rem" }}>Available Time Slots</label>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
                 {slots.map((s, i) => (
                   <div key={i} style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
-                    <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", minWidth: "16px" }}>{i + 1}.</span>
+                    <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", minWidth: "16px" }}>{i + 1}.</span>
                     <input type="date" value={s.date} onChange={e => updateSlot(i, "date", e.target.value)} style={{ ...inputStyle, flex: 1 }} />
                     <input type="time" value={s.time} onChange={e => updateSlot(i, "time", e.target.value)} style={{ ...inputStyle, flex: 1 }} />
                     {slots.length > 1 && <button onClick={() => removeSlot(i)} style={{ padding: "0.3rem 0.5rem", border: "1px solid #fca5a5", borderRadius: "0.4rem", background: "var(--color-bg-elevated, white)", color: "#dc2626", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" }}>✕</button>}
@@ -92,17 +92,17 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
                 ))}
               </div>
               {slots.length < 5 && (
-                <button onClick={addSlot} style={{ marginTop: "0.4rem", padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px dashed #d1d5db", background: "var(--color-bg-elevated, white)", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>+ Add Slot</button>
+                <button onClick={addSlot} style={{ marginTop: "0.4rem", padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px dashed #d1d5db", background: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit" }}>+ Add Slot</button>
               )}
-              <p style={{ margin: "0.5rem 0 0", fontSize: "0.72rem", color: "#64748b" }}>The student will receive all options and pick one that works for them.</p>
+              <p style={{ margin: "0.5rem 0 0", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>The student will receive all options and pick one that works for them.</p>
             </div>
           )}
           <div>
-            <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Note to student <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>
+            <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Note to student <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>
             <textarea value={note} onChange={e => setNote(e.target.value)} placeholder="e.g. Please bring a copy of your CV." rows={3} maxLength={1000} style={{ ...inputStyle, resize: "vertical", lineHeight: 1.5 }} />
           </div>
           <div>
-            <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Microsoft Teams link <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>
+            <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Microsoft Teams link <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>
             <input type="url" value={teamsLink} onChange={e => setTeamsLink(e.target.value)} placeholder="https://teams.microsoft.com/…" style={inputStyle} />
           </div>
         </div>

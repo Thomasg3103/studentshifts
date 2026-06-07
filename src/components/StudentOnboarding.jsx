@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useApp } from "../context/AppContext";
 
@@ -34,10 +34,10 @@ function WelcomeStep({ onNext, onSkip, name }) {
   return (
     <>
       <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>🎓</div>
-      <h2 style={{ margin: "0 0 0.5rem", fontWeight: 800, fontSize: "1.4rem", color: "#1e293b" }}>
+      <h2 style={{ margin: "0 0 0.5rem", fontWeight: 800, fontSize: "1.4rem", color: "var(--color-text-primary, #1e293b)" }}>
         You're verified, {name?.split(" ")[0] || "there"}!
       </h2>
-      <p style={{ margin: "0 0 1.5rem", fontSize: "0.9rem", color: "#64748b", lineHeight: 1.6 }}>
+      <p style={{ margin: "0 0 1.5rem", fontSize: "0.9rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.6 }}>
         Let's spend 60 seconds setting up your profile so companies can find you and see when you're available.
       </p>
       <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -88,8 +88,8 @@ function LocationStep({ onNext, onBack, onSkip }) {
   return (
     <>
       <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📍</div>
-      <h2 style={{ margin: "0 0 0.35rem", fontWeight: 800, fontSize: "1.25rem", color: "#1e293b" }}>Where are you based?</h2>
-      <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.55 }}>
+      <h2 style={{ margin: "0 0 0.35rem", fontWeight: 800, fontSize: "1.25rem", color: "var(--color-text-primary, #1e293b)" }}>Where are you based?</h2>
+      <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.55 }}>
         Companies see your distance from them — it helps them find local students.
       </p>
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem" }}>
@@ -156,8 +156,8 @@ function AvailabilityStep({ onDone, onBack }) {
   return (
     <>
       <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>📅</div>
-      <h2 style={{ margin: "0 0 0.35rem", fontWeight: 800, fontSize: "1.25rem", color: "#1e293b" }}>When can you work?</h2>
-      <p style={{ margin: "0 0 1rem", fontSize: "0.875rem", color: "#64748b", lineHeight: 1.55 }}>
+      <h2 style={{ margin: "0 0 0.35rem", fontWeight: 800, fontSize: "1.25rem", color: "var(--color-text-primary, #1e293b)" }}>When can you work?</h2>
+      <p style={{ margin: "0 0 1rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.55 }}>
         Tap a day to expand it, then select your available time slots. You can update this any time in Account.
       </p>
 
@@ -173,7 +173,7 @@ function AvailabilityStep({ onDone, onBack }) {
                 style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0.5rem 0.8rem", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit" }}
               >
                 <span style={{ fontWeight: 700, fontSize: "0.875rem", color: isActive ? "var(--color-brand)" : "#374151" }}>{day}</span>
-                <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)" }}>
                   {isActive ? `${daySlots.length} selected` : isOpen ? "—" : "Off"}
                 </span>
               </button>
@@ -269,6 +269,6 @@ export default function StudentOnboarding() {
 }
 
 const btnPrimary = { width: "100%", padding: "0.75rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: "0.95rem", boxShadow: "0 4px 18px rgba(162,29,84,0.3)" };
-const btnOutline = { width: "100%", padding: "0.7rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "#374151", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem" };
-const btnGhost   = { background: "none", border: "none", color: "#64748b", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", padding: "0.4rem" };
+const btnOutline = { width: "100%", padding: "0.7rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem" };
+const btnGhost   = { background: "none", border: "none", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", fontSize: "0.875rem", padding: "0.4rem" };
 const btnSmall   = { padding: "0.65rem 1rem", borderRadius: "0.65rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: "0.88rem", whiteSpace: "nowrap" };
