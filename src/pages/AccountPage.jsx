@@ -1074,10 +1074,23 @@ export default function AccountPage() {
                   <input
                     type="checkbox"
                     checked={allowDm}
-                    onChange={e => {
+                    onChange={async e => {
                       const next = e.target.checked;
                       setAllowDm(next);
-                      saveField({ allow_company_dm: next }, { allowCompanyDm: next });
+                      try {
+                        const { error } = await supabase
+                          .from("students")
+                          .update({ allow_company_dm: next })
+                          .eq("id", currentUser.id)
+                          .select("id");
+                        if (error) throw error;
+                        setCurrentUser(prev => ({ ...prev, allowCompanyDm: next }));
+                        toast.success(next ? "DMs enabled" : "DMs disabled");
+                      } catch (err) {
+                        setAllowDm(!next);
+                        Sentry.captureException(err);
+                        toast.error("Failed to save — please try again.");
+                      }
                     }}
                     style={{ width: "18px", height: "18px", cursor: "pointer", accentColor: "var(--color-brand)" }}
                   />
