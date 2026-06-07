@@ -382,7 +382,7 @@ export default function CompanyDashboard() {
       if (msg.includes("accepted applicants")) {
         toast.error("This job has accepted applicants and cannot be deleted. Close it instead.");
       } else {
-        toast.error("Failed to delete job. Please try again.");
+        toast.error(`Failed to delete job: ${msg || "Unknown error"}`);
       }
     }
   };
