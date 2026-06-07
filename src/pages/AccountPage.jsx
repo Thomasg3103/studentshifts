@@ -1413,7 +1413,7 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
   }, []);
 
   const fetchSuggestions = async (q) => {
-    if (q.length < 3) { setSuggestions([]); setShowSuggestions(false); return; }
+    if (q.length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
     if (suggestCache.has(q)) {
       const cached = suggestCache.get(q);
       setSuggestions(cached);
@@ -1516,7 +1516,7 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
               setLocationCoords(null);
               setShowManual(false);
               clearTimeout(suggestTimer.current);
-              suggestTimer.current = setTimeout(() => fetchSuggestions(val), 150);
+              suggestTimer.current = setTimeout(() => fetchSuggestions(val), 80);
             }}
             onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleGeocode(); } if (e.key === "Escape") setShowSuggestions(false); }}
             onFocus={() => { if (suggestions.length) setShowSuggestions(true); }}
