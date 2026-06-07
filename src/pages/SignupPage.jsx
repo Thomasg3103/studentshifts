@@ -52,6 +52,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendSent, setResendSent] = useState(false);
+  const [resendError, setResendError] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const toggleIndustry = (cat) =>
@@ -65,12 +66,14 @@ export default function SignupPage() {
 
   const handleResend = async () => {
     if (resendCooldown > 0) return;
+    setResendError("");
+    setResendSent(false);
+    setResendCooldown(60);
     try {
       await resendVerificationEmail(email);
       setResendSent(true);
-      setResendCooldown(60);
     } catch (e) {
-      setGeneralError(e?.message || "Failed to resend — please try again.");
+      setResendError(e?.message || "Failed to resend — please try again.");
     }
   };
 
@@ -162,6 +165,7 @@ export default function SignupPage() {
           </div>
 
           <p style={{ fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "0.75rem" }}>Didn't get the email? Check your spam folder.</p>
+          {resendError && <p style={{ fontSize: "0.8rem", color: "#e11d48", fontWeight: "600", marginBottom: "0.5rem" }}>{resendError}</p>}
           <button
             onClick={handleResend}
             disabled={resendCooldown > 0}
