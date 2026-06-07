@@ -1,6 +1,7 @@
 ﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Cropper from "react-easy-crop";
+import "react-easy-crop/react-easy-crop.css";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
