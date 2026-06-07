@@ -269,7 +269,7 @@ export default function CompanyDashboard() {
 
   const duplicatePosting = (posting) => {
     setFormData({
-      title: `${posting.title} (copy)`,
+      title: posting.title,
       category: posting.category,
       location: posting.location,
       lat: posting.lat,
