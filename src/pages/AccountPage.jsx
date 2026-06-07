@@ -188,6 +188,19 @@ export default function AccountPage() {
   const isStudent = currentUser.role === "student";
   const isCompany = currentUser.role === "company";
 
+  // ── Company profile data (jobs + stats) ───────────────────────────────
+  const [companyJobs, setCompanyJobs] = useState([]);
+  const [hireStats, setHireStats] = useState(null);
+  const [responseRate, setResponseRate] = useState(null);
+
+  useEffect(() => {
+    if (!isCompany) return;
+    supabase.from("jobs").select("id, title, category, location, pay, days, photos, is_urgent").eq("company_id", currentUser.id).eq("status", "Active").order("created_at", { ascending: false })
+      .then(({ data }) => { if (data) setCompanyJobs(data); });
+    supabase.rpc("get_company_hire_stats", { p_company_id: currentUser.id }).then(({ data }) => { if (data) setHireStats(data); }).catch(() => {});
+    supabase.rpc("get_company_response_rate", { p_company_id: currentUser.id }).then(({ data }) => { if (data) setResponseRate(data); }).catch(() => {});
+  }, [isCompany, currentUser.id]);
+
   // ── Auto-save helper (students only) ───────────────────────────────────
   // Pass an optional `userUpdate` object to also sync currentUser state (camelCase keys).
   const saveField = async (fields, userUpdate) => {
@@ -620,7 +633,7 @@ export default function AccountPage() {
       </Helmet>
       <BackButton />
       <div style={{ backgroundColor: "var(--color-bg-subtle)", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "1.5rem 1.25rem", boxSizing: "border-box", width: "100%", overflowX: "hidden" }}>
-        <div style={{ maxWidth: isStudent ? "1100px" : "560px", margin: "0 auto" }}>
+        <div style={{ maxWidth: isStudent ? "1100px" : "900px", margin: "0 auto" }}>
 
           {/* Waiting for approval banner — shown at top for pending_review students */}
           {isStudent && currentUser.verificationStatus === "pending_review" && (
@@ -633,8 +646,8 @@ export default function AccountPage() {
             </div>
           )}
 
-          {/* Profile photo + name header */}
-          <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
+          {/* Profile photo + name header — students only */}
+          {isStudent && <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
             <div style={{ position: "relative", display: "inline-block" }}>
               {/* Avatar circle with loading overlay */}
               <div style={{ position: "relative", width: "88px", height: "88px", margin: "0 auto" }}>
@@ -658,7 +671,7 @@ export default function AccountPage() {
             <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "500" }}>Welcome back,</p>
             <p style={{ margin: "0.1rem 0 0.1rem", fontWeight: "800", fontSize: "1.15rem", color: "var(--color-text-primary, #1e293b)" }}>👋 {firstName}</p>
             <p style={{ margin: 0, fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)" }}>{currentUser.email}</p>
-          </div>
+          </div>}
 
           {isStudent ? (
             /* ── Student single-column layout ── */
@@ -1155,8 +1168,148 @@ export default function AccountPage() {
               <BottomActions />
             </div>
           ) : (
-            /* ── Company single-column layout ── */
+            /* ── Company layout — public profile + editing ── */
             <div>
+              {/* Banner + logo (editable photo) */}
+              <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", marginBottom: "1.25rem" }}>
+                <div style={{ height: "140px", background: "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 55%, #1e293b 100%)", borderRadius: "1rem 1rem 0 0", position: "relative" }}>
+                  <div style={{ position: "absolute", inset: 0, borderRadius: "1rem 1rem 0 0", backgroundImage: "radial-gradient(circle at 15% 60%, rgba(255,255,255,0.10) 0%, transparent 55%), radial-gradient(circle at 75% 25%, rgba(255,255,255,0.07) 0%, transparent 45%)" }} />
+                </div>
+                <div style={{ padding: "0 1.75rem" }}>
+                  <div style={{ position: "relative", display: "inline-block", marginTop: "-44px" }}>
+                    <div style={{ width: "88px", height: "88px", borderRadius: "1rem", border: "3px solid white", backgroundColor: "var(--color-bg-surface, #f1f5f9)", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>
+                      {photoUploading
+                        ? <div style={{ width: "24px", height: "24px", border: "3px solid rgba(0,0,0,0.15)", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                        : profilePhoto
+                          ? <img src={supabaseImg(profilePhoto, 176)} alt={currentUser.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                          : "🏢"}
+                    </div>
+                    <label style={{ position: "absolute", bottom: "-4px", right: "-4px", width: "26px", height: "26px", borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", cursor: photoUploading ? "not-allowed" : "pointer", fontSize: "0.65rem", zIndex: 1 }}>
+                      📷
+                      <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={handlePhotoChange} disabled={photoUploading} />
+                    </label>
+                  </div>
+                </div>
+                <div style={{ padding: "0.85rem 1.75rem 1.5rem" }}>
+                  <h2 style={{ margin: "0 0 1rem", fontWeight: "800", fontSize: "1.4rem", color: "var(--color-text-primary, #1e293b)" }}>{currentUser.name}</h2>
+
+                  {/* Industries */}
+                  <p style={{ margin: "0 0 0.4rem", fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Industries</p>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.6rem" }}>
+                    {Object.keys(jobCategories).map(cat => {
+                      const active = industries.includes(cat);
+                      return (
+                        <button key={cat} type="button"
+                          onClick={() => setIndustries(prev => active ? prev.filter(c => c !== cat) : [...prev, cat])}
+                          style={{ padding: "0.3rem 0.75rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${active ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: active ? "#fce7f3" : "white", color: active ? "var(--color-brand)" : "#64748b" }}>
+                          {active ? "✓ " : ""}{cat}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button onClick={handleSaveIndustries} disabled={industrySaving} style={{ marginBottom: "1rem", padding: "0.3rem 0.9rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "700", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", cursor: industrySaving ? "not-allowed" : "pointer", fontFamily: "inherit" }}>
+                    {industrySaved ? "✓ Saved!" : industrySaving ? "Saving…" : "Save Industries"}
+                  </button>
+
+                  {/* Website */}
+                  <p style={{ margin: "0 0 0.3rem", fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Website</p>
+                  <input
+                    placeholder="https://yourcompany.ie"
+                    value={website}
+                    onChange={e => { setWebsite(e.target.value); triggerAutoSave({ website: e.target.value }, { website: e.target.value }); }}
+                    onBlur={() => { setDirtyFields(false); saveCompanyField({ website }); }}
+                    style={{ ...inputStyle, marginBottom: "1rem" }}
+                  />
+
+                  {/* Bio */}
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
+                    <p style={{ margin: 0, fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Bio</p>
+                    <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#64748b" }}>{bio.length}/500</span>
+                  </div>
+                  <textarea
+                    placeholder="Tell students about your company, culture, and the kinds of roles you hire for…"
+                    value={bio}
+                    maxLength={500}
+                    onChange={e => { setBio(e.target.value); setDirtyFields(true); }}
+                    onBlur={() => { setDirtyFields(false); saveCompanyField({ bio }); }}
+                    rows={4}
+                    style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
+                  />
+                  {(saving || saved || saveError) && (
+                    <div style={{ padding: "0.4rem 0.75rem", borderRadius: "0.5rem", backgroundColor: saveError ? "#fff1f2" : saved ? "#f0fdf4" : "#f8fafc", border: `1.5px solid ${saveError ? "#fca5a5" : saved ? "#86efac" : "#e2e8f0"}` }}>
+                      {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "#64748b", fontWeight: 600 }}>Saving…</p>}
+                      {saved  && <p style={{ margin: 0, fontSize: "0.8rem", color: "#16a34a", fontWeight: 700 }}>✓ Saved</p>}
+                      {saveError && <p style={{ margin: 0, fontSize: "0.8rem", color: "#ef4444", fontWeight: 600 }}>{saveError}</p>}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Stats row */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: "0.75rem", marginBottom: "1.25rem" }}>
+                <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
+                  <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)" }}>{companyJobs.length}</p>
+                  <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "600" }}>Active Jobs</p>
+                </div>
+                <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
+                  <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)" }}>{hireStats ? hireStats.total_hired : "—"}</p>
+                  <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "600" }}>Total Hired</p>
+                </div>
+                <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
+                  {responseRate?.total_received > 0 ? (
+                    <>
+                      <p style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)" }}>{responseRate.response_rate_pct}%</p>
+                      <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "600" }}>Response Rate</p>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ margin: 0, fontSize: "1.3rem" }}>⏱️</p>
+                      <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>Avg. Response</p>
+                      <p style={{ margin: "0.1rem 0 0", fontSize: "0.65rem", color: "#94a3b8" }}>No data yet</p>
+                    </>
+                  )}
+                </div>
+                <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px dashed #e2e8f0", borderRadius: "0.75rem", padding: "1rem 1.25rem", textAlign: "center" }}>
+                  <p style={{ margin: 0, fontSize: "1.3rem" }}>⭐</p>
+                  <p style={{ margin: "0.15rem 0 0", fontSize: "0.75rem", color: "#94a3b8", fontWeight: "600" }}>Company Rating</p>
+                  <span style={{ fontSize: "0.6rem", fontWeight: "700", color: "#a855f7", backgroundColor: "#f5f3ff", borderRadius: "999px", padding: "0.1rem 0.45rem" }}>Coming Soon</span>
+                </div>
+              </div>
+
+              {/* Open Positions */}
+              <h2 style={{ margin: "0 0 0.75rem", fontSize: "1rem", fontWeight: "700", color: "var(--color-text-primary, #0f172a)" }}>Open Positions ({companyJobs.length})</h2>
+              {companyJobs.length === 0 ? (
+                <div style={{ textAlign: "center", padding: "2rem 1rem", backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "0.85rem", border: "1.5px solid #e2e8f0", color: "var(--color-text-secondary, #64748b)", marginBottom: "1.25rem" }}>
+                  <p style={{ margin: 0, fontWeight: "600", fontSize: "0.9rem" }}>No active jobs right now</p>
+                  <p style={{ margin: "0.25rem 0 0", fontSize: "0.82rem" }}>Jobs you post will appear here once active.</p>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem", marginBottom: "1.25rem" }}>
+                  {companyJobs.map(job => (
+                    <div key={job.id} style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "0.9rem 1.1rem", display: "flex", alignItems: "center", gap: "0.85rem" }}>
+                      {job.photos?.[0] && <img src={job.photos[0]} alt="" style={{ width: "48px", height: "48px", borderRadius: "0.5rem", objectFit: "cover", flexShrink: 0 }} />}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                          <p style={{ margin: 0, fontWeight: "700", fontSize: "0.92rem", color: "var(--color-text-primary, #0f172a)" }}>{job.title}</p>
+                          {job.is_urgent && <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "#dc2626", backgroundColor: "#fee2e2", borderRadius: "999px", padding: "0.1rem 0.5rem" }}>Urgent</span>}
+                        </div>
+                        <p style={{ margin: "0.15rem 0 0", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location} &nbsp;·&nbsp; 💰 {job.pay} &nbsp;·&nbsp; {job.category}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Student Reviews */}
+              <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.25rem", marginBottom: "1.25rem" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: "700", color: "var(--color-text-primary, #0f172a)" }}>Student Reviews</h3>
+                  <span style={{ fontSize: "0.65rem", fontWeight: "700", color: "#a855f7", backgroundColor: "#f5f3ff", borderRadius: "999px", padding: "0.2rem 0.6rem" }}>Coming Soon</span>
+                </div>
+                <p style={{ margin: "0.5rem 0 0", fontSize: "0.85rem", color: "#94a3b8" }}>Students who've worked here will be able to leave reviews once this feature launches.</p>
+              </div>
+
+              {/* Account Details */}
               <Collapsible title="Account Details">
                 <InfoRow label="Name"  value={currentUser.name} />
                 <InfoRow label="Email" value={currentUser.email} />
@@ -1168,67 +1321,6 @@ export default function AccountPage() {
                   </div>
                 )}
               </Collapsible>
-
-              <Section title="Company Profile">
-                <label style={labelStyle}>Company Bio <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)" }}>(optional)</span></label>
-                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-0.25rem", marginBottom: "0.25rem" }}>
-                  <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#64748b" }}>{bio.length}/500</span>
-                </div>
-                <textarea
-                  placeholder="Tell students about your company, culture, and the kinds of roles you hire for…"
-                  value={bio}
-                  maxLength={500}
-                  onChange={e => { setBio(e.target.value); setDirtyFields(true); }}
-                  onBlur={() => { setDirtyFields(false); saveCompanyField({ bio }); }}
-                  rows={4}
-                  style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
-                />
-                <label style={labelStyle}>Website <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)" }}>(optional)</span></label>
-                <input
-                  placeholder="https://yourcompany.ie"
-                  value={website}
-                  onChange={e => { setWebsite(e.target.value); triggerAutoSave({ website: e.target.value }, { website: e.target.value }); }}
-                  onBlur={() => {
-                    setDirtyFields(false);
-                    if (website && !/^https?:\/\/.+/.test(website)) {
-                      toast.error("Please enter a valid URL starting with https://");
-                      return;
-                    }
-                    saveCompanyField({ website });
-                  }}
-                  style={inputStyle}
-                />
-                {(saving || saved || saveError) && (
-                  <div style={{ textAlign: "center", padding: "0.4rem 0.75rem", borderRadius: "0.5rem", backgroundColor: saveError ? "#fff1f2" : saved ? "#f0fdf4" : "#f8fafc", border: `1.5px solid ${saveError ? "#fca5a5" : saved ? "#86efac" : "#e2e8f0"}` }}>
-                    {saving && <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600 }}>Saving…</p>}
-                    {saved  && <p style={{ margin: 0, fontSize: "0.8rem", color: "#16a34a", fontWeight: 700 }}>✓ Saved</p>}
-                    {saveError && <p style={{ margin: 0, fontSize: "0.8rem", color: "#ef4444", fontWeight: 600 }}>{saveError}</p>}
-                  </div>
-                )}
-              </Section>
-
-              <Section title="Our Industries">
-                <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.9rem" }}>Which industries does your company hire in? Students matching these will appear in Browse Students.</p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "1rem" }}>
-                  {Object.keys(jobCategories).map(cat => {
-                    const active = industries.includes(cat);
-                    return (
-                      <button key={cat} type="button"
-                        onClick={() => setIndustries(prev => active ? prev.filter(c => c !== cat) : [...prev, cat])}
-                        style={{
-                          padding: "0.3rem 0.75rem", borderRadius: "999px", fontSize: "0.78rem", fontWeight: "600",
-                          cursor: "pointer", fontFamily: "inherit",
-                          border: `1.5px solid ${active ? "var(--color-brand)" : "#e2e8f0"}`,
-                          backgroundColor: active ? "#fce7f3" : "white",
-                          color: active ? "var(--color-brand)" : "#64748b",
-                        }}>{active ? "✓ " : ""}{cat}</button>
-                    );
-                  })}
-                </div>
-                <button onClick={handleSaveIndustries} disabled={industrySaving} style={{ ...btnBase, background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 14px rgba(162,29,84,0.35)", opacity: industrySaving ? 0.7 : 1 }}>
-                  {industrySaved ? "✓ Saved!" : industrySaving ? "Saving…" : "Save Industries"}
-                </button>
-              </Section>
 
               <BottomActions />
             </div>
