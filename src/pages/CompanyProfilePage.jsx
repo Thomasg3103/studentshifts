@@ -123,14 +123,14 @@ export default function CompanyProfilePage() {
                 ))}
               </div>
             )}
-            {company.website && (
+            {company.website ? (
               <a href={company.website.startsWith("http") ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.85rem", color: "var(--color-brand)", fontWeight: "600", textDecoration: "none", marginBottom: "0.6rem" }}>
                 🔗 {cleanWebsite}
               </a>
-            )}
-            {company.bio && (
-              <p style={{ margin: "0.1rem 0 0", fontSize: "0.9rem", color: "var(--color-text-body, #374151)", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{company.bio}</p>
-            )}
+            ) : null}
+            {company.bio ? (
+              <p style={{ margin: "0.5rem 0 0", fontSize: "0.9rem", color: "var(--color-text-body, #374151)", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{company.bio}</p>
+            ) : null}
           </div>
         </div>
 

@@ -1280,7 +1280,7 @@ export default function AccountPage() {
                   <input
                     placeholder="https://yourcompany.ie"
                     value={website}
-                    onChange={e => { setWebsite(e.target.value); triggerAutoSave({ website: e.target.value }, { website: e.target.value }); }}
+                    onChange={e => setWebsite(e.target.value)}
                     onBlur={() => { setDirtyFields(false); saveCompanyField({ website }); }}
                     style={{ ...inputStyle, marginBottom: "1rem" }}
                   />
