@@ -259,29 +259,6 @@ button:active:not(:disabled) { opacity: 0.7; }
   text-align: center;
 }
 
-/* ─── Filter section ──────────────────────────────────── */
-.filter-section {
-  border: var(--border-muted);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-.filter-section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.6rem 0.75rem;
-  background: var(--color-bg-surface);
-  cursor: pointer;
-  font-weight: 700;
-  font-size: 0.82rem;
-  color: var(--color-text-primary);
-  user-select: none;
-}
-.filter-section-body {
-  padding: 0.75rem;
-  border-top: var(--border-muted);
-}
 
 /* Search input placeholder contrast fix */
 input::placeholder { color: var(--color-text-secondary); }

@@ -1215,26 +1215,26 @@ export default function StudentDashboard({ restoreScrollY }) {
 }
 
 function FilterSection({ title, open, onToggle, onClear, children }) {
-  const [everOpened, setEverOpened] = useState(open);
-  useEffect(() => { if (open) setEverOpened(true); }, [open]);
   return (
-    <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem", padding: "0.5rem 0.75rem", marginBottom: "0.4rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: open ? "0.5rem" : 0 }}>
-        <button
-          onClick={onToggle}
-          aria-expanded={open}
-          style={{ display: "flex", alignItems: "center", gap: "0.3rem", background: "none", border: "none", padding: "0.2rem 0", cursor: "pointer", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-text-primary, #1e293b)", fontFamily: "inherit", textAlign: "left", flex: 1 }}
-        >
-          <span>{title}</span>
-          <span style={{ fontSize: "0.7rem", color: "var(--color-text-secondary, #64748b)", marginLeft: "0.2rem" }}>{open ? "▲" : "▼"}</span>
-        </button>
+    <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem", marginBottom: "0.4rem", overflow: "hidden" }}>
+      {/* Title row — full width, click to collapse */}
+      <div style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: "0.5rem 0.75rem", cursor: "pointer" }} onClick={onToggle}>
+        <span style={{ fontWeight: 700, fontSize: "0.82rem", color: "var(--color-text-primary, #1e293b)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+          {title}
+          <span style={{ fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)" }}>{open ? "▲" : "▼"}</span>
+        </span>
         {onClear && (
-          <button onClick={e => { e.stopPropagation(); onClear(); }} style={{ fontSize: "0.7rem", color: "#e11d48", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: "0.1rem 0.25rem", fontFamily: "inherit" }}>
+          <button onClick={e => { e.stopPropagation(); onClear(); }} style={{ fontSize: "0.7rem", color: "#e11d48", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>
             Clear
           </button>
         )}
       </div>
-      {everOpened && <div style={{ display: open ? "block" : "none" }}>{children}</div>}
+      {/* Content — below title, hidden when collapsed */}
+      {open && (
+        <div style={{ padding: "0 0.75rem 0.75rem" }}>
+          {children}
+        </div>
+      )}
     </div>
   );
 }

@@ -72,9 +72,6 @@ html, body, #root {
 }
 
 
-/* filter-section used in StudentDashboard sidebar */
-[data-theme="dark"] .filter-section-header { background: #253347 !important; }
-[data-theme="dark"] .filter-section-body   { background: #1e293b !important; }
 
 .app-wrapper {
   display: flex;
