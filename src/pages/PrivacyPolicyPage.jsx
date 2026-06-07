@@ -35,7 +35,7 @@ export default function PrivacyPolicyPage() {
           {/* TOC */}
           <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "1.5rem 2rem", marginBottom: "2.5rem" }}>
             <p style={tocHead}>Table of Contents</p>
-            <div style={{ columns: "2 280px", gap: "1rem" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "0 1.5rem" }}>
               {[
                 "1. Controller Identity & Contact Details",
                 "2. Scope & Application of This Notice",
