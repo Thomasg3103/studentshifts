@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import toast from "react-hot-toast";
@@ -24,6 +25,7 @@ function DetailCard({ label, children }) {
 export default function JobDetails({ job }) {
   const { setPage, setSelectedJob, currentUser, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
     setSavedLikedJobIds, setSavedAppliedJobIds, studentLocation } = useApp();
+  const navigate = useNavigate();
   const [applyModal, setApplyModal]       = useState(null);
   const [photoIdx, setPhotoIdx]           = useState(0);
   const [submitting, setSubmitting]       = useState(false);
@@ -379,7 +381,12 @@ export default function JobDetails({ job }) {
               {/* Title + company — centred */}
               <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
                 <h1 style={{ fontWeight: 800, fontSize: "2.7rem", margin: "0 0 0.2rem", color: "var(--color-text-primary, #1e293b)", lineHeight: 1.1 }}>{job.title}</h1>
-                <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "1.8rem", margin: 0, fontWeight: 500 }}>{job.company}</p>
+                <p style={{ margin: 0 }}>
+                  <button
+                    onClick={() => job.companyId && navigate(`/companies/${job.companyId}`)}
+                    style={{ background: "none", border: "none", padding: 0, cursor: job.companyId ? "pointer" : "default", color: "var(--color-text-secondary, #64748b)", fontSize: "1.8rem", fontWeight: 500, fontFamily: "inherit", textDecoration: job.companyId ? "underline" : "none", textDecorationStyle: "dotted", textUnderlineOffset: "3px" }}
+                  >{job.company}</button>
+                </p>
               </div>
               {/* Right: heart + apply, or single green tick when applied */}
               {isApplied ? (

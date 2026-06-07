@@ -1,4 +1,5 @@
 ﻿import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import "../StudentShiftWeb.css";
 import { jobCategories, getCategoryForTitle } from "../data/jobCategories";
@@ -222,6 +223,7 @@ export default function StudentDashboard({ restoreScrollY }) {
   const { setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
     currentUser, studentLocation, savedLikedJobIds, savedAppliedJobIds,
     setSavedLikedJobIds } = useApp();
+  const navigate = useNavigate();
   const [jobs,           setJobs]           = useState([]);
   const [jobsLoading,    setJobsLoading]    = useState(true);
   const [jobsError,      setJobsError]      = useState(false);
@@ -846,7 +848,9 @@ export default function StudentDashboard({ restoreScrollY }) {
                       <button key={job.id} onClick={() => { setSelectedJob(job); setPage("jobDetails"); }}
                         style={{ flexShrink: 0, width: "175px", padding: "0.75rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-brand)", background: "var(--color-bg-elevated, white)", cursor: "pointer", textAlign: "left", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(162,29,84,0.1)" }}>
                         <p style={{ margin: "0 0 0.2rem", fontWeight: 700, fontSize: "0.82rem", color: "var(--color-text-primary, #0f172a)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</p>
-                        <p style={{ margin: "0 0 0.35rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.company}</p>
+                        <p style={{ margin: "0 0 0.35rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                          <button onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "inherit", fontSize: "inherit", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</button>
+                        </p>
                         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                           <span style={{ fontWeight: 700, fontSize: "0.82rem", color: "var(--color-text-primary, #111827)" }}>{job.pay}</span>
                           {isApplied
@@ -1051,7 +1055,10 @@ export default function StudentDashboard({ restoreScrollY }) {
                       {/* Top: title + company + pills */}
                       <div>
                         <h2 style={{ fontWeight: 800, fontSize: isPhone ? "1.0rem" : "1.5rem", margin: "0 0 0.15rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
-                        <p style={{ margin: isPhone ? "0 0 0.35rem" : "0 0 0.6rem", fontSize: isPhone ? "0.78rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>{job.company} · {job.location}</p>
+                        <p style={{ margin: isPhone ? "0 0 0.35rem" : "0 0 0.6rem", fontSize: isPhone ? "0.78rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
+                          <button onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "inherit", fontSize: "inherit", fontFamily: "inherit", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</button>
+                          {" · "}{job.location}
+                        </p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                           {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);

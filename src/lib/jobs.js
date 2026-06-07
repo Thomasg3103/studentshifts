@@ -28,6 +28,7 @@ export function normaliseJobRow(job, companyName) {
     id:              job.id,
     title:           job.title,
     company:         companyName || "Unknown Company",
+    companyId:       job.company_id,
     category:        job.category || "",
     location:        job.location,
     lat:             job.lat,
