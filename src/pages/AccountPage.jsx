@@ -63,9 +63,6 @@ export default function AccountPage() {
   const logoutModalRef = useRef(null);
   useFocusTrap(deleteModalRef, () => setShowDeleteModal(false), showDeleteModal);
   useFocusTrap(logoutModalRef, () => setShowLogoutModal(false), showLogoutModal);
-  const unsavedModalRef = useRef(null);
-  const blocker = useBlocker(dirtyFields);
-  useFocusTrap(unsavedModalRef, () => blocker.state === "blocked" && blocker.reset(), blocker.state === "blocked");
   const [deleteConfirm, setDeleteConfirm]       = useState("");
   const [_deletePassword, setDeletePassword]   = useState("");
   const [deleting, setDeleting]                 = useState(false);
@@ -79,6 +76,9 @@ export default function AccountPage() {
   const [showBackToTop, setShowBackToTop]        = useState(false);
   // Track whether bio / linkedin / website have been edited but not yet saved (dirty state)
   const [dirtyFields, setDirtyFields]           = useState(false);
+  const unsavedModalRef = useRef(null);
+  const blocker = useBlocker(dirtyFields);
+  useFocusTrap(unsavedModalRef, () => blocker.state === "blocked" && blocker.reset(), blocker.state === "blocked");
   const [referralCode, setReferralCode]         = useState(null);
   const [referralCopied, setReferralCopied]     = useState(false);
   const [referralCount, setReferralCount]       = useState(0);
