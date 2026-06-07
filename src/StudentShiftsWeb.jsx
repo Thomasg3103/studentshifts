@@ -221,7 +221,7 @@ export default function StudentShiftsWeb() {
                 navigate("/company", { replace: true });
               } else if (user.role === "company" && user.verificationStatus !== "verified" && currPath.startsWith("/company")) {
                 navigate("/", { replace: true });
-              } else if (user.role === "student" && user.verificationStatus !== "verified") {
+              } else if (user.role === "student" && (user.verificationStatus === null || user.verificationStatus === "rejected")) {
                 navigate("/verify", { replace: true });
               }
               if (user.role === "student") await loadStudentData(user.id);
@@ -264,7 +264,7 @@ export default function StudentShiftsWeb() {
           if (user.role === "admin") { navigate("/admin", { replace: true }); }
           else if (user.role === "company" && user.verificationStatus === "verified") { navigate("/company", { replace: true }); }
           else if (user.role === "company") { navigate("/", { replace: true }); }
-          else if (user.role === "student" && user.verificationStatus !== "verified") { navigate("/verify", { replace: true }); }
+          else if (user.role === "student" && (user.verificationStatus === null || user.verificationStatus === "rejected")) { navigate("/verify", { replace: true }); }
           else { navigate("/", { replace: true }); }
           if (user.role === "student") await loadStudentData(user.id);
         } catch (e) {
@@ -432,7 +432,7 @@ export default function StudentShiftsWeb() {
                   ? <LandingPage />
                   : currentUser?.role === "company" && currentUser?.verificationStatus !== "verified"
                   ? <PendingCompanyPage />
-                  : currentUser?.role === "student" && currentUser?.verificationStatus !== "verified"
+                  : currentUser?.role === "student" && (currentUser?.verificationStatus === null || currentUser?.verificationStatus === "rejected")
                   ? <VerifyDocsPage />
                   : <StudentDashboard restoreScrollY={restoreScrollY} />
               } />
@@ -559,7 +559,7 @@ function EmailVerifiedPage() {
       if (currentUser.role === "admin") navigate("/admin", { replace: true });
       else if (currentUser.role === "company" && currentUser.verificationStatus === "verified") navigate("/company", { replace: true });
       else if (currentUser.role === "company") navigate("/", { replace: true });
-      else if (currentUser.role === "student" && currentUser.verificationStatus !== "verified") navigate("/verify", { replace: true });
+      else if (currentUser.role === "student" && (currentUser.verificationStatus === null || currentUser.verificationStatus === "rejected")) navigate("/verify", { replace: true });
       else navigate("/", { replace: true });
     }, 2000);
     return () => clearTimeout(timer);
