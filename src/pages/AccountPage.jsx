@@ -1387,29 +1387,62 @@ function PreviewRow({ ok, warn, label, detail, truncate }) {
   );
 }
 
+const IE_BBOX = "-10.56,51.39,-5.43,55.43";
+
 function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLocation, onSaved }) {
   const [locationAddress, setLocationAddress] = useState(savedLoc?.displayName || "");
-  const [locationCoords, setLocationCoords] = useState(savedLoc ? { lat: savedLoc.lat, lng: savedLoc.lng, displayName: savedLoc.displayName } : null);
+  const [locationCoords, setLocationCoords]   = useState(savedLoc ? { lat: savedLoc.lat, lng: savedLoc.lng, displayName: savedLoc.displayName } : null);
   const [locationLoading, setLocationLoading] = useState(false);
-  const [locationError, setLocationError]   = useState("");
-  const [showManual, setShowManual]         = useState(false);
-  const [manualLine1, setManualLine1]       = useState("");
-  const [manualLine2, setManualLine2]       = useState("");
-  const [manualCity, setManualCity]         = useState("");
-  const [manualCounty, setManualCounty]     = useState("");
+  const [locationError, setLocationError]     = useState("");
+  const [showManual, setShowManual]           = useState(false);
+  const [manualLine1, setManualLine1]         = useState("");
+  const [manualLine2, setManualLine2]         = useState("");
+  const [manualCity, setManualCity]           = useState("");
+  const [manualCounty, setManualCounty]       = useState("");
+  const [suggestions, setSuggestions]         = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestTimer                          = useRef(null);
+  const wrapperRef                            = useRef(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e) => { if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setShowSuggestions(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const fetchSuggestions = async (q) => {
+    if (q.length < 3) { setSuggestions([]); setShowSuggestions(false); return; }
+    try {
+      const qs = new URLSearchParams({ q: `${q}, Ireland`, limit: "6", lang: "en", bbox: IE_BBOX });
+      const res = await fetch(`https://photon.komoot.io/api/?${qs}`);
+      const data = await res.json();
+      const results = (data.features || []).map(f => {
+        const p = f.properties;
+        const locality = p.city || p.town || p.village || p.name || "";
+        const county   = p.county || p.state || "";
+        return {
+          label:       [p.name, locality !== p.name ? locality : null, county].filter(Boolean).join(", "),
+          displayName: [locality, county].filter(Boolean).join(", ") || "Ireland",
+          lat: f.geometry.coordinates[1],
+          lng: f.geometry.coordinates[0],
+        };
+      });
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+    } catch { setSuggestions([]); setShowSuggestions(false); }
+  };
 
   const applyGeoResult = async (result) => {
     setLocationCoords(result);
     setLocationAddress(result.displayName);
     setLocationError("");
     setShowManual(false);
+    setSuggestions([]);
+    setShowSuggestions(false);
     const savedLocation = { lat: result.lat, lng: result.lng, displayName: result.displayName };
     try {
-      await updateStudentProfile(currentUser.id, {
-        location_lat:     result.lat,
-        location_lng:     result.lng,
-        location_display: result.displayName,
-      });
+      await updateStudentProfile(currentUser.id, { location_lat: result.lat, location_lng: result.lng, location_display: result.displayName });
       setCurrentUser(prev => ({ ...prev, savedLocation }));
       if (setStudentLocation) setStudentLocation(savedLocation);
       onSaved();
@@ -1422,12 +1455,13 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
 
   const handleGeocode = async () => {
     if (!locationAddress.trim()) { setLocationError("Enter an Eircode or address first."); return; }
+    setShowSuggestions(false);
     setLocationLoading(true);
     setLocationError("");
     const result = await geocodeAddress(locationAddress + ", Ireland");
     setLocationLoading(false);
     if (result) await applyGeoResult(result);
-    else { setLocationError("Eircode not found. Fill in the address manually below."); setShowManual(true); }
+    else { setLocationError("Not found. Try the manual fields below."); setShowManual(true); }
   };
 
   const handleManualGeocode = async () => {
@@ -1448,7 +1482,7 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
     setLocationLoading(false);
     if (pos) {
       await applyGeoResult({ lat: pos.lat, lng: pos.lng, displayName: "Your current GPS location" });
-      setLocationAddress("GPS location");
+      setLocationAddress("Your current GPS location");
     } else {
       setLocationError("Could not get GPS location. Check browser permissions.");
     }
@@ -1456,31 +1490,60 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
 
   return (
     <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem" }}>
-        <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: 0 }}>My Location</p>
-        <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ padding: "0.3rem 0.6rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.7rem", cursor: locationLoading ? "not-allowed" : "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
-          {locationLoading ? "Getting…" : "📡 GPS"}
-        </button>
-      </div>
-      <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.85rem", lineHeight: 1.4 }}>
+      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.5rem" }}>My Location</p>
+      <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.75rem", lineHeight: 1.4 }}>
         Set your address so we can show job distances. Never shared publicly.
       </p>
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
-        <input
-          aria-label="Enter Eircode or address"
-          placeholder="Eircode"
-          value={locationAddress}
-          onChange={e => { setLocationAddress(e.target.value); setLocationCoords(null); setShowManual(false); }}
-          onKeyDown={e => e.key === "Enter" && handleGeocode()}
-          style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
-        />
-        <button type="button" onClick={handleGeocode} disabled={locationLoading} style={{ padding: "0.6rem 0.9rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.85rem", cursor: locationLoading ? "not-allowed" : "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-          {locationLoading ? "…" : "Find"}
-        </button>
+
+      {/* Search row with autocomplete */}
+      <div ref={wrapperRef} style={{ position: "relative", marginBottom: "0.4rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem" }}>
+          <input
+            aria-label="Enter Eircode or address"
+            placeholder="Start typing your address or Eircode…"
+            value={locationAddress}
+            onChange={e => {
+              const val = e.target.value;
+              setLocationAddress(val);
+              setLocationCoords(null);
+              setShowManual(false);
+              clearTimeout(suggestTimer.current);
+              suggestTimer.current = setTimeout(() => fetchSuggestions(val), 350);
+            }}
+            onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleGeocode(); } if (e.key === "Escape") setShowSuggestions(false); }}
+            onFocus={() => { if (suggestions.length) setShowSuggestions(true); }}
+            style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
+          />
+          <button type="button" onClick={handleGPS} disabled={locationLoading} title="Use current GPS location" style={{ padding: "0.6rem 0.75rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #64748b)", fontSize: "1rem", cursor: locationLoading ? "not-allowed" : "pointer", lineHeight: 1 }}>
+            📡
+          </button>
+          <button type="button" onClick={handleGeocode} disabled={locationLoading} style={{ padding: "0.6rem 0.9rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.85rem", cursor: locationLoading ? "not-allowed" : "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+            {locationLoading ? "…" : "Find"}
+          </button>
+        </div>
+
+        {/* Autocomplete dropdown */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div style={{ position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0, backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem", boxShadow: "0 8px 24px rgba(0,0,0,0.12)", zIndex: 50, overflow: "hidden" }}>
+            {suggestions.map((s, i) => (
+              <button
+                key={i}
+                type="button"
+                onMouseDown={e => { e.preventDefault(); applyGeoResult(s); }}
+                style={{ width: "100%", textAlign: "left", padding: "0.65rem 0.9rem", background: "none", border: "none", borderBottom: i < suggestions.length - 1 ? "1px solid var(--color-border-light, #f1f5f9)" : "none", cursor: "pointer", fontFamily: "inherit", fontSize: "0.85rem", color: "var(--color-text-body, #374151)", lineHeight: 1.4 }}
+                onMouseEnter={e => e.currentTarget.style.backgroundColor = "var(--color-bg-subtle, #f8fafc)"}
+                onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+              >
+                📍 {s.label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
+
       {locationCoords && !showManual && (
         <div style={{ backgroundColor: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: "0.5rem", padding: "0.45rem 0.75rem", marginBottom: "0.4rem" }}>
-          <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: "700" }}>✓ Location found</span>
+          <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: "700" }}>✓ Location set</span>
           <p style={{ color: "var(--color-text-body, #374151)", margin: "0.15rem 0 0", fontSize: "0.7rem" }}>{locationCoords.displayName}</p>
         </div>
       )}
@@ -1491,7 +1554,7 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
         </button>
       )}
       {showManual && (
-        <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e5e7eb)", borderRadius: "0.5rem", padding: "0.75rem", marginBottom: "0.5rem" }}>
+        <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e5e7eb)", borderRadius: "0.5rem", padding: "0.75rem", marginBottom: "0.5rem", marginTop: "0.4rem" }}>
           <input value={manualLine1} onChange={e => setManualLine1(e.target.value)} placeholder="Address Line 1" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
           <input value={manualLine2} onChange={e => setManualLine2(e.target.value)} placeholder="Address Line 2 (optional)" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
           <input value={manualCity} onChange={e => setManualCity(e.target.value)} placeholder="Town / City" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
