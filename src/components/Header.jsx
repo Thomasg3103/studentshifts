@@ -401,7 +401,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
 
 function LogoIcon() {
   return (
-    <div style={{ width: "44px", height: "44px", borderRadius: "12px", backgroundColor: "var(--color-bg-elevated, white)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+    <div style={{ width: "44px", height: "44px", borderRadius: "12px", backgroundColor: "white", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
       <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
         <polygon points="12,3 22,8 12,13 2,8" fill="var(--color-brand)" />
         <path d="M6 10.5v4.5c0 1.93 2.69 3.5 6 3.5s6-1.57 6-3.5v-4.5" stroke="var(--color-brand)" strokeWidth="1.5" strokeLinejoin="round" fill="none" />
