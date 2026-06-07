@@ -75,6 +75,19 @@ export default function SignupPage() {
   const clearFieldError = (field) =>
     setFieldErrors(prev => ({ ...prev, [field]: "" }));
 
+  const fi = (field) => ({
+    width: "100%", padding: "0.72rem 1rem", borderRadius: "0.65rem",
+    fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit",
+    color: "var(--color-text-primary, #1e293b)",
+    border: `1.5px solid ${fieldErrors[field] ? "#e11d48" : "#e2e8f0"}`,
+    backgroundColor: fieldErrors[field] ? "#fff1f2" : "var(--color-bg-elevated, white)",
+    marginBottom: fieldErrors[field] ? "0.3rem" : "0.75rem",
+  });
+
+  const FieldError = ({ field }) => fieldErrors[field]
+    ? <p style={{ margin: "0 0 0.65rem", fontSize: "0.78rem", color: "#e11d48", fontWeight: "600" }}>⚠ {fieldErrors[field]}</p>
+    : null;
+
   const handleSignup = async () => {
     const errs = {};
     if (!name.trim()) errs.name = "Please enter your name.";
@@ -244,9 +257,9 @@ export default function SignupPage() {
           onChange={e => { setName(e.target.value); clearFieldError("name"); }}
           autoComplete={role === "company" ? "organization" : "name"}
           maxLength={100}
-          style={fieldStyle(fieldErrors.name)}
+          style={fi("name")}
         />
-        {fieldErrors.name && <p style={errMsg}>{fieldErrors.name}</p>}
+        <FieldError field="name" />
 
         <label htmlFor="signup-email" style={srOnly}>Email</label>
         <input
@@ -257,12 +270,12 @@ export default function SignupPage() {
           onChange={e => { setEmail(e.target.value); clearFieldError("email"); }}
           autoComplete="email"
           maxLength={254}
-          style={fieldStyle(fieldErrors.email)}
+          style={fi("email")}
         />
-        {fieldErrors.email && <p style={errMsg}>{fieldErrors.email}</p>}
+        <FieldError field="email" />
 
         <label htmlFor="signup-password" style={srOnly}>Password</label>
-        <div style={{ position: "relative", marginBottom: fieldErrors.password ? "0.25rem" : "0.75rem" }}>
+        <div style={{ position: "relative", marginBottom: 0 }}>
           <input
             id="signup-password"
             type={showPassword ? "text" : "password"}
@@ -272,7 +285,7 @@ export default function SignupPage() {
             onKeyDown={e => { if (e.key === "Enter") handleSignup(); }}
             autoComplete="new-password"
             maxLength={128}
-            style={{ ...fieldStyle(fieldErrors.password), marginBottom: 0, paddingRight: "2.75rem" }}
+            style={{ ...fi("password"), marginBottom: 0, paddingRight: "2.75rem" }}
           />
           <button
             type="button"
@@ -283,7 +296,7 @@ export default function SignupPage() {
             {showPassword ? "🙈" : "👁"}
           </button>
         </div>
-        {fieldErrors.password && <p style={errMsg}>{fieldErrors.password}</p>}
+        <FieldError field="password" />
 
         {password && (() => {
           const s = getPasswordStrength(password);
@@ -311,9 +324,9 @@ export default function SignupPage() {
               onKeyDown={e => e.key === "Enter" && handleSignup()}
               inputMode="numeric"
               maxLength={8}
-              style={{ ...fieldStyle(fieldErrors.cro), marginBottom: 0 }}
+              style={{ ...fi("cro"), marginBottom: 0 }}
             />
-            {fieldErrors.cro && <p style={errMsg}>{fieldErrors.cro}</p>}
+            <FieldError field="cro" />
             <p style={{ margin: "0.3rem 0 0", fontSize: "0.76rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.4 }}>
               Your Companies Registration Office number — find it at{" "}
               <a href="https://search.cro.ie" target="_blank" rel="noreferrer" style={{ color: "var(--color-brand)", fontWeight: "600" }}>search.cro.ie</a>.
@@ -408,8 +421,6 @@ export default function SignupPage() {
 
 
 const inputStyle = { width: "100%", padding: "0.72rem 1rem", marginBottom: "0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)" };
-const fieldStyle = (err) => ({ ...inputStyle, marginBottom: err ? "0.25rem" : "0.75rem", border: `1.5px solid ${err ? "#e11d48" : "#e2e8f0"}`, backgroundColor: err ? "#fff8f8" : undefined });
-const errMsg = { margin: "0 0 0.65rem", fontSize: "0.78rem", color: "#e11d48", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.3rem" };
 const srOnly     = { position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };
 const btnPrimary = { ...btnBase, marginTop: "1.25rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" };
