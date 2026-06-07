@@ -45,7 +45,8 @@ export default function SignupPage() {
   const [role, setRole]         = useState(params.get("role") === "company" ? "company" : "student");
   const [croNumber, setCroNumber] = useState("");
   const [industries, setIndustries] = useState([]);
-  const [error, setError]       = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [generalError, setGeneralError] = useState("");
   const [loading, setLoading]   = useState(false);
   const [done, setDone]         = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -71,16 +72,25 @@ export default function SignupPage() {
     setResendCooldown(60);
   };
 
+  const clearFieldError = (field) =>
+    setFieldErrors(prev => ({ ...prev, [field]: "" }));
+
   const handleSignup = async () => {
-    if (!name.trim() || !email || !password) { setError("Please fill in all required fields."); return; }
-    if (!termsAccepted) { setError("Please accept the Terms of Service and Privacy Policy to continue."); return; }
-    if (name.trim().length < 2) { setError("Please enter your full name (at least 2 characters)."); return; }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError("Please enter a valid email address."); return; }
-    if (password.length < 8) { setError("Password must be at least 8 characters."); return; }
-    if (role === "company" && !croNumber.trim()) { setError("Please enter your CRO number."); return; }
-    if (role === "company" && !/^\d{1,8}$/.test(croNumber.trim())) { setError("CRO number must be 1–8 digits."); return; }
+    const errs = {};
+    if (!name.trim()) errs.name = "Please enter your name.";
+    else if (name.trim().length < 2) errs.name = "Name must be at least 2 characters.";
+    if (!email) errs.email = "Please enter your email address.";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errs.email = "Please enter a valid email address.";
+    if (!password) errs.password = "Please enter a password.";
+    else if (password.length < 8) errs.password = "Password must be at least 8 characters.";
+    if (role === "company" && !croNumber.trim()) errs.cro = "Please enter your CRO number.";
+    else if (role === "company" && !/^\d{1,8}$/.test(croNumber.trim())) errs.cro = "CRO number must be 1–8 digits.";
+    if (!termsAccepted) errs.terms = "Please accept the Terms of Service and Privacy Policy to continue.";
+    if (Object.keys(errs).length > 0) { setFieldErrors(errs); return; }
+
     setLoading(true);
-    setError("");
+    setFieldErrors({});
+    setGeneralError("");
     try {
       await signUp({ email: email.trim().toLowerCase(), password, name: name.trim(), role, croNumber, industries });
       setDone(true);
@@ -89,19 +99,18 @@ export default function SignupPage() {
     } catch (e) {
       Sentry.captureException(e);
       const msg = (e.message || "").toLowerCase();
-      // Normalize all errors that would reveal whether an email is registered
       if (msg.includes("already registered") || msg.includes("already exists") || msg.includes("email taken") || msg.includes("user already")) {
-        setError("Something went wrong. Please try again.");
+        setGeneralError("Something went wrong. Please try again.");
       } else if (msg.includes("password should be")) {
-        setError("Password does not meet requirements. Use at least 8 characters.");
+        setFieldErrors({ password: "Password does not meet requirements. Use at least 8 characters." });
       } else if (msg.includes("invalid email")) {
-        setError("Please enter a valid email address.");
+        setFieldErrors({ email: "Please enter a valid email address." });
       } else if (msg.includes("timed out")) {
-        setError(e.message);
+        setGeneralError(e.message);
       } else if (msg.includes("rate limit") || msg.includes("too many") || msg.includes("over_email_send_rate_limit") || msg.includes("email rate limit")) {
-        setError("Too many sign-up attempts. Please wait a few minutes and try again.");
+        setGeneralError("Too many sign-up attempts. Please wait a few minutes and try again.");
       } else {
-        setError("Something went wrong. Please try again.");
+        setGeneralError("Something went wrong. Please try again.");
       }
       setPassword("");
     } finally {
@@ -201,9 +210,9 @@ export default function SignupPage() {
           <p style={{ margin: "0.35rem 0 0", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem" }}>Join StudentShifts — it's free</p>
         </div>
 
-        {error && (
+        {generalError && (
           <div role="alert" style={{ backgroundColor: "#fff1f2", border: "1px solid #fecdd3", borderRadius: "0.6rem", padding: "0.65rem 1rem", marginBottom: "1rem", color: "#e11d48", fontSize: "0.875rem", fontWeight: "500" }}>
-            {error}
+            {generalError}
           </div>
         )}
 
@@ -232,34 +241,38 @@ export default function SignupPage() {
           id="signup-name"
           placeholder={role === "company" ? "Company Name" : "Full Name"}
           value={name}
-          onChange={e => setName(e.target.value)}
+          onChange={e => { setName(e.target.value); clearFieldError("name"); }}
           autoComplete={role === "company" ? "organization" : "name"}
           maxLength={100}
-          style={inputStyle}
+          style={fieldStyle(fieldErrors.name)}
         />
+        {fieldErrors.name && <p style={errMsg}>{fieldErrors.name}</p>}
+
         <label htmlFor="signup-email" style={srOnly}>Email</label>
         <input
           id="signup-email"
           placeholder="Email"
           type="email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={e => { setEmail(e.target.value); clearFieldError("email"); }}
           autoComplete="email"
           maxLength={254}
-          style={inputStyle}
+          style={fieldStyle(fieldErrors.email)}
         />
+        {fieldErrors.email && <p style={errMsg}>{fieldErrors.email}</p>}
+
         <label htmlFor="signup-password" style={srOnly}>Password</label>
-        <div style={{ position: "relative", marginBottom: "0.75rem" }}>
+        <div style={{ position: "relative", marginBottom: fieldErrors.password ? "0.25rem" : "0.75rem" }}>
           <input
             id="signup-password"
             type={showPassword ? "text" : "password"}
             placeholder="Password"
             value={password}
-            onChange={e => setPassword(e.target.value)}
+            onChange={e => { setPassword(e.target.value); clearFieldError("password"); }}
             onKeyDown={e => { if (e.key === "Enter") handleSignup(); }}
             autoComplete="new-password"
             maxLength={128}
-            style={{ ...inputStyle, marginBottom: 0, paddingRight: "2.75rem" }}
+            style={{ ...fieldStyle(fieldErrors.password), marginBottom: 0, paddingRight: "2.75rem" }}
           />
           <button
             type="button"
@@ -270,6 +283,7 @@ export default function SignupPage() {
             {showPassword ? "🙈" : "👁"}
           </button>
         </div>
+        {fieldErrors.password && <p style={errMsg}>{fieldErrors.password}</p>}
 
         {password && (() => {
           const s = getPasswordStrength(password);
@@ -293,12 +307,13 @@ export default function SignupPage() {
               id="signup-cro"
               placeholder="CRO Number (e.g. 123456)"
               value={croNumber}
-              onChange={e => setCroNumber(e.target.value.replace(/\D/g, "").slice(0, 8))}
+              onChange={e => { setCroNumber(e.target.value.replace(/\D/g, "").slice(0, 8)); clearFieldError("cro"); }}
               onKeyDown={e => e.key === "Enter" && handleSignup()}
               inputMode="numeric"
               maxLength={8}
-              style={{ ...inputStyle, marginBottom: 0 }}
+              style={{ ...fieldStyle(fieldErrors.cro), marginBottom: 0 }}
             />
+            {fieldErrors.cro && <p style={errMsg}>{fieldErrors.cro}</p>}
             <p style={{ margin: "0.3rem 0 0", fontSize: "0.76rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.4 }}>
               Your Companies Registration Office number — find it at{" "}
               <a href="https://search.cro.ie" target="_blank" rel="noreferrer" style={{ color: "var(--color-brand)", fontWeight: "600" }}>search.cro.ie</a>.
@@ -359,16 +374,17 @@ export default function SignupPage() {
           <input
             type="checkbox"
             checked={termsAccepted}
-            onChange={e => setTermsAccepted(e.target.checked)}
-            style={{ marginTop: "0.15rem", width: "16px", height: "16px", flexShrink: 0, accentColor: "var(--color-brand)", cursor: "pointer" }}
+            onChange={e => { setTermsAccepted(e.target.checked); clearFieldError("terms"); }}
+            style={{ marginTop: "0.15rem", width: "16px", height: "16px", flexShrink: 0, accentColor: "var(--color-brand)", cursor: "pointer", outline: fieldErrors.terms ? "2px solid #e11d48" : "none", outlineOffset: "2px", borderRadius: "2px" }}
           />
-          <span style={{ fontSize: "0.82rem", color: "#475569", lineHeight: 1.5 }}>
+          <span style={{ fontSize: "0.82rem", color: fieldErrors.terms ? "#e11d48" : "#475569", lineHeight: 1.5 }}>
             I agree to the{" "}
             <a href="/terms" style={{ color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>Terms of Service</a>
             {" "}and{" "}
             <a href="/privacy" style={{ color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>Privacy Policy</a>
           </span>
         </label>
+        {fieldErrors.terms && <p style={{ ...errMsg, marginTop: "0.25rem" }}>{fieldErrors.terms}</p>}
 
         <button onClick={handleSignup} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>
           {loading ? "Creating account…" : "Create Account →"}
@@ -392,6 +408,8 @@ export default function SignupPage() {
 
 
 const inputStyle = { width: "100%", padding: "0.72rem 1rem", marginBottom: "0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)" };
+const fieldStyle = (err) => ({ ...inputStyle, marginBottom: err ? "0.25rem" : "0.75rem", border: `1.5px solid ${err ? "#e11d48" : "#e2e8f0"}`, backgroundColor: err ? "#fff8f8" : undefined });
+const errMsg = { margin: "0 0 0.65rem", fontSize: "0.78rem", color: "#e11d48", fontWeight: "600", display: "flex", alignItems: "center", gap: "0.3rem" };
 const srOnly     = { position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };
 const btnPrimary = { ...btnBase, marginTop: "1.25rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" };
