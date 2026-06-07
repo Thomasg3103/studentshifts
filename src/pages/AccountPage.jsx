@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useRef } from "react";
-import { useNavigate, useBlocker } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
@@ -76,9 +76,6 @@ export default function AccountPage() {
   const [showBackToTop, setShowBackToTop]        = useState(false);
   // Track whether bio / linkedin / website have been edited but not yet saved (dirty state)
   const [dirtyFields, setDirtyFields]           = useState(false);
-  const unsavedModalRef = useRef(null);
-  const blocker = useBlocker(dirtyFields);
-  useFocusTrap(unsavedModalRef, () => blocker.state === "blocked" && blocker.reset(), blocker.state === "blocked");
   const [referralCode, setReferralCode]         = useState(null);
   const [referralCopied, setReferralCopied]     = useState(false);
   const [referralCount, setReferralCount]       = useState(0);
@@ -153,7 +150,7 @@ export default function AccountPage() {
       if (currentUser.role === "student") await saveField(fields, userUpdate).catch(() => {});
       else await saveCompanyField(fields).catch(() => {});
       setDirtyFields(false);
-    }, 500);
+    }, 300);
   };
   useEffect(() => () => clearTimeout(autoSaveRef.current), []);
 
@@ -1375,21 +1372,6 @@ export default function AccountPage() {
               <button onClick={() => setShowProfilePreview(false)} style={{ width: "100%", marginTop: "1.25rem", padding: "0.65rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}>
                 Close Preview
               </button>
-            </div>
-          </div>
-        )}
-
-        {/* ── Unsaved changes modal ── */}
-        {blocker.state === "blocked" && (
-          <div onClick={() => blocker.reset()} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
-            <div ref={unsavedModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="unsaved-modal-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "340px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>
-              <div style={{ width: "56px", height: "56px", borderRadius: "1rem", backgroundColor: "#fefce8", border: "2px solid #fde68a", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 1rem", fontSize: "1.5rem" }}>✏️</div>
-              <h3 id="unsaved-modal-title" style={{ fontWeight: "800", fontSize: "1.1rem", marginBottom: "0.35rem", color: "var(--color-text-primary, #1e293b)" }}>Unsaved changes</h3>
-              <p style={{ fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "1.5rem" }}>Your changes are still saving. Leave now and they may not be saved.</p>
-              <div style={{ display: "flex", gap: "0.75rem" }}>
-                <button onClick={() => blocker.reset()} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Stay</button>
-                <button onClick={() => blocker.proceed()} style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", backgroundColor: "#f59e0b", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}>Leave anyway</button>
-              </div>
             </div>
           </div>
         )}
