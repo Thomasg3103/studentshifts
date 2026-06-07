@@ -57,6 +57,23 @@ async function getCroppedBlob(imageSrc, pixelCrop) {
   return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.92));
 }
 
+async function getCroppedBlobRect(imageSrc, pixelCrop) {
+  const image = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = imageSrc;
+  });
+  const canvas = document.createElement("canvas");
+  const maxW = 1800;
+  const scale = Math.min(1, maxW / pixelCrop.width);
+  canvas.width  = Math.round(pixelCrop.width  * scale);
+  canvas.height = Math.round(pixelCrop.height * scale);
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, canvas.width, canvas.height);
+  return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.9));
+}
+
 export default function AccountPage() {
   const navigate = useNavigate();
   const { currentUser, setCurrentUser, setPage, setLikedJobs, setAppliedJobs, setStudentLocation, darkMode, toggleDarkMode } = useApp();
@@ -196,6 +213,10 @@ export default function AccountPage() {
   const [coverPhotoUrl, setCoverPhotoUrl] = useState("");
   const [coverUploading, setCoverUploading] = useState(false);
   const coverInputRef = useRef(null);
+  const [coverCropSrc, setCoverCropSrc] = useState(null);
+  const [coverCrop, setCoverCrop] = useState({ x: 0, y: 0 });
+  const [coverCropZoom, setCoverCropZoom] = useState(1);
+  const [coverCroppedAreaPixels, setCoverCroppedAreaPixels] = useState(null);
 
   useEffect(() => {
     if (!isCompany) return;
@@ -207,11 +228,28 @@ export default function AccountPage() {
     supabase.rpc("get_company_response_rate", { p_company_id: currentUser.id }).then(({ data }) => { if (data) setResponseRate(data); }).catch(() => {});
   }, [isCompany, currentUser.id]);
 
-  const handleCoverPhotoChange = async (e) => {
+  const handleCoverPhotoChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    e.target.value = "";
+    const reader = new FileReader();
+    reader.onload = ev => {
+      setCoverCropSrc(ev.target.result);
+      setCoverCrop({ x: 0, y: 0 });
+      setCoverCropZoom(1);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onCoverCropComplete = useCallback((_, pixels) => setCoverCroppedAreaPixels(pixels), []);
+
+  const handleCoverCropConfirm = async () => {
+    if (!coverCropSrc || !coverCroppedAreaPixels) return;
     setCoverUploading(true);
+    setCoverCropSrc(null);
     try {
+      const blob = await getCroppedBlobRect(coverCropSrc, coverCroppedAreaPixels);
+      const file = new File([blob], "cover.jpg", { type: "image/jpeg" });
       const url = await uploadCoverPhoto(currentUser.id, file);
       await updateCompanyProfile(currentUser.id, { cover_photo_url: url });
       setCoverPhotoUrl(url);
@@ -1468,6 +1506,49 @@ export default function AccountPage() {
                   onClick={handleCropConfirm}
                   style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
                 >Save photo</button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── Cover photo crop modal ── */}
+        {coverCropSrc && (
+          <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.85)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 1100, padding: "1rem", WebkitBackdropFilter: "blur(4px)", backdropFilter: "blur(4px)" }}>
+            <div style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", width: "100%", maxWidth: "560px", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.3)" }}>
+              <div style={{ padding: "1.25rem 1.5rem 0.75rem", borderBottom: "1px solid var(--color-border-light, #e2e8f0)" }}>
+                <h3 style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>Crop your cover photo</h3>
+                <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)" }}>Drag to reposition · Pinch or scroll to zoom</p>
+              </div>
+              <div style={{ position: "relative", width: "100%", height: "260px", background: "#0f172a" }}>
+                <Cropper
+                  image={coverCropSrc}
+                  crop={coverCrop}
+                  zoom={coverCropZoom}
+                  aspect={3}
+                  cropShape="rect"
+                  showGrid={false}
+                  onCropChange={setCoverCrop}
+                  onZoomChange={setCoverCropZoom}
+                  onCropComplete={onCoverCropComplete}
+                />
+              </div>
+              <div style={{ padding: "0.75rem 1.5rem 0", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", flexShrink: 0 }}>Zoom</span>
+                <input
+                  type="range" min={1} max={3} step={0.05} value={coverCropZoom}
+                  onChange={e => setCoverCropZoom(Number(e.target.value))}
+                  style={{ flex: 1, accentColor: "var(--color-brand, #a21d54)" }}
+                />
+              </div>
+              <div style={{ display: "flex", gap: "0.75rem", padding: "1rem 1.5rem 1.25rem" }}>
+                <button
+                  onClick={() => { setCoverCropSrc(null); if (coverInputRef.current) coverInputRef.current.value = ""; }}
+                  style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
+                >Cancel</button>
+                <button
+                  onClick={handleCoverCropConfirm}
+                  style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
+                >Save cover</button>
               </div>
             </div>
           </div>
