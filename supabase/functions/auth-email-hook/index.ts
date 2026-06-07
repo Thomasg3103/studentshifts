@@ -7,8 +7,9 @@
  * Handles: signup confirmation, password reset, email change.
  * Sends all emails via Brevo using the same branded templates.
  *
- * Env vars required: BREVO_API_KEY, FRONTEND_URL, AUTH_HOOK_SECRET
+ * Env vars required: BREVO_API_KEY, FRONTEND_URL, AUTH_HOOK_SECRET (whsec_... value from dashboard)
  */
+import { Webhook } from "https://esm.sh/standardwebhooks@1.0.0";
 
 const BREVO_API_KEY  = Deno.env.get("BREVO_API_KEY") ?? "";
 const FRONTEND_URL   = Deno.env.get("FRONTEND_URL")  ?? "https://studentshifts.onrender.com";
@@ -106,18 +107,11 @@ function resetEmail(resetUrl: string): string {
 }
 
 Deno.serve(async (req: Request) => {
-  // Supabase calls hooks with Authorization: Bearer <secret>
-  if (HOOK_SECRET) {
-    const auth = req.headers.get("authorization") ?? "";
-    const token = auth.startsWith("Bearer ") ? auth.slice(7) : "";
-    if (token !== HOOK_SECRET) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-    }
-  }
-
   if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), { status: 405 });
   }
+
+  const rawBody = await req.text();
 
   let body: {
     user: { email: string; user_metadata?: { name?: string } };
@@ -131,9 +125,14 @@ Deno.serve(async (req: Request) => {
   };
 
   try {
-    body = await req.json();
+    const wh = new Webhook(HOOK_SECRET);
+    body = wh.verify(rawBody, {
+      "webhook-id":        req.headers.get("webhook-id") ?? "",
+      "webhook-timestamp": req.headers.get("webhook-timestamp") ?? "",
+      "webhook-signature": req.headers.get("webhook-signature") ?? "",
+    }) as typeof body;
   } catch {
-    return new Response(JSON.stringify({ error: "Invalid JSON" }), { status: 400 });
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
   }
 
   const { user, email_data } = body;
