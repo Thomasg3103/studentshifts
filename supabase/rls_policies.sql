@@ -1894,3 +1894,18 @@ BEGIN
     WHERE a.student_id = p_student_id;
 END;
 $$;
+
+-- ── Notification preferences ─────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS notification_preferences (
+  user_id       uuid    NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  event_type    text    NOT NULL,
+  push_enabled  boolean DEFAULT true,
+  email_enabled boolean DEFAULT true,
+  PRIMARY KEY (user_id, event_type)
+);
+ALTER TABLE notification_preferences ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "notif_prefs_own" ON notification_preferences;
+CREATE POLICY "notif_prefs_own"
+  ON notification_preferences FOR ALL
+  USING  (user_id = auth.uid())
+  WITH CHECK (user_id = auth.uid());

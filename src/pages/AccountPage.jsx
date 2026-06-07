@@ -421,10 +421,14 @@ export default function AccountPage() {
     const current = notifPrefs[eventType] || { push: true, email: true };
     const next    = { ...current, [channel]: !current[channel] };
     setNotifPrefs(prev => ({ ...prev, [eventType]: next }));
-    supabase.from("notification_preferences").upsert(
+    const { error } = await supabase.from("notification_preferences").upsert(
       { user_id: currentUser.id, event_type: eventType, push_enabled: next.push, email_enabled: next.email },
       { onConflict: "user_id,event_type" }
-    ).catch(() => {});
+    );
+    if (error) {
+      setNotifPrefs(prev => ({ ...prev, [eventType]: current }));
+      toast.error("Failed to save notification preference.");
+    }
   };
 
   // ── Export ───────────────────────────────────────────────────────────────
