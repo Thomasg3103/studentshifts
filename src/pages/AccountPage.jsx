@@ -1125,13 +1125,13 @@ export default function AccountPage() {
                   <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
                     <input
                       readOnly
-                      value={`https://studentshifts.ie/signup?ref=${referralCode}`}
+                      value={`${window.location.origin}/signup?ref=${referralCode}`}
                       style={{ flex: 1, padding: "0.5rem 0.7rem", borderRadius: "0.6rem", border: "1.5px solid #c4b5fd", fontSize: "0.78rem", color: "var(--color-text-primary, #1e293b)", backgroundColor: "var(--color-bg-elevated, white)", fontFamily: "monospace", outline: "none" }}
                       onClick={e => e.target.select()}
                     />
                     <button
                       onClick={() => {
-                        navigator.clipboard.writeText(`https://studentshifts.ie/signup?ref=${referralCode}`).catch(() => {});
+                        navigator.clipboard.writeText(`${window.location.origin}/signup?ref=${referralCode}`).catch(() => {});
                         setReferralCopied(true);
                         setTimeout(() => setReferralCopied(false), 2000);
                       }}
