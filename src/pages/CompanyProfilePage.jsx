@@ -101,7 +101,7 @@ export default function CompanyProfilePage() {
             {!company.cover_photo_url && <div style={{ position: "absolute", inset: 0, borderRadius: "1rem 1rem 0 0", backgroundImage: "radial-gradient(circle at 15% 60%, rgba(255,255,255,0.10) 0%, transparent 55%), radial-gradient(circle at 75% 25%, rgba(255,255,255,0.07) 0%, transparent 45%)" }} />}
           </div>
           <div style={{ padding: "0 1.75rem" }}>
-            <div style={{ marginTop: "-44px", width: "88px", height: "88px", borderRadius: "1rem", border: "3px solid white", backgroundColor: "var(--color-bg-surface, #f1f5f9)", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>
+            <div style={{ position: "relative", zIndex: 1, marginTop: "-44px", width: "88px", height: "88px", borderRadius: "1rem", border: "3px solid white", backgroundColor: "var(--color-bg-surface, #f1f5f9)", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>
               {company.profile_photo_url
                 ? <img src={company.profile_photo_url} alt={company.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : "🏢"}
