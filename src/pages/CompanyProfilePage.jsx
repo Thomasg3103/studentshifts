@@ -25,7 +25,7 @@ export default function CompanyProfilePage() {
         8000
       ),
       withTimeout(
-        supabase.from("companies").select("bio, website, industries, status, is_featured").eq("id", companyId).single(),
+        supabase.from("companies").select("bio, website, industries, status, is_featured, profile_photo_url").eq("id", companyId).single(),
         8000
       ),
       withTimeout(
@@ -105,7 +105,11 @@ export default function CompanyProfilePage() {
           </div>
           <div style={{ padding: "1.75rem" }}>
           <div style={{ display: "flex", alignItems: "flex-start", gap: "1.25rem", flexWrap: "wrap" }}>
-            <div style={{ width: "64px", height: "64px", borderRadius: "0.75rem", backgroundColor: "var(--color-bg-surface, #f1f5f9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", flexShrink: 0 }}>🏢</div>
+            <div style={{ width: "72px", height: "72px", borderRadius: "0.75rem", backgroundColor: "var(--color-bg-surface, #f1f5f9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.75rem", flexShrink: 0, overflow: "hidden", border: "2px solid #e2e8f0" }}>
+              {company.profile_photo_url
+                ? <img src={company.profile_photo_url} alt={company.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : <span>🏢</span>}
+            </div>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", flexWrap: "wrap", marginBottom: "0.2rem" }}>
                 <h1 style={{ margin: 0, fontSize: "1.5rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)", letterSpacing: "-0.02em" }}>{company.name}</h1>
