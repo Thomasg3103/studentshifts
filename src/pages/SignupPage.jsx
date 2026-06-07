@@ -67,9 +67,11 @@ export default function SignupPage() {
     if (resendCooldown > 0) return;
     try {
       await resendVerificationEmail(email);
-    } catch { /* ignore */ }
-    setResendSent(true);
-    setResendCooldown(60);
+      setResendSent(true);
+      setResendCooldown(60);
+    } catch (e) {
+      setGeneralError(e?.message || "Failed to resend — please try again.");
+    }
   };
 
   const clearFieldError = (field) =>
