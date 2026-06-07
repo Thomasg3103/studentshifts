@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase, withTimeout } from "../lib/supabase";
 import PageWrapper from "../components/PageWrapper";
+import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
 
 export default function CompanyProfilePage() {
@@ -78,6 +79,7 @@ export default function CompanyProfilePage() {
 
   return (
     <PageWrapper>
+      <BackButton />
       <Helmet>
         <title>{company.name} — StudentShifts</title>
         <meta name="description" content={`${company.name} is hiring students on StudentShifts. ${company.bio ? company.bio.slice(0, 120) : ""}`} />
