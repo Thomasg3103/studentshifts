@@ -99,20 +99,23 @@ export default function CompanyProfilePage() {
 
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2rem 1rem" }}>
         {/* Profile header */}
-        <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", marginBottom: "1.5rem", overflow: "hidden" }}>
-          {/* Cover banner — logo overlaps from bottom-left */}
-          <div style={{ height: "140px", background: "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 55%, #1e293b 100%)", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(circle at 15% 60%, rgba(255,255,255,0.10) 0%, transparent 55%), radial-gradient(circle at 75% 25%, rgba(255,255,255,0.07) 0%, transparent 45%)" }} />
-            {/* Logo anchored to banner bottom-left, half-overlapping */}
-            <div style={{ position: "absolute", bottom: "-40px", left: "1.75rem", width: "88px", height: "88px", borderRadius: "1rem", border: "3px solid white", backgroundColor: "var(--color-bg-surface, #f1f5f9)", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>
+        <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", marginBottom: "1.5rem" }}>
+          {/* Cover banner — rounded top corners only, no overflow:hidden so logo can bleed down */}
+          <div style={{ height: "140px", background: "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 55%, #1e293b 100%)", borderRadius: "1rem 1rem 0 0", position: "relative" }}>
+            <div style={{ position: "absolute", inset: 0, borderRadius: "1rem 1rem 0 0", backgroundImage: "radial-gradient(circle at 15% 60%, rgba(255,255,255,0.10) 0%, transparent 55%), radial-gradient(circle at 75% 25%, rgba(255,255,255,0.07) 0%, transparent 45%)" }} />
+          </div>
+
+          {/* Logo row — negative margin pulls it up to overlap the banner */}
+          <div style={{ padding: "0 1.75rem" }}>
+            <div style={{ marginTop: "-44px", width: "88px", height: "88px", borderRadius: "1rem", border: "3px solid white", backgroundColor: "var(--color-bg-surface, #f1f5f9)", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>
               {company.profile_photo_url
                 ? <img src={company.profile_photo_url} alt={company.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : "🏢"}
             </div>
           </div>
 
-          {/* Info block — left-padded to clear the overlapping logo */}
-          <div style={{ paddingTop: "3rem", paddingLeft: "1.75rem", paddingRight: "1.75rem", paddingBottom: "1.5rem" }}>
+          {/* Info block */}
+          <div style={{ padding: "0.85rem 1.75rem 1.5rem" }}>
             {/* Name + featured badge */}
             <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", flexWrap: "wrap", marginBottom: "0.35rem" }}>
               <h1 style={{ margin: 0, fontSize: "1.6rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)", letterSpacing: "-0.02em" }}>{company.name}</h1>
@@ -132,14 +135,14 @@ export default function CompanyProfilePage() {
 
             {/* Website */}
             {company.website && (
-              <a href={company.website.startsWith("http") ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.85rem", color: "var(--color-brand)", fontWeight: "600", textDecoration: "none", marginBottom: company.bio ? "0.85rem" : 0 }}>
+              <a href={company.website.startsWith("http") ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.85rem", color: "var(--color-brand)", fontWeight: "600", textDecoration: "none", marginBottom: "0.6rem" }}>
                 🔗 {cleanWebsite}
               </a>
             )}
 
             {/* Bio */}
             {company.bio && (
-              <p style={{ margin: company.website ? "0" : "0.1rem 0 0", fontSize: "0.9rem", color: "var(--color-text-body, #374151)", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{company.bio}</p>
+              <p style={{ margin: "0.1rem 0 0", fontSize: "0.9rem", color: "var(--color-text-body, #374151)", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{company.bio}</p>
             )}
           </div>
         </div>
