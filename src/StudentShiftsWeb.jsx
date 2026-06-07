@@ -217,10 +217,8 @@ export default function StudentShiftsWeb() {
               const currPath = window.location.pathname;
               if (user.role === "admin" && currPath !== "/admin") {
                 navigate("/admin", { replace: true });
-              } else if (user.role === "company" && user.verificationStatus === "verified" && !currPath.startsWith("/company") && currPath !== "/account") {
+              } else if (user.role === "company" && !currPath.startsWith("/company") && currPath !== "/account") {
                 navigate("/company", { replace: true });
-              } else if (user.role === "company" && user.verificationStatus !== "verified" && currPath.startsWith("/company")) {
-                navigate("/", { replace: true });
               }
               if (user.role === "student") await loadStudentData(user.id);
             }
@@ -260,8 +258,7 @@ export default function StudentShiftsWeb() {
             if (metaIndustries?.length && !user.industries?.length) saveCompanyIndustries(user.id, metaIndustries);
           }
           if (user.role === "admin") { navigate("/admin", { replace: true }); }
-          else if (user.role === "company" && user.verificationStatus === "verified") { navigate("/company", { replace: true }); }
-          else if (user.role === "company") { navigate("/", { replace: true }); }
+          else if (user.role === "company") { navigate("/company", { replace: true }); }
           else { navigate("/", { replace: true }); }
           if (user.role === "student") await loadStudentData(user.id);
         } catch (e) {
@@ -427,8 +424,6 @@ export default function StudentShiftsWeb() {
               <Route path="/" element={
                 !currentUser
                   ? <LandingPage />
-                  : currentUser?.role === "company" && currentUser?.verificationStatus !== "verified"
-                  ? <PendingCompanyPage />
                   : <StudentDashboard restoreScrollY={restoreScrollY} />
               } />
 
@@ -451,8 +446,8 @@ export default function StudentShiftsWeb() {
               <Route path="/verify"  element={currentUser?.role === "student" ? <VerifyDocsPage /> : <Navigate to="/" replace />} />
 
               {/* Company pages */}
-              <Route path="/company" element={currentUser?.role === "company" && currentUser?.verificationStatus === "verified" ? <CompanyDashboard /> : <Navigate to="/" replace />} />
-              <Route path="/company/messages" element={currentUser?.role === "company" && currentUser?.verificationStatus === "verified" ? <CompanyMessages /> : <Navigate to="/" replace />} />
+              <Route path="/company" element={currentUser?.role === "company" ? <CompanyDashboard /> : <Navigate to="/" replace />} />
+              <Route path="/company/messages" element={currentUser?.role === "company" ? <CompanyMessages /> : <Navigate to="/" replace />} />
               <Route path="/companies/:companyId" element={<CompanyProfilePage />} />
 
               {/* Admin */}
