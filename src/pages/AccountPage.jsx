@@ -1388,7 +1388,6 @@ function PreviewRow({ ok, warn, label, detail, truncate }) {
 }
 
 function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLocation, onSaved }) {
-  const [locationType, setLocationType]     = useState(savedLoc?.type || "home");
   const [locationAddress, setLocationAddress] = useState(savedLoc?.displayName || "");
   const [locationCoords, setLocationCoords] = useState(savedLoc ? { lat: savedLoc.lat, lng: savedLoc.lng, displayName: savedLoc.displayName } : null);
   const [locationLoading, setLocationLoading] = useState(false);
@@ -1404,7 +1403,7 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
     setLocationAddress(result.displayName);
     setLocationError("");
     setShowManual(false);
-    const savedLocation = { type: locationType, lat: result.lat, lng: result.lng, displayName: result.displayName };
+    const savedLocation = { lat: result.lat, lng: result.lng, displayName: result.displayName };
     try {
       await updateStudentProfile(currentUser.id, {
         location_lat:     result.lat,
@@ -1461,19 +1460,9 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
       <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.85rem", lineHeight: 1.4 }}>
         Set your address so we can show job distances. Never shared publicly.
       </p>
-      <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
-        {[["home", "🏠 Home"], ["college", "🎓 College"], ["local", "📍 Local"]].map(([val, label]) => (
-          <button key={val} type="button" onClick={() => setLocationType(val)} style={{
-            padding: "0.5rem 0.9rem", borderRadius: "0.5rem", cursor: "pointer",
-            minHeight: "44px", display: "inline-flex", alignItems: "center",
-            border: `1.5px solid ${locationType === val ? "#3b82f6" : "#d1d5db"}`,
-            backgroundColor: locationType === val ? "#eff6ff" : "var(--color-bg-elevated, white)",
-            color: locationType === val ? "#1d4ed8" : "var(--color-text-body, #374151)",
-            fontWeight: locationType === val ? "700" : "500",
-            fontSize: "0.9rem", fontFamily: "inherit",
-          }}>{label}</button>
-        ))}
-      </div>
+      <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ width: "100%", padding: "0.55rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.85rem", cursor: locationLoading ? "not-allowed" : "pointer", fontFamily: "inherit", marginBottom: "0.75rem" }}>
+        {locationLoading ? "Getting location…" : "📡 Use my current GPS location"}
+      </button>
       <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
         <input
           aria-label="Enter Eircode or address"
@@ -1513,9 +1502,6 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
           </div>
         </div>
       )}
-      <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
-        📡 Use my current GPS location
-      </button>
     </div>
   );
 }
