@@ -60,7 +60,12 @@ export default function PrivacyPolicyPage() {
               ].map(item => {
                 const num = item.match(/^(\d+)\./)[1];
                 return (
-                  <a key={item} href={`#section-${num}`} style={{ display: "block", margin: "0.2rem 0", fontSize: "0.82rem", color: "var(--color-brand)", textDecoration: "none", fontWeight: "500" }}
+                  <a key={item} href={`#section-${num}`}
+                    onClick={e => {
+                      e.preventDefault();
+                      document.getElementById(`section-${num}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }}
+                    style={{ display: "block", margin: "0.2rem 0", fontSize: "0.82rem", color: "var(--color-brand)", textDecoration: "none", fontWeight: "500", cursor: "pointer" }}
                     onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
                     onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}
                   >{item}</a>
