@@ -52,6 +52,7 @@ export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const [resendSent, setResendSent] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
   const [resendError, setResendError] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -65,14 +66,17 @@ export default function SignupPage() {
   }, [resendCooldown]);
 
   const handleResend = async () => {
-    if (resendCooldown > 0) return;
+    if (resendCooldown > 0 || resendLoading) return;
     setResendError("");
+    setResendLoading(true);
     try {
       await resendVerificationEmail(email);
       setResendSent(true);
       setResendCooldown(60);
     } catch (e) {
       setResendError(e?.message || "Failed to resend — please try again.");
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -167,10 +171,10 @@ export default function SignupPage() {
           {resendError && <p style={{ fontSize: "0.8rem", color: "#e11d48", fontWeight: "600", marginBottom: "0.5rem" }}>{resendError}</p>}
           <button
             onClick={handleResend}
-            disabled={resendCooldown > 0}
-            style={{ ...btnPrimary, marginTop: 0, backgroundColor: "transparent", background: "none", border: "1.5px solid var(--color-brand)", color: "var(--color-brand)", boxShadow: "none", opacity: resendCooldown > 0 ? 0.6 : 1 }}
+            disabled={resendCooldown > 0 || resendLoading}
+            style={{ ...btnPrimary, marginTop: 0, backgroundColor: "transparent", background: "none", border: "1.5px solid var(--color-brand)", color: "var(--color-brand)", boxShadow: "none", opacity: (resendCooldown > 0 || resendLoading) ? 0.6 : 1 }}
           >
-            {resendCooldown > 0 ? `Try again in ${resendCooldown}s` : "Resend verification email"}
+            {resendLoading ? "Sending…" : resendCooldown > 0 ? `Try again in ${resendCooldown}s` : "Resend verification email"}
           </button>
           <button onClick={() => setPage("login")} style={btnPrimary}>Go to Login →</button>
         </div>
@@ -194,10 +198,10 @@ export default function SignupPage() {
           <p style={{ fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", marginBottom: "0.75rem" }}>Didn't get it? Check your spam folder.</p>
           <button
             onClick={handleResend}
-            disabled={resendCooldown > 0}
-            style={{ ...btnPrimary, marginTop: 0, backgroundColor: "transparent", background: "none", border: "1.5px solid var(--color-brand)", color: "var(--color-brand)", boxShadow: "none", opacity: resendCooldown > 0 ? 0.6 : 1 }}
+            disabled={resendCooldown > 0 || resendLoading}
+            style={{ ...btnPrimary, marginTop: 0, backgroundColor: "transparent", background: "none", border: "1.5px solid var(--color-brand)", color: "var(--color-brand)", boxShadow: "none", opacity: (resendCooldown > 0 || resendLoading) ? 0.6 : 1 }}
           >
-            {resendCooldown > 0 ? `Try again in ${resendCooldown}s` : "Resend verification email"}
+            {resendLoading ? "Sending…" : resendCooldown > 0 ? `Try again in ${resendCooldown}s` : "Resend verification email"}
           </button>
           <button onClick={() => setPage("login")} style={btnPrimary}>Go to Login →</button>
         </div>
