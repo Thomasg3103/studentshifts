@@ -1388,6 +1388,7 @@ function PreviewRow({ ok, warn, label, detail, truncate }) {
 }
 
 const IE_BBOX = "-10.56,51.39,-5.43,55.43";
+const suggestCache = new Map();
 
 function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLocation, onSaved }) {
   const [locationAddress, setLocationAddress] = useState(savedLoc?.displayName || "");
@@ -1413,6 +1414,12 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
 
   const fetchSuggestions = async (q) => {
     if (q.length < 3) { setSuggestions([]); setShowSuggestions(false); return; }
+    if (suggestCache.has(q)) {
+      const cached = suggestCache.get(q);
+      setSuggestions(cached);
+      setShowSuggestions(cached.length > 0);
+      return;
+    }
     try {
       const qs = new URLSearchParams({ q: `${q}, Ireland`, limit: "6", lang: "en", bbox: IE_BBOX });
       const res = await fetch(`https://photon.komoot.io/api/?${qs}`);
@@ -1428,6 +1435,7 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
           lng: f.geometry.coordinates[0],
         };
       });
+      suggestCache.set(q, results);
       setSuggestions(results);
       setShowSuggestions(results.length > 0);
     } catch { setSuggestions([]); setShowSuggestions(false); }
@@ -1508,7 +1516,7 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
               setLocationCoords(null);
               setShowManual(false);
               clearTimeout(suggestTimer.current);
-              suggestTimer.current = setTimeout(() => fetchSuggestions(val), 350);
+              suggestTimer.current = setTimeout(() => fetchSuggestions(val), 150);
             }}
             onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); handleGeocode(); } if (e.key === "Escape") setShowSuggestions(false); }}
             onFocus={() => { if (suggestions.length) setShowSuggestions(true); }}
