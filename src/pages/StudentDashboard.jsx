@@ -1223,7 +1223,7 @@ function FilterSection({ title, open, onToggle, onClear, children }) {
   const [everOpened, setEverOpened] = useState(open);
   useEffect(() => { if (open) setEverOpened(true); }, [open]);
   return (
-    <div className="filter-section-header" style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem", padding: "0.5rem 0.75rem", marginBottom: "0.4rem" }}>
+    <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem", padding: "0.5rem 0.75rem", marginBottom: "0.4rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: open ? "0.5rem" : 0 }}>
         <button
           onClick={onToggle}
