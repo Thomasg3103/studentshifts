@@ -1,5 +1,6 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import Cropper from "react-easy-crop";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
@@ -38,6 +39,22 @@ const PART_TIME_SKILLS = [
   "Gardening & Landscaping", "Car Washing", "Parking Attendant",
 ];
 
+async function getCroppedBlob(imageSrc, pixelCrop) {
+  const image = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = imageSrc;
+  });
+  const canvas = document.createElement("canvas");
+  const size = Math.min(pixelCrop.width, pixelCrop.height, 600);
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, size, size);
+  return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.92));
+}
+
 export default function AccountPage() {
   const navigate = useNavigate();
   const { currentUser, setCurrentUser, setPage, setLikedJobs, setAppliedJobs, setStudentLocation, darkMode, toggleDarkMode } = useApp();
@@ -72,6 +89,11 @@ export default function AccountPage() {
   const [allowDm, setAllowDm]                   = useState(currentUser.allowCompanyDm !== false);
   const [profilePhoto, setProfilePhoto]         = useState(currentUser.profilePhoto || "");
   const [photoUploading, setPhotoUploading]     = useState(false);
+  const [cropSrc, setCropSrc]                   = useState(null);
+  const [crop, setCrop]                         = useState({ x: 0, y: 0 });
+  const [cropZoom, setCropZoom]                 = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const photoInputRef                           = useRef(null);
   const availDebounceRef = useRef(null);
   const [showBackToTop, setShowBackToTop]        = useState(false);
   // Track whether bio / linkedin / website have been edited but not yet saved (dirty state)
@@ -249,16 +271,31 @@ export default function AccountPage() {
   };
 
   // ── Profile Photo auto-upload ────────────────────────────────────────────
-  const handlePhotoChange = async (e) => {
+  const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    // Show preview immediately
+    // Reset input so the same file can be re-selected if user cancels and tries again
+    e.target.value = "";
     const reader = new FileReader();
-    reader.onload = ev => setProfilePhoto(ev.target.result);
+    reader.onload = ev => {
+      setCropSrc(ev.target.result);
+      setCrop({ x: 0, y: 0 });
+      setCropZoom(1);
+    };
     reader.readAsDataURL(file);
+  };
+
+  const onCropComplete = useCallback((_, pixels) => setCroppedAreaPixels(pixels), []);
+
+  const handleCropConfirm = async () => {
+    if (!cropSrc || !croppedAreaPixels) return;
     setPhotoUploading(true);
     setSaving(true);
+    setCropSrc(null);
     try {
+      const blob = await getCroppedBlob(cropSrc, croppedAreaPixels);
+      const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+      setProfilePhoto(URL.createObjectURL(blob));
       const url = await uploadAvatar(currentUser.id, file);
       if (isCompany) {
         await updateCompanyProfile(currentUser.id, { profile_photo_url: url });
@@ -266,12 +303,12 @@ export default function AccountPage() {
         await updateStudentProfile(currentUser.id, { profile_photo_url: url });
       }
       setCurrentUser(prev => ({ ...prev, profilePhoto: url }));
+      setProfilePhoto(url);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     } catch (err) {
       Sentry.captureException(err);
       setProfilePhoto(currentUser.profilePhoto || "");
-      // Toast immediately visible near the photo (more discoverable than bottom banner)
       toast.error(err.message || "Photo upload failed.");
     } finally {
       setPhotoUploading(false);
@@ -738,7 +775,7 @@ export default function AccountPage() {
               </div>
               <label style={{ position: "absolute", bottom: "2px", right: "2px", width: "26px", height: "26px", borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", cursor: photoUploading ? "not-allowed" : "pointer", fontSize: "0.7rem", opacity: photoUploading ? 0.6 : 1 }}>
                 📷
-                <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={handlePhotoChange} disabled={photoUploading} />
+                <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={handlePhotoChange} disabled={photoUploading} />
               </label>
             </div>
             <p style={{ margin: "0.6rem 0 0", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", fontWeight: "500" }}>Welcome back,</p>
@@ -1372,6 +1409,52 @@ export default function AccountPage() {
               <button onClick={() => setShowProfilePreview(false)} style={{ width: "100%", marginTop: "1.25rem", padding: "0.65rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}>
                 Close Preview
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* ── Photo crop modal ── */}
+        {cropSrc && (
+          <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.85)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 1100, padding: "1rem", WebkitBackdropFilter: "blur(4px)", backdropFilter: "blur(4px)" }}>
+            <div style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", width: "100%", maxWidth: "380px", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.3)" }}>
+              <div style={{ padding: "1.25rem 1.5rem 0.75rem", borderBottom: "1px solid var(--color-border-light, #e2e8f0)" }}>
+                <h3 style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>Crop your photo</h3>
+                <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)" }}>Drag to reposition · Pinch or scroll to zoom</p>
+              </div>
+              {/* Cropper area */}
+              <div style={{ position: "relative", width: "100%", height: "300px", background: "#0f172a" }}>
+                <Cropper
+                  image={cropSrc}
+                  crop={crop}
+                  zoom={cropZoom}
+                  aspect={1}
+                  cropShape="round"
+                  showGrid={false}
+                  onCropChange={setCrop}
+                  onZoomChange={setCropZoom}
+                  onCropComplete={onCropComplete}
+                />
+              </div>
+              {/* Zoom slider */}
+              <div style={{ padding: "0.75rem 1.5rem 0", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", flexShrink: 0 }}>Zoom</span>
+                <input
+                  type="range" min={1} max={3} step={0.05} value={cropZoom}
+                  onChange={e => setCropZoom(Number(e.target.value))}
+                  style={{ flex: 1, accentColor: "var(--color-brand, #a21d54)" }}
+                />
+              </div>
+              {/* Actions */}
+              <div style={{ display: "flex", gap: "0.75rem", padding: "1rem 1.5rem 1.25rem" }}>
+                <button
+                  onClick={() => { setCropSrc(null); if (photoInputRef.current) photoInputRef.current.value = ""; }}
+                  style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
+                >Cancel</button>
+                <button
+                  onClick={handleCropConfirm}
+                  style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
+                >Save photo</button>
+              </div>
             </div>
           </div>
         )}
