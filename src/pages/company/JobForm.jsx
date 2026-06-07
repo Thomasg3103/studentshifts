@@ -1,10 +1,28 @@
-﻿import { useState, useRef, useEffect, useMemo } from "react";
+﻿import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+import Cropper from "react-easy-crop";
+import "react-easy-crop/react-easy-crop.css";
 import toast from "react-hot-toast";
 import RichTextEditor from "../../components/RichTextEditor";
 import { geocodeAddress } from "../../utils/geo";
 import { jobCategories } from "../../data/jobCategories";
 import { weekdays, timeSlots } from "./shared";
 import { supabase } from "../../lib/supabase";
+
+async function getCroppedBlobRect(imageSrc, pixelCrop) {
+  const image = await new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = imageSrc;
+  });
+  const canvas = document.createElement("canvas");
+  const maxW = 1800;
+  const scale = Math.min(1, maxW / pixelCrop.width);
+  canvas.width  = Math.round(pixelCrop.width  * scale);
+  canvas.height = Math.round(pixelCrop.height * scale);
+  canvas.getContext("2d").drawImage(image, pixelCrop.x, pixelCrop.y, pixelCrop.width, pixelCrop.height, 0, 0, canvas.width, canvas.height);
+  return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.92));
+}
 
 /* ─── Local style constants (used only in JobForm) ───────────────────────── */
 
@@ -49,6 +67,36 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
   const [isDragging, setIsDragging]     = useState(false);
   const previewRef  = useRef(null);
   const dragRef     = useRef({ active: false, startX: 0, startY: 0, originX: 0, originY: 0, idx: 0 });
+
+  // Crop modal state
+  const [cropQueue, setCropQueue]                   = useState([]);
+  const [activeCropFile, setActiveCropFile]         = useState(null);
+  const [activeCropSrc, setActiveCropSrc]           = useState(null);
+  const [jobCrop, setJobCrop]                       = useState({ x: 0, y: 0 });
+  const [jobCropZoom, setJobCropZoom]               = useState(1);
+  const [jobCroppedAreaPixels, setJobCroppedAreaPixels] = useState(null);
+  const onJobCropComplete = useCallback((_, pixels) => setJobCroppedAreaPixels(pixels), []);
+
+  const openCropForFile = (file, queue = []) => {
+    setCropQueue(queue);
+    setActiveCropFile(file);
+    const reader = new FileReader();
+    reader.onload = ev => { setActiveCropSrc(ev.target.result); setJobCrop({ x: 0, y: 0 }); setJobCropZoom(1); };
+    reader.readAsDataURL(file);
+  };
+
+  const handleJobCropConfirm = async () => {
+    if (!activeCropSrc || !jobCroppedAreaPixels) return;
+    const blob = await getCroppedBlobRect(activeCropSrc, jobCroppedAreaPixels);
+    const croppedFile = new File([blob], activeCropFile.name.replace(/\.[^.]+$/, ".jpg"), { type: "image/jpeg" });
+    setFormData(prev => ({ ...prev, photoFiles: [...(prev.photoFiles || []), croppedFile] }));
+    setActiveCropSrc(null);
+    setActiveCropFile(null);
+    if (cropQueue.length > 0) {
+      const [next, ...rest] = cropQueue;
+      openCropForFile(next, rest);
+    }
+  };
 
   const getCrop = (idx) => cropSettings[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
   const setCrop = (idx, patch) => setCropSettings(prev => ({ ...prev, [idx]: { ...(prev[idx] || { zoom: 1, offsetX: 0, offsetY: 0 }), ...patch } }));
@@ -129,13 +177,12 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       if (file.size > MAX_PHOTO_BYTES)  { skipped.push(`${file.name} (exceeds 5 MB)`); continue; }
       valid.push(file);
     }
-    if (skipped.length > 0) {
-      toast.error(`Skipped: ${skipped.join(", ")}`);
-    }
-    const toAdd    = valid.slice(0, remaining);
-    const newFiles = [...photoFiles, ...toAdd];
-    setFormData(prev => ({ ...prev, photoFiles: newFiles }));
+    if (skipped.length > 0) toast.error(`Skipped: ${skipped.join(", ")}`);
     e.target.value = "";
+    const toAdd = valid.slice(0, remaining);
+    if (toAdd.length === 0) return;
+    const [first, ...rest] = toAdd;
+    openCropForFile(first, rest);
   };
 
   const removeExistingPhoto = (url) => {
@@ -644,6 +691,53 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         </button>
         <button onClick={onCancel} style={{ ...btnGray, flex: 1 }}>Cancel</button>
       </div>
+
+      {/* ── Job photo crop modal ── */}
+      {activeCropSrc && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.85)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "1rem", WebkitBackdropFilter: "blur(4px)", backdropFilter: "blur(4px)" }}>
+          <div style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", width: "100%", maxWidth: "480px", overflow: "hidden", boxShadow: "0 24px 64px rgba(0,0,0,0.35)" }}>
+            <div style={{ padding: "1.25rem 1.5rem 0.75rem", borderBottom: "1px solid var(--color-border-light, #e2e8f0)" }}>
+              <h3 style={{ margin: 0, fontWeight: "800", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>
+                Crop photo{cropQueue.length > 0 ? ` (1 of ${cropQueue.length + 1})` : ""}
+              </h3>
+              <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)" }}>Drag to reposition · Pinch or scroll to zoom</p>
+            </div>
+            <div style={{ position: "relative", width: "100%", height: "300px", background: "#0f172a" }}>
+              <Cropper
+                image={activeCropSrc}
+                crop={jobCrop}
+                zoom={jobCropZoom}
+                aspect={4 / 3}
+                cropShape="rect"
+                showGrid={false}
+                onCropChange={setJobCrop}
+                onZoomChange={setJobCropZoom}
+                onCropComplete={onJobCropComplete}
+              />
+            </div>
+            <div style={{ padding: "0.75rem 1.5rem 0", display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", flexShrink: 0 }}>Zoom</span>
+              <input
+                type="range" min={1} max={3} step={0.05} value={jobCropZoom}
+                onChange={e => setJobCropZoom(Number(e.target.value))}
+                style={{ flex: 1, accentColor: "var(--color-brand, #a21d54)" }}
+              />
+            </div>
+            <div style={{ display: "flex", gap: "0.75rem", padding: "1rem 1.5rem 1.25rem" }}>
+              <button
+                type="button"
+                onClick={() => { setActiveCropSrc(null); setActiveCropFile(null); setCropQueue([]); }}
+                style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
+              >Cancel</button>
+              <button
+                type="button"
+                onClick={handleJobCropConfirm}
+                style={{ flex: 1, padding: "0.7rem", borderRadius: "0.75rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "0.9rem" }}
+              >{cropQueue.length > 0 ? "Next →" : "Use photo"}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
