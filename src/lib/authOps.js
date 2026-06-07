@@ -62,7 +62,7 @@ export async function updatePassword(newPassword) {
 
 export async function resendVerificationEmail(email) {
   const { error } = await withTimeout(
-    supabase.functions.invoke("resend-verification", { body: { email } }),
+    supabase.auth.resend({ type: "signup", email }),
     15000, "Resend timed out — please try again."
   );
   if (error) throw error;
