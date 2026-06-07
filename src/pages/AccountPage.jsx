@@ -141,13 +141,19 @@ export default function AccountPage() {
     fetchMyReferrals().then(rows => setReferralCount(rows.length)).catch(() => {});
   }, [currentUser.role]);
 
-  // Warn user if they try to close/navigate away with unsaved text edits
-  useEffect(() => {
-    if (!dirtyFields) return;
-    const handler = (e) => { e.preventDefault(); e.returnValue = ""; };
-    window.addEventListener("beforeunload", handler);
-    return () => window.removeEventListener("beforeunload", handler);
-  }, [dirtyFields]);
+  // Autosave text fields 1.5s after the user stops typing — clears dirty state so the
+  // browser's beforeunload warning never appears
+  const autoSaveRef = useRef(null);
+  const triggerAutoSave = (fields, userUpdate) => {
+    setDirtyFields(true);
+    clearTimeout(autoSaveRef.current);
+    autoSaveRef.current = setTimeout(async () => {
+      if (currentUser.role === "student") await saveField(fields, userUpdate).catch(() => {});
+      else await saveCompanyField(fields).catch(() => {});
+      setDirtyFields(false);
+    }, 1500);
+  };
+  useEffect(() => () => clearTimeout(autoSaveRef.current), []);
 
   const isStudent = currentUser.role === "student";
   const isCompany = currentUser.role === "company";
@@ -972,7 +978,7 @@ export default function AccountPage() {
                     id="linkedin-url"
                     placeholder="https://linkedin.com/in/yourname"
                     value={linkedIn}
-                    onChange={e => { setLinkedIn(e.target.value); setDirtyFields(true); }}
+                    onChange={e => { setLinkedIn(e.target.value); triggerAutoSave({ linkedin: e.target.value }, { linkedIn: e.target.value }); }}
                     onBlur={() => {
                       setDirtyFields(false);
                       if (linkedIn && !/^https:\/\/([a-zA-Z0-9-]+\.)?linkedin\.com\//.test(linkedIn)) {
@@ -993,7 +999,7 @@ export default function AccountPage() {
                     placeholder="Tell employers a bit about yourself…"
                     value={bio}
                     maxLength={500}
-                    onChange={e => { setBio(e.target.value); setDirtyFields(true); }}
+                    onChange={e => { setBio(e.target.value); triggerAutoSave({ bio: e.target.value }, { bio: e.target.value }); }}
                     onBlur={() => { setDirtyFields(false); saveField({ bio }, { bio }); }}
                     rows={3}
                     style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
@@ -1241,7 +1247,7 @@ export default function AccountPage() {
                 <input
                   placeholder="https://yourcompany.ie"
                   value={website}
-                  onChange={e => { setWebsite(e.target.value); setDirtyFields(true); }}
+                  onChange={e => { setWebsite(e.target.value); triggerAutoSave({ website: e.target.value }, { website: e.target.value }); }}
                   onBlur={() => {
                     setDirtyFields(false);
                     if (website && !/^https?:\/\/.+/.test(website)) {
