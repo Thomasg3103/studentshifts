@@ -221,9 +221,7 @@ export default function StudentShiftsWeb() {
                 navigate("/company", { replace: true });
               } else if (user.role === "company" && user.verificationStatus !== "verified" && currPath.startsWith("/company")) {
                 navigate("/", { replace: true });
-              } else if (user.role === "student" && user.verificationStatus === "pending_review") {
-                navigate("/account", { replace: true });
-              } else if (user.role === "student" && user.verificationStatus !== "verified") {
+ else if (user.role === "student" && user.verificationStatus !== "verified") {
                 navigate("/verify", { replace: true });
               }
               if (user.role === "student") await loadStudentData(user.id);
@@ -266,7 +264,6 @@ export default function StudentShiftsWeb() {
           if (user.role === "admin") { navigate("/admin", { replace: true }); }
           else if (user.role === "company" && user.verificationStatus === "verified") { navigate("/company", { replace: true }); }
           else if (user.role === "company") { navigate("/", { replace: true }); }
-          else if (user.role === "student" && user.verificationStatus === "pending_review") { navigate("/account", { replace: true }); }
           else if (user.role === "student" && user.verificationStatus !== "verified") { navigate("/verify", { replace: true }); }
           else { navigate("/", { replace: true }); }
           if (user.role === "student") await loadStudentData(user.id);
@@ -435,8 +432,6 @@ export default function StudentShiftsWeb() {
                   ? <LandingPage />
                   : currentUser?.role === "company" && currentUser?.verificationStatus !== "verified"
                   ? <PendingCompanyPage />
-                  : currentUser?.role === "student" && currentUser?.verificationStatus === "pending_review"
-                  ? <AccountPage />
                   : currentUser?.role === "student" && currentUser?.verificationStatus !== "verified"
                   ? <VerifyDocsPage />
                   : <StudentDashboard restoreScrollY={restoreScrollY} />
@@ -455,9 +450,9 @@ export default function StudentShiftsWeb() {
 
               {/* Student pages */}
               <Route path="/account" element={currentUser?.role === "student" || currentUser?.role === "company" ? <AccountPage /> : <Navigate to="/login" replace />} />
-              <Route path="/liked"   element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <LikedJobs /> : currentUser?.role === "student" && currentUser?.verificationStatus === "pending_review" ? <Navigate to="/account" replace /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
-              <Route path="/applied" element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <AppliedJobs /> : currentUser?.role === "student" && currentUser?.verificationStatus === "pending_review" ? <Navigate to="/account" replace /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
-              <Route path="/messages" element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <Messages /> : currentUser?.role === "student" && currentUser?.verificationStatus === "pending_review" ? <Navigate to="/account" replace /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
+              <Route path="/liked"   element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <LikedJobs /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
+              <Route path="/applied" element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <AppliedJobs /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
+              <Route path="/messages" element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <Messages /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
               <Route path="/verify"  element={currentUser?.role === "student" ? <VerifyDocsPage /> : <Navigate to="/" replace />} />
 
               {/* Company pages */}
@@ -564,7 +559,6 @@ function EmailVerifiedPage() {
       if (currentUser.role === "admin") navigate("/admin", { replace: true });
       else if (currentUser.role === "company" && currentUser.verificationStatus === "verified") navigate("/company", { replace: true });
       else if (currentUser.role === "company") navigate("/", { replace: true });
-      else if (currentUser.role === "student" && currentUser.verificationStatus === "pending_review") navigate("/account", { replace: true });
       else if (currentUser.role === "student" && currentUser.verificationStatus !== "verified") navigate("/verify", { replace: true });
       else navigate("/", { replace: true });
     }, 2000);
