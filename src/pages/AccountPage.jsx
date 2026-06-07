@@ -113,7 +113,9 @@ export default function AccountPage() {
   const [cropZoom, setCropZoom]                 = useState(1);
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
   const photoInputRef                           = useRef(null);
-  const availDebounceRef = useRef(null);
+  const availDebounceRef    = useRef(null);
+  const bioDebounceRef     = useRef(null);
+  const websiteDebounceRef = useRef(null);
   const [showBackToTop, setShowBackToTop]        = useState(false);
   // Track whether bio / linkedin / website have been edited but not yet saved (dirty state)
   const [dirtyFields, setDirtyFields]           = useState(false);
@@ -1280,8 +1282,12 @@ export default function AccountPage() {
                   <input
                     placeholder="https://yourcompany.ie"
                     value={website}
-                    onChange={e => setWebsite(e.target.value)}
-                    onBlur={() => { setDirtyFields(false); saveCompanyField({ website }); }}
+                    onChange={e => {
+                      setWebsite(e.target.value);
+                      if (websiteDebounceRef.current) clearTimeout(websiteDebounceRef.current);
+                      websiteDebounceRef.current = setTimeout(() => saveCompanyField({ website: e.target.value }), 800);
+                    }}
+                    onBlur={() => { if (websiteDebounceRef.current) { clearTimeout(websiteDebounceRef.current); websiteDebounceRef.current = null; } saveCompanyField({ website }); }}
                     style={{ ...inputStyle, marginBottom: "1rem" }}
                   />
 
@@ -1294,8 +1300,12 @@ export default function AccountPage() {
                     placeholder="Tell students about your company, culture, and the kinds of roles you hire for…"
                     value={bio}
                     maxLength={500}
-                    onChange={e => { setBio(e.target.value); setDirtyFields(true); }}
-                    onBlur={() => { setDirtyFields(false); saveCompanyField({ bio }); }}
+                    onChange={e => {
+                      setBio(e.target.value);
+                      if (bioDebounceRef.current) clearTimeout(bioDebounceRef.current);
+                      bioDebounceRef.current = setTimeout(() => saveCompanyField({ bio: e.target.value }), 800);
+                    }}
+                    onBlur={() => { if (bioDebounceRef.current) { clearTimeout(bioDebounceRef.current); bioDebounceRef.current = null; } saveCompanyField({ bio }); }}
                     rows={4}
                     style={{ ...inputStyle, resize: "vertical", fontFamily: "inherit", lineHeight: "1.5" }}
                   />
