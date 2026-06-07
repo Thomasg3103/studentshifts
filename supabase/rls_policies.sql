@@ -1530,6 +1530,24 @@ BEGIN
   ) THEN
     ALTER TABLE companies ADD COLUMN profile_photo_url text;
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'companies' AND column_name = 'bio'
+  ) THEN
+    ALTER TABLE companies ADD COLUMN bio text;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'companies' AND column_name = 'website'
+  ) THEN
+    ALTER TABLE companies ADD COLUMN website text;
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'companies' AND column_name = 'industries'
+  ) THEN
+    ALTER TABLE companies ADD COLUMN industries text[] DEFAULT '{}';
+  END IF;
 END $$;
 
 
