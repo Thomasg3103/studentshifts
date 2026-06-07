@@ -154,7 +154,7 @@ export default function AdminPage() {
                 subject: "Your StudentShifts account has been approved!",
                 html: emailStudentApproved(student.name),
                 magicLinkEmail: student.email,
-                redirectTo: import.meta.env.VITE_SITE_URL || "https://studentshifts.ie",
+                redirectTo: window.location.origin,
               });
             } catch (e) {
               console.warn("Approval email failed:", e.message);
@@ -214,7 +214,7 @@ export default function AdminPage() {
           sendEmail({
             to: company.email,
             subject: "Your StudentShifts company account has been verified!",
-            html: emailCompanyApproved(company.name, import.meta.env.VITE_SITE_URL || "https://studentshifts.ie"),
+            html: emailCompanyApproved(company.name, window.location.origin),
           }).catch(e => console.warn("Approval email failed:", e.message));
         }
       } else {
