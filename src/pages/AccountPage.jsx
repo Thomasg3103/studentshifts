@@ -1170,14 +1170,6 @@ export default function AccountPage() {
               </Collapsible>
 
               <Section title="Company Profile">
-                <a
-                  href={`/companies/${currentUser.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem", marginBottom: "1rem", fontSize: "0.8rem", fontWeight: "700", color: "var(--color-brand)", textDecoration: "none", padding: "0.4rem 0.85rem", borderRadius: "999px", border: "1.5px solid var(--color-brand)", backgroundColor: "#fce7f3" }}
-                >
-                  👁 View your public profile →
-                </a>
                 <label style={labelStyle}>Company Bio <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)" }}>(optional)</span></label>
                 <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "-0.25rem", marginBottom: "0.25rem" }}>
                   <span style={{ fontSize: "0.73rem", color: bio.length > 450 ? "#ef4444" : "#64748b" }}>{bio.length}/500</span>

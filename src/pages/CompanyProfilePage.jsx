@@ -1,14 +1,21 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase, withTimeout } from "../lib/supabase";
 import PageWrapper from "../components/PageWrapper";
 import { useApp } from "../context/AppContext";
+import { updateCompanyProfile } from "../lib/profile";
+import { uploadAvatar } from "../lib/auth";
+import { jobCategories } from "../data/jobCategories";
+import toast from "react-hot-toast";
+
+const ALL_INDUSTRIES = Object.keys(jobCategories);
 
 export default function CompanyProfilePage() {
   const { companyId } = useParams();
   const navigate = useNavigate();
   const { setSelectedJob, currentUser } = useApp();
+  const isOwner = currentUser?.id === companyId && currentUser?.role === "company";
 
   const [company, setCompany] = useState(null);
   const [jobs, setJobs] = useState([]);
@@ -16,6 +23,14 @@ export default function CompanyProfilePage() {
   const [notFound, setNotFound] = useState(false);
   const [hireStats, setHireStats] = useState(null);
   const [responseRate, setResponseRate] = useState(null);
+
+  // Edit state (owner only)
+  const [bio, setBio] = useState("");
+  const [website, setWebsite] = useState("");
+  const [selectedIndustries, setSelectedIndustries] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [photoUploading, setPhotoUploading] = useState(false);
+  const photoInputRef = useRef(null);
 
   useEffect(() => {
     if (!companyId) return;
@@ -38,10 +53,13 @@ export default function CompanyProfilePage() {
         setLoading(false);
         return;
       }
-      setCompany({ ...profileRes.data, ...companyRes.data });
+      const merged = { ...profileRes.data, ...companyRes.data };
+      setCompany(merged);
+      setBio(merged.bio || "");
+      setWebsite(merged.website || "");
+      setSelectedIndustries(merged.industries || []);
       setJobs(jobsRes.data || []);
       setLoading(false);
-      // Load stats in background (non-blocking)
       supabase.rpc("get_company_hire_stats", { p_company_id: companyId })
         .then(({ data }) => { if (data) setHireStats(data); })
         .catch(() => {});
@@ -50,6 +68,39 @@ export default function CompanyProfilePage() {
         .catch(() => {});
     }).catch(() => { setNotFound(true); setLoading(false); });
   }, [companyId]);
+
+  const saveField = async (fields) => {
+    setSaving(true);
+    try {
+      await updateCompanyProfile(companyId, fields);
+      setCompany(prev => ({ ...prev, ...fields }));
+    } catch (e) {
+      toast.error("Save failed — " + (e.message || "please try again"));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    try {
+      const url = await uploadAvatar(companyId, file);
+      await updateCompanyProfile(companyId, { profile_photo_url: url });
+      setCompany(prev => ({ ...prev, profile_photo_url: url }));
+      toast.success("Photo updated");
+    } catch (e) {
+      toast.error("Photo upload failed");
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const handleSaveIndustries = async () => {
+    await saveField({ industries: selectedIndustries });
+    toast.success("Industries saved");
+  };
 
   if (loading) {
     return (
@@ -74,7 +125,7 @@ export default function CompanyProfilePage() {
     );
   }
 
-  const industries = company.industries || [];
+  const displayIndustries = isOwner ? selectedIndustries : (company.industries || []);
   const cleanWebsite = (company.website || "").replace(/^https?:\/\//, "").replace(/\/$/, "");
 
   return (
@@ -86,11 +137,8 @@ export default function CompanyProfilePage() {
         <meta property="og:site_name" content="StudentShifts" />
         <meta property="og:title" content={`${company.name} — StudentShifts`} />
         <meta property="og:description" content={`${company.name} is hiring students on StudentShifts. ${company.bio ? company.bio.slice(0, 120) : ""}`} />
-        <meta property="og:url" content={`https://studentshifts.ie/company/${company.id}`} />
+        <meta property="og:url" content={`https://studentshifts.ie/companies/${company.id}`} />
         <meta property="og:image" content="https://studentshifts.ie/og-image.png" />
-        <meta property="og:image:width" content="1200" />
-        <meta property="og:image:height" content="630" />
-        <meta property="og:image:alt" content="StudentShifts — Part-Time Jobs for Irish Students" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={`${company.name} — StudentShifts`} />
         <meta name="twitter:description" content={`${company.name} is hiring students on StudentShifts.`} />
@@ -98,51 +146,125 @@ export default function CompanyProfilePage() {
       </Helmet>
 
       <div style={{ maxWidth: "900px", margin: "0 auto", padding: "2rem 1rem" }}>
+
+        {/* "You're editing your public profile" banner — owner only */}
+        {isOwner && (
+          <div style={{ backgroundColor: "#fce7f3", border: "1.5px solid #fca5c5", borderRadius: "0.75rem", padding: "0.65rem 1rem", marginBottom: "1rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ fontSize: "0.8rem" }}>✏️</span>
+            <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: "600", color: "var(--color-brand)" }}>
+              This is your public profile — changes you make here are visible to students immediately.
+            </p>
+            {saving && <span style={{ marginLeft: "auto", fontSize: "0.75rem", color: "#64748b", fontWeight: "600" }}>Saving…</span>}
+          </div>
+        )}
+
         {/* Profile header */}
         <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", marginBottom: "1.5rem" }}>
-          {/* Cover banner — rounded top corners only, no overflow:hidden so logo can bleed down */}
+          {/* Cover banner */}
           <div style={{ height: "140px", background: "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 55%, #1e293b 100%)", borderRadius: "1rem 1rem 0 0", position: "relative" }}>
             <div style={{ position: "absolute", inset: 0, borderRadius: "1rem 1rem 0 0", backgroundImage: "radial-gradient(circle at 15% 60%, rgba(255,255,255,0.10) 0%, transparent 55%), radial-gradient(circle at 75% 25%, rgba(255,255,255,0.07) 0%, transparent 45%)" }} />
           </div>
 
-          {/* Logo row — negative margin pulls it up to overlap the banner */}
+          {/* Logo — negative margin overlaps banner */}
           <div style={{ padding: "0 1.75rem" }}>
-            <div style={{ marginTop: "-44px", width: "88px", height: "88px", borderRadius: "1rem", border: "3px solid white", backgroundColor: "var(--color-bg-surface, #f1f5f9)", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>
-              {company.profile_photo_url
-                ? <img src={company.profile_photo_url} alt={company.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                : "🏢"}
+            <div style={{ position: "relative", display: "inline-block", marginTop: "-44px" }}>
+              <div style={{ width: "88px", height: "88px", borderRadius: "1rem", border: "3px solid white", backgroundColor: "var(--color-bg-surface, #f1f5f9)", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>
+                {photoUploading
+                  ? <div style={{ width: "28px", height: "28px", border: "3px solid rgba(0,0,0,0.15)", borderTopColor: "var(--color-brand)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+                  : company.profile_photo_url
+                    ? <img src={company.profile_photo_url} alt={company.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    : "🏢"}
+              </div>
+              {/* Camera button — owner only */}
+              {isOwner && (
+                <label style={{ position: "absolute", bottom: "-4px", right: "-4px", width: "26px", height: "26px", borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", border: "2px solid white", display: "flex", alignItems: "center", justifyContent: "center", cursor: photoUploading ? "not-allowed" : "pointer", fontSize: "0.65rem", zIndex: 1 }}>
+                  📷
+                  <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={handlePhotoChange} disabled={photoUploading} />
+                </label>
+              )}
             </div>
           </div>
 
-          {/* Info block */}
+          {/* Info / edit block */}
           <div style={{ padding: "0.85rem 1.75rem 1.5rem" }}>
-            {/* Name + featured badge */}
-            <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", flexWrap: "wrap", marginBottom: "0.35rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.55rem", flexWrap: "wrap", marginBottom: "0.75rem" }}>
               <h1 style={{ margin: 0, fontSize: "1.6rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)", letterSpacing: "-0.02em" }}>{company.name}</h1>
               {company.is_featured && (
                 <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#854d0e", backgroundColor: "#fef9c3", borderRadius: "999px", padding: "0.2rem 0.6rem", border: "1.5px solid #fde68a" }}>⭐ Featured Employer</span>
               )}
             </div>
 
-            {/* Industry pills */}
-            {industries.length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.75rem" }}>
-                {industries.map(ind => (
-                  <span key={ind} style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.2rem 0.65rem", border: "1.5px solid #fca5c5" }}>{ind}</span>
-                ))}
+            {/* Industries — toggle pills if owner, display pills if visitor */}
+            {isOwner ? (
+              <div style={{ marginBottom: "1rem" }}>
+                <p style={{ margin: "0 0 0.4rem", fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Industries</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.6rem" }}>
+                  {ALL_INDUSTRIES.map(ind => {
+                    const active = selectedIndustries.includes(ind);
+                    return (
+                      <button key={ind} type="button"
+                        onClick={() => setSelectedIndustries(prev => active ? prev.filter(i => i !== ind) : [...prev, ind])}
+                        style={{ padding: "0.25rem 0.65rem", borderRadius: "999px", fontSize: "0.75rem", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", border: `1.5px solid ${active ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: active ? "#fce7f3" : "white", color: active ? "var(--color-brand)" : "#64748b" }}>
+                        {active ? "✓ " : ""}{ind}
+                      </button>
+                    );
+                  })}
+                </div>
+                <button onClick={handleSaveIndustries} style={{ fontSize: "0.78rem", fontWeight: "700", padding: "0.3rem 0.85rem", borderRadius: "999px", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", cursor: "pointer", fontFamily: "inherit" }}>
+                  Save industries
+                </button>
               </div>
+            ) : (
+              displayIndustries.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "0.75rem" }}>
+                  {displayIndustries.map(ind => (
+                    <span key={ind} style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.2rem 0.65rem", border: "1.5px solid #fca5c5" }}>{ind}</span>
+                  ))}
+                </div>
+              )
             )}
 
             {/* Website */}
-            {company.website && (
-              <a href={company.website.startsWith("http") ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.85rem", color: "var(--color-brand)", fontWeight: "600", textDecoration: "none", marginBottom: "0.6rem" }}>
-                🔗 {cleanWebsite}
-              </a>
+            {isOwner ? (
+              <div style={{ marginBottom: "0.85rem" }}>
+                <p style={{ margin: "0 0 0.3rem", fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Website</p>
+                <input
+                  value={website}
+                  onChange={e => setWebsite(e.target.value)}
+                  onBlur={() => saveField({ website })}
+                  placeholder="https://yourcompany.ie"
+                  style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.88rem", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)", backgroundColor: "var(--color-bg-subtle, #fafafa)", boxSizing: "border-box" }}
+                />
+              </div>
+            ) : (
+              company.website && (
+                <a href={company.website.startsWith("http") ? company.website : `https://${company.website}`} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "0.3rem", fontSize: "0.85rem", color: "var(--color-brand)", fontWeight: "600", textDecoration: "none", marginBottom: "0.6rem" }}>
+                  🔗 {cleanWebsite}
+                </a>
+              )
             )}
 
             {/* Bio */}
-            {company.bio && (
-              <p style={{ margin: "0.1rem 0 0", fontSize: "0.9rem", color: "var(--color-text-body, #374151)", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{company.bio}</p>
+            {isOwner ? (
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
+                  <p style={{ margin: 0, fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Bio</p>
+                  <span style={{ fontSize: "0.72rem", color: bio.length > 450 ? "#ef4444" : "#94a3b8" }}>{bio.length}/500</span>
+                </div>
+                <textarea
+                  value={bio}
+                  onChange={e => setBio(e.target.value)}
+                  onBlur={() => saveField({ bio })}
+                  maxLength={500}
+                  rows={3}
+                  placeholder="Tell students about your company, culture, and the kinds of roles you hire for…"
+                  style={{ width: "100%", padding: "0.55rem 0.75rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.88rem", fontFamily: "inherit", resize: "vertical", lineHeight: 1.5, color: "var(--color-text-primary, #1e293b)", backgroundColor: "var(--color-bg-subtle, #fafafa)", boxSizing: "border-box" }}
+                />
+              </div>
+            ) : (
+              company.bio && (
+                <p style={{ margin: "0.1rem 0 0", fontSize: "0.9rem", color: "var(--color-text-body, #374151)", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{company.bio}</p>
+              )
             )}
           </div>
         </div>
@@ -238,6 +360,7 @@ export default function CompanyProfilePage() {
           </div>
           <p style={{ margin: 0, fontSize: "0.85rem", color: "#94a3b8" }}>Students who've worked here will be able to leave reviews once this feature launches.</p>
         </div>
+
       </div>
     </PageWrapper>
   );
