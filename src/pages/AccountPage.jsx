@@ -608,7 +608,7 @@ export default function AccountPage() {
   );
 
   // ── Right column content (shared pieces) ─────────────────────────────────
-  const LocationSection = () => (
+  const locationSectionJSX = (
     <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
       <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.75rem" }}>My Location</p>
       <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.85rem", lineHeight: 1.4 }}>
@@ -804,7 +804,7 @@ export default function AccountPage() {
                 </Collapsible>
               )}
 
-              <LocationSection />
+              {locationSectionJSX}
 
               {/* My Availability — collapsible, below location */}
               <Collapsible title="My Availability">
