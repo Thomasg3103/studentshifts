@@ -205,8 +205,6 @@ export default function LoginPage() {
   );
 }
 
-const fieldStyle = { width: "100%", padding: "0.72rem 1rem", margin: "0.4rem 0", display: "block", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", boxSizing: "border-box", fontSize: "1rem", fontFamily: "'Plus Jakarta Sans', sans-serif", color: "var(--color-text-primary, #1e293b)", outline: "none" };
-const srOnly     = { position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", marginTop: "0.6rem", fontSize: "0.95rem", fontFamily: "inherit" };
 const btnPrimary = { ...btnBase, background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)", marginTop: "1rem" };
 const btnGhost   = { ...btnBase, backgroundColor: "var(--color-bg-subtle, #fafafa)", color: "var(--color-text-secondary, #64748b)", boxShadow: "none" };

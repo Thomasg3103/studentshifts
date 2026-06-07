@@ -59,7 +59,7 @@ export { CloseJobModal };
 
 /* ─── DetailPanel ────────────────────────────────────────────────────────── */
 
-export default function DetailPanel({ applicant, postingId, postingTitle, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, onSendTrialInvite }) {
+export default function DetailPanel({ applicant, postingId, postingTitle, companyId, onClose, onStageAction, onUpdateStatus, onNotesSaved, onIncrementRound, _onSaveTrialSchedule, _onSaveInterviewRoundsData, onSendInterviewInvite, onSendTrialInvite }) {
   const [cvUrl, setCvUrl]     = useState(null);
   const [clUrl, setClUrl]     = useState(null);
   const [cvLoading, setCvLoading] = useState(false);

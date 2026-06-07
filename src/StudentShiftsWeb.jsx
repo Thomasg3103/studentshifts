@@ -167,7 +167,7 @@ export default function StudentShiftsWeb() {
   const toggleDarkMode = useCallback(() => {
     setDarkMode(d => {
       const next = !d;
-      try { localStorage.setItem("ss_theme", next ? "dark" : "light"); } catch {}
+      try { localStorage.setItem("ss_theme", next ? "dark" : "light"); } catch { /* ignore */ }
       document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
       return next;
     });

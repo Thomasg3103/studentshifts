@@ -2,9 +2,9 @@ import { useRef } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { supabase, ensureValidSession, withTimeout } from "../lib/supabase";
-import { sendEmail, emailInterviewInvite, emailTrialInvite, updateApplicationStage, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, saveInterviewSchedule } from "../lib/auth";
+import { sendEmail, updateApplicationStage, incrementInterviewRound, saveTrialSchedule, saveInterviewRoundsData, moveToInterviewRound, saveInterviewSchedule } from "../lib/auth";
 
-export function useHiringPipeline({ activePosting, setPostings, setActivePosting, currentUser }) {
+export function useHiringPipeline({ activePosting, setPostings, setActivePosting, currentUser: _currentUser }) {
   // Track in-flight stage-change requests to prevent double-firing on rapid clicks
   const stagingInFlight = useRef(new Set());
 

@@ -773,7 +773,7 @@ export default function StudentDashboard({ restoreScrollY }) {
               <button onClick={() => setPage("account")} style={{ padding: "0.4rem 0.9rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #d97706, #b45309)", color: "white", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                 Complete Profile →
               </button>
-              <button onClick={() => { setProfileNudgeDismissed(true); try { localStorage.setItem("ss_profile_nudge_dismissed", "1"); } catch {} }} aria-label="Dismiss" style={{ padding: "0.4rem 0.6rem", borderRadius: "2rem", border: "1.5px solid #fde047", background: "var(--color-bg-elevated, white)", color: "#92400e", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>✕</button>
+              <button onClick={() => { setProfileNudgeDismissed(true); try { localStorage.setItem("ss_profile_nudge_dismissed", "1"); } catch { /* ignore */ } }} aria-label="Dismiss" style={{ padding: "0.4rem 0.6rem", borderRadius: "2rem", border: "1.5px solid #fde047", background: "var(--color-bg-elevated, white)", color: "#92400e", fontWeight: 700, fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>✕</button>
             </div>
           </div>
         )}
@@ -1142,7 +1142,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                           return <span style={{ fontSize: isPhone ? "0.62rem" : "0.68rem", color: "#16a34a", fontWeight: "600", flexShrink: 0 }}>⚡ {label}</span>;
                         })()}
                         <button
-                          onClick={e => { e.stopPropagation(); const next = !jobAlerts; setJobAlerts(next); try { localStorage.setItem("ss_job_alerts", next ? "1" : "0"); } catch {} }}
+                          onClick={e => { e.stopPropagation(); const next = !jobAlerts; setJobAlerts(next); try { localStorage.setItem("ss_job_alerts", next ? "1" : "0"); } catch { /* ignore */ } }}
                           title={jobAlerts ? "Job alerts on — you'll be notified of new matching jobs" : "Get notified when similar jobs are posted (coming soon)"}
                           aria-label={jobAlerts ? "Disable job alerts" : "Enable job alerts"}
                           style={{ marginLeft: "auto", padding: "0.1rem 0.4rem", borderRadius: "999px", border: `1px solid ${jobAlerts ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, background: jobAlerts ? "#fce7f3" : "var(--color-bg-elevated, white)", color: jobAlerts ? "var(--color-brand)" : "var(--color-text-secondary, #94a3b8)", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}

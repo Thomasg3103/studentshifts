@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
@@ -6,7 +6,7 @@ import { useFocusTrap } from "../hooks/useFocusTrap";
 import toast from "react-hot-toast";
 import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
-import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, verifyPassword, exportMyData, sendPasswordReset } from "../lib/auth";
+import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, exportMyData, sendPasswordReset } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 import { getOrCreateReferralCode, fetchMyReferrals } from "../lib/referrals";
 import { usePushNotifications } from "../hooks/usePushNotifications";
@@ -64,7 +64,7 @@ export default function AccountPage() {
   useFocusTrap(deleteModalRef, () => setShowDeleteModal(false), showDeleteModal);
   useFocusTrap(logoutModalRef, () => setShowLogoutModal(false), showLogoutModal);
   const [deleteConfirm, setDeleteConfirm]       = useState("");
-  const [deletePassword, setDeletePassword]     = useState("");
+  const [_deletePassword, setDeletePassword]   = useState("");
   const [deleting, setDeleting]                 = useState(false);
   const [deleteError, setDeleteError]           = useState("");
   const [exporting, setExporting]               = useState(false);
@@ -81,7 +81,7 @@ export default function AccountPage() {
   const [referralCount, setReferralCount]       = useState(0);
   const [transport, setTransport]               = useState(currentUser.transport || []);
   const [canStart, setCanStart]                 = useState(currentUser.canStart || "");
-  const [workExperience, setWorkExperience]     = useState(currentUser.workExperience || "");
+  const [_workExperience, _setWorkExperience]     = useState(currentUser.workExperience || "");
   const [workExperienceEntries, setWorkExperienceEntries] = useState(currentUser.workExperienceEntries || []);
   const [showAddExp, setShowAddExp]             = useState(false);
   const [newExpSector, setNewExpSector]         = useState("");

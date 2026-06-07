@@ -331,7 +331,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     try {
       const url = await getSignedDocumentUrl("documents", cvUrl);
       window.open(url, "_blank", "noopener,noreferrer");
-    } catch (e) {
+    } catch {
       toast.error("Could not open CV — please try again.");
     } finally {
       setCvLoading(prev => { const n = new Set(prev); n.delete(studentId); return n; });

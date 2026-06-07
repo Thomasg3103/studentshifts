@@ -234,7 +234,7 @@ export default function SignupPage() {
           {[{ val: "student", label: "🎓 Student" }, { val: "company", label: "🏢 Company" }].map(({ val, label }) => (
             <button
               key={val}
-              onClick={() => { setRole(val); setError(""); }}
+              onClick={() => { setRole(val); setGeneralError(""); }}
               style={{
                 flex: 1, padding: "0.55rem", borderRadius: "0.6rem", border: "none",
                 fontWeight: "600", fontSize: "0.875rem", cursor: "pointer",
@@ -420,7 +420,6 @@ export default function SignupPage() {
 }
 
 
-const inputStyle = { width: "100%", padding: "0.72rem 1rem", marginBottom: "0.75rem", borderRadius: "0.65rem", border: "1.5px solid #e2e8f0", fontSize: "1rem", boxSizing: "border-box", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)" };
 const srOnly     = { position: "absolute", width: "1px", height: "1px", margin: "-1px", padding: 0, border: 0, clip: "rect(0,0,0,0)", overflow: "hidden" };
 const btnBase    = { width: "100%", padding: "0.8rem", borderRadius: "2rem", border: "none", color: "white", fontWeight: "700", cursor: "pointer", fontSize: "0.95rem", fontFamily: "inherit" };
 const btnPrimary = { ...btnBase, marginTop: "1.25rem", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 4px 18px rgba(162,29,84,0.35)" };
