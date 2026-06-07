@@ -695,6 +695,17 @@ export default function AccountPage() {
       <div style={{ backgroundColor: "var(--color-bg-subtle)", minHeight: "100vh", fontFamily: "'Plus Jakarta Sans', sans-serif", padding: "1.5rem 1.25rem", boxSizing: "border-box", width: "100%", overflowX: "hidden" }}>
         <div style={{ maxWidth: isStudent ? "1100px" : "560px", margin: "0 auto" }}>
 
+          {/* Waiting for approval banner — shown at top for pending_review students */}
+          {isStudent && currentUser.verificationStatus === "pending_review" && (
+            <div style={{ backgroundColor: "#fefce8", border: "1.5px solid #fde047", borderRadius: "0.85rem", padding: "0.85rem 1rem", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.65rem" }}>
+              <span style={{ fontSize: "1.2rem" }}>⏳</span>
+              <div>
+                <p style={{ margin: 0, fontWeight: "700", fontSize: "0.9rem", color: "#854d0e" }}>Waiting for Approval</p>
+                <p style={{ margin: 0, fontSize: "0.78rem", color: "#92400e", lineHeight: 1.5 }}>Your documents have been submitted. Our team usually reviews within 24 hours (Mon–Fri).</p>
+              </div>
+            </div>
+          )}
+
           {/* Profile photo + name header */}
           <div style={{ textAlign: "center", marginBottom: "1.75rem" }}>
             <div style={{ position: "relative", display: "inline-block" }}>

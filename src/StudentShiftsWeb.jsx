@@ -221,7 +221,7 @@ export default function StudentShiftsWeb() {
                 navigate("/company", { replace: true });
               } else if (user.role === "company" && user.verificationStatus !== "verified" && currPath.startsWith("/company")) {
                 navigate("/", { replace: true });
- else if (user.role === "student" && user.verificationStatus !== "verified") {
+              } else if (user.role === "student" && user.verificationStatus !== "verified") {
                 navigate("/verify", { replace: true });
               }
               if (user.role === "student") await loadStudentData(user.id);
