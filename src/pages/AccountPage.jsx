@@ -355,72 +355,7 @@ export default function AccountPage() {
 
   // ── Location ─────────────────────────────────────────────────────────────
   const saved_loc = currentUser.savedLocation || null;
-  const [locationType, setLocationType]     = useState(saved_loc?.type || "home");
-  const [locationAddress, setLocationAddress] = useState(saved_loc?.displayName || "");
-  const [locationCoords, setLocationCoords] = useState(saved_loc ? { lat: saved_loc.lat, lng: saved_loc.lng, displayName: saved_loc.displayName } : null);
-  const [locationLoading, setLocationLoading] = useState(false);
-  const [locationError, setLocationError]   = useState("");
-  const [showManual, setShowManual]         = useState(false);
-  const [manualLine1, setManualLine1]       = useState("");
-  const [manualLine2, setManualLine2]       = useState("");
-  const [manualCity, setManualCity]         = useState("");
-  const [manualCounty, setManualCounty]     = useState("");
-
-  const applyGeoResult = async (result) => {
-    setLocationCoords(result);
-    setLocationAddress(result.displayName);
-    setLocationError("");
-    setShowManual(false);
-    const savedLocation = { type: locationType, lat: result.lat, lng: result.lng, displayName: result.displayName };
-    try {
-      await updateStudentProfile(currentUser.id, {
-        location_lat:     result.lat,
-        location_lng:     result.lng,
-        location_display: result.displayName,
-      });
-      setCurrentUser(prev => ({ ...prev, savedLocation }));
-      if (setStudentLocation) setStudentLocation(savedLocation);
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
-    } catch (e) {
-      Sentry.captureException(e);
-      setSaveError("Failed to save location.");
-    }
-  };
-
-  const handleGeocode = async () => {
-    if (!locationAddress.trim()) { setLocationError("Enter an Eircode or address first."); return; }
-    setLocationLoading(true);
-    setLocationError("");
-    const result = await geocodeAddress(locationAddress + ", Ireland");
-    setLocationLoading(false);
-    if (result) await applyGeoResult(result);
-    else { setLocationError("Eircode not found. Fill in the address manually below."); setShowManual(true); }
-  };
-
-  const handleManualGeocode = async () => {
-    if (!manualLine1.trim() && !manualCity.trim()) { setLocationError("Enter at least the address and city."); return; }
-    const fullAddress = [manualLine1, manualLine2, manualCity, manualCounty, "Ireland"].filter(Boolean).join(", ");
-    setLocationLoading(true);
-    setLocationError("");
-    const result = await geocodeAddress(fullAddress);
-    setLocationLoading(false);
-    if (result) await applyGeoResult(result);
-    else setLocationError("Could not find that address. Try adjusting the details.");
-  };
-
-  const handleGPS = async () => {
-    setLocationLoading(true);
-    setLocationError("");
-    const pos = await getCurrentPosition();
-    setLocationLoading(false);
-    if (pos) {
-      await applyGeoResult({ lat: pos.lat, lng: pos.lng, displayName: "Your current GPS location" });
-      setLocationAddress("GPS location");
-    } else {
-      setLocationError("Could not get GPS location. Check browser permissions.");
-    }
-  };
+  const [locationDone, setLocationDone]     = useState(!!saved_loc);
 
   // ── Industries (company) ─────────────────────────────────────────────────
   const handleSaveIndustries = async () => {
@@ -565,7 +500,7 @@ export default function AccountPage() {
 
   const profileFields = isStudent ? [
     { label: "CV",       done: !!currentUser.cvName },
-    { label: "Location", done: !!locationCoords },
+    { label: "Location", done: locationDone },
     { label: "Bio",      done: !!bio.trim() },
     { label: "Skills",   done: skills.length > 0 },
     { label: "LinkedIn", done: !!linkedIn.trim() },
@@ -608,69 +543,6 @@ export default function AccountPage() {
   );
 
   // ── Right column content (shared pieces) ─────────────────────────────────
-  const locationSectionJSX = (
-    <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
-      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.75rem" }}>My Location</p>
-      <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.85rem", lineHeight: 1.4 }}>
-        Set your address so we can show job distances. Never shared publicly.
-      </p>
-      <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
-        {[["home", "🏠 Home"], ["college", "🎓 College"], ["local", "📍 Local"]].map(([val, label]) => (
-          <button key={val} type="button" onClick={() => setLocationType(val)} style={{
-            padding: "0.5rem 0.9rem", borderRadius: "0.5rem", cursor: "pointer",
-            minHeight: "44px", display: "inline-flex", alignItems: "center",
-            border: `1.5px solid ${locationType === val ? "#3b82f6" : "#d1d5db"}`,
-            backgroundColor: locationType === val ? "#eff6ff" : "var(--color-bg-elevated, white)",
-            color: locationType === val ? "#1d4ed8" : "var(--color-text-body, #374151)",
-            fontWeight: locationType === val ? "700" : "500",
-            fontSize: "0.9rem", fontFamily: "inherit",
-          }}>{label}</button>
-        ))}
-      </div>
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
-        <input
-          aria-label="Enter Eircode or address"
-          placeholder="Eircode"
-          value={locationAddress}
-          onChange={e => { setLocationAddress(e.target.value); setLocationCoords(null); setShowManual(false); }}
-          onKeyDown={e => e.key === "Enter" && handleGeocode()}
-          style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
-        />
-        <button type="button" onClick={handleGeocode} disabled={locationLoading} style={{ padding: "0.6rem 0.9rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.85rem", cursor: locationLoading ? "not-allowed" : "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
-          {locationLoading ? "…" : "Find"}
-        </button>
-      </div>
-      {locationCoords && !showManual && (
-        <div style={{ backgroundColor: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: "0.5rem", padding: "0.45rem 0.75rem", marginBottom: "0.4rem" }}>
-          <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: "700" }}>✓ Location found</span>
-          <p style={{ color: "var(--color-text-body, #374151)", margin: "0.15rem 0 0", fontSize: "0.7rem" }}>{locationCoords.displayName}</p>
-        </div>
-      )}
-      {locationError && <p style={{ fontSize: "0.8rem", color: "#ef4444", margin: "0 0 0.4rem" }}>{locationError}</p>}
-      {!showManual && !locationCoords && (
-        <button type="button" onClick={() => setShowManual(true)} style={{ background: "none", border: "none", padding: 0, color: "var(--color-text-secondary, #6b7280)", fontSize: "0.75rem", cursor: "pointer", textDecoration: "underline", marginBottom: "0.5rem", fontFamily: "inherit" }}>
-          Enter address manually
-        </button>
-      )}
-      {showManual && (
-        <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e5e7eb)", borderRadius: "0.5rem", padding: "0.75rem", marginBottom: "0.5rem" }}>
-          <input value={manualLine1} onChange={e => setManualLine1(e.target.value)} placeholder="Address Line 1" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
-          <input value={manualLine2} onChange={e => setManualLine2(e.target.value)} placeholder="Address Line 2 (optional)" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
-          <input value={manualCity} onChange={e => setManualCity(e.target.value)} placeholder="Town / City" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
-          <input value={manualCounty} onChange={e => setManualCounty(e.target.value)} onKeyDown={e => e.key === "Enter" && handleManualGeocode()} placeholder="County" style={{ ...inputStyle, marginBottom: "0.6rem" }} />
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <button type="button" onClick={handleManualGeocode} disabled={locationLoading} style={{ flex: 1, padding: "0.5rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
-              {locationLoading ? "Finding…" : "Find Address"}
-            </button>
-            <button type="button" onClick={() => setShowManual(false)} style={{ padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1.5px solid var(--color-border-light, #d1d5db)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #6b7280)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
-          </div>
-        </div>
-      )}
-      <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
-        📡 Use my current GPS location
-      </button>
-    </div>
-  );
 
   const handleChangePassword = async () => {
     setChangingPw(true);
@@ -804,7 +676,13 @@ export default function AccountPage() {
                 </Collapsible>
               )}
 
-              {locationSectionJSX}
+              <LocationSection
+                savedLoc={saved_loc}
+                currentUser={currentUser}
+                setCurrentUser={setCurrentUser}
+                setStudentLocation={setStudentLocation}
+                onSaved={() => setLocationDone(true)}
+              />
 
               {/* My Availability — collapsible, below location */}
               <Collapsible title="My Availability">
@@ -1505,6 +1383,139 @@ function PreviewRow({ ok, warn, label, detail, truncate }) {
         <span style={{ fontSize: "0.82rem", fontWeight: "600", color: "var(--color-text-body, #374151)" }}>{label}</span>
         {detail && <span style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #6b7280)", marginLeft: "0.35rem", ...(truncate ? { overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block", maxWidth: "200px", verticalAlign: "bottom" } : {}) }}>{detail}</span>}
       </div>
+    </div>
+  );
+}
+
+function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLocation, onSaved }) {
+  const [locationType, setLocationType]     = useState(savedLoc?.type || "home");
+  const [locationAddress, setLocationAddress] = useState(savedLoc?.displayName || "");
+  const [locationCoords, setLocationCoords] = useState(savedLoc ? { lat: savedLoc.lat, lng: savedLoc.lng, displayName: savedLoc.displayName } : null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const [locationError, setLocationError]   = useState("");
+  const [showManual, setShowManual]         = useState(false);
+  const [manualLine1, setManualLine1]       = useState("");
+  const [manualLine2, setManualLine2]       = useState("");
+  const [manualCity, setManualCity]         = useState("");
+  const [manualCounty, setManualCounty]     = useState("");
+
+  const applyGeoResult = async (result) => {
+    setLocationCoords(result);
+    setLocationAddress(result.displayName);
+    setLocationError("");
+    setShowManual(false);
+    const savedLocation = { type: locationType, lat: result.lat, lng: result.lng, displayName: result.displayName };
+    try {
+      await updateStudentProfile(currentUser.id, {
+        location_lat:     result.lat,
+        location_lng:     result.lng,
+        location_display: result.displayName,
+      });
+      setCurrentUser(prev => ({ ...prev, savedLocation }));
+      if (setStudentLocation) setStudentLocation(savedLocation);
+      onSaved();
+      toast.success("Location saved!");
+    } catch (e) {
+      import("@sentry/react").then(({ captureException }) => captureException(e));
+      toast.error("Failed to save location.");
+    }
+  };
+
+  const handleGeocode = async () => {
+    if (!locationAddress.trim()) { setLocationError("Enter an Eircode or address first."); return; }
+    setLocationLoading(true);
+    setLocationError("");
+    const result = await geocodeAddress(locationAddress + ", Ireland");
+    setLocationLoading(false);
+    if (result) await applyGeoResult(result);
+    else { setLocationError("Eircode not found. Fill in the address manually below."); setShowManual(true); }
+  };
+
+  const handleManualGeocode = async () => {
+    if (!manualLine1.trim() && !manualCity.trim()) { setLocationError("Enter at least the address and city."); return; }
+    const fullAddress = [manualLine1, manualLine2, manualCity, manualCounty, "Ireland"].filter(Boolean).join(", ");
+    setLocationLoading(true);
+    setLocationError("");
+    const result = await geocodeAddress(fullAddress);
+    setLocationLoading(false);
+    if (result) await applyGeoResult(result);
+    else setLocationError("Could not find that address. Try adjusting the details.");
+  };
+
+  const handleGPS = async () => {
+    setLocationLoading(true);
+    setLocationError("");
+    const pos = await getCurrentPosition();
+    setLocationLoading(false);
+    if (pos) {
+      await applyGeoResult({ lat: pos.lat, lng: pos.lng, displayName: "Your current GPS location" });
+      setLocationAddress("GPS location");
+    } else {
+      setLocationError("Could not get GPS location. Check browser permissions.");
+    }
+  };
+
+  return (
+    <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
+      <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.75rem" }}>My Location</p>
+      <p style={{ fontSize: "0.8rem", color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.85rem", lineHeight: 1.4 }}>
+        Set your address so we can show job distances. Never shared publicly.
+      </p>
+      <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+        {[["home", "🏠 Home"], ["college", "🎓 College"], ["local", "📍 Local"]].map(([val, label]) => (
+          <button key={val} type="button" onClick={() => setLocationType(val)} style={{
+            padding: "0.5rem 0.9rem", borderRadius: "0.5rem", cursor: "pointer",
+            minHeight: "44px", display: "inline-flex", alignItems: "center",
+            border: `1.5px solid ${locationType === val ? "#3b82f6" : "#d1d5db"}`,
+            backgroundColor: locationType === val ? "#eff6ff" : "var(--color-bg-elevated, white)",
+            color: locationType === val ? "#1d4ed8" : "var(--color-text-body, #374151)",
+            fontWeight: locationType === val ? "700" : "500",
+            fontSize: "0.9rem", fontFamily: "inherit",
+          }}>{label}</button>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.4rem" }}>
+        <input
+          aria-label="Enter Eircode or address"
+          placeholder="Eircode"
+          value={locationAddress}
+          onChange={e => { setLocationAddress(e.target.value); setLocationCoords(null); setShowManual(false); }}
+          onKeyDown={e => e.key === "Enter" && handleGeocode()}
+          style={{ ...inputStyle, marginBottom: 0, flex: 1 }}
+        />
+        <button type="button" onClick={handleGeocode} disabled={locationLoading} style={{ padding: "0.6rem 0.9rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.85rem", cursor: locationLoading ? "not-allowed" : "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}>
+          {locationLoading ? "…" : "Find"}
+        </button>
+      </div>
+      {locationCoords && !showManual && (
+        <div style={{ backgroundColor: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: "0.5rem", padding: "0.45rem 0.75rem", marginBottom: "0.4rem" }}>
+          <span style={{ fontSize: "0.75rem", color: "#16a34a", fontWeight: "700" }}>✓ Location found</span>
+          <p style={{ color: "var(--color-text-body, #374151)", margin: "0.15rem 0 0", fontSize: "0.7rem" }}>{locationCoords.displayName}</p>
+        </div>
+      )}
+      {locationError && <p style={{ fontSize: "0.8rem", color: "#ef4444", margin: "0 0 0.4rem" }}>{locationError}</p>}
+      {!showManual && !locationCoords && (
+        <button type="button" onClick={() => setShowManual(true)} style={{ background: "none", border: "none", padding: 0, color: "var(--color-text-secondary, #6b7280)", fontSize: "0.75rem", cursor: "pointer", textDecoration: "underline", marginBottom: "0.5rem", fontFamily: "inherit" }}>
+          Enter address manually
+        </button>
+      )}
+      {showManual && (
+        <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e5e7eb)", borderRadius: "0.5rem", padding: "0.75rem", marginBottom: "0.5rem" }}>
+          <input value={manualLine1} onChange={e => setManualLine1(e.target.value)} placeholder="Address Line 1" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
+          <input value={manualLine2} onChange={e => setManualLine2(e.target.value)} placeholder="Address Line 2 (optional)" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
+          <input value={manualCity} onChange={e => setManualCity(e.target.value)} placeholder="Town / City" style={{ ...inputStyle, marginBottom: "0.5rem" }} />
+          <input value={manualCounty} onChange={e => setManualCounty(e.target.value)} onKeyDown={e => e.key === "Enter" && handleManualGeocode()} placeholder="County" style={{ ...inputStyle, marginBottom: "0.6rem" }} />
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button type="button" onClick={handleManualGeocode} disabled={locationLoading} style={{ flex: 1, padding: "0.5rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#3b82f6", color: "white", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
+              {locationLoading ? "Finding…" : "Find Address"}
+            </button>
+            <button type="button" onClick={() => setShowManual(false)} style={{ padding: "0.5rem 0.75rem", borderRadius: "0.5rem", border: "1.5px solid var(--color-border-light, #d1d5db)", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-secondary, #6b7280)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>Cancel</button>
+          </div>
+        </div>
+      )}
+      <button type="button" onClick={handleGPS} disabled={locationLoading} style={{ padding: "0.45rem 0.9rem", borderRadius: "0.5rem", border: "1.5px solid #d1d5db", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}>
+        📡 Use my current GPS location
+      </button>
     </div>
   );
 }
