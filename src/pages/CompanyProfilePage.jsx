@@ -25,7 +25,7 @@ export default function CompanyProfilePage() {
         8000
       ),
       withTimeout(
-        supabase.from("companies").select("bio, website, industries, status, is_featured, profile_photo_url").eq("id", companyId).single(),
+        supabase.from("companies").select("bio, website, industries, status, is_featured, profile_photo_url, cover_photo_url").eq("id", companyId).single(),
         8000
       ),
       withTimeout(
@@ -97,8 +97,8 @@ export default function CompanyProfilePage() {
 
         {/* Profile header */}
         <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", marginBottom: "1.5rem" }}>
-          <div style={{ height: "140px", background: "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 55%, #1e293b 100%)", borderRadius: "1rem 1rem 0 0", position: "relative" }}>
-            <div style={{ position: "absolute", inset: 0, borderRadius: "1rem 1rem 0 0", backgroundImage: "radial-gradient(circle at 15% 60%, rgba(255,255,255,0.10) 0%, transparent 55%), radial-gradient(circle at 75% 25%, rgba(255,255,255,0.07) 0%, transparent 45%)" }} />
+          <div style={{ height: "140px", borderRadius: "1rem 1rem 0 0", position: "relative", background: company.cover_photo_url ? `url(${company.cover_photo_url}) center/cover no-repeat` : "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 55%, #1e293b 100%)" }}>
+            {!company.cover_photo_url && <div style={{ position: "absolute", inset: 0, borderRadius: "1rem 1rem 0 0", backgroundImage: "radial-gradient(circle at 15% 60%, rgba(255,255,255,0.10) 0%, transparent 55%), radial-gradient(circle at 75% 25%, rgba(255,255,255,0.07) 0%, transparent 45%)" }} />}
           </div>
           <div style={{ padding: "0 1.75rem" }}>
             <div style={{ marginTop: "-44px", width: "88px", height: "88px", borderRadius: "1rem", border: "3px solid white", backgroundColor: "var(--color-bg-surface, #f1f5f9)", overflow: "hidden", boxShadow: "0 4px 16px rgba(0,0,0,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "2.5rem" }}>

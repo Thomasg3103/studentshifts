@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import BackButton from "../components/BackButton";
 import { geocodeAddress, getCurrentPosition } from "../utils/geo";
 import { updateStudentProfile, updateCompanyProfile, uploadAvatar, uploadDocument, signOut, deleteAccount, exportMyData, sendPasswordReset } from "../lib/auth";
+import { uploadCoverPhoto } from "../lib/uploads";
 import { supabase } from "../lib/supabase";
 import { getOrCreateReferralCode, fetchMyReferrals } from "../lib/referrals";
 import { usePushNotifications } from "../hooks/usePushNotifications";
@@ -188,18 +189,39 @@ export default function AccountPage() {
   const isStudent = currentUser.role === "student";
   const isCompany = currentUser.role === "company";
 
-  // ── Company profile data (jobs + stats) ───────────────────────────────
+  // ── Company profile data (jobs + stats + cover photo) ─────────────────
   const [companyJobs, setCompanyJobs] = useState([]);
   const [hireStats, setHireStats] = useState(null);
   const [responseRate, setResponseRate] = useState(null);
+  const [coverPhotoUrl, setCoverPhotoUrl] = useState("");
+  const [coverUploading, setCoverUploading] = useState(false);
+  const coverInputRef = useRef(null);
 
   useEffect(() => {
     if (!isCompany) return;
     supabase.from("jobs").select("id, title, category, location, pay, days, photos, is_urgent").eq("company_id", currentUser.id).eq("status", "Active").order("created_at", { ascending: false })
       .then(({ data }) => { if (data) setCompanyJobs(data); });
+    supabase.from("companies").select("cover_photo_url").eq("id", currentUser.id).single()
+      .then(({ data }) => { if (data?.cover_photo_url) setCoverPhotoUrl(data.cover_photo_url); });
     supabase.rpc("get_company_hire_stats", { p_company_id: currentUser.id }).then(({ data }) => { if (data) setHireStats(data); }).catch(() => {});
     supabase.rpc("get_company_response_rate", { p_company_id: currentUser.id }).then(({ data }) => { if (data) setResponseRate(data); }).catch(() => {});
   }, [isCompany, currentUser.id]);
+
+  const handleCoverPhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCoverUploading(true);
+    try {
+      const url = await uploadCoverPhoto(currentUser.id, file);
+      await updateCompanyProfile(currentUser.id, { cover_photo_url: url });
+      setCoverPhotoUrl(url);
+      toast.success("Cover photo updated");
+    } catch (err) {
+      toast.error(err.message || "Cover photo upload failed");
+    } finally {
+      setCoverUploading(false);
+    }
+  };
 
   // ── Auto-save helper (students only) ───────────────────────────────────
   // Pass an optional `userUpdate` object to also sync currentUser state (camelCase keys).
@@ -1172,8 +1194,12 @@ export default function AccountPage() {
             <div>
               {/* Banner + logo (editable photo) */}
               <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", marginBottom: "1.25rem" }}>
-                <div style={{ height: "140px", background: "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 55%, #1e293b 100%)", borderRadius: "1rem 1rem 0 0", position: "relative" }}>
-                  <div style={{ position: "absolute", inset: 0, borderRadius: "1rem 1rem 0 0", backgroundImage: "radial-gradient(circle at 15% 60%, rgba(255,255,255,0.10) 0%, transparent 55%), radial-gradient(circle at 75% 25%, rgba(255,255,255,0.07) 0%, transparent 45%)" }} />
+                <div style={{ height: "140px", borderRadius: "1rem 1rem 0 0", position: "relative", background: coverPhotoUrl ? `url(${coverPhotoUrl}) center/cover no-repeat` : "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 55%, #1e293b 100%)" }}>
+                  {!coverPhotoUrl && <div style={{ position: "absolute", inset: 0, borderRadius: "1rem 1rem 0 0", backgroundImage: "radial-gradient(circle at 15% 60%, rgba(255,255,255,0.10) 0%, transparent 55%), radial-gradient(circle at 75% 25%, rgba(255,255,255,0.07) 0%, transparent 45%)" }} />}
+                  <label style={{ position: "absolute", top: "10px", right: "10px", display: "inline-flex", alignItems: "center", gap: "0.3rem", padding: "0.35rem 0.75rem", borderRadius: "999px", backgroundColor: "rgba(0,0,0,0.45)", color: "white", fontSize: "0.75rem", fontWeight: "700", cursor: coverUploading ? "not-allowed" : "pointer", backdropFilter: "blur(4px)", border: "1px solid rgba(255,255,255,0.2)" }}>
+                    {coverUploading ? "Uploading…" : "📷 Change cover"}
+                    <input ref={coverInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/gif" style={{ display: "none" }} onChange={handleCoverPhotoChange} disabled={coverUploading} />
+                  </label>
                 </div>
                 <div style={{ padding: "0 1.75rem" }}>
                   <div style={{ position: "relative", display: "inline-block", marginTop: "-44px" }}>

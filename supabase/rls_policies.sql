@@ -1548,6 +1548,12 @@ BEGIN
   ) THEN
     ALTER TABLE companies ADD COLUMN industries text[] DEFAULT '{}';
   END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'companies' AND column_name = 'cover_photo_url'
+  ) THEN
+    ALTER TABLE companies ADD COLUMN cover_photo_url text;
+  END IF;
 END $$;
 
 

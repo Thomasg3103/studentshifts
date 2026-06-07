@@ -75,6 +75,26 @@ export async function uploadAvatar(userId, file) {
   return publicUrl + "?t=" + Date.now();
 }
 
+export async function uploadCoverPhoto(userId, file) {
+  const ext = file.name.split(".").pop()?.toLowerCase() || "";
+  if (!ALLOWED_IMAGE_TYPES.has(ext)) throw new Error(`File type .${ext} is not allowed.`);
+  if (!ALLOWED_IMAGE_MIMES.has(file.type)) throw new Error(`File content type "${file.type}" is not allowed.`);
+  if (file.size > MAX_IMAGE_BYTES) throw new Error("Photo is too large. Maximum size is 5 MB.");
+  const path = `${userId}/cover.${ext}`;
+  const { data: existing } = await supabase.storage.from("avatars").list(userId).catch(() => ({ data: null }));
+  if (existing?.length) {
+    const old = existing.filter(f => f.name.startsWith("cover.")).map(f => `${userId}/${f.name}`);
+    if (old.length) await supabase.storage.from("avatars").remove(old).catch(() => {});
+  }
+  const { error } = await withTimeout(
+    supabase.storage.from("avatars").upload(path, file, { upsert: true }),
+    10000, "Cover photo upload timed out — please try again."
+  );
+  if (error) throw error;
+  const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
+  return publicUrl + "?t=" + Date.now();
+}
+
 export async function getSignedDocumentUrl(bucket, path) {
   let cleanPath = path;
   if (path && path.startsWith("http")) {
