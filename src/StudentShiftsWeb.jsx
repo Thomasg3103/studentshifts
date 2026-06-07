@@ -247,7 +247,7 @@ export default function StudentShiftsWeb() {
           const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
           if (!session.user.email_confirmed_at) {
             await supabase.auth.signOut().catch(() => {});
-            navigate("/?unverified=1", { replace: true });
+            navigate("/login?unverified=1", { replace: true });
             return;
           }
           setCurrentUser(user);

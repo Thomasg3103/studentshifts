@@ -2,7 +2,7 @@
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
-import { signIn, sendPasswordReset } from "../lib/auth";
+import { signIn, sendPasswordReset, resendVerificationEmail } from "../lib/auth";
 import { useApp } from "../context/AppContext";
 
 export default function LoginPage() {
@@ -18,6 +18,27 @@ export default function LoginPage() {
   const [resetLoading, setResetLoading] = useState(false);
   const [resetError, setResetError]     = useState("");
   const [resetCooldown, setResetCooldown] = useState(0);
+  const [unverified, setUnverified]       = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendDone, setResendDone]       = useState(false);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("unverified") === "1") {
+      setUnverified(true);
+      setError("Your email isn't verified yet. Check your inbox for the confirmation link.");
+    }
+  }, []);
+
+  const handleResendFromLogin = async () => {
+    if (!email || resendLoading) return;
+    setResendLoading(true);
+    try {
+      await resendVerificationEmail(email);
+      setResendDone(true);
+    } catch { /* ignore */ } finally {
+      setResendLoading(false);
+    }
+  };
 
   const handleLogin = async () => {
     if (!email || !password) { setError("Please enter your email and password."); return; }
@@ -141,9 +162,29 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div role="alert" style={{ backgroundColor: "#fff1f2", border: "1px solid #fecdd3", borderRadius: "0.6rem", padding: "0.65rem 1rem", marginBottom: "1rem", color: "#e11d48", fontSize: "0.875rem", fontWeight: "500", textAlign: "left" }}>
+          <div role="alert" style={{ backgroundColor: "#fff1f2", border: "1px solid #fecdd3", borderRadius: "0.6rem", padding: "0.65rem 1rem", marginBottom: unverified ? "0.5rem" : "1rem", color: "#e11d48", fontSize: "0.875rem", fontWeight: "500", textAlign: "left" }}>
             {error}
           </div>
+        )}
+
+        {unverified && !resendDone && (
+          <div style={{ marginBottom: "1rem", fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)" }}>
+            Enter your email below then{" "}
+            <button
+              type="button"
+              onClick={handleResendFromLogin}
+              disabled={resendLoading}
+              style={{ background: "none", border: "none", padding: 0, color: "var(--color-brand)", fontWeight: "700", cursor: "pointer", fontFamily: "inherit", fontSize: "inherit" }}
+            >
+              {resendLoading ? "Sending…" : "resend the confirmation email"}
+            </button>.
+          </div>
+        )}
+
+        {resendDone && (
+          <p style={{ marginBottom: "1rem", fontSize: "0.82rem", color: "#16a34a", fontWeight: "600" }}>
+            ✅ Confirmation email sent — check your inbox.
+          </p>
         )}
 
         <div className="float-field">
