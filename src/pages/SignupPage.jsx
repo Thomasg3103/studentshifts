@@ -174,7 +174,7 @@ export default function SignupPage() {
             disabled={resendCooldown > 0 || resendLoading}
             style={{ ...btnPrimary, marginTop: 0, backgroundColor: "transparent", background: "none", border: "1.5px solid var(--color-brand)", color: "var(--color-brand)", boxShadow: "none", opacity: (resendCooldown > 0 || resendLoading) ? 0.6 : 1 }}
           >
-            {resendLoading ? "Sending…" : resendCooldown > 0 ? `Try again in ${resendCooldown}s` : "Resend verification email"}
+            {resendLoading ? "Sending…" : resendCooldown > 0 ? `Resend Email in ${resendCooldown}s` : "Resend verification email"}
           </button>
           <button onClick={() => setPage("login")} style={btnPrimary}>Go to Login →</button>
         </div>
@@ -201,7 +201,7 @@ export default function SignupPage() {
             disabled={resendCooldown > 0 || resendLoading}
             style={{ ...btnPrimary, marginTop: 0, backgroundColor: "transparent", background: "none", border: "1.5px solid var(--color-brand)", color: "var(--color-brand)", boxShadow: "none", opacity: (resendCooldown > 0 || resendLoading) ? 0.6 : 1 }}
           >
-            {resendLoading ? "Sending…" : resendCooldown > 0 ? `Try again in ${resendCooldown}s` : "Resend verification email"}
+            {resendLoading ? "Sending…" : resendCooldown > 0 ? `Resend Email in ${resendCooldown}s` : "Resend verification email"}
           </button>
           <button onClick={() => setPage("login")} style={btnPrimary}>Go to Login →</button>
         </div>
