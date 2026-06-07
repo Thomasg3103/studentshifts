@@ -123,28 +123,23 @@ function FilterPanel({
             </select>
           </div>
         ))}
-        {/* Distance slider — shown below days/times */}
-        <div style={{ marginTop: "0.6rem", paddingTop: "0.6rem", borderTop: "1px solid #f3f4f6" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
-            <span style={{ fontSize: "0.81rem", color: "var(--color-text-body, #374151)", fontWeight: 600 }}>Distance</span>
-            <span style={{ fontSize: "0.81rem", color: "var(--color-text-body, #374151)", fontWeight: 500 }}>{distanceKm === 0 ? "Any" : `Within ${distanceKm} km`}</span>
-          </div>
-          {studentLocation ? (
-            <>
-              <SmoothSlider value={distanceKm} onChange={setDistanceKm} />
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)" }}>
-                <span>0 km</span><span>25 km</span><span>50 km</span>
-              </div>
-              {distanceKm > 0 && (
-                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "0.3rem" }}>
-                  <button onClick={() => setDistanceKm(0)} style={{ fontSize: "0.72rem", color: "var(--color-brand)", background: "none", border: "none", cursor: "pointer", fontWeight: 700, padding: 0, fontFamily: "inherit" }}>Reset</button>
-                </div>
-              )}
-            </>
-          ) : (
-            <p style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
-          )}
+      </FilterSection>
+
+      {/* Distance */}
+      <FilterSection title={<>Distance {distanceKm > 0 && <Pip n={`${distanceKm}km`} />}</>} open={openSections.distance} onToggle={() => toggleSection("distance")} onClear={distanceKm > 0 ? () => setDistanceKm(0) : null}>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.3rem" }}>
+          <span style={{ fontSize: "0.81rem", color: "var(--color-text-body, #374151)", fontWeight: 500 }}>{distanceKm === 0 ? "Any distance" : `Within ${distanceKm} km`}</span>
         </div>
+        {studentLocation ? (
+          <>
+            <SmoothSlider value={distanceKm} onChange={setDistanceKm} />
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)" }}>
+              <span>Any</span><span>25 km</span><span>50 km</span>
+            </div>
+          </>
+        ) : (
+          <p style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", fontStyle: "italic", margin: 0 }}>Save your location in Account to filter by distance.</p>
+        )}
       </FilterSection>
 
       {/* Location */}
