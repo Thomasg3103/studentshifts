@@ -67,11 +67,10 @@ export default function SignupPage() {
   const handleResend = async () => {
     if (resendCooldown > 0) return;
     setResendError("");
-    setResendSent(false);
-    setResendCooldown(60);
     try {
       await resendVerificationEmail(email);
       setResendSent(true);
+      setResendCooldown(60);
     } catch (e) {
       setResendError(e?.message || "Failed to resend — please try again.");
     }
@@ -171,7 +170,7 @@ export default function SignupPage() {
             disabled={resendCooldown > 0}
             style={{ ...btnPrimary, marginTop: 0, backgroundColor: "transparent", background: "none", border: "1.5px solid var(--color-brand)", color: "var(--color-brand)", boxShadow: "none", opacity: resendCooldown > 0 ? 0.6 : 1 }}
           >
-            {resendSent && resendCooldown > 0 ? `Resent! Try again in ${resendCooldown}s` : "Resend verification email"}
+            {resendCooldown > 0 ? `Try again in ${resendCooldown}s` : "Resend verification email"}
           </button>
           <button onClick={() => setPage("login")} style={btnPrimary}>Go to Login →</button>
         </div>
@@ -198,7 +197,7 @@ export default function SignupPage() {
             disabled={resendCooldown > 0}
             style={{ ...btnPrimary, marginTop: 0, backgroundColor: "transparent", background: "none", border: "1.5px solid var(--color-brand)", color: "var(--color-brand)", boxShadow: "none", opacity: resendCooldown > 0 ? 0.6 : 1 }}
           >
-            {resendSent && resendCooldown > 0 ? `Resent! Try again in ${resendCooldown}s` : "Resend verification email"}
+            {resendCooldown > 0 ? `Try again in ${resendCooldown}s` : "Resend verification email"}
           </button>
           <button onClick={() => setPage("login")} style={btnPrimary}>Go to Login →</button>
         </div>
