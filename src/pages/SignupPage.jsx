@@ -397,7 +397,7 @@ export default function SignupPage() {
             <a href="/privacy" style={{ color: "var(--color-brand)", fontWeight: "600", textDecoration: "none" }}>Privacy Policy</a>
           </span>
         </label>
-        {fieldErrors.terms && <p style={{ ...errMsg, marginTop: "0.25rem" }}>{fieldErrors.terms}</p>}
+        <FieldError field="terms" />
 
         <button onClick={handleSignup} disabled={loading} style={{ ...btnPrimary, opacity: loading ? 0.7 : 1 }}>
           {loading ? "Creating account…" : "Create Account →"}
