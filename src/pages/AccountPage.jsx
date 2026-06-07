@@ -732,15 +732,23 @@ export default function AccountPage() {
                   <span style={{ fontSize: "1rem" }}>✅</span>
                   <div>
                     <p style={{ margin: 0, fontWeight: "700", fontSize: "0.85rem", color: "#15803d" }}>Identity Verified</p>
-                    <p style={{ margin: 0, fontSize: "0.75rem", color: "#166534" }}>Your Student ID and Government ID have been reviewed and approved.</p>
+                    <p style={{ margin: 0, fontSize: "0.75rem", color: "#166634" }}>Your Student ID and Government ID have been reviewed and approved.</p>
                   </div>
                 </div>
-              ) : !docsStored ? (
+              ) : docsStored ? (
+                <div style={{ backgroundColor: "#fefce8", border: "1.5px solid #fde047", borderRadius: "0.85rem", padding: "0.75rem 1rem", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                  <span style={{ fontSize: "1rem" }}>⏳</span>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: "700", fontSize: "0.85rem", color: "#854d0e" }}>Waiting for Approval</p>
+                    <p style={{ margin: 0, fontSize: "0.75rem", color: "#92400e" }}>Your documents have been submitted. Our team usually reviews within 24 hours (Mon–Fri).</p>
+                  </div>
+                </div>
+              ) : (
                 <Collapsible title="Verification Documents" defaultOpen>
                   <DocRow label="Student ID Card" filename={currentUser.studentIdCardName} />
                   <DocRow label="Government ID"   filename={currentUser.governmentIdName} />
                 </Collapsible>
-              ) : null}
+              )}
 
               <LocationSection />
 
