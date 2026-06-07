@@ -57,9 +57,15 @@ export default function PrivacyPolicyPage() {
                 "18. Accountability & Governance",
                 "19. Changes to This Notice",
                 "20. Supervisory Authority & Complaints",
-              ].map(item => (
-                <p key={item} style={{ margin: "0.2rem 0", fontSize: "0.82rem", color: "var(--color-brand)" }}>{item}</p>
-              ))}
+              ].map(item => {
+                const num = item.match(/^(\d+)\./)[1];
+                return (
+                  <a key={item} href={`#section-${num}`} style={{ display: "block", margin: "0.2rem 0", fontSize: "0.82rem", color: "var(--color-brand)", textDecoration: "none", fontWeight: "500" }}
+                    onMouseEnter={e => e.currentTarget.style.textDecoration = "underline"}
+                    onMouseLeave={e => e.currentTarget.style.textDecoration = "none"}
+                  >{item}</a>
+                );
+              })}
             </div>
           </div>
 
@@ -531,7 +537,7 @@ export default function PrivacyPolicyPage() {
 
 function Section({ num, title, children }) {
   return (
-    <div style={{ marginBottom: "2rem" }}>
+    <div id={`section-${num}`} style={{ marginBottom: "2rem", scrollMarginTop: "1.5rem" }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: "0.6rem", marginBottom: "0.85rem" }}>
         <span style={{ flexShrink: 0, width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "var(--color-brand)", color: "white", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: "0.72rem", fontWeight: "800" }}>{num}</span>
         <h2 style={{ margin: 0, fontWeight: "800", fontSize: "1.15rem", color: "var(--color-text-primary, #1e293b)" }} dangerouslySetInnerHTML={{ __html: title }} />
