@@ -501,9 +501,11 @@ Deno.serve(async (req: Request) => {
       const jTitle      = jt ? escapeHtml(jt) : "";
       const safeNote    = nt ? escapeHtml(nt) : "";
       const tlStr       = typeof tl === "string" ? tl : "";
-      const rawTeams    = (tlStr.match(/https?:\/\/\S+/i)?.[0] || "").replace(/"/g, "%22");
-      const hrefTeams   = rawTeams;
-      const safeTeams   = hrefTeams ? escapeHtml(rawTeams) : "";
+      // Prefer a teams.live.com or teams.microsoft.com URL, then fall back to any https URL
+      const teamsUrlMatch = tlStr.match(/https?:\/\/teams\.(?:live|microsoft)\.com\/\S+/i)
+                         || tlStr.match(/https?:\/\/\S+/i);
+      const hrefTeams   = teamsUrlMatch ? teamsUrlMatch[0].replace(/"/g, "%22") : "";
+      const displayTeams = hrefTeams ? escapeHtml(hrefTeams) : "";
 
       // Build the time/slot section of the email
       type Slot = { date: string; time: string };
@@ -537,7 +539,7 @@ ${validSlots.map((s: Slot, i: number) =>
             ${jTitle ? `<p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>Role:</strong> ${jTitle}</p>` : ""}
             ${timeSectionHtml}
             ${safeNote ? `<p style="margin:8px 0 0;font-size:14px;color:#374151;line-height:1.5;"><strong>Note from ${cName}:</strong><br/>${safeNote}</p>` : ""}
-            ${hrefTeams ? `<p style="margin:10px 0 0;font-size:14px;color:#1e293b;"><strong>Teams Meeting:</strong> <a href="${hrefTeams}" style="color:#A21D54;font-weight:600;">Join Teams Meeting &rarr;</a></p>` : ""}
+            ${hrefTeams ? `<p style="margin:10px 0 0;font-size:14px;color:#1e293b;"><strong>Teams Meeting:</strong> <a href="${hrefTeams}" style="color:#A21D54;font-weight:600;display:inline-block;margin-top:4px;">Join Teams Meeting &rarr;</a><br/><span style="font-size:11px;color:#64748b;word-break:break-all;">${displayTeams}</span></p>` : ""}
           </td>
         </tr></table>
         <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">

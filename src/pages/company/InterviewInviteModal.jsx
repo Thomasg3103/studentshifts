@@ -107,7 +107,7 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
               const val = e.target.value;
               const urlMatch = val.match(/https?:\/\/\S+/i);
               setTeamsLink(urlMatch ? urlMatch[0] : val);
-            }} placeholder="https://teams.microsoft.com/… (paste the full invite — we'll extract the link)" style={inputStyle} />
+            }} placeholder="Paste link or full invite text" style={inputStyle} />
           </div>
         </div>
 
