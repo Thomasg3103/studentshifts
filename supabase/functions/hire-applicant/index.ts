@@ -395,13 +395,22 @@ export async function handler(req: Request): Promise<Response> {
         );
 
         const winnerEmail = emailMap[winner_student_id] || studentEmail;
+        let _dbgEmail = winnerEmail ? "sending" : "no_email_found";
         if (winnerEmail) {
-          sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, winnerEmail,
-            `You've been hired – ${job.title} at ${companyName}`,
-            emailAccepted(nameMap[winner_student_id] || studentName, job.title, companyName, hiredShiftWithTime),
-            winnerEmail
-          ).catch(e => console.warn("Acceptance email failed:", e));
+          try {
+            await sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, winnerEmail,
+              `You've been hired – ${job.title} at ${companyName}`,
+              emailAccepted(nameMap[winner_student_id] || studentName, job.title, companyName, hiredShiftWithTime),
+              winnerEmail
+            );
+            _dbgEmail = "sent";
+          } catch (e) {
+            const em = (e instanceof Error ? e.message : null) ?? (e as { message?: string })?.message ?? String(e);
+            _dbgEmail = `brevo_err:${em}`;
+            console.warn("Acceptance email failed:", e);
+          }
         }
+        console.log("hire-applicant email debug:", _dbgEmail, "winner:", winner_student_id, "email:", winnerEmail);
         sendPush(supabaseUrl, serviceKey, winner_student_id,
           "You got the job! 🎉",
           `${companyName} hired you for ${job.title}.`,
@@ -435,7 +444,7 @@ export async function handler(req: Request): Promise<Response> {
         console.warn("hire-applicant: post-hire side effects failed:", sideErr);
       }
 
-      return new Response(JSON.stringify({ success: true, ...acceptResult }), {
+      return new Response(JSON.stringify({ success: true, ...acceptResult, _dbgEmail }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
