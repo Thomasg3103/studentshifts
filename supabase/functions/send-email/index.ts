@@ -500,8 +500,9 @@ Deno.serve(async (req: Request) => {
       const cName       = escapeHtml(companyName);
       const jTitle      = jt ? escapeHtml(jt) : "";
       const safeNote    = nt ? escapeHtml(nt) : "";
-      const rawTeams    = typeof tl === "string" ? tl.trim() : "";
-      const hrefTeams   = rawTeams && /^https?:\/\//i.test(rawTeams) ? rawTeams.replace(/"/g, "%22") : "";
+      const tlStr       = typeof tl === "string" ? tl : "";
+      const rawTeams    = (tlStr.match(/https?:\/\/\S+/i)?.[0] || "").replace(/"/g, "%22");
+      const hrefTeams   = rawTeams;
       const safeTeams   = hrefTeams ? escapeHtml(rawTeams) : "";
 
       // Build the time/slot section of the email

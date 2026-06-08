@@ -103,7 +103,11 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
           </div>
           <div>
             <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Microsoft Teams link <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>
-            <input type="text" value={teamsLink} onChange={e => setTeamsLink(e.target.value)} placeholder="https://teams.microsoft.com/…" style={inputStyle} />
+            <input type="text" value={teamsLink} onChange={e => {
+              const val = e.target.value;
+              const urlMatch = val.match(/https?:\/\/\S+/i);
+              setTeamsLink(urlMatch ? urlMatch[0] : val);
+            }} placeholder="https://teams.microsoft.com/… (paste the full invite — we'll extract the link)" style={inputStyle} />
           </div>
         </div>
 
