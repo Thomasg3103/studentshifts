@@ -473,14 +473,17 @@ export async function handler(req: Request): Promise<Response> {
     });
 
   } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    const safe = ["Unauthorised", "Missing required fields", "Application not found", "Application already processed"]
+    // PostgrestError (from Supabase) is not instanceof Error — extract message explicitly
+    const msg = (e instanceof Error ? e.message : null)
+      ?? (e as { message?: string })?.message
+      ?? String(e);
+    const safe = ["Unauthorised", "Missing required fields", "Application not found", "Application already processed", "Job not found", "Shift"]
       .some(p => msg.startsWith(p)) ? msg : "Internal server error";
     const status = safe.startsWith("Unauthorised") ? 401
-      : safe.startsWith("Application not found") ? 404
+      : safe.startsWith("Application not found") || safe.startsWith("Job not found") ? 404
       : safe === "Internal server error" ? 500
       : 400;
-    console.error("hire-applicant error:", msg);
+    console.error("hire-applicant error:", msg, JSON.stringify(e));
     return new Response(JSON.stringify({ error: safe }), {
       status,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
