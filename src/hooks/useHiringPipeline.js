@@ -25,7 +25,14 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
         15000,
         "Hire request timed out — please try again."
       );
-      if (error) throw error;
+      if (error) {
+        // Extract the real error message from the edge function response body
+        const body = error.context instanceof Response
+          ? await error.context.json().catch(() => null)
+          : (error.context ?? null);
+        const detail = body?.error || error.message || "Unknown error";
+        throw new Error(detail);
+      }
 
       if (action === "accept") {
         const { filledShifts: newFilledShifts, closedJob, declinedIds = [] } = data;
@@ -52,7 +59,7 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
       }
     } catch (e) {
       Sentry.captureException(e);
-      toast.error(action === "accept" ? "Failed to accept applicant. Please try again." : "Failed to update status. Please try again.");
+      toast.error(`${action === "accept" ? "Hire failed" : "Decline failed"}: ${e?.message || "Unknown error"}`);
     }
   };
 
