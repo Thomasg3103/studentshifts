@@ -865,7 +865,8 @@ $$;
 -- p_company_id validated against job.company_id for defense in depth.
 -- ================================================================
 DROP FUNCTION IF EXISTS accept_and_decline_applicants(uuid, uuid);
-CREATE FUNCTION accept_and_decline_applicants(p_application_id uuid, p_company_id uuid)
+DROP FUNCTION IF EXISTS accept_and_decline_applicants(bigint, uuid);
+CREATE FUNCTION accept_and_decline_applicants(p_application_id bigint, p_company_id uuid)
 RETURNS TABLE (
   winner_student_id     uuid,
   winner_preferred_shift text,

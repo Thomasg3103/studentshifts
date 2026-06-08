@@ -11,7 +11,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
  */
 const FRONTEND_URL = Deno.env.get("FRONTEND_URL") || "https://studentshifts.onrender.com";
 
-/** UUID v4 regex */
+/** UUID v4 regex — used for fallback UUID-typed app IDs if ever migrated */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** fetch() wrapper that aborts after `ms` milliseconds */
@@ -263,7 +263,11 @@ export async function handler(req: Request): Promise<Response> {
     const companyName = (companyProfile.name as string) || "a company";
 
     const { applicationId, action, idempotencyKey: rawIdempotencyKey } = await req.json();
-    if (!applicationId || typeof applicationId !== "string" || !UUID_RE.test(applicationId)) {
+    // applications.id is bigint — accept numbers (bigint from JS JSON) or UUID strings (future-proof)
+    if (applicationId == null) throw new Error("Missing required fields: applicationId, action");
+    const isValidId = (typeof applicationId === "number" && Number.isFinite(applicationId) && applicationId > 0)
+                   || (typeof applicationId === "string" && (UUID_RE.test(applicationId) || /^\d+$/.test(applicationId)));
+    if (!isValidId) {
       throw new Error("Missing required fields: applicationId, action");
     }
     if (!["accept", "reject"].includes(action)) {
