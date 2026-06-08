@@ -171,7 +171,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
     if (!cvUrl) {
       setCvLoading(true);
       try {
-        const { getSignedDocumentUrl } = await import("../../lib/auth");
+        const { getSignedDocumentUrl } = await import("../../lib/uploads");
         setCvUrl(await getSignedDocumentUrl("documents", applicant.cvName));
       } catch (e) { Sentry.captureException(e); toast.error(`Could not load CV: ${e.message}`); setCvLoading(false); return; }
       setCvLoading(false);
@@ -183,7 +183,7 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
     if (!clUrl) {
       setClLoading(true);
       try {
-        const { getSignedDocumentUrl } = await import("../../lib/auth");
+        const { getSignedDocumentUrl } = await import("../../lib/uploads");
         setClUrl(await getSignedDocumentUrl("documents", applicant.coverLetterName));
       } catch (e) { Sentry.captureException(e); toast.error(`Could not load cover letter: ${e.message}`); setClLoading(false); return; }
       setClLoading(false);
