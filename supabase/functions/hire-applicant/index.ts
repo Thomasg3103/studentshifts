@@ -307,7 +307,7 @@ export async function handler(req: Request): Promise<Response> {
       }
       // result is null — previous attempt crashed before recording. Delete orphan so client can retry.
       await adminClient.from("hire_action_log").delete()
-        .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+        .eq("company_id", user.id).eq("idempotency_key", iKey).then(null, () => {});
       return new Response(JSON.stringify({ error: "Previous request did not complete — please retry." }), {
         status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -356,7 +356,7 @@ export async function handler(req: Request): Promise<Response> {
       } catch (rpcEx) {
         // Clean up idempotency key so client can retry with a fresh request
         await adminClient.from("hire_action_log").delete()
-          .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+          .eq("company_id", user.id).eq("idempotency_key", iKey).then(null, () => {});
         throw rpcEx;
       }
 
@@ -369,7 +369,7 @@ export async function handler(req: Request): Promise<Response> {
 
       // Record result immediately so any retry or error below still returns success
       await adminClient.from("hire_action_log").update({ result: acceptResult })
-        .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+        .eq("company_id", user.id).eq("idempotency_key", iKey).then(null, () => {});
 
       // All post-hire side effects are best-effort — a failure here must NOT fail the response
       try {
@@ -430,7 +430,7 @@ export async function handler(req: Request): Promise<Response> {
         await adminClient.from("audit_log").insert({
           actor_id: user.id, action: "hire_accept", target_id: winner_student_id,
           metadata: { application_id: applicationId, job_id: app.job_id, job_title: job.title },
-        }).catch(() => {});
+        }).then(null, () => {});
       } catch (sideErr) {
         console.warn("hire-applicant: post-hire side effects failed:", sideErr);
       }
@@ -446,12 +446,12 @@ export async function handler(req: Request): Promise<Response> {
       .eq("id", applicationId).eq("status", "Pending").select("id");
     if (rejectErr) {
       await adminClient.from("hire_action_log").delete()
-        .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+        .eq("company_id", user.id).eq("idempotency_key", iKey).then(null, () => {});
       throw rejectErr;
     }
     if (!rejectedRows?.length) {
       await adminClient.from("hire_action_log").delete()
-        .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+        .eq("company_id", user.id).eq("idempotency_key", iKey).then(null, () => {});
       throw new Error("Application already processed");
     }
     // (idempotency key already inserted at the start — no second INSERT needed)
@@ -474,9 +474,9 @@ export async function handler(req: Request): Promise<Response> {
     await adminClient.from("audit_log").insert({
       actor_id: user.id, action: "hire_reject", target_id: app.student_id,
       metadata: { application_id: applicationId, job_id: app.job_id, stage: app.pipeline_stage },
-    }).catch(() => {});
+    }).then(null, () => {});
     await adminClient.from("hire_action_log").update({ result: { applicationId } })
-      .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+      .eq("company_id", user.id).eq("idempotency_key", iKey).then(null, () => {});
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -486,8 +486,7 @@ export async function handler(req: Request): Promise<Response> {
     const msg = (e instanceof Error ? e.message : null)
       ?? (e as { message?: string })?.message
       ?? String(e);
-    const safe = ["Unauthorised", "Missing required fields", "Application not found", "Application already processed", "Job not found", "Shift"]
-      .some(p => msg.startsWith(p)) ? msg : "Internal server error";
+    const safe = (msg?.startsWith("Unauthorised") || msg?.startsWith("Application not found") || msg?.startsWith("Job not found") || msg === "Application already processed" || msg?.startsWith("Missing required fields")) ? msg : "Internal server error";
     const status = safe.startsWith("Unauthorised") ? 401
       : safe.startsWith("Application not found") || safe.startsWith("Job not found") ? 404
       : safe === "Internal server error" ? 500
