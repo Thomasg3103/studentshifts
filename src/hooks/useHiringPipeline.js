@@ -142,6 +142,7 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
   };
 
   const handleSendInterviewInvite = async (applicationId, date, time, note, teamsLink, slots = null) => {
+    console.log("[interview invite] teamsLink value:", JSON.stringify(teamsLink));
     const applicant = activePosting?.applicants?.find(a => a.id === applicationId);
     if (!applicant) throw new Error("Applicant not found.");
     try {
