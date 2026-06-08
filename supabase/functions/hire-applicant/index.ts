@@ -363,69 +363,78 @@ export async function handler(req: Request): Promise<Response> {
       const { winner_student_id, winner_preferred_shift, declined_student_ids,
         notify_student_ids, all_shifts_filled, new_filled_shifts } = rpcRow;
 
-      const hiredShiftWithTime = (winner_preferred_shift as string | null)?.trim() || null;
-      const hiredDay = hiredShiftWithTime?.split(" · ")[0]?.trim() ?? null;
-      const remainingShiftsAfterHire = ((job.days as string[]) || [])
-        .filter(d => !(new_filled_shifts as string[]).includes(d))
-        .map(d => {
-          const t = (job.times as Record<string, string | string[]> | null)?.[d];
-          const tLabel = Array.isArray(t) ? t[0] : t;
-          return tLabel ? `${d} · ${tLabel}` : d;
-        });
+      // new_filled_shifts can be null if the job has no days set — guard it
+      const filledShiftsArr: string[] = (new_filled_shifts as string[] | null) || [];
+      const acceptResult = { filledShifts: filledShiftsArr, closedJob: all_shifts_filled, declinedIds: declined_student_ids || [] };
 
-      // Fetch emails + names for winner, declined, and notify students in one batch
-      const uniqStudentIds = [...new Set([winner_student_id, ...(declined_student_ids || []), ...(notify_student_ids || [])])];
-      const { data: emailProfiles } = await adminClient.rpc("get_user_emails", { user_ids: uniqStudentIds.slice(0, 50) });
-      const emailMap: Record<string, string> = Object.fromEntries(
-        ((emailProfiles || []) as { id: string; email: string }[]).map(p => [p.id, p.email])
-      );
-      const { data: nameProfiles } = await adminClient.from("profiles").select("id, name").in("id", uniqStudentIds);
-      const nameMap: Record<string, string> = Object.fromEntries(
-        ((nameProfiles || []) as { id: string; name: string }[]).map(p => [p.id, p.name || "there"])
-      );
-
-      // Send emails + push best-effort
-      const winnerEmail = emailMap[winner_student_id] || studentEmail;
-      if (winnerEmail) {
-        sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, winnerEmail,
-          `You've been hired – ${job.title} at ${companyName}`,
-          emailAccepted(nameMap[winner_student_id] || studentName, job.title, companyName, hiredShiftWithTime),
-          winnerEmail
-        ).catch(e => console.warn("Acceptance email failed:", e));
-      }
-      sendPush(supabaseUrl, serviceKey, winner_student_id,
-        "You got the job! 🎉",
-        `${companyName} hired you for ${job.title}.`,
-        "/"
-      ).catch(() => {});
-      for (const sid of (declined_student_ids || [])) {
-        const em = emailMap[sid]; if (!em) continue;
-        sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
-          `Update on your ${job.title} application`,
-          emailDeclined(nameMap[sid] || "there", job.title, companyName, hiredShiftWithTime, remainingShiftsAfterHire)
-        ).catch(e => console.warn("Decline email failed:", e));
-        sendPush(supabaseUrl, serviceKey, sid,
-          "Application update",
-          `Your ${job.title} application was unsuccessful.`,
-          "/"
-        ).catch(() => {});
-      }
-      for (const sid of (notify_student_ids || [])) {
-        const em = emailMap[sid]; if (!em) continue;
-        const filledLabel = hiredShiftWithTime ?? hiredDay ?? "a shift";
-        sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
-          `Update on your ${job.title} application`,
-          emailShiftFilled(nameMap[sid] || "there", job.title, companyName, filledLabel, remainingShiftsAfterHire)
-        ).catch(e => console.warn("Notify email failed:", e));
-      }
-
-      const acceptResult = { filledShifts: new_filled_shifts, closedJob: all_shifts_filled, declinedIds: declined_student_ids };
-      await adminClient.from("audit_log").insert({
-        actor_id: user.id, action: "hire_accept", target_id: winner_student_id,
-        metadata: { application_id: applicationId, job_id: app.job_id, job_title: job.title },
-      }).catch(() => {});
+      // Record result immediately so any retry or error below still returns success
       await adminClient.from("hire_action_log").update({ result: acceptResult })
         .eq("company_id", user.id).eq("idempotency_key", iKey).catch(() => {});
+
+      // All post-hire side effects are best-effort — a failure here must NOT fail the response
+      try {
+        const hiredShiftWithTime = (winner_preferred_shift as string | null)?.trim() || null;
+        const hiredDay = hiredShiftWithTime?.split(" · ")[0]?.trim() ?? null;
+        const remainingShiftsAfterHire = ((job.days as string[]) || [])
+          .filter(d => !filledShiftsArr.includes(d))
+          .map(d => {
+            const t = (job.times as Record<string, string | string[]> | null)?.[d];
+            const tLabel = Array.isArray(t) ? t[0] : t;
+            return tLabel ? `${d} · ${tLabel}` : d;
+          });
+
+        // Fetch emails + names for winner, declined, and notify students in one batch
+        const uniqStudentIds = [...new Set([winner_student_id, ...(declined_student_ids || []), ...(notify_student_ids || [])])];
+        const { data: emailProfiles } = await adminClient.rpc("get_user_emails", { user_ids: uniqStudentIds.slice(0, 50) });
+        const emailMap: Record<string, string> = Object.fromEntries(
+          ((emailProfiles || []) as { id: string; email: string }[]).map(p => [p.id, p.email])
+        );
+        const { data: nameProfiles } = await adminClient.from("profiles").select("id, name").in("id", uniqStudentIds);
+        const nameMap: Record<string, string> = Object.fromEntries(
+          ((nameProfiles || []) as { id: string; name: string }[]).map(p => [p.id, p.name || "there"])
+        );
+
+        const winnerEmail = emailMap[winner_student_id] || studentEmail;
+        if (winnerEmail) {
+          sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, winnerEmail,
+            `You've been hired – ${job.title} at ${companyName}`,
+            emailAccepted(nameMap[winner_student_id] || studentName, job.title, companyName, hiredShiftWithTime),
+            winnerEmail
+          ).catch(e => console.warn("Acceptance email failed:", e));
+        }
+        sendPush(supabaseUrl, serviceKey, winner_student_id,
+          "You got the job! 🎉",
+          `${companyName} hired you for ${job.title}.`,
+          "/"
+        ).catch(() => {});
+        for (const sid of (declined_student_ids || [])) {
+          const em = emailMap[sid]; if (!em) continue;
+          sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
+            `Update on your ${job.title} application`,
+            emailDeclined(nameMap[sid] || "there", job.title, companyName, hiredShiftWithTime, remainingShiftsAfterHire)
+          ).catch(e => console.warn("Decline email failed:", e));
+          sendPush(supabaseUrl, serviceKey, sid,
+            "Application update",
+            `Your ${job.title} application was unsuccessful.`,
+            "/"
+          ).catch(() => {});
+        }
+        for (const sid of (notify_student_ids || [])) {
+          const em = emailMap[sid]; if (!em) continue;
+          const filledLabel = hiredShiftWithTime ?? hiredDay ?? "a shift";
+          sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, em,
+            `Update on your ${job.title} application`,
+            emailShiftFilled(nameMap[sid] || "there", job.title, companyName, filledLabel, remainingShiftsAfterHire)
+          ).catch(e => console.warn("Notify email failed:", e));
+        }
+        await adminClient.from("audit_log").insert({
+          actor_id: user.id, action: "hire_accept", target_id: winner_student_id,
+          metadata: { application_id: applicationId, job_id: app.job_id, job_title: job.title },
+        }).catch(() => {});
+      } catch (sideErr) {
+        console.warn("hire-applicant: post-hire side effects failed:", sideErr);
+      }
+
       return new Response(JSON.stringify({ success: true, ...acceptResult }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
