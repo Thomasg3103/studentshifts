@@ -500,7 +500,9 @@ Deno.serve(async (req: Request) => {
       const cName       = escapeHtml(companyName);
       const jTitle      = jt ? escapeHtml(jt) : "";
       const safeNote    = nt ? escapeHtml(nt) : "";
-      const safeTeams   = tl && /^https?:\/\//i.test(tl) ? escapeHtml(tl) : "";
+      const rawTeams    = typeof tl === "string" ? tl.trim() : "";
+      const hrefTeams   = rawTeams && /^https?:\/\//i.test(rawTeams) ? rawTeams.replace(/"/g, "%22") : "";
+      const safeTeams   = hrefTeams ? escapeHtml(rawTeams) : "";
 
       // Build the time/slot section of the email
       type Slot = { date: string; time: string };
@@ -534,7 +536,7 @@ ${validSlots.map((s: Slot, i: number) =>
             ${jTitle ? `<p style="margin:0 0 4px;font-size:14px;color:#1e293b;"><strong>Role:</strong> ${jTitle}</p>` : ""}
             ${timeSectionHtml}
             ${safeNote ? `<p style="margin:8px 0 0;font-size:14px;color:#374151;line-height:1.5;"><strong>Note from ${cName}:</strong><br/>${safeNote}</p>` : ""}
-            ${safeTeams ? `<p style="margin:10px 0 0;font-size:14px;color:#1e293b;"><strong>Teams Link:</strong> <a href="${safeTeams}" style="color:#A21D54;">${safeTeams}</a></p>` : ""}
+            ${hrefTeams ? `<p style="margin:10px 0 0;font-size:14px;color:#1e293b;"><strong>Teams Meeting:</strong> <a href="${hrefTeams}" style="color:#A21D54;font-weight:600;">Join Teams Meeting &rarr;</a></p>` : ""}
           </td>
         </tr></table>
         <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">
