@@ -1,9 +1,9 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+﻿import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
- * send-email — Edge Function
+ * send-email â€” Edge Function
  * POST { to: string|string[], subject: string, html: string, magicLinkEmail?: string, redirectTo?: string }
- *   OR { type: "new-applicant", jobId: string } — sends new-applicant notification to the company
+ *   OR { type: "new-applicant", jobId: string } â€” sends new-applicant notification to the company
  * Auth: company or admin JWT (Authorization header)
  * Rate limit: 60 emails per 5 minutes per user (email_sends_log table)
  *   new-applicant path: tighter limit of 10 per hour per student caller.
@@ -13,7 +13,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
  */
 const FRONTEND_URL = Deno.env.get("FRONTEND_URL") || "https://studentshifts.onrender.com";
 
-/** UUID v4 regex — used to validate IDs before passing to DB queries */
+/** UUID v4 regex â€” used to validate IDs before passing to DB queries */
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** fetch() wrapper that aborts after `ms` milliseconds */
@@ -57,7 +57,7 @@ function emailCompanyInterested(studentName: string, companyName: string): strin
             <strong style="color:#1e293b;">${cName}</strong> is interested in hiring you and has sent you a message on StudentShifts. Log in to read their message and reply.
           </p>
           <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">
-            <a href="MAGIC_LINK_PLACEHOLDER" style="display:inline-block;background:linear-gradient(135deg,#A21D54,#C2185B);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Read Message →</a>
+            <a href="MAGIC_LINK_PLACEHOLDER" style="display:inline-block;background:linear-gradient(135deg,#A21D54,#C2185B);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Read Message â†’</a>
           </td></tr></table>
         </td></tr>
         <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
@@ -98,7 +98,7 @@ function emailNewApplicant(companyName: string, jobTitle: string, applicantName:
               <tr>
                 <td align="center" style="padding:8px 0 28px;">
                   <a href="${safeUrl}" style="display:inline-block;background:linear-gradient(135deg,#A21D54,#C2185B);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;box-shadow:0 4px 18px rgba(162,29,84,0.4);">
-                    View Applicant →
+                    View Applicant â†’
                   </a>
                 </td>
               </tr>
@@ -148,7 +148,7 @@ Deno.serve(async (req: Request) => {
 
     const body = await req.json();
 
-    // ── new-applicant notification (student caller) ──
+    // â”€â”€ new-applicant notification (student caller) â”€â”€
     if (body.type === "new-applicant") {
       if (profile?.role !== "student") throw new Error("Unauthorised");
       const { jobId } = body;
@@ -224,7 +224,7 @@ Deno.serve(async (req: Request) => {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
         body: JSON.stringify({
-          sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" },
+          sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
           to: [{ email: companyEmail }],
           subject: safeSubject,
           htmlContent: html,
@@ -239,14 +239,14 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // ── slot_confirmed notification (student caller → company) ──
+    // â”€â”€ slot_confirmed notification (student caller â†’ company) â”€â”€
     if (body.type === "slot_confirmed") {
       if (profile?.role !== "student") throw new Error("Unauthorised");
       const { slotId, applicationId } = body;
       if (!slotId || typeof slotId !== "string" || !UUID_RE.test(slotId)) throw new Error("Missing required field: slotId");
       if (!applicationId) throw new Error("Missing required field: applicationId");
 
-      // Rate limit: 20 per hour (generous — student can re-pick multiple times)
+      // Rate limit: 20 per hour (generous â€” student can re-pick multiple times)
       const slotWindowStart = new Date(Date.now() - 60 * 60 * 1000).toISOString();
       const { count: slotCount } = await adminClient
         .from("email_sends_log")
@@ -316,7 +316,7 @@ Deno.serve(async (req: Request) => {
           </td>
         </tr></table>
         <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">
-          <a href="${escapeHtml(FRONTEND_URL)}" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#A21D54);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Open Dashboard →</a>
+          <a href="${escapeHtml(FRONTEND_URL)}" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#A21D54);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Open Dashboard â†’</a>
         </td></tr></table>
       </td></tr>
       <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
@@ -327,18 +327,18 @@ Deno.serve(async (req: Request) => {
 </body></html>`;
 
       try { await adminClient.from("email_sends_log").insert({ user_id: user.id }); } catch { /* ignore */ }
-      const slotSubject = `${String(slotStudentProfile?.name || "A student").replace(/[\r\n]/g, "")} confirmed their interview — ${String(slotJob.title).replace(/[\r\n]/g, "")}`;
+      const slotSubject = `${String(slotStudentProfile?.name || "A student").replace(/[\r\n]/g, "")} confirmed their interview â€” ${String(slotJob.title).replace(/[\r\n]/g, "")}`;
       const slotRes = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" }, to: [{ email: slotCompanyEmail }], subject: slotSubject, htmlContent: slotHtml }),
+        body: JSON.stringify({ sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" }, to: [{ email: slotCompanyEmail }], subject: slotSubject, htmlContent: slotHtml }),
       });
       if (!slotRes.ok) { const err = await slotRes.json().catch(() => ({})); throw new Error(`Brevo error: ${(err as { message?: string }).message || slotRes.status}`); }
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // ── company_interested template (company caller, S5) ──
-    // Companies cannot pass arbitrary html — use this template type instead.
+    // â”€â”€ company_interested template (company caller, S5) â”€â”€
+    // Companies cannot pass arbitrary html â€” use this template type instead.
     if (body.templateType === "company_interested") {
       if (profile?.role !== "company") throw new Error("Unauthorised");
       const { to: toField, magicLinkEmail: mle, redirectTo: rto } = body;
@@ -359,7 +359,7 @@ Deno.serve(async (req: Request) => {
           const { data: sp } = await adminClient.from("profiles").select("name").eq("id", studentUser.id).single();
           if (sp?.name) studentName = sp.name as string;
         }
-      } catch { /* best-effort — fall back to "there" */ }
+      } catch { /* best-effort â€” fall back to "there" */ }
 
       const apiKey = Deno.env.get("BREVO_API_KEY");
       if (!apiKey) throw new Error("BREVO_API_KEY not set");
@@ -400,7 +400,7 @@ Deno.serve(async (req: Request) => {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
         body: JSON.stringify({
-          sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" },
+          sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
           to: [{ email: recipient }],
           subject: `${String(companyName).replace(/[\r\n]/g, "")} is interested in hiring you`,
           htmlContent: finalHtml,
@@ -415,7 +415,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // ── job-closed notification (company caller) ──
+    // â”€â”€ job-closed notification (company caller) â”€â”€
     if (body.type === "job-closed") {
       if (profile?.role !== "company") throw new Error("Unauthorised");
       const { jobId } = body;
@@ -456,7 +456,7 @@ Deno.serve(async (req: Request) => {
           <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">Application update</p>
           <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
             Thank you for applying for <strong style="color:#1e293b;">${jobTitle}</strong>.<br/><br/>
-            Unfortunately this position is no longer available. We appreciate your interest and encourage you to keep applying — new shifts are posted every day on StudentShifts.
+            Unfortunately this position is no longer available. We appreciate your interest and encourage you to keep applying â€” new shifts are posted every day on StudentShifts.
           </p>
         </td></tr>
         <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
@@ -474,7 +474,7 @@ Deno.serve(async (req: Request) => {
           method: "POST",
           headers: { "api-key": apiKey, "Content-Type": "application/json" },
           body: JSON.stringify({
-            sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" },
+            sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
             to: [{ email }],
             subject: `Update on your ${String(job.title).replace(/[\r\n]/g, "")} application`,
             htmlContent: closedHtml,
@@ -486,7 +486,7 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    // ── interview_invite (company caller) ──
+    // â”€â”€ interview_invite (company caller) â”€â”€
     if (body.templateType === "interview_invite") {
       if (profile?.role !== "company") throw new Error("Unauthorised");
       const { to: toField, studentName: sn, jobTitle: jt, date: dt, time: tm, note: nt, teamsLink: tl, slots: rawSlots, magicLinkEmail: mle, redirectTo: rto } = body;
@@ -514,7 +514,7 @@ Deno.serve(async (req: Request) => {
         : [];
 
       const timeSectionHtml = validSlots.length > 1
-        ? `<p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#7c3aed;">Available times — please log in to pick one:</p>
+        ? `<p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#7c3aed;">Available times â€” please log in to pick one:</p>
 ${validSlots.map((s: Slot, i: number) =>
   `<p style="margin:0 0 6px;font-size:14px;color:#1e293b;padding:8px 12px;background:#f5f3ff;border-radius:6px;">${i + 1}. ${escapeHtml(s.date)} at ${escapeHtml(s.time)}</p>`
 ).join("\n")}`
@@ -543,7 +543,7 @@ ${validSlots.map((s: Slot, i: number) =>
           </td>
         </tr></table>
         <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">
-          <a href="MAGIC_LINK_PLACEHOLDER" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#A21D54);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Open StudentShifts →</a>
+          <a href="MAGIC_LINK_PLACEHOLDER" style="display:inline-block;background:linear-gradient(135deg,#7c3aed,#A21D54);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Open StudentShifts â†’</a>
         </td></tr></table>
       </td></tr>
       <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
@@ -568,17 +568,17 @@ ${validSlots.map((s: Slot, i: number) =>
       }
 
       try { await adminClient.from("email_sends_log").insert({ user_id: user.id }); } catch { /* ignore */ }
-      const subject = `Interview Invitation${jTitle ? ` — ${String(jt).replace(/[\r\n]/g, "")}` : ""} at ${String(companyName).replace(/[\r\n]/g, "")}`;
+      const subject = `Interview Invitation${jTitle ? ` â€” ${String(jt).replace(/[\r\n]/g, "")}` : ""} at ${String(companyName).replace(/[\r\n]/g, "")}`;
       const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" }, to: [{ email: recipient }], subject, htmlContent: html }),
+        body: JSON.stringify({ sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" }, to: [{ email: recipient }], subject, htmlContent: html }),
       });
       if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(`Brevo error: ${(err as { message?: string }).message || res.status}`); }
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // ── trial_invite (company caller) ──
+    // â”€â”€ trial_invite (company caller) â”€â”€
     if (body.templateType === "trial_invite") {
       if (profile?.role !== "company") throw new Error("Unauthorised");
       const { to: toField, studentName: sn, jobTitle: jt, date: dt, time: tm, note: nt, magicLinkEmail: mle, redirectTo: rto } = body;
@@ -604,7 +604,7 @@ ${validSlots.map((s: Slot, i: number) =>
       </td></tr>
       <tr><td style="padding:36px 32px 28px;">
         <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">You've been invited to a trial shift!</p>
-        <p style="margin:0 0 20px;font-size:15px;color:#64748b;line-height:1.6;">Hi ${studentName},<br/><br/>Great news — <strong style="color:#1e293b;">${cName}</strong> would like to invite you to a trial shift for <strong style="color:#1e293b;">${jTitle}</strong>.</p>
+        <p style="margin:0 0 20px;font-size:15px;color:#64748b;line-height:1.6;">Hi ${studentName},<br/><br/>Great news â€” <strong style="color:#1e293b;">${cName}</strong> would like to invite you to a trial shift for <strong style="color:#1e293b;">${jTitle}</strong>.</p>
         <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:20px;"><tr>
           <td style="background-color:#e0f2fe;border:1.5px solid #bae6fd;border-radius:10px;padding:16px 20px;">
             <p style="margin:0 0 6px;font-size:12px;font-weight:700;color:#0284c7;text-transform:uppercase;letter-spacing:0.05em;">Trial Shift Details</p>
@@ -613,7 +613,7 @@ ${validSlots.map((s: Slot, i: number) =>
           </td>
         </tr></table>
         <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">
-          <a href="MAGIC_LINK_PLACEHOLDER" style="display:inline-block;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Open StudentShifts →</a>
+          <a href="MAGIC_LINK_PLACEHOLDER" style="display:inline-block;background:linear-gradient(135deg,#0ea5e9,#0284c7);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;">Open StudentShifts â†’</a>
         </td></tr></table>
       </td></tr>
       <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
@@ -642,13 +642,13 @@ ${validSlots.map((s: Slot, i: number) =>
       const res = await fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
         method: "POST",
         headers: { "api-key": apiKey, "Content-Type": "application/json" },
-        body: JSON.stringify({ sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" }, to: [{ email: recipient }], subject, htmlContent: html }),
+        body: JSON.stringify({ sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" }, to: [{ email: recipient }], subject, htmlContent: html }),
       });
       if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(`Brevo error: ${(err as { message?: string }).message || res.status}`); }
       return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // ── standard email send (admin caller only — companies must use templateType) ──
+    // â”€â”€ standard email send (admin caller only â€” companies must use templateType) â”€â”€
     // S5: reject raw html from company callers to prevent phishing via our Brevo account.
     if (profile?.role === "company") throw new Error("Unauthorised: companies must use templateType");
     if (!["admin"].includes(profile?.role)) throw new Error("Unauthorised");
@@ -741,7 +741,7 @@ ${validSlots.map((s: Slot, i: number) =>
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        sender: { name: "StudentShifts", email: "noreply@studentshifts.ie" },
+        sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
         to: Array.isArray(to) ? to.map((email: string) => ({ email })) : [{ email: to }],
         subject: safeSubject,
         htmlContent: finalHtml,

@@ -15,7 +15,7 @@ const BREVO_API_KEY  = Deno.env.get("BREVO_API_KEY") ?? "";
 const FRONTEND_URL   = Deno.env.get("FRONTEND_URL")  ?? "https://studentshifts.onrender.com";
 const HOOK_SECRET    = Deno.env.get("AUTH_HOOK_SECRET") ?? "";
 
-const FROM = { name: "StudentShifts", email: "noreply@studentshifts.ie" };
+const FROM = { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" };
 
 function fetchWithTimeout(url: string, init: RequestInit, ms = 10_000): Promise<Response> {
   const ctrl = new AbortController();
