@@ -372,6 +372,7 @@ export async function handler(req: Request): Promise<Response> {
         .eq("company_id", user.id).eq("idempotency_key", iKey).then(null, () => {});
 
       // All post-hire side effects are best-effort — a failure here must NOT fail the response
+      let _dbgEmail = "not_started";
       try {
         const hiredShiftWithTime = (winner_preferred_shift as string | null)?.trim() || null;
         const hiredDay = hiredShiftWithTime?.split(" · ")[0]?.trim() ?? null;
@@ -384,6 +385,7 @@ export async function handler(req: Request): Promise<Response> {
           });
 
         // Fetch emails + names for winner, declined, and notify students in one batch
+        _dbgEmail = "fetching_emails";
         const uniqStudentIds = [...new Set([winner_student_id, ...(declined_student_ids || []), ...(notify_student_ids || [])])];
         const { data: emailProfiles } = await adminClient.rpc("get_user_emails", { user_ids: uniqStudentIds.slice(0, 50) });
         const emailMap: Record<string, string> = Object.fromEntries(
@@ -395,7 +397,7 @@ export async function handler(req: Request): Promise<Response> {
         );
 
         const winnerEmail = emailMap[winner_student_id] || studentEmail;
-        let _dbgEmail = winnerEmail ? "sending" : "no_email_found";
+        _dbgEmail = winnerEmail ? "sending" : "no_email_found";
         if (winnerEmail) {
           try {
             await sendBrevoEmail(brevoKey, supabaseUrl, serviceKey, winnerEmail,
@@ -441,6 +443,8 @@ export async function handler(req: Request): Promise<Response> {
           metadata: { application_id: applicationId, job_id: app.job_id, job_title: job.title },
         }).then(null, () => {});
       } catch (sideErr) {
+        const sm = (sideErr instanceof Error ? sideErr.message : null) ?? (sideErr as { message?: string })?.message ?? String(sideErr);
+        _dbgEmail = `side_effect_threw:${sm}`;
         console.warn("hire-applicant: post-hire side effects failed:", sideErr);
       }
 
