@@ -9,6 +9,7 @@ export default function SavedStudents({ students, _loading, fetched, error, like
   const [chatInput, setChatInput]       = useState("");
   const [chatLoading, setChatLoading]   = useState(false);
   const [chatError, setChatError]       = useState("");
+  const [dmMap, setDmMap]               = useState({});
   const msgAreaRef   = useRef(null);
   const chatInputRef = useRef(null);
 
@@ -17,6 +18,25 @@ export default function SavedStudents({ students, _loading, fetched, error, like
     { label: "We'd Love to Have You", text: `Hi ${chatStudent.name}! We've been impressed by your profile and would love to have you on our team. Please reply here and we'll be in touch with all the details!` },
     { label: "Tell Us About You", text: `Hi ${chatStudent.name}! We're very interested in your profile. Could you tell us a bit more about your availability and what kind of work you're looking for?` },
   ] : [];
+
+  useEffect(() => {
+    if (!companyId) return;
+    supabase
+      .from("chat_messages")
+      .select("student_id, text, sender_id, created_at")
+      .eq("company_id", companyId)
+      .is("job_id", null)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        if (!data) return;
+        const map = {};
+        for (const msg of data) {
+          if (!map[msg.student_id]) map[msg.student_id] = msg;
+        }
+        setDmMap(map);
+      })
+      .catch(console.warn);
+  }, [companyId]);
 
   useEffect(() => {
     if (!chatStudent) return;
@@ -40,6 +60,7 @@ export default function SavedStudents({ students, _loading, fetched, error, like
           if (prev.some(m => m.id === msg.id)) return prev;
           return [...prev, msg];
         });
+        setDmMap(prev => ({ ...prev, [msg.student_id]: { text: msg.text, sender_id: msg.sender_id, created_at: msg.created_at } }));
       })
       .subscribe();
 
@@ -53,11 +74,22 @@ export default function SavedStudents({ students, _loading, fetched, error, like
   const sendDM = async () => {
     const text = chatInput.trim();
     if (!text || !chatStudent) return;
+    // Rate limit: max 3 company messages since last student reply
+    let lastStudentIdx = -1;
+    for (let i = chatMessages.length - 1; i >= 0; i--) {
+      if (chatMessages[i].sender_id !== companyId) { lastStudentIdx = i; break; }
+    }
+    const companyMsgsSinceReply = chatMessages.slice(lastStudentIdx + 1).filter(m => m.sender_id === companyId).length;
+    if (companyMsgsSinceReply >= 3) {
+      setChatError(`You've sent 3 messages — wait for ${chatStudent.name} to reply before sending more.`);
+      return;
+    }
     const isFirst = chatMessages.length === 0;
     setChatInput("");
     setChatError("");
     try {
       await sendMessage(null, chatStudent.id, companyId, companyId, text);
+      setDmMap(prev => ({ ...prev, [chatStudent.id]: { text, sender_id: companyId, created_at: new Date().toISOString() } }));
       if (isFirst) {
         const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: [chatStudent.id] });
         const studentEmail = emailRows?.[0]?.email;
@@ -75,6 +107,13 @@ export default function SavedStudents({ students, _loading, fetched, error, like
       setChatError(e.message || "Failed to send — please try again.");
     }
   };
+
+  let _lastStudentIdx = -1;
+  for (let i = chatMessages.length - 1; i >= 0; i--) {
+    if (chatMessages[i].sender_id !== companyId) { _lastStudentIdx = i; break; }
+  }
+  const companyMsgsSinceReply = chatMessages.slice(_lastStudentIdx + 1).filter(m => m.sender_id === companyId).length;
+  const rateLimited = !chatLoading && companyMsgsSinceReply >= 3;
 
   if (chatStudent) {
     return (
@@ -118,20 +157,28 @@ export default function SavedStudents({ students, _loading, fetched, error, like
             </div>
           </div>
         )}
-        <div style={{ padding: "0.75rem 1rem", borderTop: chatInput ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "var(--color-bg-elevated, white)" }}>
-          <input
-            ref={chatInputRef}
-            value={chatInput}
-            onChange={e => setChatInput(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && sendDM()}
-            maxLength={4000}
-            placeholder={`Message ${chatStudent.name}…`}
-            style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
-          />
-          <button onClick={sendDM} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", fontFamily: "inherit" }}>
-            Send
-          </button>
-        </div>
+        {rateLimited ? (
+          <div style={{ padding: "0.85rem 1rem", borderTop: "1.5px solid #fcd34d", backgroundColor: "#fffbeb" }}>
+            <p style={{ margin: 0, fontSize: "0.78rem", color: "#92400e", fontWeight: 600, lineHeight: 1.4 }}>
+              You've sent 3 messages without a reply. Wait for {chatStudent.name} to respond before sending more.
+            </p>
+          </div>
+        ) : (
+          <div style={{ padding: "0.75rem 1rem", borderTop: chatInput ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "var(--color-bg-elevated, white)" }}>
+            <input
+              ref={chatInputRef}
+              value={chatInput}
+              onChange={e => setChatInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && !e.shiftKey && sendDM()}
+              maxLength={4000}
+              placeholder={`Message ${chatStudent.name}…`}
+              style={{ flex: 1, padding: "0.55rem 0.85rem", borderRadius: "2rem", border: "1.5px solid #d1d5db", fontSize: "0.85rem", fontFamily: "inherit", outline: "none" }}
+            />
+            <button onClick={sendDM} disabled={!chatInput.trim()} style={{ padding: "0.55rem 1.1rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.85rem", cursor: chatInput.trim() ? "pointer" : "not-allowed", fontFamily: "inherit", opacity: chatInput.trim() ? 1 : 0.5 }}>
+              Send
+            </button>
+          </div>
+        )}
       </div>
     );
   }
@@ -210,6 +257,17 @@ export default function SavedStudents({ students, _loading, fetched, error, like
               </div>
             )}
             <StudentAvailabilityRow availability={s.availability} />
+            {dmMap[s.id] && (
+              <div style={{ marginTop: "0.4rem", display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.3rem 0.6rem", backgroundColor: "#f0fdf4", borderRadius: "0.5rem", border: "1px solid #bbf7d0", overflow: "hidden" }}>
+                <span style={{ fontSize: "0.72rem", flexShrink: 0 }}>💬</span>
+                <span style={{ fontSize: "0.72rem", color: "#374151", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  <span style={{ fontWeight: 700, color: dmMap[s.id].sender_id === companyId ? "#16a34a" : "#7c3aed" }}>
+                    {dmMap[s.id].sender_id === companyId ? "You: " : `${s.name}: `}
+                  </span>
+                  {dmMap[s.id].text.length > 55 ? dmMap[s.id].text.slice(0, 55) + "…" : dmMap[s.id].text}
+                </span>
+              </div>
+            )}
             <button
               onClick={() => { if (s.allow_company_dm !== false) { setChatStudent({ id: s.id, name: s.name }); setChatMessages([]); setChatInput(""); } }}
               disabled={s.allow_company_dm === false}
