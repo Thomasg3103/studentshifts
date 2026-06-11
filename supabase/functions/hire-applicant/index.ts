@@ -332,9 +332,8 @@ export async function handler(req: Request): Promise<Response> {
     const { data: studentProfile } = await adminClient
       .from("profiles").select("name").eq("id", app.student_id).single();
     const studentName = (studentProfile?.name as string) || "there";
-    const { data: emailRows } = await adminClient
-      .rpc("get_user_emails", { user_ids: [app.student_id] });
-    const studentEmail: string | undefined = emailRows?.[0]?.email;
+    const { data: { user: studentAuthUser } } = await adminClient.auth.admin.getUserById(app.student_id);
+    const studentEmail: string | undefined = studentAuthUser?.email;
 
     if (action === "accept") {
       // S3: atomic accept + filled_shifts + auto-decline in one DB transaction
@@ -387,9 +386,15 @@ export async function handler(req: Request): Promise<Response> {
         // Fetch emails + names for winner, declined, and notify students in one batch
         _dbgEmail = "fetching_emails";
         const uniqStudentIds = [...new Set([winner_student_id, ...(declined_student_ids || []), ...(notify_student_ids || [])])];
-        const { data: emailProfiles } = await adminClient.rpc("get_user_emails", { user_ids: uniqStudentIds.slice(0, 50) });
+        const emailResults = await Promise.all(
+          uniqStudentIds.map(sid =>
+            adminClient.auth.admin.getUserById(sid)
+              .then(r => ({ id: sid, email: r.data.user?.email }))
+              .catch(() => ({ id: sid, email: undefined }))
+          )
+        );
         const emailMap: Record<string, string> = Object.fromEntries(
-          ((emailProfiles || []) as { id: string; email: string }[]).map(p => [p.id, p.email])
+          emailResults.filter(r => r.email).map(r => [r.id, r.email!])
         );
         const { data: nameProfiles } = await adminClient.from("profiles").select("id, name").in("id", uniqStudentIds);
         const nameMap: Record<string, string> = Object.fromEntries(
