@@ -244,6 +244,13 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
           </div>
         ) : (
           <>
+            {companyMsgsSinceReply > 0 && (
+              <div style={{ padding: "0.4rem 1rem", borderTop: "1.5px solid #fcd34d", backgroundColor: "#fffbeb" }}>
+                <p style={{ margin: 0, fontSize: "0.75rem", color: "#92400e", fontWeight: 600 }}>
+                  You have {3 - companyMsgsSinceReply} message{3 - companyMsgsSinceReply !== 1 ? "s" : ""} remaining until {chatStudent.name} replies
+                </p>
+              </div>
+            )}
             {chatInput.length > 3800 && (
               <div style={{ padding: "0.25rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)" }}>
                 <span style={{ fontSize: "0.72rem", color: chatInput.length >= 4000 ? "#ef4444" : "#f97316", fontWeight: 600 }}>

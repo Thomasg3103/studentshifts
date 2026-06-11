@@ -169,6 +169,14 @@ export default function SavedStudents({ students, _loading, fetched, error, like
             </p>
           </div>
         ) : (
+          <>
+            {companyMsgsSinceReply > 0 && (
+              <div style={{ padding: "0.4rem 1rem", borderTop: "1.5px solid #fcd34d", backgroundColor: "#fffbeb" }}>
+                <p style={{ margin: 0, fontSize: "0.75rem", color: "#92400e", fontWeight: 600 }}>
+                  You have {3 - companyMsgsSinceReply} message{3 - companyMsgsSinceReply !== 1 ? "s" : ""} remaining until {chatStudent.name} replies
+                </p>
+              </div>
+            )}
           <div style={{ padding: "0.75rem 1rem", borderTop: chatInput ? "1.5px solid #e5e7eb" : "none", display: "flex", gap: "0.5rem", backgroundColor: "var(--color-bg-elevated, white)" }}>
             <input
               ref={chatInputRef}
@@ -183,6 +191,7 @@ export default function SavedStudents({ students, _loading, fetched, error, like
               Send
             </button>
           </div>
+          </>
         )}
       </div>
     );
