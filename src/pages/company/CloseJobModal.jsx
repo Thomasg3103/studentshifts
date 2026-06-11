@@ -10,7 +10,7 @@ const closeOptBtn = (color, bg, border) => ({
   color, cursor: "pointer", fontFamily: "inherit", textAlign: "left", width: "100%",
 });
 
-export function CloseJobModal({ posting, onClose, onCloseJob }) {
+export function CloseJobModal({ posting, onClose, onCloseJob, noHire = false }) {
   const [mode, setMode]               = useState(null); // null | "found"
   const [winner, setWinner]           = useState(null);
   const [confirming, setConfirming]   = useState(false);
@@ -37,9 +37,9 @@ export function CloseJobModal({ posting, onClose, onCloseJob }) {
           <h3 style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.1rem", color: "var(--color-text-primary, #1e293b)" }}>Close this Job</h3>
           <p style={{ margin: "0 0 1.25rem", fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)" }}>How did this hiring process end?</p>
           <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
-            <button onClick={() => setMode("found")} style={closeOptBtn("var(--color-brand)", "#fce7f3", "#fce7f3")}>
+            <button onClick={() => noHire ? confirm({ foundStudent: false, closeReason: "found_student" }) : setMode("found")} disabled={confirming} style={closeOptBtn("var(--color-brand)", "#fce7f3", "#fce7f3")}>
               <span style={{ fontWeight: "700" }}>Found a Student</span>
-              <span style={{ fontSize: "0.75rem", color: "var(--color-brand)" }}>Select which student you hired</span>
+              <span style={{ fontSize: "0.75rem", color: "var(--color-brand)" }}>{noHire ? "Hired someone through StudentShifts" : "Select which student you hired"}</span>
             </button>
             <button onClick={() => confirm({ foundStudent: false, closeReason: "hired_elsewhere" })} disabled={confirming} style={closeOptBtn("#0369a1", "#f0f9ff", "#bae6fd")}>
               <span style={{ fontWeight: "700" }}>Hired Elsewhere</span>

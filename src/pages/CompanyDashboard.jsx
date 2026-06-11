@@ -876,6 +876,7 @@ export default function CompanyDashboard() {
                 notified={notifiedJobIds.has(posting.id)}
                 matchesData={matchesData[posting.id]}
                 onLoadMatches={() => handleLoadMatches(posting.id)}
+                onCloseJob={(opts) => handleCloseJob(posting.id, opts)}
                 onSaveTemplate={async (name) => {
                   const templateData = {
                     title: posting.title, category: posting.category, location: posting.location,

@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useRef } from "react";
 import { supabaseImg } from "../../utils/img";
+import { CloseJobModal } from "./CloseJobModal";
 
 function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }) {
   const ref = useRef(null);
@@ -25,7 +26,7 @@ function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }
   );
 }
 
-export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onDuplicate, onSaveTemplate, onNotifyStudents, notifying, notified, matchesData, onLoadMatches }) {
+export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onDuplicate, onSaveTemplate, onNotifyStudents, notifying, notified, matchesData, onLoadMatches, onCloseJob }) {
   const isActive  = posting.status === "Active";
   const today     = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Expired";
@@ -42,7 +43,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
     return `${Math.floor(days / 30)}mo ago`;
   })();
   const [hovered,           setHovered]           = useState(false);
-  const [confirmClose,      setConfirmClose]      = useState(false);
+  const [showCloseModal,    setShowCloseModal]    = useState(false);
   const [confirmDelete,     setConfirmDelete]     = useState(false);
   const [templateSaved,     setTemplateSaved]     = useState(false);
   const [templateNameInput, setTemplateNameInput] = useState("");
@@ -204,7 +205,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
             )}
             <button
               aria-label={isActive ? `Close ${posting.title}` : `Reopen ${posting.title}`}
-              onClick={isActive ? () => setConfirmClose(true) : onToggleStatus}
+              onClick={isActive ? () => setShowCloseModal(true) : onToggleStatus}
               style={actionBtn}
             >
               {isActive ? "Close" : "Reopen"}
@@ -220,14 +221,12 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
         </div>
       </div>
 
-      {confirmClose && (
-        <ConfirmDialog
-          title="Close this job?"
-          body="The posting will be hidden from students. You can reopen it at any time."
-          emoji="⚠️"
-          confirmLabel="Yes, Close"
-          onConfirm={() => { onToggleStatus(); setConfirmClose(false); }}
-          onCancel={() => setConfirmClose(false)}
+      {showCloseModal && (
+        <CloseJobModal
+          posting={{ ...posting, applicants: posting.applicants || [] }}
+          onClose={() => setShowCloseModal(false)}
+          onCloseJob={async (opts) => { await onCloseJob(opts); setShowCloseModal(false); }}
+          noHire
         />
       )}
       {confirmDelete && (
