@@ -47,7 +47,7 @@ export function useHiringPipeline({ activePosting, setPostings, setActivePosting
             return a;
           }),
         }));
-        toast.success(`Applicant hired! email:${data._dbgEmail ?? "?"}`);
+        toast.success("Applicant hired!");
         if (window.gtag) window.gtag("event", "hire_confirmed", { posting_id: activePosting?.id, application_id: applicationId });
       } else {
         applyToPosting(p => ({
