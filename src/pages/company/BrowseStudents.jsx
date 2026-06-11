@@ -150,9 +150,14 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     setChatSending(true);
     setChatError("");
     try {
-      await sendMessage(null, chatStudent.id, companyId, companyId, text);
+      const sent = await sendMessage(null, chatStudent.id, companyId, companyId, text);
       setChatInput("");
-      setDmMap(prev => ({ ...prev, [chatStudent.id]: { text, sender_id: companyId, created_at: new Date().toISOString() } }));
+      if (sent) {
+        setChatMessages(prev => prev.some(m => m.id === sent.id) ? prev : [...prev, sent]);
+        setDmMap(prev => ({ ...prev, [chatStudent.id]: { text: sent.text, sender_id: sent.sender_id, created_at: sent.created_at } }));
+      } else {
+        setDmMap(prev => ({ ...prev, [chatStudent.id]: { text, sender_id: companyId, created_at: new Date().toISOString() } }));
+      }
       // On first message, email the student
       if (isFirst) {
         const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: [chatStudent.id] });
