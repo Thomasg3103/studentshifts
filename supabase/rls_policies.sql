@@ -931,13 +931,12 @@ BEGIN
     v_new_filled := array_append(v_job.filled_shifts, v_hired_day);
   END IF;
 
-  -- When no preferred shift, all shifts are considered filled immediately
+  -- Close when: (a) student had no preferred shift (fills all), (b) job has no days set,
+  -- or (c) every day in the job's days array is now in filled_shifts.
   v_all_filled := CASE
-    WHEN v_hired_day IS NULL THEN
-      COALESCE(array_length(v_job.days, 1), 0) > 0
-    ELSE
-      array_length(v_job.days, 1) > 0
-      AND array_length(v_new_filled, 1) >= array_length(v_job.days, 1)
+    WHEN v_hired_day IS NULL THEN TRUE
+    WHEN COALESCE(array_length(v_job.days, 1), 0) = 0 THEN TRUE
+    ELSE array_length(v_new_filled, 1) >= array_length(v_job.days, 1)
   END;
 
   -- Collect declined student IDs before updating status
