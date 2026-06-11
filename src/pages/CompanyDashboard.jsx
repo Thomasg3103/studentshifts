@@ -379,11 +379,7 @@ export default function CompanyDashboard() {
     } catch (e) {
       console.error("[CompanyDashboard] deletePosting error:", e);
       const msg = e.message || "";
-      if (msg.includes("accepted applicants")) {
-        toast.error("This job has accepted applicants and cannot be deleted. Close it instead.");
-      } else {
-        toast.error(`Failed to delete job: ${msg || "Unknown error"}`);
-      }
+      toast.error(`Failed to delete job: ${msg || "Unknown error"}`);
     }
   };
 

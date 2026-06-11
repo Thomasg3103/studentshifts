@@ -998,9 +998,6 @@ BEGIN
   IF NOT EXISTS (SELECT 1 FROM jobs WHERE id = p_job_id AND company_id = auth.uid()) THEN
     RAISE EXCEPTION 'Unauthorised';
   END IF;
-  IF EXISTS (SELECT 1 FROM applications WHERE job_id = p_job_id AND status = 'Accepted') THEN
-    RAISE EXCEPTION 'Cannot delete: this job has accepted applicants';
-  END IF;
   DELETE FROM chat_messages WHERE job_id = p_job_id;
   DELETE FROM liked_jobs    WHERE job_id = p_job_id;
   DELETE FROM applications  WHERE job_id = p_job_id;
