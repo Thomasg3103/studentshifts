@@ -14,6 +14,7 @@ import SavedStudents from "./company/SavedStudents";
 import JobPostingCard from "./company/JobPostingCard";
 import { PostingsSkeleton } from "../components/Skeleton";
 import ApplicantsView from "./company/ApplicantsView";
+import { CloseJobModal } from "./company/CloseJobModal";
 import JobForm from "./company/JobForm";
 import { StatCard, Modal, AvailabilityHeatmap } from "./company/shared";
 import CompanyOnboardingBanner from "../components/CompanyOnboardingBanner";
@@ -69,6 +70,7 @@ export default function CompanyDashboard() {
   const [likedStudentIds, setLikedStudentIds] = useState(new Set());
   const [applicantStudentIds, setApplicantStudentIds] = useState(new Set());
   const [applicantsViewMode, setApplicantsViewMode] = useState("list");
+  const [closingPosting, setClosingPosting] = useState(null);
   const [talentPool, setTalentPool]                 = useState([]);
   const [talentPoolLoaded, setTalentPoolLoaded]     = useState(false);
   const [templates, setTemplates]                   = useState([]);
@@ -876,7 +878,7 @@ export default function CompanyDashboard() {
                 notified={notifiedJobIds.has(posting.id)}
                 matchesData={matchesData[posting.id]}
                 onLoadMatches={() => handleLoadMatches(posting.id)}
-                onCloseJob={(opts) => handleCloseJob(posting.id, opts)}
+                onRequestClose={() => setClosingPosting(posting)}
                 onSaveTemplate={async (name) => {
                   const templateData = {
                     title: posting.title, category: posting.category, location: posting.location,
@@ -960,6 +962,18 @@ export default function CompanyDashboard() {
       )}
 
       </div>
+
+      {closingPosting && (
+        <CloseJobModal
+          posting={{ ...closingPosting, applicants: [] }}
+          onClose={() => setClosingPosting(null)}
+          onCloseJob={async (opts) => {
+            await handleCloseJob(closingPosting.id, opts);
+            setClosingPosting(null);
+          }}
+          noHire
+        />
+      )}
 
       <CompanyOnboardingBanner onPostJob={openCreate} />
     </div>
