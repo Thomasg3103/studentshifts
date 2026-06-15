@@ -15,33 +15,10 @@ import JobPostingCard from "./company/JobPostingCard";
 import { PostingsSkeleton } from "../components/Skeleton";
 import ApplicantsView from "./company/ApplicantsView";
 import { CloseJobModal } from "./company/CloseJobModal";
+import { DeleteJobModal } from "./company/DeleteJobModal";
 import JobForm from "./company/JobForm";
 import { StatCard, Modal, AvailabilityHeatmap } from "./company/shared";
 import CompanyOnboardingBanner from "../components/CompanyOnboardingBanner";
-
-function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel, confirming }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const prev = document.activeElement;
-    ref.current?.querySelector("button")?.focus();
-    const onKey = (e) => { if (e.key === "Escape") onCancel(); };
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("keydown", onKey); prev?.focus(); };
-  }, []);
-  return (
-    <div onClick={onCancel} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "1rem" }}>
-      <div ref={ref} role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()} style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", padding: "1.75rem 1.5rem", width: "100%", maxWidth: "360px", boxShadow: "0 20px 60px rgba(0,0,0,0.25)", textAlign: "center" }}>
-        <p style={{ fontSize: "1.5rem", margin: "0 0 0.5rem" }}>{emoji}</p>
-        <h3 style={{ margin: "0 0 0.4rem", fontWeight: "700", fontSize: "1.05rem", color: "var(--color-text-primary, #0f172a)" }}>{title}</h3>
-        <p style={{ margin: "0 0 1.5rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)" }}>{body}</p>
-        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-          <button onClick={onCancel} disabled={confirming} style={{ flex: 1, padding: "0.6rem 1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.6rem", background: "var(--color-bg-elevated, white)", cursor: "pointer", color: "var(--color-text-body, #374151)", fontSize: "0.88rem", fontWeight: "600", fontFamily: "inherit" }}>Cancel</button>
-          <button onClick={onConfirm} disabled={confirming} style={{ flex: 1, padding: "0.6rem 1rem", border: "none", borderRadius: "0.6rem", background: "#dc2626", cursor: "pointer", color: "white", fontSize: "0.88rem", fontWeight: "700", fontFamily: "inherit", opacity: confirming ? 0.7 : 1 }}>{confirming ? "Deleting…" : confirmLabel}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 function normaliseJob(j) {
   return {
@@ -96,7 +73,6 @@ export default function CompanyDashboard() {
   const [applicantsViewMode, setApplicantsViewMode] = useState("list");
   const [closingPosting, setClosingPosting] = useState(null);
   const [deletingPosting, setDeletingPosting] = useState(null);
-  const [deletingConfirming, setDeletingConfirming] = useState(false);
   const [talentPool, setTalentPool]                 = useState([]);
   const [talentPoolLoaded, setTalentPoolLoaded]     = useState(false);
   const [templates, setTemplates]                   = useState([]);
@@ -1002,19 +978,10 @@ export default function CompanyDashboard() {
       )}
 
       {deletingPosting && (
-        <ConfirmDialog
-          title="Delete this job?"
-          body={`"${deletingPosting.title}" and all its applicants will be permanently removed. This cannot be undone.`}
-          emoji="🗑️"
-          confirmLabel="Yes, Delete"
-          confirming={deletingConfirming}
-          onConfirm={async () => {
-            setDeletingConfirming(true);
-            await deletePosting(deletingPosting.id);
-            setDeletingConfirming(false);
-            setDeletingPosting(null);
-          }}
-          onCancel={() => setDeletingPosting(null)}
+        <DeleteJobModal
+          posting={deletingPosting}
+          onClose={() => setDeletingPosting(null)}
+          onDelete={() => deletePosting(deletingPosting.id)}
         />
       )}
 
