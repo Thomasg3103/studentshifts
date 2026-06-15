@@ -230,7 +230,7 @@ export default function ForumPage() {
             ))}
           </div>
           <div style={{ display: "flex", gap: "0.35rem", flexShrink: 0 }}>
-            {[["recent", "Recent"], ["top", "Top"]].map(([val, label]) => (
+            {[["top", "Top"], ["recent", "Recent"]].map(([val, label]) => (
               <button
                 key={val}
                 onClick={() => setSortBy(val)}
