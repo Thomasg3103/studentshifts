@@ -1,8 +1,9 @@
-﻿import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 import { supabase, withTimeout } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
 import BackButton from "../components/BackButton";
+import toast from "react-hot-toast";
 
 const CATEGORIES = ["General", "Jobs & Shifts", "Pay & Rights", "Best Companies", "Tips & Advice", "Events"];
 
@@ -32,6 +33,15 @@ export default function ForumPage() {
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState("");
 
+  // Comments state
+  const [expandedPostId, setExpandedPostId] = useState(null);
+  const [commentsMap, setCommentsMap] = useState({}); // { [postId]: { loading, data: [] } }
+  const [commentDraft, setCommentDraft] = useState("");
+  const [submittingComment, setSubmittingComment] = useState(false);
+
+  // Delete post confirm state
+  const [deletingPostId, setDeletingPostId] = useState(null);
+
   const loadPosts = useCallback(async () => {
     try {
       setLoading(true);
@@ -39,7 +49,7 @@ export default function ForumPage() {
       const { data, error: err } = await withTimeout(
         () => supabase
           .from("forum_posts")
-          .select("id, author_name, category, title, body, upvotes, created_at")
+          .select("id, author_id, author_name, category, title, body, upvotes, created_at")
           .order("upvotes", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(100),
@@ -67,7 +77,6 @@ export default function ForumPage() {
   const handleVote = async (postId) => {
     if (!currentUser) return;
     const alreadyVoted = myVotes.has(postId);
-    // Optimistic update
     setMyVotes(prev => {
       const next = new Set(prev);
       alreadyVoted ? next.delete(postId) : next.add(postId);
@@ -76,12 +85,10 @@ export default function ForumPage() {
     setPosts(prev => prev.map(p =>
       p.id === postId ? { ...p, upvotes: p.upvotes + (alreadyVoted ? -1 : 1) } : p
     ));
-    // Persist via RPC
     withTimeout(
       () => supabase.rpc("toggle_forum_vote", { p_post_id: postId }),
       8000
     ).catch(() => {
-      // Roll back optimistic update on failure
       setMyVotes(prev => {
         const next = new Set(prev);
         alreadyVoted ? next.add(postId) : next.delete(postId);
@@ -119,6 +126,94 @@ export default function ForumPage() {
       setPostError(e.message || "Failed to post. Please try again.");
     } finally {
       setPosting(false);
+    }
+  };
+
+  const handleDeletePost = async (postId) => {
+    try {
+      const { error: err } = await withTimeout(
+        () => supabase.from("forum_posts").delete().eq("id", postId),
+        8000
+      );
+      if (err) throw err;
+      setPosts(prev => prev.filter(p => p.id !== postId));
+      if (expandedPostId === postId) setExpandedPostId(null);
+      setDeletingPostId(null);
+    } catch {
+      toast.error("Failed to delete post.");
+    }
+  };
+
+  const loadComments = useCallback(async (postId) => {
+    setCommentsMap(prev => ({ ...prev, [postId]: { loading: true, data: prev[postId]?.data || [] } }));
+    try {
+      const { data, error: err } = await withTimeout(
+        () => supabase
+          .from("forum_comments")
+          .select("id, author_id, author_name, body, created_at")
+          .eq("post_id", postId)
+          .order("created_at", { ascending: true }),
+        8000
+      );
+      if (err) throw err;
+      setCommentsMap(prev => ({ ...prev, [postId]: { loading: false, data: data || [] } }));
+    } catch {
+      setCommentsMap(prev => ({ ...prev, [postId]: { loading: false, data: prev[postId]?.data || [], error: true } }));
+    }
+  }, []);
+
+  const toggleComments = (postId) => {
+    if (expandedPostId === postId) {
+      setExpandedPostId(null);
+      setCommentDraft("");
+    } else {
+      setExpandedPostId(postId);
+      setCommentDraft("");
+      if (!commentsMap[postId]?.data?.length && !commentsMap[postId]?.loading) {
+        loadComments(postId);
+      }
+    }
+  };
+
+  const handleAddComment = async (postId) => {
+    if (!commentDraft.trim()) return;
+    setSubmittingComment(true);
+    try {
+      const { data, error: err } = await withTimeout(
+        () => supabase.from("forum_comments").insert({
+          post_id: postId,
+          author_id: currentUser.id,
+          author_name: currentUser.name,
+          body: commentDraft.trim(),
+        }).select("id, author_id, author_name, body, created_at").single(),
+        8000
+      );
+      if (err) throw err;
+      setCommentsMap(prev => ({
+        ...prev,
+        [postId]: { loading: false, data: [...(prev[postId]?.data || []), data] },
+      }));
+      setCommentDraft("");
+    } catch {
+      toast.error("Failed to post comment.");
+    } finally {
+      setSubmittingComment(false);
+    }
+  };
+
+  const handleDeleteComment = async (commentId, postId) => {
+    try {
+      const { error: err } = await withTimeout(
+        () => supabase.from("forum_comments").delete().eq("id", commentId),
+        8000
+      );
+      if (err) throw err;
+      setCommentsMap(prev => ({
+        ...prev,
+        [postId]: { ...prev[postId], data: prev[postId].data.filter(c => c.id !== commentId) },
+      }));
+    } catch {
+      toast.error("Failed to delete comment.");
     }
   };
 
@@ -267,41 +362,157 @@ export default function ForumPage() {
             {filtered.map(post => {
               const voted = myVotes.has(post.id);
               const bandColor = CATEGORY_COLORS[post.category] || "#64748b";
-              return (
-                <div
-                  key={post.id}
-                  style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderLeft: `4px solid ${bandColor}`, borderRadius: "0.85rem", padding: "1rem 1.25rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}
-                >
-                  {/* Vote column */}
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem", flexShrink: 0 }}>
-                    <button
-                      onClick={() => handleVote(post.id)}
-                      disabled={!currentUser}
-                      aria-label={voted ? "Remove upvote" : "Upvote"}
-                      style={{ background: voted ? "#fce7f3" : "none", border: `1.5px solid ${voted ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.5rem", padding: "0.3rem 0.5rem", cursor: currentUser ? "pointer" : "default", color: voted ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "0.9rem", lineHeight: 1 }}
-                    >
-                      ▲
-                    </button>
-                    <span style={{ fontWeight: 700, fontSize: "0.85rem", color: voted ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)" }}>
-                      {post.upvotes}
-                    </span>
-                  </div>
+              const isExpanded = expandedPostId === post.id;
+              const isOwnPost = post.author_id === currentUser?.id;
+              const isDeletingThis = deletingPostId === post.id;
+              const commentState = commentsMap[post.id];
+              const commentCount = commentState?.data?.length ?? null;
 
-                  {/* Content */}
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
-                      <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.1rem 0.55rem" }}>
-                        {post.category}
-                      </span>
-                      <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted, #94a3b8)" }}>
-                        {post.author_name} · {relTime(post.created_at)}
+              return (
+                <div key={post.id} style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderLeft: `4px solid ${bandColor}`, borderRadius: "0.85rem", overflow: "hidden" }}>
+
+                  {/* Post body row */}
+                  <div style={{ padding: "1rem 1.25rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
+                    {/* Vote column */}
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "0.15rem", flexShrink: 0 }}>
+                      <button
+                        onClick={() => handleVote(post.id)}
+                        disabled={!currentUser}
+                        aria-label={voted ? "Remove upvote" : "Upvote"}
+                        style={{ background: voted ? "#fce7f3" : "none", border: `1.5px solid ${voted ? "var(--color-brand)" : "#e2e8f0"}`, borderRadius: "0.5rem", padding: "0.3rem 0.5rem", cursor: currentUser ? "pointer" : "default", color: voted ? "var(--color-brand)" : "#94a3b8", fontWeight: 700, fontSize: "0.9rem", lineHeight: 1 }}
+                      >
+                        ▲
+                      </button>
+                      <span style={{ fontWeight: 700, fontSize: "0.85rem", color: voted ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)" }}>
+                        {post.upvotes}
                       </span>
                     </div>
-                    <p style={{ margin: "0 0 0.3rem", fontWeight: 700, fontSize: "0.95rem", color: "var(--color-text-primary, #1e293b)" }}>{post.title}</p>
-                    <p style={{ margin: 0, fontSize: "0.83rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                      {post.body}
-                    </p>
+
+                    {/* Content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.3rem", flexWrap: "wrap" }}>
+                        <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.1rem 0.55rem" }}>
+                          {post.category}
+                        </span>
+                        <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted, #94a3b8)" }}>
+                          {post.author_name} · {relTime(post.created_at)}
+                        </span>
+                      </div>
+                      <p style={{ margin: "0 0 0.3rem", fontWeight: 700, fontSize: "0.95rem", color: "var(--color-text-primary, #1e293b)" }}>{post.title}</p>
+                      <p style={{ margin: 0, fontSize: "0.83rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                        {post.body}
+                      </p>
+                    </div>
                   </div>
+
+                  {/* Post footer: Comments toggle + delete */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.55rem 1.25rem", borderTop: "1px solid var(--color-border-light, #e2e8f0)", backgroundColor: "var(--color-bg-subtle, #fafafa)" }}>
+                    <button
+                      onClick={() => toggleComments(post.id)}
+                      style={{ background: "none", border: "none", padding: "0.2rem 0", cursor: "pointer", fontFamily: "inherit", fontSize: "0.8rem", fontWeight: 600, color: isExpanded ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", display: "flex", alignItems: "center", gap: "0.3rem" }}
+                    >
+                      💬 {isExpanded ? "Hide" : "Comments"}
+                      {commentCount !== null && <span style={{ fontWeight: 500 }}>({commentCount})</span>}
+                    </button>
+
+                    {isOwnPost && (
+                      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                        {isDeletingThis ? (
+                          <>
+                            <span style={{ fontSize: "0.78rem", color: "#64748b" }}>Delete this post?</span>
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              style={{ padding: "0.2rem 0.6rem", borderRadius: "0.4rem", border: "1.5px solid #fca5a5", backgroundColor: "#fef2f2", color: "#dc2626", fontWeight: 700, fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}
+                            >Yes, delete</button>
+                            <button
+                              onClick={() => setDeletingPostId(null)}
+                              style={{ padding: "0.2rem 0.6rem", borderRadius: "0.4rem", border: "1.5px solid #e2e8f0", backgroundColor: "transparent", color: "#64748b", fontWeight: 600, fontSize: "0.75rem", cursor: "pointer", fontFamily: "inherit" }}
+                            >Cancel</button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => setDeletingPostId(post.id)}
+                            style={{ background: "none", border: "none", padding: "0.2rem 0", cursor: "pointer", fontFamily: "inherit", fontSize: "0.78rem", fontWeight: 600, color: "#dc2626" }}
+                          >Delete post</button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Comments section */}
+                  {isExpanded && (
+                    <div style={{ padding: "1rem 1.25rem", borderTop: "1px solid var(--color-border-light, #e2e8f0)" }}>
+                      {commentState?.loading && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "0.75rem" }}>
+                          {[1,2].map(i => <div key={i} className="skeleton" style={{ height: "48px", borderRadius: "0.5rem" }} />)}
+                        </div>
+                      )}
+                      {commentState?.error && (
+                        <p style={{ fontSize: "0.82rem", color: "#ef4444", marginBottom: "0.75rem" }}>
+                          Couldn't load comments. <button onClick={() => loadComments(post.id)} style={{ background: "none", border: "none", color: "var(--color-brand)", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>Retry</button>
+                        </p>
+                      )}
+                      {!commentState?.loading && commentState?.data?.length === 0 && (
+                        <p style={{ fontSize: "0.82rem", color: "var(--color-text-muted, #94a3b8)", marginBottom: "0.75rem", fontStyle: "italic" }}>No comments yet. Be the first!</p>
+                      )}
+                      {commentState?.data?.length > 0 && (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem", marginBottom: "0.75rem" }}>
+                          {commentState.data.map(comment => (
+                            <div key={comment.id} style={{ display: "flex", gap: "0.6rem", alignItems: "flex-start" }}>
+                              <div style={{ width: "28px", height: "28px", borderRadius: "50%", backgroundColor: "#fce7f3", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontWeight: 700, fontSize: "0.75rem", color: "var(--color-brand)" }}>
+                                {comment.author_name?.charAt(0)?.toUpperCase() || "?"}
+                              </div>
+                              <div style={{ flex: 1, minWidth: 0, backgroundColor: "var(--color-bg-subtle, #f8fafc)", borderRadius: "0.6rem", padding: "0.5rem 0.75rem" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.2rem" }}>
+                                  <span style={{ fontWeight: 700, fontSize: "0.78rem", color: "var(--color-text-primary, #1e293b)" }}>{comment.author_name}</span>
+                                  <span style={{ fontSize: "0.72rem", color: "var(--color-text-muted, #94a3b8)" }}>{relTime(comment.created_at)}</span>
+                                  {comment.author_id === currentUser?.id && (
+                                    <button
+                                      onClick={() => handleDeleteComment(comment.id, post.id)}
+                                      style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", fontFamily: "inherit", fontSize: "0.72rem", color: "#94a3b8", padding: 0 }}
+                                      title="Delete comment"
+                                    >✕</button>
+                                  )}
+                                </div>
+                                <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.5 }}>{comment.body}</p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Add comment input */}
+                      {isVerifiedStudent ? (
+                        <div style={{ display: "flex", gap: "0.5rem", alignItems: "flex-end" }}>
+                          <textarea
+                            placeholder="Write a comment…"
+                            value={commentDraft}
+                            onChange={e => setCommentDraft(e.target.value)}
+                            maxLength={500}
+                            rows={2}
+                            onKeyDown={e => {
+                              if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                handleAddComment(post.id);
+                              }
+                            }}
+                            style={{ flex: 1, padding: "0.5rem 0.7rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "var(--color-text-primary, #1e293b)", resize: "none", lineHeight: 1.5 }}
+                          />
+                          <button
+                            onClick={() => handleAddComment(post.id)}
+                            disabled={submittingComment || !commentDraft.trim()}
+                            style={{ padding: "0.5rem 1rem", borderRadius: "0.6rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: 700, fontSize: "0.8rem", cursor: submittingComment || !commentDraft.trim() ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: submittingComment || !commentDraft.trim() ? 0.6 : 1, whiteSpace: "nowrap", flexShrink: 0 }}
+                          >
+                            {submittingComment ? "…" : "Reply"}
+                          </button>
+                        </div>
+                      ) : (
+                        <p style={{ fontSize: "0.78rem", color: "var(--color-text-muted, #94a3b8)", margin: 0 }}>
+                          {currentUser ? "Verified students can comment." : "Sign in to comment."}
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
             })}

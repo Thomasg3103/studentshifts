@@ -63,6 +63,41 @@ DROP POLICY IF EXISTS "forum_votes_delete" ON forum_votes;
 CREATE POLICY "forum_votes_delete"
   ON forum_votes FOR DELETE USING (user_id = auth.uid());
 
+-- 3b. Forum comments table
+CREATE TABLE IF NOT EXISTS forum_comments (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  post_id     UUID NOT NULL REFERENCES forum_posts(id) ON DELETE CASCADE,
+  author_id   UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  author_name TEXT NOT NULL,
+  body        TEXT NOT NULL,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_forum_comments_post ON forum_comments(post_id, created_at);
+
+ALTER TABLE forum_comments ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can read comments
+DROP POLICY IF EXISTS "forum_comments_select" ON forum_comments;
+CREATE POLICY "forum_comments_select"
+  ON forum_comments FOR SELECT USING (true);
+
+-- Verified students can comment
+DROP POLICY IF EXISTS "forum_comments_insert" ON forum_comments;
+CREATE POLICY "forum_comments_insert"
+  ON forum_comments FOR INSERT
+  WITH CHECK (
+    auth.uid() = author_id
+    AND EXISTS (
+      SELECT 1 FROM students WHERE id = auth.uid() AND status = 'verified'
+    )
+  );
+
+-- Author can delete their own comments
+DROP POLICY IF EXISTS "forum_comments_delete" ON forum_comments;
+CREATE POLICY "forum_comments_delete"
+  ON forum_comments FOR DELETE USING (author_id = auth.uid());
+
 -- 4. RPC: toggle_forum_vote — atomically votes/unvotes and updates post upvote count
 CREATE OR REPLACE FUNCTION toggle_forum_vote(p_post_id UUID)
 RETURNS INT
