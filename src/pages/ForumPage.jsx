@@ -22,7 +22,6 @@ export default function ForumPage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("All");
   const [myVotes, setMyVotes] = useState(new Set());
   const [showForm, setShowForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -39,7 +38,6 @@ export default function ForumPage() {
         () => supabase
           .from("forum_posts")
           .select("id, author_name, category, title, body, upvotes, created_at")
-          .order("upvotes", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(100),
         10000
@@ -120,10 +118,6 @@ export default function ForumPage() {
       setPosting(false);
     }
   };
-
-  const filtered = selectedCategory === "All"
-    ? posts
-    : posts.filter(p => p.category === selectedCategory);
 
   const relTime = (ts) => {
     const diff = (Date.now() - new Date(ts)) / 1000;
@@ -212,19 +206,6 @@ export default function ForumPage() {
           </div>
         )}
 
-        {/* Category filter tabs */}
-        <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", marginBottom: "1rem" }}>
-          {["All", ...CATEGORIES].map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              style={{ padding: "0.35rem 0.85rem", borderRadius: "999px", border: `1.5px solid ${selectedCategory === cat ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: selectedCategory === cat ? "#fce7f3" : "var(--color-bg-elevated, white)", color: selectedCategory === cat ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: selectedCategory === cat ? 700 : 500, fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
-            >
-              {cat}
-            </button>
-          ))}
-        </div>
-
         {/* States */}
         {loading && (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
@@ -236,18 +217,18 @@ export default function ForumPage() {
             <p style={{ fontWeight: 600 }}>Couldn't load posts. <button onClick={loadPosts} style={{ background: "none", border: "none", color: "var(--color-brand)", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>Retry</button></p>
           </div>
         )}
-        {!loading && !error && filtered.length === 0 && (
+        {!loading && !error && posts.length === 0 && (
           <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #64748b)" }}>
             <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💬</div>
-            <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>No posts yet in this category</p>
+            <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>No posts yet</p>
             {isVerifiedStudent && <p style={{ fontSize: "0.85rem", margin: 0 }}>Be the first to start the conversation!</p>}
           </div>
         )}
 
         {/* Post list */}
-        {!loading && !error && filtered.length > 0 && (
+        {!loading && !error && posts.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
-            {filtered.map(post => {
+            {posts.map(post => {
               const voted = myVotes.has(post.id);
               const bandColor = CATEGORY_COLORS[post.category] || "#64748b";
               return (
