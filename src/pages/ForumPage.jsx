@@ -22,6 +22,8 @@ export default function ForumPage() {
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("recent");
   const [myVotes, setMyVotes] = useState(new Set());
   const [showForm, setShowForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
@@ -38,6 +40,7 @@ export default function ForumPage() {
         () => supabase
           .from("forum_posts")
           .select("id, author_name, category, title, body, upvotes, created_at")
+          .order("upvotes", { ascending: false })
           .order("created_at", { ascending: false })
           .limit(100),
         10000
@@ -118,6 +121,13 @@ export default function ForumPage() {
       setPosting(false);
     }
   };
+
+  const filtered = (selectedCategory === "All" ? posts : posts.filter(p => p.category === selectedCategory))
+    .slice()
+    .sort((a, b) => sortBy === "recent"
+      ? new Date(b.created_at) - new Date(a.created_at)
+      : b.upvotes - a.upvotes
+    );
 
   const relTime = (ts) => {
     const diff = (Date.now() - new Date(ts)) / 1000;
@@ -206,6 +216,32 @@ export default function ForumPage() {
           </div>
         )}
 
+        {/* Category filter tabs + sort */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem", marginBottom: "1rem", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap" }}>
+            {["All", ...CATEGORIES].map(cat => (
+              <button
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                style={{ padding: "0.35rem 0.85rem", borderRadius: "999px", border: `1.5px solid ${selectedCategory === cat ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: selectedCategory === cat ? "#fce7f3" : "var(--color-bg-elevated, white)", color: selectedCategory === cat ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: selectedCategory === cat ? 700 : 500, fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "0.35rem", flexShrink: 0 }}>
+            {[["recent", "Recent"], ["top", "Top"]].map(([val, label]) => (
+              <button
+                key={val}
+                onClick={() => setSortBy(val)}
+                style={{ padding: "0.35rem 0.85rem", borderRadius: "999px", border: `1.5px solid ${sortBy === val ? "#0369a1" : "var(--color-border-light, #e2e8f0)"}`, backgroundColor: sortBy === val ? "#f0f9ff" : "var(--color-bg-elevated, white)", color: sortBy === val ? "#0369a1" : "var(--color-text-secondary, #64748b)", fontWeight: sortBy === val ? 700 : 500, fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit" }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* States */}
         {loading && (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
@@ -220,7 +256,7 @@ export default function ForumPage() {
         {!loading && !error && posts.length === 0 && (
           <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #64748b)" }}>
             <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💬</div>
-            <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>No posts yet</p>
+            <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>No posts yet in this category</p>
             {isVerifiedStudent && <p style={{ fontSize: "0.85rem", margin: 0 }}>Be the first to start the conversation!</p>}
           </div>
         )}
