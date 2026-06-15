@@ -253,7 +253,7 @@ export default function ForumPage() {
             <p style={{ fontWeight: 600 }}>Couldn't load posts. <button onClick={loadPosts} style={{ background: "none", border: "none", color: "var(--color-brand)", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", textDecoration: "underline" }}>Retry</button></p>
           </div>
         )}
-        {!loading && !error && posts.length === 0 && (
+        {!loading && !error && filtered.length === 0 && (
           <div style={{ textAlign: "center", padding: "3rem 1rem", color: "var(--color-text-secondary, #64748b)" }}>
             <div style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>💬</div>
             <p style={{ fontWeight: 600, margin: "0 0 0.25rem" }}>No posts yet in this category</p>
@@ -262,9 +262,9 @@ export default function ForumPage() {
         )}
 
         {/* Post list */}
-        {!loading && !error && posts.length > 0 && (
+        {!loading && !error && filtered.length > 0 && (
           <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
-            {posts.map(post => {
+            {filtered.map(post => {
               const voted = myVotes.has(post.id);
               const bandColor = CATEGORY_COLORS[post.category] || "#64748b";
               return (
