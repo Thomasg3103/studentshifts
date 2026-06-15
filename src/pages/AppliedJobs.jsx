@@ -266,7 +266,8 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, applicatio
             </div>
           </div>
 
-          <p style={{ color: "var(--color-text-secondary, #6b7280)", fontSize: "0.82rem", margin: "0 0 0.1rem" }}>{job.company} · {job.location}</p>
+          <p style={{ color: "var(--color-text-secondary, #6b7280)", fontSize: "0.82rem", margin: "0 0 0.05rem" }}>{job.company}</p>
+          <p style={{ color: "var(--color-text-secondary, #64748b)", fontSize: "0.72rem", margin: "0 0 0.1rem" }}>📍 {job.location}</p>
           <p style={{ fontWeight: "700", color: "var(--color-text-primary, #111827)", margin: "0 0 0.3rem", fontSize: "0.88rem" }}>{job.pay}</p>
 
           {preferredShift && status === "Pending" && (

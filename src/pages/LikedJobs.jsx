@@ -74,7 +74,8 @@ export default function LikedJobs() {
                         <button aria-label={`Remove ${job.title} from liked jobs`} onClick={() => removeLike(job)} style={btnRed}>Unsave</button>
                       </div>
                     </div>
-                    <p style={{ color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.15rem", fontSize: "0.85rem" }}>{job.company} · {job.location}</p>
+                    <p style={{ color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.05rem", fontSize: "0.85rem" }}>{job.company}</p>
+                    <p style={{ color: "var(--color-text-secondary, #64748b)", marginBottom: "0.15rem", fontSize: "0.72rem" }}>📍 {job.location}</p>
                     <p style={{ fontWeight: "700", color: isClosed ? "#64748b" : "#111827", marginBottom: "0.4rem", fontSize: "0.9rem" }}>{job.pay}</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: (!isClosed && !isApplied) ? "0.5rem" : 0 }}>
                       {(job.days || []).map(day => (

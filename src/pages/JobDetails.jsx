@@ -491,7 +491,8 @@ export default function JobDetails({ job }) {
                         </div>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: "0.88rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sj.title}</p>
-                          <p style={{ margin: "0.1rem 0 0", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sj.company} · {sj.location}</p>
+                          <p style={{ margin: "0.1rem 0 0.05rem", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{sj.company}</p>
+                          <p style={{ margin: 0, fontSize: "0.7rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>📍 {sj.location}</p>
                         </div>
                         <span style={{ fontSize: "0.82rem", fontWeight: 700, color: "var(--color-text-body, #374151)", flexShrink: 0 }}>{sj.pay}</span>
                       </button>

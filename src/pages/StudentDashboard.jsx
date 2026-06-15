@@ -1050,10 +1050,10 @@ export default function StudentDashboard({ restoreScrollY }) {
                       {/* Top: title + company + pills */}
                       <div>
                         <h2 style={{ fontWeight: 800, fontSize: isPhone ? "1.0rem" : "1.5rem", margin: "0 0 0.15rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
-                        <p style={{ margin: isPhone ? "0 0 0.35rem" : "0 0 0.6rem", fontSize: isPhone ? "0.78rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
+                        <p style={{ margin: isPhone ? "0 0 0.1rem" : "0 0 0.15rem", fontSize: isPhone ? "0.78rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
                           <span onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</span>
-                          {" · "}{job.location}
                         </p>
+                        <p style={{ margin: isPhone ? "0 0 0.35rem" : "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                           {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
