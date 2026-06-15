@@ -1,31 +1,8 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿import { useState } from "react";
 import { supabaseImg } from "../../utils/img";
 
-function ConfirmDialog({ title, body, emoji, confirmLabel, onConfirm, onCancel }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const prev = document.activeElement;
-    ref.current?.querySelector("button")?.focus();
-    const onKey = (e) => { if (e.key === "Escape") onCancel(); };
-    document.addEventListener("keydown", onKey);
-    return () => { document.removeEventListener("keydown", onKey); prev?.focus(); };
-  }, []);
-  return (
-    <div onClick={onCancel} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.5)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 2000, padding: "1rem" }}>
-      <div ref={ref} role="dialog" aria-modal="true" aria-label={title} onClick={e => e.stopPropagation()} style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", padding: "1.75rem 1.5rem", width: "100%", maxWidth: "360px", boxShadow: "0 20px 60px rgba(0,0,0,0.25)", textAlign: "center" }}>
-        <p style={{ fontSize: "1.5rem", margin: "0 0 0.5rem" }}>{emoji}</p>
-        <h3 style={{ margin: "0 0 0.4rem", fontWeight: "700", fontSize: "1.05rem", color: "var(--color-text-primary, #0f172a)" }}>{title}</h3>
-        <p style={{ margin: "0 0 1.5rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)" }}>{body}</p>
-        <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center" }}>
-          <button onClick={onCancel} style={{ flex: 1, padding: "0.6rem 1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.6rem", background: "var(--color-bg-elevated, white)", cursor: "pointer", color: "var(--color-text-body, #374151)", fontSize: "0.88rem", fontWeight: "600", fontFamily: "inherit" }}>Cancel</button>
-          <button onClick={onConfirm} style={{ flex: 1, padding: "0.6rem 1rem", border: "none", borderRadius: "0.6rem", background: "#dc2626", cursor: "pointer", color: "white", fontSize: "0.88rem", fontWeight: "700", fontFamily: "inherit" }}>{confirmLabel}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
-export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDelete, onToggleStatus, onDuplicate, onSaveTemplate, onNotifyStudents, notifying, notified, matchesData, onLoadMatches, onRequestClose }) {
+export default function JobPostingCard({ posting, onViewApplicants, onEdit, onRequestDelete, onToggleStatus, onDuplicate, onSaveTemplate, onNotifyStudents, notifying, notified, matchesData, onLoadMatches, onRequestClose }) {
   const isActive  = posting.status === "Active";
   const today     = new Date().toISOString().split("T")[0];
   const isExpired = posting.status === "Expired";
@@ -42,7 +19,6 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
     return `${Math.floor(days / 30)}mo ago`;
   })();
   const [hovered,           setHovered]           = useState(false);
-  const [confirmDelete,     setConfirmDelete]     = useState(false);
   const [templateSaved,     setTemplateSaved]     = useState(false);
   const [templateNameInput, setTemplateNameInput] = useState("");
   const [showTemplateInput, setShowTemplateInput] = useState(false);
@@ -210,7 +186,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
             </button>
             <button
               aria-label={`Delete ${posting.title}`}
-              onClick={() => setConfirmDelete(true)}
+              onClick={onRequestDelete}
               style={{ ...actionBtn, border: "1px solid #fca5a5", color: "#dc2626" }}
             >
               Delete
@@ -219,16 +195,6 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onDe
         </div>
       </div>
 
-      {confirmDelete && (
-        <ConfirmDialog
-          title="Delete this job?"
-          body="This will permanently remove the posting and all its applicants. This cannot be undone."
-          emoji="🗑️"
-          confirmLabel="Yes, Delete"
-          onConfirm={() => { onDelete(); setConfirmDelete(false); }}
-          onCancel={() => setConfirmDelete(false)}
-        />
-      )}
     </div>
 
     {/* Smart Matches panel */}
