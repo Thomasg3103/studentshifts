@@ -23,7 +23,7 @@ export default function ForumPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [sortBy, setSortBy] = useState("recent");
+  const [sortBy, setSortBy] = useState("top");
   const [myVotes, setMyVotes] = useState(new Set());
   const [showForm, setShowForm] = useState(false);
   const [newTitle, setNewTitle] = useState("");
