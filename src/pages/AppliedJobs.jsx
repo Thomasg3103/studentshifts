@@ -59,8 +59,8 @@ function PipelineStrip({ stage, status }) {
         })}
       </div>
       {(isAccepted || isRejected || currentIdx > 0) && (
-        <p style={{ margin: "0.2rem 0 0", fontSize: "0.7rem", fontWeight: "600", color: isAccepted ? "#16a34a" : isRejected ? "#dc2626" : "var(--color-brand)" }}>
-          {isAccepted ? "Hired — congratulations!" : isRejected ? "Application declined" : `At ${PIPELINE_STEPS[currentIdx]?.long}`}
+        <p style={{ margin: "0.2rem 0 0", fontSize: "0.7rem", fontWeight: "700", color: isAccepted ? "#16a34a" : isRejected ? "#dc2626" : "var(--color-brand)", textAlign: "center" }}>
+          {isAccepted ? "🎉 Hired — congratulations!" : isRejected ? "Application declined" : `At ${PIPELINE_STEPS[currentIdx]?.long}`}
         </p>
       )}
     </div>
@@ -311,7 +311,7 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, applicatio
 
       {/* Action buttons */}
       {(showMessage || showWithdraw || showRemove) && (
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", padding: "0 1rem 0.85rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", padding: "0 1rem 0.85rem", justifyContent: "center" }}>
           {showMessage && (
             <button aria-label={`Message ${job.company} about ${job.title}`} onClick={() => onMessage()}
               style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #10b981, #059669)", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(16,185,129,0.3)" }}>

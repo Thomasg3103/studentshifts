@@ -77,35 +77,34 @@ export default function LikedJobs() {
                     )}
                   </div>
                   {/* Content */}
-                  <div style={{ flex: 1, padding: "0.65rem 0.85rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                    <div>
-                      <h2 style={{ fontWeight: "800", fontSize: "0.92rem", margin: "0 0 0.1rem", color: isClosed ? "#64748b" : "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title}</h2>
-                      <p style={{ color: "var(--color-text-secondary, #6b7280)", margin: "0 0 0.3rem", fontSize: "0.78rem" }}>{job.company}</p>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
-                        {(job.days || []).slice(0, 3).map(day => (
-                          <span key={day} style={{ fontSize: "0.68rem", backgroundColor: isClosed ? "#f1f5f9" : "#fce7f3", color: isClosed ? "#64748b" : "var(--color-brand)", padding: "0.12rem 0.45rem", borderRadius: "999px", fontWeight: "600", textDecoration: isClosed ? "line-through" : "none" }}>
-                            {day.slice(0, 3)}{(job.times || {})[day] ? ` · ${(job.times || {})[day]?.join(", ")}` : ""}
-                          </span>
-                        ))}
-                        {(job.days || []).length > 3 && (
-                          <span style={{ fontSize: "0.68rem", backgroundColor: "#f1f5f9", color: "#64748b", padding: "0.12rem 0.45rem", borderRadius: "999px", fontWeight: "600" }}>
-                            +{job.days.length - 3}
-                          </span>
-                        )}
-                      </div>
+                  <div style={{ flex: 1, padding: "0.65rem 0.85rem", minWidth: 0, display: "flex", flexDirection: "column" }}>
+                    <h2 style={{ fontWeight: "800", fontSize: "0.92rem", margin: "0 0 0.08rem", color: isClosed ? "#64748b" : "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title}</h2>
+                    <p style={{ color: "var(--color-text-secondary, #6b7280)", margin: "0 0 0.05rem", fontSize: "0.78rem" }}>{job.company}</p>
+                    <p style={{ color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.25rem", fontSize: "0.7rem" }}>📍 {job.location}</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", marginBottom: "0.3rem" }}>
+                      {(job.days || []).map(day => (
+                        <span key={day} style={{ fontSize: "0.67rem", backgroundColor: isClosed ? "#f1f5f9" : "#fce7f3", color: isClosed ? "#64748b" : "var(--color-brand)", padding: "0.1rem 0.42rem", borderRadius: "999px", fontWeight: "600", textDecoration: isClosed ? "line-through" : "none" }}>
+                          {day.slice(0, 3)}{(job.times || {})[day] ? ` · ${(job.times || {})[day]?.join(", ")}` : ""}
+                        </span>
+                      ))}
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.35rem", flexWrap: "wrap" }}>
-                      <span style={{ fontWeight: 800, color: isClosed ? "#64748b" : "var(--color-brand)", fontSize: "0.92rem" }}>{job.pay}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "auto" }}>
+                      <span style={{ fontWeight: 800, color: isClosed ? "#64748b" : "var(--color-brand)", fontSize: "0.92rem", flexShrink: 0 }}>{job.pay}</span>
                       {!isClosed && isApplied && (
-                        <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#10b981" }}>✅ Applied</span>
+                        <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#10b981", marginLeft: "auto" }}>✅ Applied</span>
                       )}
                       {isClosed && (
-                        <span style={{ fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600 }}>
+                        <span style={{ fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, marginLeft: "auto" }}>
                           {job.status === "Expired" ? "Expired" : "Filled"}
                         </span>
                       )}
                       {!isClosed && !isApplied && (
-                        <span style={{ marginLeft: "auto", fontSize: "0.72rem", color: "var(--color-brand)", fontWeight: 700 }}>Tap to apply →</span>
+                        <button
+                          onClick={e => { e.stopPropagation(); viewJob(job); }}
+                          style={{ marginLeft: "auto", padding: "0.32rem 0.8rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.72rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(162,29,84,0.3)", whiteSpace: "nowrap", flexShrink: 0 }}
+                        >
+                          Apply Now →
+                        </button>
                       )}
                     </div>
                   </div>
