@@ -287,3 +287,7 @@ header {
     padding: 0 !important;
   }
 }
+
+/* Hide scrollbar on horizontally-scrollable tab bars */
+.tab-scroll-bar { scrollbar-width: none; }
+.tab-scroll-bar::-webkit-scrollbar { display: none; }

@@ -603,7 +603,7 @@ export default function CompanyDashboard() {
       </div>
 
       {/* Tab bar */}
-      <div style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "1.75rem", gap: "0" }}>
+      <div className="tab-scroll-bar" style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "1.75rem", gap: "0", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         {[
           { val: "jobs",     label: "My Jobs" },
           { val: "students",  label: "Browse Students" },
@@ -615,12 +615,13 @@ export default function CompanyDashboard() {
             key={val}
             onClick={() => { setActiveTab(val); setChatStudent(null); }}
             style={{
-              padding: "0.7rem 1.25rem", border: "none", background: "none",
-              fontWeight: activeTab === val ? "700" : "500", fontSize: "0.9rem", cursor: "pointer", fontFamily: "inherit",
+              padding: "0.7rem 1rem", border: "none", background: "none",
+              fontWeight: activeTab === val ? "700" : "500", fontSize: "0.88rem", cursor: "pointer", fontFamily: "inherit",
               color: activeTab === val ? "var(--color-brand)" : "#64748b",
               borderBottom: activeTab === val ? "2px solid var(--color-brand)" : "2px solid transparent",
               marginBottom: "-1px", transition: "color 0.15s, border-color 0.15s",
               display: "inline-flex", alignItems: "center", gap: "0.4rem",
+              flexShrink: 0, whiteSpace: "nowrap",
             }}
           >
             {label}
