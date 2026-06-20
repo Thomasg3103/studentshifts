@@ -290,10 +290,13 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
   const bounceIcon = (e) => {
     const icon = e.currentTarget.querySelector("svg, img");
     if (!icon) return;
-    icon.classList.remove("nav-icon-bounce");
-    void icon.offsetWidth;
-    icon.classList.add("nav-icon-bounce");
-    icon.addEventListener("animationend", () => icon.classList.remove("nav-icon-bounce"), { once: true });
+    requestAnimationFrame(() => {
+      icon.classList.remove("nav-icon-bounce");
+      requestAnimationFrame(() => {
+        icon.classList.add("nav-icon-bounce");
+        icon.addEventListener("animationend", () => icon.classList.remove("nav-icon-bounce"), { once: true });
+      });
+    });
   };
 
   return (

@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback, useContext, lazy, Suspense } from "react";
+﻿import { useState, useEffect, useRef, useCallback, useContext, useMemo, lazy, Suspense } from "react";
 import * as Sentry from "@sentry/react";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
@@ -385,7 +385,7 @@ export default function StudentShiftsWeb() {
 
   const isLanding = !currentUser && location.pathname === "/";
 
-  const appContextValue = {
+  const appContextValue = useMemo(() => ({
     currentUser, setCurrentUser,
     setPage,
     setSelectedJob: setSelectedJobBoth,
@@ -399,7 +399,13 @@ export default function StudentShiftsWeb() {
     msgCount, setMsgCount,
     passwordRecoveryMode, setPasswordRecoveryMode,
     darkMode, toggleDarkMode,
-  };
+  }), [
+    currentUser, setPage, setSelectedJobBoth,
+    likedJobs, appliedJobs,
+    savedLikedJobIds, savedAppliedJobIds,
+    studentLocation, appStatuses, notifCount, msgCount,
+    passwordRecoveryMode, darkMode, toggleDarkMode,
+  ]);
 
   if (authLoading) {
     return (

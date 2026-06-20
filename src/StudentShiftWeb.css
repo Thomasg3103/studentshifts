@@ -15,6 +15,12 @@ html, body, #root {
   overflow-x: hidden;
 }
 
+/* Remove 300ms tap delay on all interactive elements */
+button, a, [role="button"] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
 /* ─── Dark mode structural overrides ────────────────────────── */
 [data-theme="dark"] .full-page          { background-color: #0f172a; }
 [data-theme="dark"] .login-box          { background-color: #1e293b; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
