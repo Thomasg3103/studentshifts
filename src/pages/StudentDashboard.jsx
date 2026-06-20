@@ -892,10 +892,12 @@ export default function StudentDashboard({ restoreScrollY }) {
                 <span className="badge badge-brand" style={{ fontSize: "0.8rem" }}>
                   {sortedJobs.length} job{sortedJobs.length !== 1 ? "s" : ""}
                 </span>
+                {!isPhone && (
                 <div style={{ display: "flex", alignItems: "center", gap: "0.2rem", backgroundColor: "var(--color-bg-surface, #fafafa)", borderRadius: "0.6rem", padding: "0.2rem" }}>
                   <button onClick={() => setGridCols(1)} aria-label="Single column layout" aria-pressed={gridCols === 1} title="Single column" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 1 ? "var(--color-bg-elevated, white)" : "transparent", color: gridCols === 1 ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 1 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▤</button>
                   <button onClick={() => setGridCols(2)} aria-label="Two column layout" aria-pressed={gridCols === 2} title="Two columns" style={{ padding: "0.28rem 0.5rem", border: "none", borderRadius: "0.4rem", cursor: "pointer", backgroundColor: gridCols === 2 ? "var(--color-bg-elevated, white)" : "transparent", color: gridCols === 2 ? "var(--color-brand)" : "var(--color-text-secondary, #64748b)", fontWeight: 700, fontSize: "1rem", boxShadow: gridCols === 2 ? "0 1px 4px rgba(0,0,0,0.1)" : "none", lineHeight: 1, fontFamily: "inherit" }}>▦</button>
                 </div>
+                )}
                 {/* Save search button — auto-saves using search bar text as name */}
                 <button
                   onClick={saveSearch}
@@ -1002,7 +1004,7 @@ export default function StudentDashboard({ restoreScrollY }) {
             )}
 
             {/* Job cards */}
-            <div role="list" className="job-list-grid" style={{ display: "grid", gridTemplateColumns: gridCols === 2 ? "1fr 1fr" : "1fr", gap: "0.85rem" }}>
+            <div role="list" className="job-list-grid" style={{ display: "grid", gridTemplateColumns: (!isPhone && gridCols === 2) ? "1fr 1fr" : "1fr", gap: "0.85rem" }}>
               {sortedJobs.map(job => {
                 const isLiked   = likedJobs.some(j => j.id === job.id);
                 const isApplied = appliedJobs.some(j => j.id === job.id);
@@ -1024,7 +1026,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                   <div key={job.id} role="listitem" className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
 
                     {/* Square photo */}
-                    <div style={{ width: isPhone ? "100px" : "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
+                    <div style={{ width: isPhone ? "120px" : "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                           <img loading="lazy" src={photo} alt={`${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -1159,7 +1161,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                       disabled={isApplied}
                       title={isApplied ? "You’ve already applied" : isLiked ? "Remove from liked" : "Save job"}
                       aria-label={isApplied ? "Already applied" : isLiked ? "Remove from liked jobs" : "Save job"}
-                      style={{ width: isPhone ? "54px" : "90px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, margin: 0, borderRadius: "0 1rem 1rem 0" }}
+                      style={{ width: isPhone ? "60px" : "90px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, margin: 0, borderRadius: "0 1rem 1rem 0" }}
                     >
                       {isApplied ? (
                         <svg width={isPhone ? "26" : "40"} height={isPhone ? "26" : "40"} viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>

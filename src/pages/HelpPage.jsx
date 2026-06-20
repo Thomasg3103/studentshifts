@@ -94,13 +94,13 @@ export default function HelpPage() {
           </div>
         </div>
 
-        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 2rem" }}>
+        <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 1rem" }}>
 
           {/* FAQ sections */}
           {FAQ_SECTIONS.map(({ category, faqs }) => (
             <div key={category} style={{ marginBottom: "2rem" }}>
               <h2 style={{ margin: "0 0 0.85rem", fontWeight: "800", fontSize: "1.05rem", color: "var(--color-text-primary, #1e293b)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{category}</h2>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(520px, 1fr))", gap: "0.65rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 520px), 1fr))", gap: "0.65rem" }}>
                 {faqs.map(({ q, a }) => (
                   <details key={q} style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "0.9rem 1.1rem", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}>
                     <summary style={{ fontWeight: 700, fontSize: "0.92rem", color: "var(--color-text-primary, #1e293b)", cursor: "pointer", listStyle: "none", display: "flex", justifyContent: "space-between", alignItems: "center", gap: "1rem" }}>

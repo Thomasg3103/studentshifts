@@ -46,6 +46,12 @@ export default function LandingPage() {
   const [locations, setLocations] = useState([]);
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [stats,     setStats]     = useState({ students: null, jobs: null, companies: null });
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    const onResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const [studentsCount, studentsRef] = useCountUp(stats.students);
   const [jobsCount,     jobsRef]     = useCountUp(stats.jobs);
   const [companiesCount,companiesRef]= useCountUp(stats.companies);
@@ -113,15 +119,15 @@ export default function LandingPage() {
         position: "sticky", top: 0, zIndex: 200,
       }}>
         {/* Logo */}
-        <div onClick={() => navigate("/")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.85rem" }}>
-          <LogoIcon />
-          <span style={{ fontSize: "1.7rem", fontWeight: 800, color: "white", letterSpacing: "-0.02em" }}>
-            StudentShifts<span style={{ opacity: 0.7 }}>.ie</span>
+        <div onClick={() => navigate("/")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.85rem", flexShrink: 1, minWidth: 0, overflow: "hidden" }}>
+          {windowWidth >= 480 && <LogoIcon />}
+          <span style={{ fontSize: windowWidth < 480 ? "1.4rem" : "1.7rem", fontWeight: 800, color: "white", letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
+            StudentShifts{windowWidth >= 480 && <span style={{ opacity: 0.7 }}>.ie</span>}
           </span>
         </div>
 
         {/* Account icon + Hamburger */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", position: "relative" }} ref={menuRef}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", position: "relative", flexShrink: 0 }} ref={menuRef}>
           <button
             onClick={() => navigate("/login")}
             title="Login / Sign Up"
@@ -211,13 +217,13 @@ export default function LandingPage() {
         <div style={{ display: "flex", gap: "0.75rem", maxWidth: "420px", margin: "0 auto 1rem", flexWrap: "wrap", justifyContent: "center" }}>
           <button
             onClick={() => navigate("/signup")}
-            style={{ flex: 1, minWidth: "170px", padding: "0.95rem 1.5rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)" }}
+            style={{ flex: 1, minWidth: "170px", padding: "0.95rem 1.5rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)", whiteSpace: "nowrap" }}
           >
             Find Shifts — It's Free →
           </button>
           <button
             onClick={() => navigate("/signup?role=company")}
-            style={{ flex: 1, minWidth: "170px", padding: "0.95rem 1.5rem", borderRadius: "2rem", border: "1.5px solid rgba(255,255,255,0.35)", background: "transparent", color: "white", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit" }}
+            style={{ flex: 1, minWidth: "170px", padding: "0.95rem 1.5rem", borderRadius: "2rem", border: "1.5px solid rgba(255,255,255,0.35)", background: "transparent", color: "white", fontWeight: 700, fontSize: "0.95rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}
           >
             I'm Hiring Students →
           </button>

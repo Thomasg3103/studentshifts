@@ -125,7 +125,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onRe
           )}
 
           {/* Secondary actions */}
-          <div style={{ display: "flex", gap: "0.35rem", marginLeft: "auto" }}>
+          <div style={{ display: "flex", gap: "0.35rem", marginLeft: "auto", overflowX: "auto", WebkitOverflowScrolling: "touch", flexShrink: 1, minWidth: 0 }}>
             {onLoadMatches && isActive && posting.days?.length > 0 && (
               <button
                 onClick={() => {

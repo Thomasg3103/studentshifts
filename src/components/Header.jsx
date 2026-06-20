@@ -103,7 +103,7 @@ export default function Header() {
     <>
       <header style={{
         display: "flex", alignItems: "center",
-        justifyContent: isMobile ? "center" : "space-between",
+        justifyContent: "space-between",
         padding: isMobile ? "0.6rem 1rem" : "0.85rem 2.5rem",
         background: "linear-gradient(135deg, var(--color-brand) 0%, var(--color-brand-dark) 100%)",
         color: "white",
@@ -228,9 +228,9 @@ export default function Header() {
           </div>
         )}
 
-        {/* Mobile: dark toggle + hamburger, absolutely right */}
+        {/* Mobile: dark toggle + hamburger */}
         {isMobile && (
-          <div ref={menuRef} style={{ position: "absolute", right: "1rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+          <div ref={menuRef} style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexShrink: 0 }}>
             <button
               aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
               onClick={toggleDarkMode}

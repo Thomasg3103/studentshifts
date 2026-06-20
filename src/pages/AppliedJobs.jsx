@@ -415,7 +415,7 @@ export default function AppliedJobs() {
         </div>
       ) : (
         <>
-          <div role="list" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem" }}>
+          <div role="list" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem", paddingBottom: "80px" }}>
             {sorted.map(job => (
               <AppliedJobCard
                 key={job.id}

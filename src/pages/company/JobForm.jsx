@@ -118,6 +118,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
     const onMove = (e) => {
       const d = dragRef.current;
       if (!d.active) return;
+      if (e.touches && e.cancelable) e.preventDefault();
       const cx = e.touches ? e.touches[0].clientX : e.clientX;
       const cy = e.touches ? e.touches[0].clientY : e.clientY;
       if (!previewRef.current) return;
@@ -552,7 +553,7 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
               </div>
               <div
                 ref={previewRef}
-                style={{ position: "relative", width: "100%", backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.6rem", overflow: "hidden", border: "1.5px solid var(--color-border-light, #e2e8f0)", cursor: isDragging ? "grabbing" : "grab", userSelect: "none" }}
+                style={{ position: "relative", width: "100%", backgroundColor: "var(--color-bg-surface, #f8fafc)", borderRadius: "0.6rem", overflow: "hidden", border: "1.5px solid var(--color-border-light, #e2e8f0)", cursor: isDragging ? "grabbing" : "grab", userSelect: "none", touchAction: "none" }}
                 onMouseDown={e => { e.preventDefault(); startDrag(e.clientX, e.clientY); }}
                 onTouchStart={e => { e.preventDefault(); startDrag(e.touches[0].clientX, e.touches[0].clientY); }}
               >

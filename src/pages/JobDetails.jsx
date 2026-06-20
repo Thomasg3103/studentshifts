@@ -380,11 +380,11 @@ export default function JobDetails({ job }) {
               </div>
               {/* Title + company — centred */}
               <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
-                <h1 style={{ fontWeight: 800, fontSize: "2.7rem", margin: "0 0 0.2rem", color: "var(--color-text-primary, #1e293b)", lineHeight: 1.1 }}>{job.title}</h1>
+                <h1 style={{ fontWeight: 800, fontSize: isNarrow ? "1.5rem" : "2.7rem", margin: "0 0 0.2rem", color: "var(--color-text-primary, #1e293b)", lineHeight: 1.1 }}>{job.title}</h1>
                 <p style={{ margin: 0 }}>
                   <button
                     onClick={() => job.companyId && navigate(`/companies/${job.companyId}`)}
-                    style={{ background: "none", border: "none", padding: 0, cursor: job.companyId ? "pointer" : "default", color: "var(--color-text-secondary, #64748b)", fontSize: "1.8rem", fontWeight: 500, fontFamily: "inherit", textDecoration: job.companyId ? "underline" : "none", textDecorationStyle: "dotted", textUnderlineOffset: "3px" }}
+                    style={{ background: "none", border: "none", padding: 0, cursor: job.companyId ? "pointer" : "default", color: "var(--color-text-secondary, #64748b)", fontSize: isNarrow ? "1rem" : "1.8rem", fontWeight: 500, fontFamily: "inherit", textDecoration: job.companyId ? "underline" : "none", textDecorationStyle: "dotted", textUnderlineOffset: "3px" }}
                   >{job.company}</button>
                 </p>
               </div>

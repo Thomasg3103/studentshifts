@@ -1,4 +1,4 @@
-﻿import React from "react";
+﻿import React, { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
@@ -9,6 +9,12 @@ import { supabaseImg } from "../utils/img";
 
 export default function LikedJobs() {
   const { likedJobs, setLikedJobs, setSavedLikedJobIds, setSelectedJob, setPage, currentUser, savedAppliedJobIds = [] } = useApp();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 600);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
 
   const removeLike = (job) => {
     setLikedJobs(prev => prev.filter(j => j.id !== job.id));
@@ -67,8 +73,8 @@ export default function LikedJobs() {
                     )}
                   </div>
                   <div style={{ flex: 1, padding: "0.85rem 1rem", minWidth: 0 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.2rem" }}>
-                      <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: isClosed ? "#64748b" : "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title}</h2>
+                    <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "flex-start", gap: "0.4rem", marginBottom: "0.2rem" }}>
+                      <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: isClosed ? "#64748b" : "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{job.title}</h2>
                       <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
                         <button aria-label={`View ${job.title}`} onClick={() => viewJob(job)} style={btnBlue}>View Job</button>
                         <button aria-label={`Remove ${job.title} from liked jobs`} onClick={() => removeLike(job)} style={btnRed}>Unsave</button>
