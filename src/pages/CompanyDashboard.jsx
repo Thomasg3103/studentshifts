@@ -91,11 +91,21 @@ export default function CompanyDashboard() {
     handleSaveTrialSchedule,
   } = useHiringPipeline({ activePosting, setPostings, setActivePosting, currentUser });
 
-  // Body scroll lock when any modal is open
+  // Body scroll lock when any modal is open (iOS-safe: position fixed)
   useEffect(() => {
     if (modal) {
+      const scrollY = window.scrollY;
       document.body.style.overflow = "hidden";
-      return () => { document.body.style.overflow = ""; };
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      return () => {
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        window.scrollTo(0, scrollY);
+      };
     }
   }, [modal]);
 
@@ -912,12 +922,12 @@ export default function CompanyDashboard() {
       {/* Applicants Modal â€" wide overlay */}
       {modal === "applicants" && activePosting && (
         <div onClick={closeModal} className="applicants-modal-overlay" style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.55)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)", animation: "fadeInOverlay 0.18s ease" }}>
-          <div ref={applicantsModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="applicants-modal-title" className="applicants-modal" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "0.85rem", width: "100%", maxWidth: "min(96vw, 1500px)", minHeight: "88vh", maxHeight: "96vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid var(--color-border-light, #e2e8f0)" }}>
+          <div ref={applicantsModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-labelledby="applicants-modal-title" className="applicants-modal" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "0.85rem", width: "100%", maxWidth: "min(96vw, 1500px)", height: "88vh", maxHeight: "88vh", display: "flex", flexDirection: "column", boxShadow: "0 20px 60px rgba(0,0,0,0.18)", overflow: "hidden", border: "1px solid var(--color-border-light, #e2e8f0)" }}>
             {/* Header */}
             <div style={{ minHeight: "60px", padding: "0.75rem 1.75rem", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between", flexShrink: 0, gap: "1rem" }}>
               <div style={{ display: "flex", flexDirection: "column", gap: "0.1rem", flex: 1, minWidth: 0 }}>
                 <h2 id="applicants-modal-title" style={{ margin: 0, fontWeight: "700", fontSize: "1.05rem", color: "var(--color-text-primary, #0f172a)", letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.title}</h2>
-                <span style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{activePosting.location} · {activePosting.pay}</span>
+                <span style={{ fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", lineHeight: "1.3" }}>{activePosting.location} · {activePosting.pay}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexShrink: 0 }}>
                 {[{ val: "list", label: "List" }, { val: "kanban", label: "Board" }].map(({ val, label }) => (
