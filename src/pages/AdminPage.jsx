@@ -1,4 +1,5 @@
 ﻿import { useState, useEffect, useRef, useCallback } from "react";
+import { supabase } from "../lib/supabase";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { Helmet } from "react-helmet-async";
@@ -31,6 +32,12 @@ export default function AdminPage() {
   const [verifiedCompanies, setVerifiedCompanies] = useState(null); // null = not yet fetched
   const [verifiedLoading, setVerifiedLoading]     = useState(false);
   const [featuredToggling, setFeaturedToggling]   = useState(null); // company id being toggled
+  const [forumPosts,       setForumPosts]         = useState(null); // null = not yet fetched
+  const [forumLoading,     setForumLoading]       = useState(false);
+  const [forumExpandedId,  setForumExpandedId]    = useState(null);
+  const [forumComments,    setForumComments]      = useState({});
+  const [deletingForumPost,  setDeletingForumPost]  = useState(null);
+  const [deletingCommentId,  setDeletingCommentId]  = useState(null);
 
   // F-M10: extracted so the Refresh button can re-call it
   const loadData = useCallback(() => {
@@ -72,6 +79,75 @@ export default function AdminPage() {
         .finally(() => setVerifiedLoading(false));
     }
   }, [tab, verifiedCompanies]);
+
+  const loadForumPosts = useCallback(async () => {
+    setForumLoading(true);
+    try {
+      const { data, error: err } = await supabase
+        .from("forum_posts")
+        .select("id, author_name, category, title, body, upvotes, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (err) throw err;
+      setForumPosts(data || []);
+    } catch {
+      toast.error("Failed to load forum posts.");
+      setForumPosts([]);
+    } finally {
+      setForumLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === "forum" && forumPosts === null) loadForumPosts();
+  }, [tab, forumPosts, loadForumPosts]);
+
+  const loadForumComments = async (postId) => {
+    setForumComments(prev => ({ ...prev, [postId]: { loading: true, data: [] } }));
+    try {
+      const { data, error: err } = await supabase
+        .from("forum_comments")
+        .select("id, author_name, body, created_at")
+        .eq("post_id", postId)
+        .order("created_at", { ascending: true });
+      if (err) throw err;
+      setForumComments(prev => ({ ...prev, [postId]: { loading: false, data: data || [] } }));
+    } catch {
+      setForumComments(prev => ({ ...prev, [postId]: { loading: false, data: [], error: true } }));
+    }
+  };
+
+  const handleDeleteForumPost = async (postId) => {
+    setDeletingForumPost(postId);
+    try {
+      const { error: err } = await supabase.from("forum_posts").delete().eq("id", postId);
+      if (err) throw err;
+      setForumPosts(prev => prev.filter(p => p.id !== postId));
+      if (forumExpandedId === postId) setForumExpandedId(null);
+      toast.success("Post deleted.");
+    } catch {
+      toast.error("Failed to delete post.");
+    } finally {
+      setDeletingForumPost(null);
+    }
+  };
+
+  const handleDeleteForumComment = async (postId, commentId) => {
+    setDeletingCommentId(commentId);
+    try {
+      const { error: err } = await supabase.from("forum_comments").delete().eq("id", commentId);
+      if (err) throw err;
+      setForumComments(prev => ({
+        ...prev,
+        [postId]: { ...prev[postId], data: prev[postId].data.filter(c => c.id !== commentId) },
+      }));
+      toast.success("Comment deleted.");
+    } catch {
+      toast.error("Failed to delete comment.");
+    } finally {
+      setDeletingCommentId(null);
+    }
+  };
 
   const handleToggleFeatured = async (company) => {
     if (featuredToggling) return;
@@ -290,6 +366,7 @@ export default function AdminPage() {
             { key: "companies", label: "Companies", count: pendingCompanies },
             { key: "signups",   label: "Signups",   count: 0 },
             { key: "featured",  label: "Featured",  count: 0 },
+            { key: "forum",     label: "Forum",     count: 0 },
           ].map(({ key, label, count }) => {
             const active = tab === key;
             return (
@@ -373,6 +450,90 @@ export default function AdminPage() {
             onSendLaunch={handleSendLaunchEmails}
             onTestLaunch={handleTestLaunchEmail}
           />
+        ) : tab === "forum" ? (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)" }}>
+                Review all community posts and comments. Delete anything inappropriate.
+              </p>
+              <button onClick={loadForumPosts} style={docBtn}>↻ Refresh</button>
+            </div>
+            {forumLoading ? (
+              <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
+            ) : !forumPosts?.length ? (
+              <EmptyState label="No forum posts yet" />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                {forumPosts.map(post => {
+                  const isExpanded = forumExpandedId === post.id;
+                  const comments = forumComments[post.id];
+                  return (
+                    <div key={post.id} style={cardStyle}>
+                      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.75rem" }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginBottom: "0.3rem" }}>
+                            <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: "#f1f5f9", color: "#475569", borderRadius: "999px", padding: "0.1rem 0.5rem" }}>{post.category}</span>
+                            <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{post.author_name}</span>
+                            <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>·</span>
+                            <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>{new Date(post.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                            <span style={{ fontSize: "0.72rem", color: "#94a3b8" }}>· ▲ {post.upvotes}</span>
+                          </div>
+                          <p style={{ margin: "0 0 0.2rem", fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #0f172a)" }}>{post.title}</p>
+                          <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-secondary, #475569)", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: isExpanded ? undefined : 2, WebkitBoxOrient: "vertical" }}>{post.body}</p>
+                        </div>
+                        <button
+                          onClick={() => handleDeleteForumPost(post.id)}
+                          disabled={deletingForumPost === post.id}
+                          style={{ padding: "0.3rem 0.7rem", borderRadius: "0.4rem", border: "1.5px solid #fca5a5", backgroundColor: "#fff1f2", color: "#e11d48", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
+                        >
+                          {deletingForumPost === post.id ? "…" : "Delete Post"}
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (isExpanded) { setForumExpandedId(null); } else {
+                            setForumExpandedId(post.id);
+                            if (!forumComments[post.id]) loadForumComments(post.id);
+                          }
+                        }}
+                        style={{ marginTop: "0.65rem", background: "none", border: "none", color: "#64748b", fontSize: "0.78rem", fontWeight: "600", cursor: "pointer", fontFamily: "inherit", padding: 0 }}
+                      >
+                        {isExpanded ? "▲ Hide comments" : "▼ View comments"}
+                      </button>
+                      {isExpanded && (
+                        <div style={{ marginTop: "0.6rem", borderTop: "1px solid #e2e8f0", paddingTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                          {comments?.loading ? (
+                            <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>Loading…</p>
+                          ) : !comments?.data?.length ? (
+                            <p style={{ fontSize: "0.8rem", color: "#94a3b8", margin: 0 }}>No comments on this post.</p>
+                          ) : (
+                            comments.data.map(comment => (
+                              <div key={comment.id} style={{ display: "flex", alignItems: "flex-start", gap: "0.6rem", backgroundColor: "var(--color-bg-elevated, white)", border: "1px solid #e2e8f0", borderRadius: "0.5rem", padding: "0.5rem 0.7rem" }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.2rem" }}>
+                                    <span style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-body, #374151)" }}>{comment.author_name}</span>
+                                    <span style={{ fontSize: "0.68rem", color: "#94a3b8" }}>{new Date(comment.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}</span>
+                                  </div>
+                                  <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-secondary, #475569)" }}>{comment.body}</p>
+                                </div>
+                                <button
+                                  onClick={() => handleDeleteForumComment(post.id, comment.id)}
+                                  disabled={deletingCommentId === comment.id}
+                                  style={{ padding: "0.2rem 0.55rem", borderRadius: "0.35rem", border: "1.5px solid #fca5a5", backgroundColor: "#fff1f2", color: "#e11d48", fontWeight: "700", fontSize: "0.72rem", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
+                                >
+                                  {deletingCommentId === comment.id ? "…" : "Delete"}
+                                </button>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         ) : loading ? (
           <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
         ) : tab === "students" ? (

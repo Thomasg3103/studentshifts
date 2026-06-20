@@ -43,10 +43,13 @@ CREATE POLICY "forum_posts_insert"
     )
   );
 
--- Author can delete their own posts
+-- Author OR admin can delete posts
 DROP POLICY IF EXISTS "forum_posts_delete" ON forum_posts;
 CREATE POLICY "forum_posts_delete"
-  ON forum_posts FOR DELETE USING (author_id = auth.uid());
+  ON forum_posts FOR DELETE USING (
+    author_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+  );
 
 -- Anyone can read votes
 DROP POLICY IF EXISTS "forum_votes_select" ON forum_votes;
@@ -93,10 +96,13 @@ CREATE POLICY "forum_comments_insert"
     )
   );
 
--- Author can delete their own comments
+-- Author OR admin can delete comments
 DROP POLICY IF EXISTS "forum_comments_delete" ON forum_comments;
 CREATE POLICY "forum_comments_delete"
-  ON forum_comments FOR DELETE USING (author_id = auth.uid());
+  ON forum_comments FOR DELETE USING (
+    author_id = auth.uid()
+    OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin')
+  );
 
 -- 4. RPC: toggle_forum_vote — atomically votes/unvotes and updates post upvote count
 CREATE OR REPLACE FUNCTION toggle_forum_vote(p_post_id UUID)
