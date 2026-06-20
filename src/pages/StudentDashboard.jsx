@@ -1026,7 +1026,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                   <div key={job.id} role="listitem" className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
 
                     {/* Photo — square on phone, wider side column on desktop */}
-                    <div style={{ width: isPhone ? "110px" : "180px", height: isPhone ? "110px" : undefined, flexShrink: 0, alignSelf: isPhone ? "flex-start" : "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem" }}>
+                    <div style={{ width: isPhone ? "110px" : "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                           <img loading="lazy" src={photo} alt={`${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -1047,7 +1047,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                     </div>
 
                     {/* Content */}
-                    <div style={{ flex: 1, padding: isPhone ? "0.6rem 0.7rem" : "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div style={{ flex: 1, padding: isPhone ? "0.45rem 0.6rem" : "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", gap: isPhone ? "0.18rem" : undefined, justifyContent: isPhone ? undefined : "space-between" }}>
                       {/* Top: title + company + pills */}
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.1rem" }}>
@@ -1068,10 +1068,10 @@ export default function StudentDashboard({ restoreScrollY }) {
                             )}
                           </button>
                         </div>
-                        <p style={{ margin: isPhone ? "0 0 0.05rem" : "0 0 0.15rem", fontSize: isPhone ? "0.72rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
+                        <p style={{ margin: isPhone ? 0 : "0 0 0.15rem", fontSize: isPhone ? "0.72rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
                           <span onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</span>
                         </p>
-                        <p style={{ margin: isPhone ? "0 0 0.25rem" : "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>
+                        <p style={{ margin: isPhone ? 0 : "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>
                         <div style={{ display: "flex", flexWrap: isPhone ? "nowrap" : "wrap", gap: "0.3rem", overflowX: isPhone ? "auto" : "visible", WebkitOverflowScrolling: "touch", paddingBottom: isPhone ? "1px" : 0 }}>
                           {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
@@ -1092,7 +1092,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                       </div>
 
                       {/* Bottom: pay + deadline + updated */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginTop: isPhone ? 0 : "0.4rem" }}>
                         <span style={{ fontWeight: 800, color: "var(--color-brand)", fontSize: isPhone ? "0.95rem" : "1.35rem", letterSpacing: "-0.01em" }}>
                           <span style={{ opacity: 0.6, fontWeight: 700 }}>€</span>{job.pay.replace(/€/g, "")}
                         </span>
