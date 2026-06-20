@@ -1055,11 +1055,11 @@ export default function StudentDashboard({ restoreScrollY }) {
                           <span onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</span>
                         </p>
                         <p style={{ margin: isPhone ? "0 0 0.25rem" : "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                        <div style={{ display: "flex", flexWrap: isPhone ? "nowrap" : "wrap", gap: "0.3rem", overflowX: isPhone ? "auto" : "visible", WebkitOverflowScrolling: "touch", paddingBottom: isPhone ? "1px" : 0 }}>
                           {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
                             return (
-                              <span key={day} className={`badge ${isFilled ? "badge-gray" : "badge-brand"} ${isPhone ? "badge-sm" : "badge-lg"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }} title={isFilled ? "This shift has been filled" : undefined}>
+                              <span key={day} className={`badge ${isFilled ? "badge-gray" : "badge-brand"} ${isPhone ? "badge-sm" : "badge-lg"}`} style={{ textDecoration: isFilled ? "line-through" : "none", flexShrink: 0 }} title={isFilled ? "This shift has been filled" : undefined}>
                                 {day.slice(0, 3)} · {job.times[day]?.join(", ")}{isFilled ? " ✓" : ""}
                               </span>
                             );
@@ -1115,14 +1115,14 @@ export default function StudentDashboard({ restoreScrollY }) {
                           }
                           return <span className={`badge ${dlSoon ? "badge-yellow" : "badge-gray"} ${isPhone ? "badge-sm" : ""}`}>Closes {deadlineLabel(dl)}</span>;
                         })()}
-                        {job.updatedAt && (
-                          <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "var(--color-text-secondary, #64748b)", marginLeft: "auto" }}>
+                        {job.updatedAt && !isPhone && (
+                          <span style={{ fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)", marginLeft: "auto" }}>
                             Updated {new Date(job.updatedAt).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}
                           </span>
                         )}
                       </div>
                       {/* Social proof + match score + job alerts */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.2rem", flexWrap: isPhone ? "nowrap" : "wrap", overflowX: isPhone ? "auto" : "visible", WebkitOverflowScrolling: "touch" }}>
                         {(applicantCounts[job.id] ?? 0) > 0 && (
                           <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 500 }}>
                             👥 {applicantCounts[job.id]} applicant{applicantCounts[job.id] !== 1 ? "s" : ""}
@@ -1149,7 +1149,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                           onClick={e => { e.stopPropagation(); const next = !jobAlerts; setJobAlerts(next); try { localStorage.setItem("ss_job_alerts", next ? "1" : "0"); } catch { /* ignore */ } }}
                           title={jobAlerts ? "Job alerts on — you'll be notified of new matching jobs" : "Get notified when similar jobs are posted (coming soon)"}
                           aria-label={jobAlerts ? "Disable job alerts" : "Enable job alerts"}
-                          style={{ marginLeft: "auto", padding: "0.1rem 0.4rem", borderRadius: "999px", border: `1px solid ${jobAlerts ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, background: jobAlerts ? "#fce7f3" : "var(--color-bg-elevated, white)", color: jobAlerts ? "var(--color-brand)" : "var(--color-text-secondary, #94a3b8)", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}
+                          style={{ marginLeft: isPhone ? 0 : "auto", padding: "0.1rem 0.4rem", borderRadius: "999px", border: `1px solid ${jobAlerts ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, background: jobAlerts ? "#fce7f3" : "var(--color-bg-elevated, white)", color: jobAlerts ? "var(--color-brand)" : "var(--color-text-secondary, #94a3b8)", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}
                         >{jobAlerts ? "🔔 Alerts on" : "🔔 Alert me"}</button>
                       </div>
                     </div>

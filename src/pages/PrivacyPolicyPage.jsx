@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import BackButton from "../components/BackButton";
 
@@ -6,6 +7,13 @@ const LAST_UPDATED  = "7 June 2026";
 const EFFECTIVE     = "7 June 2026";
 
 export default function PrivacyPolicyPage() {
+  const [showTop, setShowTop] = useState(false);
+  useEffect(() => {
+    const handler = () => setShowTop(window.scrollY > 400);
+    window.addEventListener("scroll", handler, { passive: true });
+    return () => window.removeEventListener("scroll", handler);
+  }, []);
+
   return (
     <>
       <Helmet>
@@ -534,16 +542,14 @@ export default function PrivacyPolicyPage() {
 
         </div>
 
-        {/* Back to top */}
-        <div style={{ textAlign: "center", padding: "2rem 0 1rem" }}>
-          <button
-            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", border: "1.5px solid var(--color-brand)", background: "var(--color-bg-elevated, white)", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.85rem", fontFamily: "inherit", cursor: "pointer" }}
-          >
-            ↑ Back to top
-          </button>
-        </div>
       </div>
+      {showTop && (
+        <button
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          aria-label="Back to top"
+          style={{ position: "fixed", bottom: "2rem", right: "1.25rem", width: "44px", height: "44px", borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", border: "none", color: "white", fontSize: "1.2rem", cursor: "pointer", boxShadow: "0 4px 16px rgba(162,29,84,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150 }}
+        >↑</button>
+      )}
     </>
   );
 }
