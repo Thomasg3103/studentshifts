@@ -314,6 +314,12 @@ export default function LandingPage() {
           >
             Create My Free Account →
           </button>
+          <p style={{ margin: "0.85rem 0 0", fontSize: "0.83rem", color: "rgba(255,255,255,0.5)" }}>
+            Already have an account?{" "}
+            <button onClick={() => navigate("/login")} style={{ background: "none", border: "none", color: "rgba(255,255,255,0.85)", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: "inherit", textDecoration: "underline", padding: 0 }}>
+              Sign in
+            </button>
+          </p>
         </div>
 
       </div>
