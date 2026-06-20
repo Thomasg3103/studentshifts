@@ -117,14 +117,14 @@ export default function Header() {
           className="header-logo"
           onClick={() => setPage(homeRoute)}
           aria-label="StudentShifts — go to home"
-          style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: isMobile ? "0.4rem" : "0.85rem", flexShrink: 0, transition: "transform 0.15s", background: "none", border: "none", padding: 0, marginLeft: undefined }}
+          style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.4rem", flexShrink: 0, transition: "transform 0.15s", background: "none", border: "none", padding: 0 }}
           onMouseEnter={e => e.currentTarget.style.transform = "scale(1.03)"}
           onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
         >
           <div className="header-logo-icon"><LogoIcon /></div>
           <div className="header-logo-text" style={{ lineHeight: 1.15 }}>
             <span style={{ fontSize: "1.7rem", fontWeight: "800", color: "white", letterSpacing: "-0.02em" }}>
-              StudentShifts<span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>.ie</span>
+              Student<span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>Shifts.ie</span>
             </span>
           </div>
         </button>
