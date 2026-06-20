@@ -347,11 +347,11 @@ export default function JobDetails({ job }) {
           {/* RIGHT: main white card */}
           <div style={{ flex: 1, minWidth: 0, backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 2rem", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
 
-            {/* Header: stacked on narrow, row on wide */}
-            <div style={{ display: "flex", flexDirection: isNarrow ? "column" : "row", alignItems: isNarrow ? "center" : "center", gap: "1rem", marginBottom: "1.5rem" }}>
-              {/* Square image with dot nav when multiple photos */}
-              <div style={{ width: isNarrow ? "120px" : "144px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem" }}>
-                <div style={{ width: isNarrow ? "120px" : "144px", height: isNarrow ? "120px" : "144px", borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
+            {/* Header: photo left; mobile stacks title+apply in right column; desktop keeps centre title + right apply */}
+            <div style={{ display: "flex", flexDirection: "row", alignItems: isNarrow ? "flex-start" : "center", gap: isNarrow ? "0.85rem" : "1rem", marginBottom: "1.5rem" }}>
+              {/* Photo */}
+              <div style={{ width: isNarrow ? "140px" : "144px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem" }}>
+                <div style={{ width: isNarrow ? "140px" : "144px", height: isNarrow ? "140px" : "144px", borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
                   {photos.length > 0 ? (
                     <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                       <img loading="lazy" src={photos[idx] && photos[idx].includes("supabase.co") ? `${photos[idx]}?width=300&quality=80` : photos[idx]} alt={`Photo of ${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -361,7 +361,6 @@ export default function JobDetails({ job }) {
                       <span style={{ fontSize: "1.5rem", opacity: 0.4 }}>🏢</span>
                     </div>
                   )}
-                  {/* Prev / Next arrows overlaid on image */}
                   {photos.length > 1 && (
                     <>
                       <button aria-label="Previous photo" onClick={e => { e.stopPropagation(); setPhotoIdx((idx - 1 + photos.length) % photos.length); }} style={{ position: "absolute", left: "4px", top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.45)", border: "none", color: "white", borderRadius: "50%", width: "24px", height: "24px", fontSize: "0.85rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>‹</button>
@@ -369,7 +368,6 @@ export default function JobDetails({ job }) {
                     </>
                   )}
                 </div>
-                {/* Dot indicators */}
                 {photos.length > 1 && (
                   <div style={{ display: "flex", gap: "5px" }}>
                     {photos.map((_, i) => (
@@ -378,82 +376,120 @@ export default function JobDetails({ job }) {
                   </div>
                 )}
               </div>
-              {/* Title + company */}
-              <div style={{ flex: 1, minWidth: 0, textAlign: isNarrow ? "center" : "center", width: isNarrow ? "100%" : "auto" }}>
-                <h1 style={{ fontWeight: 800, fontSize: isNarrow ? "1.4rem" : "2.7rem", margin: "0 0 0.2rem", color: "var(--color-text-primary, #1e293b)", lineHeight: 1.2 }}>{job.title}</h1>
-                <p style={{ margin: 0 }}>
-                  <button
-                    onClick={() => job.companyId && navigate(`/companies/${job.companyId}`)}
-                    style={{ background: "none", border: "none", padding: 0, cursor: job.companyId ? "pointer" : "default", color: "var(--color-text-secondary, #64748b)", fontSize: isNarrow ? "1rem" : "1.8rem", fontWeight: 500, fontFamily: "inherit", textDecoration: job.companyId ? "underline" : "none", textDecorationStyle: "dotted", textUnderlineOffset: "3px" }}
-                  >{job.company}</button>
-                </p>
-              </div>
-              {/* Right: heart + apply, or single green tick when applied */}
-              {isApplied ? (
-                <div style={{ width: "48px", height: "48px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: "0.65rem" }}>
-                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.3rem", flexShrink: 0 }}>
-                  <div style={{ display: "flex", gap: "0.5rem" }}>
-                    <button
-                      onClick={toggleLike}
-                      title={isLiked ? "Unlike" : "Like"}
-                      style={{ width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", cursor: "pointer", padding: 0 }}
-                    >
-                      {isLiked ? (
-                        <svg width="26" height="26" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                      ) : (
-                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                      )}
-                    </button>
-                    {(() => {
-                      if (job.status === "Closed" || job.status === "Expired") {
-                        return (
-                          <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem" }}>
-                            <div style={{ ...btn, background: "#e2e8f0", color: "var(--color-text-secondary, #64748b)", cursor: "default", textAlign: "center" }}>
-                              {job.status === "Closed" ? "Position Filled" : "Expired"}
-                            </div>
-                            {job.status === "Closed" && currentUser?.role === "student" && waitlistStatus !== null && (
-                              <button
-                                onClick={toggleWaitlist}
-                                disabled={waitlistLoading}
-                                style={{ padding: "0.4rem 0.85rem", borderRadius: "2rem", border: `1.5px solid ${waitlistStatus === "on" ? "#fca5a5" : "var(--color-brand)"}`, background: waitlistStatus === "on" ? "#fff1f2" : "var(--color-bg-elevated, white)", color: waitlistStatus === "on" ? "#dc2626" : "var(--color-brand)", fontWeight: 700, fontSize: "0.78rem", cursor: waitlistLoading ? "default" : "pointer", fontFamily: "inherit", opacity: waitlistLoading ? 0.7 : 1 }}
-                              >
-                                {waitlistLoading ? "…" : waitlistStatus === "on" ? "Leave Waitlist" : "Join Waitlist"}
-                              </button>
-                            )}
-                          </div>
-                        );
-                      }
-                      const noCv = currentUser?.verificationStatus === "verified" && !currentUser?.cvName;
-                      return (
-                        <button
-                          onClick={noCv ? undefined : handleApply}
-                          disabled={noCv}
-                          style={{ ...btn, background: noCv ? "#e2e8f0" : "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: noCv ? "#64748b" : "white", boxShadow: noCv ? "none" : "0 3px 10px rgba(162,29,84,0.35)", cursor: noCv ? "not-allowed" : "pointer" }}
-                        >
-                          Apply Now
+
+              {isNarrow ? (
+                /* Mobile: title + company + apply all in right column */
+                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", minHeight: "140px" }}>
+                  <h1 style={{ fontWeight: 800, fontSize: "1.25rem", margin: "0 0 0.15rem", color: "var(--color-text-primary, #1e293b)", lineHeight: 1.2 }}>{job.title}</h1>
+                  <p style={{ margin: "0 0 0.3rem" }}>
+                    <button onClick={() => job.companyId && navigate(`/companies/${job.companyId}`)} style={{ background: "none", border: "none", padding: 0, cursor: job.companyId ? "pointer" : "default", color: "var(--color-text-secondary, #64748b)", fontSize: "0.9rem", fontWeight: 500, fontFamily: "inherit", textDecoration: job.companyId ? "underline" : "none", textDecorationStyle: "dotted", textUnderlineOffset: "3px" }}>{job.company}</button>
+                  </p>
+                  <div style={{ flex: 1 }} />
+                  {isApplied ? (
+                    <div style={{ width: "36px", height: "36px", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: "0.65rem" }}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <button onClick={toggleLike} title={isLiked ? "Unlike" : "Like"} style={{ width: "40px", height: "40px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", cursor: "pointer", padding: 0 }}>
+                          {isLiked ? (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                          ) : (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                          )}
                         </button>
-                      );
-                    })()}
-                  </div>
-                  {currentUser?.verificationStatus === "verified" && !currentUser?.cvName && (
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.5rem", backgroundColor: "#fef9c3", border: "1.5px solid #fcd34d", borderRadius: "0.6rem", padding: "0.45rem 0.75rem" }}>
-                      <span style={{ fontSize: "0.78rem", color: "#78350f", fontWeight: 600 }}>A CV is required to apply</span>
-                      <button onClick={() => setPage("account")} style={{ fontSize: "0.78rem", fontWeight: 700, color: "#d97706", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontFamily: "inherit" }}>
-                        Upload CV →
-                      </button>
+                        {(() => {
+                          if (job.status === "Closed" || job.status === "Expired") {
+                            return (
+                              <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                                <div style={{ padding: "0.5rem 0.75rem", borderRadius: "2rem", background: "#e2e8f0", color: "var(--color-text-secondary, #64748b)", cursor: "default", textAlign: "center", fontWeight: 700, fontSize: "0.82rem" }}>
+                                  {job.status === "Closed" ? "Position Filled" : "Expired"}
+                                </div>
+                                {job.status === "Closed" && currentUser?.role === "student" && waitlistStatus !== null && (
+                                  <button onClick={toggleWaitlist} disabled={waitlistLoading} style={{ padding: "0.38rem 0.75rem", borderRadius: "2rem", border: `1.5px solid ${waitlistStatus === "on" ? "#fca5a5" : "var(--color-brand)"}`, background: waitlistStatus === "on" ? "#fff1f2" : "var(--color-bg-elevated, white)", color: waitlistStatus === "on" ? "#dc2626" : "var(--color-brand)", fontWeight: 700, fontSize: "0.75rem", cursor: waitlistLoading ? "default" : "pointer", fontFamily: "inherit", opacity: waitlistLoading ? 0.7 : 1 }}>
+                                    {waitlistLoading ? "…" : waitlistStatus === "on" ? "Leave Waitlist" : "Join Waitlist"}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          }
+                          const noCv = currentUser?.verificationStatus === "verified" && !currentUser?.cvName;
+                          return (
+                            <button onClick={noCv ? undefined : handleApply} disabled={noCv} style={{ flex: 1, padding: "0.5rem 0.75rem", borderRadius: "2rem", border: "none", background: noCv ? "#e2e8f0" : "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: noCv ? "#64748b" : "white", fontWeight: 700, fontSize: "0.88rem", cursor: noCv ? "not-allowed" : "pointer", fontFamily: "inherit", boxShadow: noCv ? "none" : "0 3px 10px rgba(162,29,84,0.35)" }}>
+                              Apply Now
+                            </button>
+                          );
+                        })()}
+                      </div>
+                      {currentUser?.verificationStatus === "verified" && !currentUser?.cvName && (
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", backgroundColor: "#fef9c3", border: "1.5px solid #fcd34d", borderRadius: "0.6rem", padding: "0.38rem 0.6rem" }}>
+                          <span style={{ fontSize: "0.72rem", color: "#78350f", fontWeight: 600 }}>CV required</span>
+                          <button onClick={() => setPage("account")} style={{ fontSize: "0.72rem", fontWeight: 700, color: "#d97706", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontFamily: "inherit" }}>Upload →</button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
+              ) : (
+                /* Desktop: title+company centred, apply on right — unchanged */
+                <>
+                  <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+                    <h1 style={{ fontWeight: 800, fontSize: "2.7rem", margin: "0 0 0.2rem", color: "var(--color-text-primary, #1e293b)", lineHeight: 1.2 }}>{job.title}</h1>
+                    <p style={{ margin: 0 }}>
+                      <button onClick={() => job.companyId && navigate(`/companies/${job.companyId}`)} style={{ background: "none", border: "none", padding: 0, cursor: job.companyId ? "pointer" : "default", color: "var(--color-text-secondary, #64748b)", fontSize: "1.8rem", fontWeight: 500, fontFamily: "inherit", textDecoration: job.companyId ? "underline" : "none", textDecorationStyle: "dotted", textUnderlineOffset: "3px" }}>{job.company}</button>
+                    </p>
+                  </div>
+                  {isApplied ? (
+                    <div style={{ width: "48px", height: "48px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f0fdf4", border: "1.5px solid #86efac", borderRadius: "0.65rem" }}>
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.3rem", flexShrink: 0 }}>
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <button onClick={toggleLike} title={isLiked ? "Unlike" : "Like"} style={{ width: "48px", height: "48px", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", cursor: "pointer", padding: 0 }}>
+                          {isLiked ? (
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                          ) : (
+                            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                          )}
+                        </button>
+                        {(() => {
+                          if (job.status === "Closed" || job.status === "Expired") {
+                            return (
+                              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.4rem" }}>
+                                <div style={{ ...btn, background: "#e2e8f0", color: "var(--color-text-secondary, #64748b)", cursor: "default", textAlign: "center" }}>
+                                  {job.status === "Closed" ? "Position Filled" : "Expired"}
+                                </div>
+                                {job.status === "Closed" && currentUser?.role === "student" && waitlistStatus !== null && (
+                                  <button onClick={toggleWaitlist} disabled={waitlistLoading} style={{ padding: "0.4rem 0.85rem", borderRadius: "2rem", border: `1.5px solid ${waitlistStatus === "on" ? "#fca5a5" : "var(--color-brand)"}`, background: waitlistStatus === "on" ? "#fff1f2" : "var(--color-bg-elevated, white)", color: waitlistStatus === "on" ? "#dc2626" : "var(--color-brand)", fontWeight: 700, fontSize: "0.78rem", cursor: waitlistLoading ? "default" : "pointer", fontFamily: "inherit", opacity: waitlistLoading ? 0.7 : 1 }}>
+                                    {waitlistLoading ? "…" : waitlistStatus === "on" ? "Leave Waitlist" : "Join Waitlist"}
+                                  </button>
+                                )}
+                              </div>
+                            );
+                          }
+                          const noCv = currentUser?.verificationStatus === "verified" && !currentUser?.cvName;
+                          return (
+                            <button onClick={noCv ? undefined : handleApply} disabled={noCv} style={{ ...btn, background: noCv ? "#e2e8f0" : "linear-gradient(135deg,var(--color-brand),var(--color-brand-dark))", color: noCv ? "#64748b" : "white", boxShadow: noCv ? "none" : "0 3px 10px rgba(162,29,84,0.35)", cursor: noCv ? "not-allowed" : "pointer" }}>
+                              Apply Now
+                            </button>
+                          );
+                        })()}
+                      </div>
+                      {currentUser?.verificationStatus === "verified" && !currentUser?.cvName && (
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.5rem", backgroundColor: "#fef9c3", border: "1.5px solid #fcd34d", borderRadius: "0.6rem", padding: "0.45rem 0.75rem" }}>
+                          <span style={{ fontSize: "0.78rem", color: "#78350f", fontWeight: 600 }}>A CV is required to apply</span>
+                          <button onClick={() => setPage("account")} style={{ fontSize: "0.78rem", fontWeight: 700, color: "#d97706", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", fontFamily: "inherit" }}>Upload CV →</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </>
               )}
             </div>
 
-            {/* Mobile: sidebar details inline */}
-            {isNarrow && <div style={{ marginBottom: "1.25rem" }}><Sidebar /></div>}
-
-            {/* About This Role */}
+            {/* About This Role — shown above details on all layouts */}
             {job.description && (
               <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "1rem 1.1rem", marginBottom: "1.5rem" }}>
                 <p style={{ fontWeight: 700, fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.45rem" }}>About This Role</p>
@@ -463,6 +499,9 @@ export default function JobDetails({ job }) {
                 }
               </div>
             )}
+
+            {/* Mobile: sidebar details inline — below bio */}
+            {isNarrow && <div style={{ marginBottom: "1.25rem" }}><Sidebar /></div>}
 
             {/* Similar Jobs */}
             {similarJobs.length > 0 && (
