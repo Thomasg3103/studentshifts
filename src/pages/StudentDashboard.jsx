@@ -214,19 +214,24 @@ function FilterPanel({
   );
 }
 
+// Module-level cache — survives navigation (unmount/remount) within the same session
+const _jobsPageCache = { jobs: [], fetchedAt: 0, hasMore: true, page: 0 };
+const JOBS_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export default function StudentDashboard({ restoreScrollY }) {
   const { setPage, setSelectedJob, likedJobs, setLikedJobs, appliedJobs, setAppliedJobs,
     currentUser, studentLocation, savedLikedJobIds, savedAppliedJobIds,
     setSavedLikedJobIds } = useApp();
   const navigate = useNavigate();
-  const [jobs,           setJobs]           = useState([]);
-  const [jobsLoading,    setJobsLoading]    = useState(true);
+  const isCached = _jobsPageCache.jobs.length > 0 && Date.now() - _jobsPageCache.fetchedAt < JOBS_CACHE_TTL;
+  const [jobs,           setJobs]           = useState(_jobsPageCache.jobs);
+  const [jobsLoading,    setJobsLoading]    = useState(!isCached);
   const [jobsError,      setJobsError]      = useState(false);
   const [applicantCounts, setApplicantCounts] = useState({});
   const [featuredCompanyIds,   setFeaturedCompanyIds]   = useState(new Set());
   const [companyResponseRates, setCompanyResponseRates] = useState({});
-  const [fetchedPage,  setFetchedPage]  = useState(0);
-  const [hasMore,      setHasMore]      = useState(true);
+  const [fetchedPage,  setFetchedPage]  = useState(_jobsPageCache.page);
+  const [hasMore,      setHasMore]      = useState(_jobsPageCache.hasMore);
   const [loadingMore,  setLoadingMore]  = useState(false);
   const [extraCoords,  setExtraCoords]  = useState(_geocodeCache);
   const [windowWidth,  setWindowWidth]  = useState(window.innerWidth);
@@ -313,8 +318,15 @@ export default function StudentDashboard({ restoreScrollY }) {
       if (profiles) profiles.forEach(p => { nameMap[p.id] = p.name; });
     } catch (e) { console.warn("[StudentDashboard] profile name lookup failed:", e); }
     const mapped = rows.map(j => mapJobRow(j, nameMap));
-    if (append) setJobs(prev => [...prev, ...mapped]);
-    else setJobs(mapped);
+    if (append) {
+      setJobs(prev => { const next = [...prev, ...mapped]; _jobsPageCache.jobs = next; return next; });
+    } else {
+      setJobs(mapped);
+      _jobsPageCache.jobs = mapped;
+      _jobsPageCache.fetchedAt = Date.now();
+    }
+    _jobsPageCache.hasMore = rows.length === 20;
+    _jobsPageCache.page = pageNum;
     const jobIds = mapped.map(j => j.id);
     supabase.rpc("get_job_applicant_counts", { job_ids: jobIds })
       .then(({ data }) => {
@@ -335,8 +347,11 @@ export default function StudentDashboard({ restoreScrollY }) {
   }
 
   useEffect(() => {
-    fetchJobPage(0).catch(e => { console.error("[StudentDashboard] jobs error:", e); setJobsError(true); })
-      .finally(() => setJobsLoading(false));
+    const fresh = _jobsPageCache.jobs.length > 0 && Date.now() - _jobsPageCache.fetchedAt < JOBS_CACHE_TTL;
+    if (!fresh) {
+      fetchJobPage(0).catch(e => { console.error("[StudentDashboard] jobs error:", e); setJobsError(true); })
+        .finally(() => setJobsLoading(false));
+    }
     // Load featured company IDs once on mount (fire-and-forget)
     supabase.rpc("get_featured_company_ids")
       .then(({ data }) => { if (data?.length) setFeaturedCompanyIds(new Set(data.map(r => r.id))); })
