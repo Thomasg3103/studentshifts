@@ -347,11 +347,11 @@ export default function JobDetails({ job }) {
           {/* RIGHT: main white card */}
           <div style={{ flex: 1, minWidth: 0, backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 2rem", boxShadow: "0 4px 24px rgba(0,0,0,0.07)" }}>
 
-            {/* Single header row: image · title/company · buttons */}
-            <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
+            {/* Header: stacked on narrow, row on wide */}
+            <div style={{ display: "flex", flexDirection: isNarrow ? "column" : "row", alignItems: isNarrow ? "center" : "center", gap: "1rem", marginBottom: "1.5rem" }}>
               {/* Square image with dot nav when multiple photos */}
-              <div style={{ width: "144px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem" }}>
-                <div style={{ width: "144px", height: "144px", borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
+              <div style={{ width: isNarrow ? "120px" : "144px", flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: "0.4rem" }}>
+                <div style={{ width: isNarrow ? "120px" : "144px", height: isNarrow ? "120px" : "144px", borderRadius: "0.85rem", overflow: "hidden", position: "relative", cursor: photos.length > 0 ? "zoom-in" : "default" }} onClick={() => photos.length > 0 && setFullscreenIdx(idx)}>
                   {photos.length > 0 ? (
                     <div style={{ position: "absolute", inset: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                       <img loading="lazy" src={photos[idx] && photos[idx].includes("supabase.co") ? `${photos[idx]}?width=300&quality=80` : photos[idx]} alt={`Photo of ${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -378,9 +378,9 @@ export default function JobDetails({ job }) {
                   </div>
                 )}
               </div>
-              {/* Title + company — centred */}
-              <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
-                <h1 style={{ fontWeight: 800, fontSize: isNarrow ? "1.5rem" : "2.7rem", margin: "0 0 0.2rem", color: "var(--color-text-primary, #1e293b)", lineHeight: 1.1 }}>{job.title}</h1>
+              {/* Title + company */}
+              <div style={{ flex: 1, minWidth: 0, textAlign: isNarrow ? "center" : "center", width: isNarrow ? "100%" : "auto" }}>
+                <h1 style={{ fontWeight: 800, fontSize: isNarrow ? "1.4rem" : "2.7rem", margin: "0 0 0.2rem", color: "var(--color-text-primary, #1e293b)", lineHeight: 1.2 }}>{job.title}</h1>
                 <p style={{ margin: 0 }}>
                   <button
                     onClick={() => job.companyId && navigate(`/companies/${job.companyId}`)}

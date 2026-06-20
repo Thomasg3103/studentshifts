@@ -1023,32 +1023,49 @@ export default function StudentDashboard({ restoreScrollY }) {
                   if (window.gtag) window.gtag("event", "view_item", { item_id: job.id, item_name: job.title, item_category: job.category });
                 };
                 return (
-                  <div key={job.id} role="listitem" className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
+                  <div key={job.id} role="listitem" className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: isPhone ? "column" : "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
 
-                    {/* Square photo */}
-                    <div style={{ width: isPhone ? "120px" : "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
+                    {/* Photo — full width strip on phone, side column on desktop */}
+                    <div style={{ width: isPhone ? "100%" : "180px", height: isPhone ? "140px" : "auto", flexShrink: 0, alignSelf: isPhone ? "auto" : "stretch", position: "relative", overflow: "hidden", borderRadius: isPhone ? "1rem 1rem 0 0" : "1rem 0 0 0" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                           <img loading="lazy" src={photo} alt={`${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                         </div>
                       ) : (
-                        /* #7 — brand-tint gradient placeholder with initials */
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #fce7f3 0%, #f5d0e3 100%)" }}>
-                          <span style={{ fontSize: isPhone ? "1.5rem" : "2.2rem", fontWeight: 800, color: "var(--color-brand)", opacity: 0.7, letterSpacing: "-0.03em", userSelect: "none" }}>
+                          <span style={{ fontSize: isPhone ? "2rem" : "2.2rem", fontWeight: 800, color: "var(--color-brand)", opacity: 0.7, letterSpacing: "-0.03em", userSelect: "none" }}>
                             {(job.company || "?").slice(0, 2).toUpperCase()}
                           </span>
                         </div>
                       )}
-                      {/* #9 — NEW ribbon in top-right corner of photo */}
+                      {/* Like/applied button overlaid on photo (phone only) */}
+                      {isPhone && (
+                        <button
+                          onClick={e => { e.stopPropagation(); toggleLike(job); }}
+                          disabled={isApplied}
+                          title={isApplied ? "Applied" : isLiked ? "Remove from liked" : "Save job"}
+                          aria-label={isApplied ? "Already applied" : isLiked ? "Remove from liked jobs" : "Save job"}
+                          style={{ position: "absolute", top: "8px", right: "8px", width: "36px", height: "36px", borderRadius: "50%", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(4px)", border: "none", cursor: isApplied ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
+                        >
+                          {isApplied ? (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                          ) : isLiked ? (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                          ) : (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                          )}
+                        </button>
+                      )}
+                      {/* NEW ribbon */}
                       {isNew && !job.isUrgent && (
-                        <div style={{ position: "absolute", top: "8px", right: "8px", backgroundColor: "var(--color-brand)", color: "white", fontSize: "0.6rem", fontWeight: 800, padding: "0.15rem 0.45rem", borderRadius: "0.3rem", letterSpacing: "0.06em", lineHeight: 1.4, boxShadow: "0 2px 6px rgba(162,29,84,0.45)" }}>
+                        <div style={{ position: "absolute", top: "8px", left: isPhone ? "8px" : "auto", right: isPhone ? "auto" : "8px", backgroundColor: "var(--color-brand)", color: "white", fontSize: "0.6rem", fontWeight: 800, padding: "0.15rem 0.45rem", borderRadius: "0.3rem", letterSpacing: "0.06em", lineHeight: 1.4, boxShadow: "0 2px 6px rgba(162,29,84,0.45)" }}>
                           NEW
                         </div>
                       )}
                     </div>
 
-                    {/* Middle info */}
-                    <div style={{ flex: 1, padding: isPhone ? "0.65rem 0.7rem" : "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    {/* Content */}
+                    <div style={{ flex: 1, padding: isPhone ? "0.75rem 0.9rem" : "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       {/* Top: title + company + pills */}
                       <div>
                         <h2 style={{ fontWeight: 800, fontSize: isPhone ? "1.0rem" : "1.5rem", margin: "0 0 0.15rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
@@ -1155,22 +1172,22 @@ export default function StudentDashboard({ restoreScrollY }) {
                       </div>
                     </div>
 
-                    {/* Right: heart / applied icon */}
-                    <button
+                    {/* Right: heart / applied icon — desktop only (phone uses photo overlay) */}
+                    {!isPhone && <button
                       onClick={e => { e.stopPropagation(); toggleLike(job); }}
                       disabled={isApplied}
                       title={isApplied ? "You’ve already applied" : isLiked ? "Remove from liked" : "Save job"}
                       aria-label={isApplied ? "Already applied" : isLiked ? "Remove from liked jobs" : "Save job"}
-                      style={{ width: isPhone ? "60px" : "90px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, margin: 0, borderRadius: "0 1rem 1rem 0" }}
+                      style={{ width: "90px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, margin: 0, borderRadius: "0 1rem 1rem 0" }}
                     >
                       {isApplied ? (
-                        <svg width={isPhone ? "26" : "40"} height={isPhone ? "26" : "40"} viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                       ) : isLiked ? (
-                        <svg width={isPhone ? "26" : "40"} height={isPhone ? "26" : "40"} viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                       ) : (
-                        <svg width={isPhone ? "26" : "40"} height={isPhone ? "26" : "40"} viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                       )}
-                    </button>
+                    </button>}
                   </div>
                 );
               })}

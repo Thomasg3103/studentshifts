@@ -255,9 +255,9 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, applicatio
         </div>
 
         <div style={{ flex: 1, padding: "0.85rem 1rem", minWidth: 0 }}>
-          {/* Title row */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "0.5rem", marginBottom: "0.15rem" }}>
-            <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "var(--color-text-primary, #1e293b)" }}>{job.title}</h2>
+          {/* Title row — wraps on narrow screens */}
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "0.35rem", marginBottom: "0.15rem" }}>
+            <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: "var(--color-text-primary, #1e293b)", minWidth: 0, flexShrink: 1 }}>{job.title}</h2>
             <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexShrink: 0 }}>
               <span className={`badge badge-sm ${s.cls}`} style={{ textTransform: "uppercase", letterSpacing: "0.04em" }}>
                 {s.icon} {s.label}
@@ -415,7 +415,7 @@ export default function AppliedJobs() {
         </div>
       ) : (
         <>
-          <div role="list" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem", paddingBottom: "80px" }}>
+          <div role="list" style={{ display: "grid", gridTemplateColumns: "1fr", gap: "1rem" }}>
             {sorted.map(job => (
               <AppliedJobCard
                 key={job.id}
