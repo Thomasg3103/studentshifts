@@ -8,20 +8,24 @@ export function Skeleton({ width = "100%", height = "1rem", borderRadius = "0.5r
   );
 }
 
-/** 3-column grid of job cards — matches StudentDashboard layout */
-export function JobCardsSkeleton({ count = 6 }) {
+/** Job card matching the horizontal layout (110px photo left, content right) */
+export function JobCardsSkeleton({ count = 5 }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: "1rem" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} style={{ background: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid #e2e8f0", overflow: "hidden", padding: "1rem" }}>
-          <Skeleton height="140px" borderRadius="0.75rem" style={{ marginBottom: "0.85rem" }} />
-          <Skeleton height="1.1rem" width="70%" style={{ marginBottom: "0.5rem" }} />
-          <Skeleton height="0.85rem" width="50%" style={{ marginBottom: "0.75rem" }} />
-          <div style={{ display: "flex", gap: "0.4rem", marginBottom: "0.75rem" }}>
-            <Skeleton height="1.4rem" width="4rem" borderRadius="999px" />
-            <Skeleton height="1.4rem" width="4rem" borderRadius="999px" />
+        <div key={i} style={{ background: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid #e2e8f0", overflow: "hidden", display: "flex", minHeight: "100px" }}>
+          {/* Photo placeholder — left column */}
+          <div className="skeleton" style={{ width: "110px", flexShrink: 0, borderRadius: 0, height: "auto", alignSelf: "stretch", minHeight: "100px" }} />
+          {/* Content placeholder — right column */}
+          <div style={{ flex: 1, padding: "0.7rem 0.85rem", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "0.4rem" }}>
+            <Skeleton height="0.88rem" width="68%" style={{ marginBottom: "0.1rem" }} />
+            <Skeleton height="0.72rem" width="45%" />
+            <Skeleton height="0.75rem" width="30%" />
+            <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.1rem" }}>
+              <Skeleton height="1.25rem" width="4rem" borderRadius="999px" />
+              <Skeleton height="1.25rem" width="4rem" borderRadius="999px" />
+            </div>
           </div>
-          <Skeleton height="2.2rem" borderRadius="999px" />
         </div>
       ))}
     </div>
