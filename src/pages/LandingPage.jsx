@@ -122,7 +122,7 @@ export default function LandingPage() {
         <div onClick={() => navigate("/")} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "0.85rem", flexShrink: 1, minWidth: 0, overflow: "hidden" }}>
           {windowWidth >= 480 && <LogoIcon />}
           <span style={{ fontSize: windowWidth < 480 ? "1.4rem" : "1.7rem", fontWeight: 800, color: "white", letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>
-            StudentShifts{windowWidth >= 480 && <span style={{ opacity: 0.7 }}>.ie</span>}
+            Student<span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>Shifts{windowWidth >= 480 ? ".ie" : ""}</span>
           </span>
         </div>
 
