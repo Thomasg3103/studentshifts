@@ -149,6 +149,7 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist,
 function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
   const [draggingId, setDraggingId]       = useState(null);
   const [dragOverStage, setDragOverStage] = useState(null);
+  const isMobile = window.innerWidth < 768;
 
   const stageColor = (key) => {
     if (key === "applied")            return "#475569";
@@ -177,6 +178,12 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
   };
 
   return (
+    <>
+    {isMobile && (
+      <p style={{ margin: "0 0 0.65rem", fontSize: "0.72rem", fontWeight: "700", color: "#92400e" }}>
+        Best used on laptop — use "Move to" below each card to change stages
+      </p>
+    )}
     <div role="list" aria-label="Pipeline board" style={{ display: "flex", gap: "0.85rem", overflowX: "auto", paddingBottom: "1rem", alignItems: "flex-start" }}>
       {(stages || []).map(({ key, label }) => {
         const cards  = applicants.filter(a => getVirtualStageKey(a) === key);
@@ -218,64 +225,91 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
                 const sc = statusChip[applicant.status] || statusChip.Pending;
                 const isFinished = applicant.status === "Accepted" || applicant.status === "Rejected";
                 return (
-                  <button
+                  <div
                     key={applicant.id}
-                    draggable={!isFinished}
-                    aria-label={`${applicant.name} — ${sc.label}${isFinished ? "" : ". Drag to move stage."}`}
-                    onDragStart={isFinished ? undefined : e => {
-                      setDraggingId(applicant.id);
-                      e.dataTransfer.effectAllowed = "move";
-                      e.dataTransfer.setData("text/plain", applicant.id);
-                    }}
-                    onDragEnd={isFinished ? undefined : () => { setDraggingId(null); setDragOverStage(null); }}
-                    onClick={() => onSelectApplicant(applicant)}
                     style={{
-                      width: "100%", display: "block",
-                      padding: "0.9rem 0.95rem",
-                      borderRadius: "0.5rem",
-                      border: `1px solid ${isFinished ? "#e2e8f0" : "#e2e8f0"}`,
+                      borderRadius: "0.5rem", overflow: "hidden",
+                      border: "1px solid #e2e8f0",
                       backgroundColor: isFinished ? "var(--color-bg-surface, #f8fafc)" : "var(--color-bg-elevated, white)",
-                      cursor: isFinished ? "pointer" : "grab", fontFamily: "inherit", textAlign: "left",
                       opacity: draggingId === applicant.id ? 0.4 : isFinished ? 0.75 : 1,
                       boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
                       transition: "opacity 0.15s",
                     }}
                   >
-                    {/* Avatar + name row */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", marginBottom: "0.65rem" }}>
-                      <div style={{ width: "38px", height: "38px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                        {applicant.profilePhoto
-                          ? <img loading="lazy" src={supabaseImg(applicant.profilePhoto, 88)} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-                        }
+                    <button
+                      draggable={!isFinished}
+                      aria-label={`${applicant.name} — ${sc.label}${isFinished ? "" : ". Drag to move stage."}`}
+                      onDragStart={isFinished ? undefined : e => {
+                        setDraggingId(applicant.id);
+                        e.dataTransfer.effectAllowed = "move";
+                        e.dataTransfer.setData("text/plain", applicant.id);
+                      }}
+                      onDragEnd={isFinished ? undefined : () => { setDraggingId(null); setDragOverStage(null); }}
+                      onClick={() => onSelectApplicant(applicant)}
+                      style={{
+                        width: "100%", display: "block",
+                        padding: "0.9rem 0.95rem",
+                        border: "none", background: "none",
+                        cursor: isFinished ? "pointer" : "grab", fontFamily: "inherit", textAlign: "left",
+                      }}
+                    >
+                      {/* Avatar + name row */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", marginBottom: "0.65rem" }}>
+                        <div style={{ width: "38px", height: "38px", borderRadius: "50%", overflow: "hidden", flexShrink: 0, backgroundColor: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {applicant.profilePhoto
+                            ? <img loading="lazy" src={supabaseImg(applicant.profilePhoto, 88)} alt={applicant.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                            : <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+                          }
+                        </div>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <p style={{ margin: "0 0 0.2rem", fontSize: "0.875rem", fontWeight: "700", color: "var(--color-text-primary, #0f172a)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.name}</p>
+                          <span style={{ fontSize: "0.72rem", fontWeight: "600", padding: "0.1rem 0.45rem", borderRadius: "0.25rem", backgroundColor: sc.bg, color: sc.text }}>{sc.label}</span>
+                        </div>
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: "0 0 0.2rem", fontSize: "0.875rem", fontWeight: "700", color: "var(--color-text-primary, #0f172a)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.name}</p>
-                        <span style={{ fontSize: "0.72rem", fontWeight: "600", padding: "0.1rem 0.45rem", borderRadius: "0.25rem", backgroundColor: sc.bg, color: sc.text }}>{sc.label}</span>
-                      </div>
-                    </div>
 
-                    {/* Preferred shift chip */}
-                    {applicant.preferredShift && (
-                      <div style={{ marginBottom: "0.55rem" }}>
-                        <span className="badge badge-tag badge-gray">{applicant.preferredShift}</span>
+                      {/* Preferred shift chip */}
+                      {applicant.preferredShift && (
+                        <div style={{ marginBottom: "0.55rem" }}>
+                          <span className="badge badge-tag badge-gray">{applicant.preferredShift}</span>
+                        </div>
+                      )}
+
+                      {/* Skills */}
+                      {applicant.skills?.length > 0 && (
+                        <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
+                          {applicant.skills.slice(0, 3).map(s => (
+                            <span key={s} className="badge badge-tag badge-gray">{s}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Bio fallback if no skills */}
+                      {!applicant.skills?.length && applicant.bio && (
+                        <p style={{ margin: 0, fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.bio}</p>
+                      )}
+                    </button>
+
+                    {/* Mobile: move-to-stage selector (drag-and-drop doesn't work on touch) */}
+                    {isMobile && !isFinished && (
+                      <div style={{ borderTop: "1px solid #f1f5f9", padding: "0.35rem 0.6rem 0.5rem" }}>
+                        <select
+                          defaultValue=""
+                          onChange={e => {
+                            if (e.target.value) {
+                              onMoveToStage?.(applicant.id, e.target.value);
+                              e.target.value = "";
+                            }
+                          }}
+                          style={{ width: "100%", fontSize: "0.72rem", padding: "0.22rem 0.4rem", borderRadius: "0.3rem", border: "1px solid #e2e8f0", fontFamily: "inherit", backgroundColor: "white", color: "#374151", cursor: "pointer" }}
+                        >
+                          <option value="">Move to…</option>
+                          {(stages || []).filter(s => s.key !== getVirtualStageKey(applicant)).map(s => (
+                            <option key={s.key} value={s.key}>{s.label}</option>
+                          ))}
+                        </select>
                       </div>
                     )}
-
-                    {/* Skills */}
-                    {applicant.skills?.length > 0 && (
-                      <div style={{ display: "flex", gap: "0.25rem", flexWrap: "wrap" }}>
-                        {applicant.skills.slice(0, 3).map(s => (
-                          <span key={s} className="badge badge-tag badge-gray">{s}</span>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Bio fallback if no skills */}
-                    {!applicant.skills?.length && applicant.bio && (
-                      <p style={{ margin: 0, fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{applicant.bio}</p>
-                    )}
-                  </button>
+                  </div>
                 );
               })}
             </div>
@@ -283,6 +317,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
         );
       })}
     </div>
+    </>
   );
 }
 
