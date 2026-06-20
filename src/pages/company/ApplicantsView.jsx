@@ -465,14 +465,28 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
 
       {/* Filter panel */}
       <div style={{ marginBottom: "0.65rem" }}>
-        <button
-          onClick={() => setFilterOpen(o => !o)}
-          style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.38rem 0.75rem", borderRadius: "0.5rem", border: `1.5px solid ${activeFilterCount > 0 ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: activeFilterCount > 0 ? "#fce7f3" : "white", color: activeFilterCount > 0 ? "var(--color-brand)" : "#374151", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
-        >
-          <span>⚙ Filters</span>
-          {activeFilterCount > 0 && <span style={{ backgroundColor: "var(--color-brand)", color: "white", borderRadius: "999px", fontSize: "0.65rem", fontWeight: "800", padding: "0.05rem 0.4rem", minWidth: "16px", textAlign: "center" }}>{activeFilterCount}</span>}
-          <span style={{ fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)" }}>{filterOpen ? "▲" : "▼"}</span>
-        </button>
+        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+          <button
+            onClick={() => setFilterOpen(o => !o)}
+            style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.38rem 0.75rem", borderRadius: "0.5rem", border: `1.5px solid ${activeFilterCount > 0 ? "var(--color-brand)" : "#e2e8f0"}`, backgroundColor: activeFilterCount > 0 ? "#fce7f3" : "white", color: activeFilterCount > 0 ? "var(--color-brand)" : "#374151", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
+          >
+            <span>Filters</span>
+            {activeFilterCount > 0 && <span style={{ backgroundColor: "var(--color-brand)", color: "white", borderRadius: "999px", fontSize: "0.65rem", fontWeight: "800", padding: "0.05rem 0.4rem", minWidth: "16px", textAlign: "center" }}>{activeFilterCount}</span>}
+            <span style={{ fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)" }}>{filterOpen ? "▲" : "▼"}</span>
+          </button>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value)}
+            aria-label="Sort applicants"
+            style={{ padding: "0.38rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", color: "var(--color-text-body, #374151)", backgroundColor: "var(--color-bg-elevated, white)", cursor: "pointer", outline: "none" }}
+          >
+            <option value="default">Sort: Default</option>
+            <option value="name_asc">Name A → Z</option>
+            <option value="name_desc">Name Z → A</option>
+            <option value="status">By Status</option>
+            <option value="ai_sort" disabled>AI Sort — Coming Soon</option>
+          </select>
+        </div>
         {filterOpen && (
           <div style={{ marginTop: "0.5rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid #e2e8f0", borderRadius: "0.65rem", padding: "0.85rem 1rem" }}>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "0.6rem 1.25rem" }}>
@@ -525,33 +539,19 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
         )}
       </div>
 
-      {/* Search + sort bar */}
-      <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
-        <div style={{ flex: 1, minWidth: "180px", position: "relative" }}>
-          <span style={{ position: "absolute", left: "0.65rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.85rem", pointerEvents: "none", color: "var(--color-text-secondary, #64748b)" }}>🔍</span>
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            placeholder="Search applicants…"
-            aria-label="Search applicants"
-            style={{ width: "100%", padding: "0.45rem 0.75rem 0.45rem 2rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "var(--color-text-body, #374151)", boxSizing: "border-box", outline: "none" }}
-          />
-          {search && (
-            <button onClick={() => setSearch("")} aria-label="Clear search" style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem", lineHeight: 1, padding: "0.1rem" }}>✕</button>
-          )}
-        </div>
-        <select
-          value={sortBy}
-          onChange={e => setSortBy(e.target.value)}
-          aria-label="Sort applicants"
-          style={{ padding: "0.45rem 0.65rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "var(--color-text-body, #374151)", backgroundColor: "var(--color-bg-elevated, white)", cursor: "pointer", outline: "none" }}
-        >
-          <option value="default">Sort: Default</option>
-          <option value="name_asc">Name A → Z</option>
-          <option value="name_desc">Name Z → A</option>
-          <option value="status">By Status</option>
-          <option value="ai_sort" disabled>✨ AI Sort — Coming Soon</option>
-        </select>
+      {/* Search bar */}
+      <div style={{ position: "relative", marginBottom: "0.75rem" }}>
+        <span style={{ position: "absolute", left: "0.65rem", top: "50%", transform: "translateY(-50%)", fontSize: "0.85rem", pointerEvents: "none", color: "var(--color-text-secondary, #64748b)" }}>🔍</span>
+        <input
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          placeholder="Search applicants…"
+          aria-label="Search applicants"
+          style={{ width: "100%", padding: "0.45rem 0.75rem 0.45rem 2rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", fontSize: "0.82rem", fontFamily: "inherit", color: "var(--color-text-body, #374151)", boxSizing: "border-box", outline: "none" }}
+        />
+        {search && (
+          <button onClick={() => setSearch("")} aria-label="Clear search" style={{ position: "absolute", right: "0.5rem", top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem", lineHeight: 1, padding: "0.1rem" }}>✕</button>
+        )}
       </div>
 
       {viewMode === "kanban" ? (
