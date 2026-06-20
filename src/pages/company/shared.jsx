@@ -1,5 +1,6 @@
 ﻿/* eslint-disable react-refresh/only-export-components */
 /* ─── Shared constants and small utility components ─────────────────────── */
+import { useEffect } from "react";
 
 export const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 export const timeSlots = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
@@ -82,6 +83,10 @@ export function Section({ label, children }) {
 }
 
 export function Modal({ title, children, onClose }) {
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
   return (
     <div
       onClick={onClose}
