@@ -1026,7 +1026,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                   <div key={job.id} role="listitem" className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
 
                     {/* Photo — square on phone, wider side column on desktop */}
-                    <div style={{ width: isPhone ? "110px" : "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem" }}>
+                    <div style={{ width: isPhone ? "110px" : "180px", height: isPhone ? "110px" : undefined, flexShrink: 0, alignSelf: isPhone ? "flex-start" : "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                           <img loading="lazy" src={photo} alt={`${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
