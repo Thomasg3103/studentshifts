@@ -125,8 +125,8 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onRe
           )}
         </div>
 
-        {/* Secondary actions — own scrollable row so they never clip off-screen */}
-        <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: "2px", marginTop: "0.4rem" }}>
+        {/* Secondary actions — wrap onto new lines on mobile */}
+        <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
           {onLoadMatches && isActive && posting.days?.length > 0 && (
             <button
               onClick={() => {
