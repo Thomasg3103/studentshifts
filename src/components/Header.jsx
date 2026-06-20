@@ -124,7 +124,7 @@ export default function Header() {
           <div className="header-logo-icon"><LogoIcon /></div>
           <div className="header-logo-text" style={{ lineHeight: 1.15 }}>
             <span style={{ fontSize: "1.7rem", fontWeight: "800", color: "white", letterSpacing: "-0.02em" }}>
-              Student<span style={{ opacity: 0.7 }}>Shifts</span>
+              StudentShifts<span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>.ie</span>
             </span>
           </div>
         </button>
