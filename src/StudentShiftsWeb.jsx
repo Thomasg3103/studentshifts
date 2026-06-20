@@ -212,6 +212,9 @@ export default function StudentShiftsWeb() {
             } else {
               const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
               setCurrentUser(user);
+              // Show the app immediately — don't block on supplementary data
+              clearTimeout(failsafe);
+              setAuthLoading(false);
               // INITIAL_SESSION: only redirect if the user's current URL is wrong for their role.
               // Preserves deep links (e.g. company refreshing /company/messages stays there).
               const currPath = window.location.pathname;
@@ -220,7 +223,9 @@ export default function StudentShiftsWeb() {
               } else if (user.role === "company" && !currPath.startsWith("/company") && currPath !== "/account") {
                 navigate("/company", { replace: true });
               }
-              if (user.role === "student") await loadStudentData(user.id);
+              // Load liked/applied job data in background — dashboard is already visible
+              if (user.role === "student") loadStudentData(user.id);
+              return;
             }
           } catch (e) {
             Sentry.captureException(e);
