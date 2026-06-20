@@ -229,6 +229,17 @@ export default function LandingPage() {
           </button>
         </div>
 
+        {/* Already have an account */}
+        <p style={{ margin: "0.5rem 0 0", fontSize: "0.83rem", color: "rgba(255,255,255,0.5)" }}>
+          Already have an account?{" "}
+          <button
+            onClick={() => navigate("/login")}
+            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.85)", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: "inherit", textDecoration: "underline", padding: 0 }}
+          >
+            Sign in
+          </button>
+        </p>
+
         {/* Trust line */}
         <p style={{ margin: "0.75rem 0 0", fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", letterSpacing: "0.02em" }}>
           {stats.students ? `${stats.students} verified students` : "Hundreds of students"} · {stats.companies ? `${stats.companies} verified employers` : "Verified employers"} · 100% free to join
