@@ -1026,7 +1026,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                   <div key={job.id} role="listitem" className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
 
                     {/* Photo — square on phone, wider side column on desktop */}
-                    <div style={{ width: isPhone ? "110px" : "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem" }}>
+                    <div style={{ width: isPhone ? "110px" : "180px", minHeight: isPhone ? "110px" : undefined, flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                           <img loading="lazy" src={photo} alt={`${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -1068,10 +1068,19 @@ export default function StudentDashboard({ restoreScrollY }) {
                             )}
                           </button>
                         </div>
-                        <p style={{ margin: isPhone ? 0 : "0 0 0.15rem", fontSize: isPhone ? "0.72rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
-                          <span onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</span>
-                        </p>
-                        <p style={{ margin: isPhone ? 0 : "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>
+                        {isPhone ? (
+                          <p style={{ margin: 0, fontSize: "0.7rem", color: "var(--color-text-secondary, #64748b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            <span onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</span>
+                            {" · "}📍 {job.location}
+                          </p>
+                        ) : (
+                          <>
+                            <p style={{ margin: "0 0 0.15rem", fontSize: "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
+                              <span onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</span>
+                            </p>
+                            <p style={{ margin: "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>
+                          </>
+                        )}
                         <div style={{ display: "flex", flexWrap: isPhone ? "nowrap" : "wrap", gap: "0.3rem", overflowX: isPhone ? "auto" : "visible", WebkitOverflowScrolling: "touch", paddingBottom: isPhone ? "1px" : 0 }}>
                           {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
