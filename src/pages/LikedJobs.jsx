@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from "react";
+﻿import React from "react";
 import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
@@ -9,12 +9,6 @@ import { supabaseImg } from "../utils/img";
 
 export default function LikedJobs() {
   const { likedJobs, setLikedJobs, setSavedLikedJobIds, setSelectedJob, setPage, currentUser, savedAppliedJobIds = [] } = useApp();
-  const [isMobile, setIsMobile] = useState(window.innerWidth < 600);
-  useEffect(() => {
-    const onResize = () => setIsMobile(window.innerWidth < 600);
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, []);
 
   const removeLike = (job) => {
     setLikedJobs(prev => prev.filter(j => j.id !== job.id));
@@ -52,18 +46,28 @@ export default function LikedJobs() {
               const isClosed = job.status === "Closed" || job.status === "Expired";
               const isApplied = savedAppliedJobIds.includes(job.id);
               return (
-                <div key={job.id} role="listitem" className="job-card" style={{ display: "flex", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, opacity: isClosed ? 0.75 : 1 }}>
+                <div key={job.id} role="listitem" className="job-card" onClick={() => viewJob(job)} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, opacity: isClosed ? 0.75 : 1, cursor: "pointer" }}>
+                  {/* Photo */}
                   <div style={{ width: "110px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem", alignSelf: "stretch", minHeight: "100px" }}>
                     {photo ? (
                       <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                         <img loading="lazy" src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                       </div>
                     ) : (
-                      <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#e2e8f0" }}>
-                        <span style={{ fontSize: "2rem", opacity: 0.5 }}>🏢</span>
+                      <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg, #fce7f3 0%, #f5d0e3 100%)" }}>
+                        <span style={{ fontSize: "1.8rem", fontWeight: 800, color: "var(--color-brand)", opacity: 0.7 }}>🏢</span>
                       </div>
                     )}
-                    {/* Closed / Expired overlay badge */}
+                    {/* Unsave button overlaid on photo */}
+                    <button
+                      onClick={e => { e.stopPropagation(); removeLike(job); }}
+                      aria-label={`Remove ${job.title} from liked jobs`}
+                      title="Remove from liked"
+                      style={{ position: "absolute", top: "8px", right: "8px", width: "32px", height: "32px", borderRadius: "50%", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(4px)", border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
+                    >
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                    </button>
+                    {/* Closed / Expired overlay */}
                     {isClosed && (
                       <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(0,0,0,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                         <span style={{ backgroundColor: "#1e293b", color: "white", fontSize: "0.62rem", fontWeight: 700, padding: "0.2rem 0.45rem", borderRadius: "0.35rem", textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -72,42 +76,38 @@ export default function LikedJobs() {
                       </div>
                     )}
                   </div>
-                  <div style={{ flex: 1, padding: "0.7rem 0.85rem", minWidth: 0 }}>
-                    <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "0.35rem", marginBottom: "0.2rem" }}>
-                      <h2 style={{ fontWeight: "800", fontSize: "0.95rem", margin: 0, color: isClosed ? "#64748b" : "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%", flex: "1 1 0", minWidth: 0 }}>{job.title}</h2>
-                      <div style={{ display: "flex", gap: "0.35rem", flexShrink: 0 }}>
-                        <button aria-label={`View ${job.title}`} onClick={() => viewJob(job)} style={btnBlue}>View Job</button>
-                        <button aria-label={`Remove ${job.title} from liked jobs`} onClick={() => removeLike(job)} style={btnRed}>Unsave</button>
+                  {/* Content */}
+                  <div style={{ flex: 1, padding: "0.65rem 0.85rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div>
+                      <h2 style={{ fontWeight: "800", fontSize: "0.92rem", margin: "0 0 0.1rem", color: isClosed ? "#64748b" : "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{job.title}</h2>
+                      <p style={{ color: "var(--color-text-secondary, #6b7280)", margin: "0 0 0.3rem", fontSize: "0.78rem" }}>{job.company}</p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem" }}>
+                        {(job.days || []).slice(0, 3).map(day => (
+                          <span key={day} style={{ fontSize: "0.68rem", backgroundColor: isClosed ? "#f1f5f9" : "#fce7f3", color: isClosed ? "#64748b" : "var(--color-brand)", padding: "0.12rem 0.45rem", borderRadius: "999px", fontWeight: "600", textDecoration: isClosed ? "line-through" : "none" }}>
+                            {day.slice(0, 3)}{(job.times || {})[day] ? ` · ${(job.times || {})[day]?.join(", ")}` : ""}
+                          </span>
+                        ))}
+                        {(job.days || []).length > 3 && (
+                          <span style={{ fontSize: "0.68rem", backgroundColor: "#f1f5f9", color: "#64748b", padding: "0.12rem 0.45rem", borderRadius: "999px", fontWeight: "600" }}>
+                            +{job.days.length - 3}
+                          </span>
+                        )}
                       </div>
                     </div>
-                    <p style={{ color: "var(--color-text-secondary, #6b7280)", marginBottom: "0.05rem", fontSize: "0.85rem" }}>{job.company}</p>
-                    <p style={{ color: "var(--color-text-secondary, #64748b)", marginBottom: "0.15rem", fontSize: "0.72rem" }}>📍 {job.location}</p>
-                    <p style={{ fontWeight: "700", color: isClosed ? "#64748b" : "#111827", marginBottom: "0.4rem", fontSize: "0.9rem" }}>{job.pay}</p>
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem", marginBottom: (!isClosed && !isApplied) ? "0.5rem" : 0 }}>
-                      {(job.days || []).map(day => (
-                        <span key={day} style={{ fontSize: "0.7rem", backgroundColor: isClosed ? "#f1f5f9" : "#fce7f3", color: isClosed ? "#64748b" : "var(--color-brand)", padding: "0.15rem 0.5rem", borderRadius: "999px", fontWeight: "600", textDecoration: isClosed ? "line-through" : "none" }}>
-                          {day.slice(0, 3)} · {(job.times || {})[day]?.join(", ")}
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginTop: "0.35rem", flexWrap: "wrap" }}>
+                      <span style={{ fontWeight: 800, color: isClosed ? "#64748b" : "var(--color-brand)", fontSize: "0.92rem" }}>{job.pay}</span>
+                      {!isClosed && isApplied && (
+                        <span style={{ fontSize: "0.7rem", fontWeight: 700, color: "#10b981" }}>✅ Applied</span>
+                      )}
+                      {isClosed && (
+                        <span style={{ fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600 }}>
+                          {job.status === "Expired" ? "Expired" : "Filled"}
                         </span>
-                      ))}
+                      )}
+                      {!isClosed && !isApplied && (
+                        <span style={{ marginLeft: "auto", fontSize: "0.72rem", color: "var(--color-brand)", fontWeight: 700 }}>Tap to apply →</span>
+                      )}
                     </div>
-                    {/* Apply CTA — only for active, not-yet-applied jobs */}
-                    {!isClosed && !isApplied && (
-                      <button
-                        aria-label={`Apply for ${job.title}`}
-                        onClick={() => viewJob(job)}
-                        style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(162,29,84,0.25)" }}
-                      >
-                        Apply Now →
-                      </button>
-                    )}
-                    {!isClosed && isApplied && (
-                      <span style={{ fontSize: "0.75rem", fontWeight: 700, color: "#10b981" }}>✅ Applied</span>
-                    )}
-                    {isClosed && (
-                      <span style={{ fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600 }}>
-                        {job.status === "Expired" ? "This listing has expired" : "This position has been filled"}
-                      </span>
-                    )}
                   </div>
                 </div>
               );
@@ -123,7 +123,4 @@ export default function LikedJobs() {
   );
 }
 
-const btnBase = { padding: "0.38rem 0.9rem", borderRadius: "2rem", color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "0.8rem", fontFamily: "inherit" };
-const btnBlue = { ...btnBase, background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", boxShadow: "0 2px 8px rgba(162,29,84,0.3)" };
-const btnRed  = { ...btnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", boxShadow: "0 2px 8px rgba(244,63,94,0.3)" };
-const btnGray = { ...btnBase, backgroundColor: "#64748b", padding: "0.75rem 1.75rem", fontSize: "0.9rem", borderRadius: "2rem" };
+const btnGray = { padding: "0.75rem 1.75rem", borderRadius: "2rem", color: "white", border: "none", cursor: "pointer", fontWeight: "700", fontSize: "0.9rem", fontFamily: "inherit", backgroundColor: "#64748b" };

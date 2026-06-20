@@ -1072,9 +1072,9 @@ export default function StudentDashboard({ restoreScrollY }) {
                         <p style={{ margin: isPhone ? "0 0 0.05rem" : "0 0 0.15rem", fontSize: isPhone ? "0.72rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
                           <span onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</span>
                         </p>
-                        <p style={{ margin: isPhone ? "0 0 0.35rem" : "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>
+                        {!isPhone && <p style={{ margin: "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>}
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                          {job.days.map(day => {
+                          {(isPhone ? job.days.slice(0, 3) : job.days).map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
                             return (
                               <span key={day} className={`badge ${isFilled ? "badge-gray" : "badge-brand"} ${isPhone ? "badge-sm" : "badge-lg"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }} title={isFilled ? "This shift has been filled" : undefined}>
@@ -1082,15 +1082,18 @@ export default function StudentDashboard({ restoreScrollY }) {
                               </span>
                             );
                           })}
+                          {isPhone && job.days.length > 3 && (
+                            <span className="badge badge-gray badge-sm">+{job.days.length - 3}</span>
+                          )}
                         </div>
-                        {(job.filledShifts || []).length > 0 && (
-                          <p style={{ margin: "0.25rem 0 0", fontSize: isPhone ? "0.68rem" : "0.75rem", color: "var(--color-text-secondary, #6b7280)", fontWeight: 500 }}>
+                        {!isPhone && (job.filledShifts || []).length > 0 && (
+                          <p style={{ margin: "0.25rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #6b7280)", fontWeight: 500 }}>
                             {job.filledShifts.length} of {job.days.length} shift{job.days.length !== 1 ? "s" : ""} filled
                           </p>
                         )}
-                        {dist !== null && (
+                        {!isPhone && dist !== null && (
                           <div style={{ marginTop: "0.3rem" }}>
-                            <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`}>
+                            <span className="badge badge-green">
                               📍 {formatDistance(dist)}
                             </span>
                           </div>
@@ -1139,8 +1142,8 @@ export default function StudentDashboard({ restoreScrollY }) {
                           </span>
                         )}
                       </div>
-                      {/* Social proof + match score + job alerts */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
+                      {/* Social proof + match score + job alerts — desktop only */}
+                      {!isPhone && <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
                         {(applicantCounts[job.id] ?? 0) > 0 && (
                           <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 500 }}>
                             👥 {applicantCounts[job.id]} applicant{applicantCounts[job.id] !== 1 ? "s" : ""}
@@ -1169,7 +1172,7 @@ export default function StudentDashboard({ restoreScrollY }) {
                           aria-label={jobAlerts ? "Disable job alerts" : "Enable job alerts"}
                           style={{ marginLeft: "auto", padding: "0.1rem 0.4rem", borderRadius: "999px", border: `1px solid ${jobAlerts ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, background: jobAlerts ? "#fce7f3" : "var(--color-bg-elevated, white)", color: jobAlerts ? "var(--color-brand)" : "var(--color-text-secondary, #94a3b8)", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}
                         >{jobAlerts ? "🔔 Alerts on" : "🔔 Alert me"}</button>
-                      </div>
+                      </div>}
                     </div>
 
                     {/* Right: heart / applied icon — desktop only (phone uses photo overlay) */}
