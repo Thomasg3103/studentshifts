@@ -603,7 +603,7 @@ export default function CompanyDashboard() {
       </div>
 
       {/* Tab bar */}
-      <div className="tab-scroll-bar" style={{ display: "flex", borderBottom: "1px solid #e2e8f0", marginBottom: "1.75rem", gap: "0", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+      <div className="tab-scroll-bar" style={{ display: "flex", flexWrap: "nowrap", borderBottom: "1px solid #e2e8f0", marginBottom: "1.75rem", gap: "0", overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
         {[
           { val: "jobs",     label: "My Jobs" },
           { val: "students",  label: "Browse Students" },
