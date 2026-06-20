@@ -583,6 +583,16 @@ export default function TermsOfServicePage() {
           </div>
 
         </div>
+
+        {/* Back to top */}
+        <div style={{ textAlign: "center", padding: "2rem 0 1rem" }}>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            style={{ padding: "0.6rem 1.5rem", borderRadius: "2rem", border: "1.5px solid var(--color-brand)", background: "var(--color-bg-elevated, white)", color: "var(--color-brand)", fontWeight: "700", fontSize: "0.85rem", fontFamily: "inherit", cursor: "pointer" }}
+          >
+            ↑ Back to top
+          </button>
+        </div>
       </div>
     </>
   );

@@ -1038,27 +1038,9 @@ export default function StudentDashboard({ restoreScrollY }) {
                           </span>
                         </div>
                       )}
-                      {/* Like/applied button overlaid on photo (phone only) */}
-                      {isPhone && (
-                        <button
-                          onClick={e => { e.stopPropagation(); toggleLike(job); }}
-                          disabled={isApplied}
-                          title={isApplied ? "Applied" : isLiked ? "Remove from liked" : "Save job"}
-                          aria-label={isApplied ? "Already applied" : isLiked ? "Remove from liked jobs" : "Save job"}
-                          style={{ position: "absolute", top: "8px", right: "8px", width: "36px", height: "36px", borderRadius: "50%", background: "rgba(255,255,255,0.92)", backdropFilter: "blur(4px)", border: "none", cursor: isApplied ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", padding: 0, boxShadow: "0 2px 8px rgba(0,0,0,0.15)" }}
-                        >
-                          {isApplied ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                          ) : isLiked ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                          ) : (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                          )}
-                        </button>
-                      )}
                       {/* NEW ribbon */}
                       {isNew && !job.isUrgent && (
-                        <div style={{ position: "absolute", top: "8px", left: isPhone ? "8px" : "auto", right: isPhone ? "auto" : "8px", backgroundColor: "var(--color-brand)", color: "white", fontSize: "0.6rem", fontWeight: 800, padding: "0.15rem 0.45rem", borderRadius: "0.3rem", letterSpacing: "0.06em", lineHeight: 1.4, boxShadow: "0 2px 6px rgba(162,29,84,0.45)" }}>
+                        <div style={{ position: "absolute", top: "8px", right: "8px", backgroundColor: "var(--color-brand)", color: "white", fontSize: "0.6rem", fontWeight: 800, padding: "0.15rem 0.45rem", borderRadius: "0.3rem", letterSpacing: "0.06em", lineHeight: 1.4, boxShadow: "0 2px 6px rgba(162,29,84,0.45)" }}>
                           NEW
                         </div>
                       )}
@@ -1072,9 +1054,9 @@ export default function StudentDashboard({ restoreScrollY }) {
                         <p style={{ margin: isPhone ? "0 0 0.05rem" : "0 0 0.15rem", fontSize: isPhone ? "0.72rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
                           <span onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</span>
                         </p>
-                        {!isPhone && <p style={{ margin: "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>}
+                        <p style={{ margin: isPhone ? "0 0 0.25rem" : "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
-                          {(isPhone ? job.days.slice(0, 3) : job.days).map(day => {
+                          {job.days.map(day => {
                             const isFilled = (job.filledShifts || []).includes(day);
                             return (
                               <span key={day} className={`badge ${isFilled ? "badge-gray" : "badge-brand"} ${isPhone ? "badge-sm" : "badge-lg"}`} style={{ textDecoration: isFilled ? "line-through" : "none" }} title={isFilled ? "This shift has been filled" : undefined}>
@@ -1082,18 +1064,15 @@ export default function StudentDashboard({ restoreScrollY }) {
                               </span>
                             );
                           })}
-                          {isPhone && job.days.length > 3 && (
-                            <span className="badge badge-gray badge-sm">+{job.days.length - 3}</span>
-                          )}
                         </div>
-                        {!isPhone && (job.filledShifts || []).length > 0 && (
-                          <p style={{ margin: "0.25rem 0 0", fontSize: "0.75rem", color: "var(--color-text-secondary, #6b7280)", fontWeight: 500 }}>
+                        {(job.filledShifts || []).length > 0 && (
+                          <p style={{ margin: "0.25rem 0 0", fontSize: isPhone ? "0.68rem" : "0.75rem", color: "var(--color-text-secondary, #6b7280)", fontWeight: 500 }}>
                             {job.filledShifts.length} of {job.days.length} shift{job.days.length !== 1 ? "s" : ""} filled
                           </p>
                         )}
-                        {!isPhone && dist !== null && (
+                        {dist !== null && (
                           <div style={{ marginTop: "0.3rem" }}>
-                            <span className="badge badge-green">
+                            <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`}>
                               📍 {formatDistance(dist)}
                             </span>
                           </div>
@@ -1142,8 +1121,8 @@ export default function StudentDashboard({ restoreScrollY }) {
                           </span>
                         )}
                       </div>
-                      {/* Social proof + match score + job alerts — desktop only */}
-                      {!isPhone && <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
+                      {/* Social proof + match score + job alerts */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "0.2rem", flexWrap: "wrap" }}>
                         {(applicantCounts[job.id] ?? 0) > 0 && (
                           <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 500 }}>
                             👥 {applicantCounts[job.id]} applicant{applicantCounts[job.id] !== 1 ? "s" : ""}
@@ -1172,25 +1151,25 @@ export default function StudentDashboard({ restoreScrollY }) {
                           aria-label={jobAlerts ? "Disable job alerts" : "Enable job alerts"}
                           style={{ marginLeft: "auto", padding: "0.1rem 0.4rem", borderRadius: "999px", border: `1px solid ${jobAlerts ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, background: jobAlerts ? "#fce7f3" : "var(--color-bg-elevated, white)", color: jobAlerts ? "var(--color-brand)" : "var(--color-text-secondary, #94a3b8)", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}
                         >{jobAlerts ? "🔔 Alerts on" : "🔔 Alert me"}</button>
-                      </div>}
+                      </div>
                     </div>
 
-                    {/* Right: heart / applied icon — desktop only (phone uses photo overlay) */}
-                    {!isPhone && <button
+                    {/* Right: heart / applied icon */}
+                    <button
                       onClick={e => { e.stopPropagation(); toggleLike(job); }}
                       disabled={isApplied}
                       title={isApplied ? "You’ve already applied" : isLiked ? "Remove from liked" : "Save job"}
                       aria-label={isApplied ? "Already applied" : isLiked ? "Remove from liked jobs" : "Save job"}
-                      style={{ width: "90px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, margin: 0, borderRadius: "0 1rem 1rem 0" }}
+                      style={{ width: isPhone ? "48px" : "90px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, margin: 0, borderRadius: "0 1rem 1rem 0" }}
                     >
                       {isApplied ? (
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                        <svg width={isPhone ? 22 : 40} height={isPhone ? 22 : 40} viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
                       ) : isLiked ? (
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <svg width={isPhone ? 22 : 40} height={isPhone ? 22 : 40} viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                       ) : (
-                        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        <svg width={isPhone ? 22 : 40} height={isPhone ? 22 : 40} viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                       )}
-                    </button>}
+                    </button>
                   </div>
                 );
               })}
