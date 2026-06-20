@@ -117,7 +117,7 @@ export default function Header() {
           className="header-logo"
           onClick={() => setPage(homeRoute)}
           aria-label="StudentShifts — go to home"
-          style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: isMobile ? "0.4rem" : "0.85rem", flexShrink: 0, transition: "transform 0.15s", background: "none", border: "none", padding: 0, marginLeft: isMobile ? "-1.05rem" : undefined }}
+          style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: isMobile ? "0.4rem" : "0.85rem", flexShrink: 0, transition: "transform 0.15s", background: "none", border: "none", padding: 0, marginLeft: isMobile ? "-0.8rem" : undefined }}
           onMouseEnter={e => e.currentTarget.style.transform = "scale(1.03)"}
           onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
         >
