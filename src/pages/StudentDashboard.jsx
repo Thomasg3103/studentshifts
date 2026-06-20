@@ -233,6 +233,8 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [fetchedPage,  setFetchedPage]  = useState(_jobsPageCache.page);
   const [hasMore,      setHasMore]      = useState(_jobsPageCache.hasMore);
   const [loadingMore,  setLoadingMore]  = useState(false);
+  // On mobile with cached data, render only 6 cards on first paint then expand
+  const [renderAll,    setRenderAll]    = useState(!isCached || window.innerWidth >= 768);
   const [extraCoords,  setExtraCoords]  = useState(_geocodeCache);
   const [windowWidth,  setWindowWidth]  = useState(window.innerWidth);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -351,6 +353,9 @@ export default function StudentDashboard({ restoreScrollY }) {
     if (!fresh) {
       fetchJobPage(0).catch(e => { console.error("[StudentDashboard] jobs error:", e); setJobsError(true); })
         .finally(() => setJobsLoading(false));
+    } else if (window.innerWidth < 768) {
+      // Cached on mobile: first paint shows 6 cards, then expand to all after two frames
+      requestAnimationFrame(() => requestAnimationFrame(() => setRenderAll(true)));
     }
     // Load featured company IDs once on mount (fire-and-forget)
     supabase.rpc("get_featured_company_ids")
@@ -1020,7 +1025,7 @@ export default function StudentDashboard({ restoreScrollY }) {
 
             {/* Job cards */}
             <div role="list" className="job-list-grid" style={{ display: "grid", gridTemplateColumns: (!isPhone && gridCols === 2) ? "1fr 1fr" : "1fr", gap: "0.85rem" }}>
-              {sortedJobs.map(job => {
+              {(renderAll ? sortedJobs : sortedJobs.slice(0, 6)).map(job => {
                 const isLiked   = likedJobs.some(j => j.id === job.id);
                 const isApplied = appliedJobs.some(j => j.id === job.id);
                 const isNew     = job.createdAt && (Date.now() - new Date(job.createdAt)) < 48 * 60 * 60 * 1000;

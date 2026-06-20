@@ -74,6 +74,14 @@ async function getCroppedBlobRect(imageSrc, pixelCrop) {
   return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.9));
 }
 
+const _acctCache = {
+  notifPrefs: null, notifPrefsFetchedAt: 0,
+  workHistory: null, workHistoryFetchedAt: 0,
+  referralCode: null, referralCount: null, referralFetchedAt: 0,
+  userId: null,
+};
+const ACCT_TTL = 5 * 60 * 1000;
+
 export default function AccountPage() {
   const navigate = useNavigate();
   const { currentUser, setCurrentUser, setPage, setLikedJobs, setAppliedJobs, setStudentLocation, darkMode, toggleDarkMode } = useApp();
@@ -150,6 +158,10 @@ export default function AccountPage() {
   // Load notification preferences
   useEffect(() => {
     if (!currentUser?.id) return;
+    if (_acctCache.userId === currentUser.id && Date.now() - _acctCache.notifPrefsFetchedAt < ACCT_TTL && _acctCache.notifPrefs) {
+      setNotifPrefs(_acctCache.notifPrefs);
+      return;
+    }
     supabase
       .from("notification_preferences")
       .select("event_type, push_enabled, email_enabled")
@@ -158,6 +170,9 @@ export default function AccountPage() {
         if (data?.length) {
           const prefs = {};
           data.forEach(r => { prefs[r.event_type] = { push: r.push_enabled, email: r.email_enabled }; });
+          _acctCache.notifPrefs = prefs;
+          _acctCache.notifPrefsFetchedAt = Date.now();
+          _acctCache.userId = currentUser.id;
           setNotifPrefs(prefs);
         }
       })
@@ -166,6 +181,10 @@ export default function AccountPage() {
 
   useEffect(() => {
     if (currentUser.role !== "student") return;
+    if (_acctCache.userId === currentUser.id && Date.now() - _acctCache.workHistoryFetchedAt < ACCT_TTL && _acctCache.workHistory) {
+      setWorkHistory(_acctCache.workHistory);
+      return;
+    }
     supabase
       .from("applications")
       .select("id, created_at, jobs(title, location, pay)")
@@ -173,15 +192,33 @@ export default function AccountPage() {
       .eq("status", "Accepted")
       .order("created_at", { ascending: false })
       .then(({ data, error }) => {
-        if (!error && data) setWorkHistory(data);
+        if (!error && data) {
+          _acctCache.workHistory = data;
+          _acctCache.workHistoryFetchedAt = Date.now();
+          _acctCache.userId = currentUser.id;
+          setWorkHistory(data);
+        }
       });
   }, [currentUser.role, currentUser.id]);
 
   // Load referral code for students
   useEffect(() => {
     if (currentUser.role !== "student") return;
-    getOrCreateReferralCode().then(setReferralCode).catch(() => {});
-    fetchMyReferrals().then(rows => setReferralCount(rows.length)).catch(() => {});
+    if (_acctCache.userId === currentUser.id && Date.now() - _acctCache.referralFetchedAt < ACCT_TTL && _acctCache.referralCode !== null) {
+      setReferralCode(_acctCache.referralCode);
+      setReferralCount(_acctCache.referralCount ?? 0);
+      return;
+    }
+    getOrCreateReferralCode().then(code => {
+      _acctCache.referralCode = code;
+      _acctCache.referralFetchedAt = Date.now();
+      _acctCache.userId = currentUser.id;
+      setReferralCode(code);
+    }).catch(() => {});
+    fetchMyReferrals().then(rows => {
+      _acctCache.referralCount = rows.length;
+      setReferralCount(rows.length);
+    }).catch(() => {});
   }, [currentUser.role]);
 
   // Autosave text fields 1.5s after the user stops typing
