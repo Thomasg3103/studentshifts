@@ -1044,6 +1044,18 @@ export default function StudentDashboard({ restoreScrollY }) {
                           NEW
                         </div>
                       )}
+                      {/* Match % — bottom-left of photo */}
+                      {(() => {
+                        const score = jobMatchScore(job);
+                        if (!score || !currentUser || currentUser.role !== "student") return null;
+                        const pct = Math.min(100, Math.round((score / 100) * 100));
+                        if (pct < 20) return null;
+                        return (
+                          <span style={{ position: "absolute", bottom: "6px", left: "6px", fontSize: "0.6rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "rgba(252,231,243,0.92)", borderRadius: "999px", padding: "0.1rem 0.38rem", backdropFilter: "blur(4px)", zIndex: 2, lineHeight: 1.4 }}>
+                            {pct}% match
+                          </span>
+                        );
+                      })()}
                     </div>
 
                     {/* Content */}
@@ -1105,13 +1117,6 @@ export default function StudentDashboard({ restoreScrollY }) {
                         <span style={{ fontWeight: 800, color: "var(--color-brand)", fontSize: isPhone ? "0.95rem" : "1.35rem", letterSpacing: "-0.01em" }}>
                           <span style={{ opacity: 0.6, fontWeight: 700 }}>€</span>{job.pay.replace(/€/g, "")}
                         </span>
-                        {(() => {
-                          const score = jobMatchScore(job);
-                          if (!score || !currentUser || currentUser.role !== "student") return null;
-                          const pct = Math.min(100, Math.round((score / 100) * 100));
-                          if (pct < 20) return null;
-                          return <span style={{ fontSize: isPhone ? "0.62rem" : "0.68rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.1rem 0.4rem", flexShrink: 0 }}>{pct}% match</span>;
-                        })()}
                         {isNew && !job.isUrgent && (
                           <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`} title="Posted in the last 48 hours">
                             NEW
