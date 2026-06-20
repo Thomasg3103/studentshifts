@@ -1050,7 +1050,24 @@ export default function StudentDashboard({ restoreScrollY }) {
                     <div style={{ flex: 1, padding: isPhone ? "0.6rem 0.7rem" : "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       {/* Top: title + company + pills */}
                       <div>
-                        <h2 style={{ fontWeight: 800, fontSize: isPhone ? "0.88rem" : "1.5rem", margin: "0 0 0.1rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
+                        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.1rem" }}>
+                          <h2 style={{ fontWeight: 800, fontSize: isPhone ? "0.88rem" : "1.5rem", margin: 0, color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>{job.title}</h2>
+                          <button
+                            onClick={e => { e.stopPropagation(); toggleLike(job); }}
+                            disabled={isApplied}
+                            title={isApplied ? "You've already applied" : isLiked ? "Remove from liked" : "Save job"}
+                            aria-label={isApplied ? "Already applied" : isLiked ? "Remove from liked jobs" : "Save job"}
+                            style={{ flexShrink: 0, background: "none", border: "none", cursor: isApplied ? "default" : "pointer", padding: "2px", display: "flex", alignItems: "center", lineHeight: 1 }}
+                          >
+                            {isApplied ? (
+                              <svg width={isPhone ? 18 : 26} height={isPhone ? 18 : 26} viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                            ) : isLiked ? (
+                              <svg width={isPhone ? 18 : 26} height={isPhone ? 18 : 26} viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                            ) : (
+                              <svg width={isPhone ? 18 : 26} height={isPhone ? 18 : 26} viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                            )}
+                          </button>
+                        </div>
                         <p style={{ margin: isPhone ? "0 0 0.05rem" : "0 0 0.15rem", fontSize: isPhone ? "0.72rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
                           <span onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</span>
                         </p>
@@ -1065,11 +1082,6 @@ export default function StudentDashboard({ restoreScrollY }) {
                             );
                           })}
                         </div>
-                        {(job.filledShifts || []).length > 0 && (
-                          <p style={{ margin: "0.25rem 0 0", fontSize: isPhone ? "0.68rem" : "0.75rem", color: "var(--color-text-secondary, #6b7280)", fontWeight: 500 }}>
-                            {job.filledShifts.length} of {job.days.length} shift{job.days.length !== 1 ? "s" : ""} filled
-                          </p>
-                        )}
                         {dist !== null && (
                           <div style={{ marginTop: "0.3rem" }}>
                             <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`}>
@@ -1081,10 +1093,16 @@ export default function StudentDashboard({ restoreScrollY }) {
 
                       {/* Bottom: pay + deadline + updated */}
                       <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
-                        {/* #8 — pay as primary visual attribute */}
                         <span style={{ fontWeight: 800, color: "var(--color-brand)", fontSize: isPhone ? "0.95rem" : "1.35rem", letterSpacing: "-0.01em" }}>
                           <span style={{ opacity: 0.6, fontWeight: 700 }}>€</span>{job.pay.replace(/€/g, "")}
                         </span>
+                        {(() => {
+                          const score = jobMatchScore(job);
+                          if (!score || !currentUser || currentUser.role !== "student") return null;
+                          const pct = Math.min(100, Math.round((score / 100) * 100));
+                          if (pct < 20) return null;
+                          return <span style={{ fontSize: isPhone ? "0.62rem" : "0.68rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.1rem 0.4rem", flexShrink: 0 }}>{pct}% match</span>;
+                        })()}
                         {isNew && !job.isUrgent && (
                           <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`} title="Posted in the last 48 hours">
                             NEW
@@ -1121,55 +1139,8 @@ export default function StudentDashboard({ restoreScrollY }) {
                           </span>
                         )}
                       </div>
-                      {/* Social proof + match score + job alerts */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.2rem", flexWrap: isPhone ? "nowrap" : "wrap", overflowX: isPhone ? "auto" : "visible", WebkitOverflowScrolling: "touch" }}>
-                        {(applicantCounts[job.id] ?? 0) > 0 && (
-                          <span style={{ fontSize: isPhone ? "0.65rem" : "0.72rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 500 }}>
-                            👥 {applicantCounts[job.id]} applicant{applicantCounts[job.id] !== 1 ? "s" : ""}
-                          </span>
-                        )}
-                        {(() => {
-                          const score = jobMatchScore(job);
-                          if (!score || !currentUser || currentUser.role !== "student") return null;
-                          const pct = Math.min(100, Math.round((score / 100) * 100));
-                          if (pct < 20) return null;
-                          return <span style={{ fontSize: isPhone ? "0.62rem" : "0.68rem", fontWeight: 700, color: "var(--color-brand)", backgroundColor: "#fce7f3", borderRadius: "999px", padding: "0.1rem 0.4rem", flexShrink: 0 }}>{pct}% match</span>;
-                        })()}
-                        {featuredCompanyIds.has(job.companyId) && (
-                          <span style={{ fontSize: isPhone ? "0.62rem" : "0.68rem", fontWeight: "700", color: "#854d0e", backgroundColor: "#fef9c3", borderRadius: "999px", padding: "0.1rem 0.4rem", flexShrink: 0 }}>⭐ Featured</span>
-                        )}
-                        {(() => {
-                          const hrs = companyResponseRates[job.companyId];
-                          if (!hrs) return null;
-                          const label = hrs < 1 ? `${Math.round(hrs * 60)}m reply` : hrs <= 24 ? `${hrs}h reply` : null;
-                          if (!label) return null;
-                          return <span style={{ fontSize: isPhone ? "0.62rem" : "0.68rem", color: "#16a34a", fontWeight: "600", flexShrink: 0 }}>⚡ {label}</span>;
-                        })()}
-                        <button
-                          onClick={e => { e.stopPropagation(); const next = !jobAlerts; setJobAlerts(next); try { localStorage.setItem("ss_job_alerts", next ? "1" : "0"); } catch { /* ignore */ } }}
-                          title={jobAlerts ? "Job alerts on — you'll be notified of new matching jobs" : "Get notified when similar jobs are posted (coming soon)"}
-                          aria-label={jobAlerts ? "Disable job alerts" : "Enable job alerts"}
-                          style={{ marginLeft: isPhone ? 0 : "auto", padding: "0.1rem 0.4rem", borderRadius: "999px", border: `1px solid ${jobAlerts ? "var(--color-brand)" : "var(--color-border-light, #e2e8f0)"}`, background: jobAlerts ? "#fce7f3" : "var(--color-bg-elevated, white)", color: jobAlerts ? "var(--color-brand)" : "var(--color-text-secondary, #94a3b8)", fontSize: "0.62rem", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", flexShrink: 0, whiteSpace: "nowrap" }}
-                        >{jobAlerts ? "🔔 Alerts on" : "🔔 Alert me"}</button>
-                      </div>
                     </div>
 
-                    {/* Right: heart / applied icon */}
-                    <button
-                      onClick={e => { e.stopPropagation(); toggleLike(job); }}
-                      disabled={isApplied}
-                      title={isApplied ? "You’ve already applied" : isLiked ? "Remove from liked" : "Save job"}
-                      aria-label={isApplied ? "Already applied" : isLiked ? "Remove from liked jobs" : "Save job"}
-                      style={{ width: isPhone ? "48px" : "90px", flexShrink: 0, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center", background: "none", border: "none", borderLeft: "1.5px solid #f1f5f9", cursor: isApplied ? "default" : "pointer", padding: 0, margin: 0, borderRadius: "0 1rem 1rem 0" }}
-                    >
-                      {isApplied ? (
-                        <svg width={isPhone ? 22 : 40} height={isPhone ? 22 : 40} viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-                      ) : isLiked ? (
-                        <svg width={isPhone ? 22 : 40} height={isPhone ? 22 : 40} viewBox="0 0 24 24" fill="#e11d48" stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                      ) : (
-                        <svg width={isPhone ? 22 : 40} height={isPhone ? 22 : 40} viewBox="0 0 24 24" fill="none" stroke="#e11d48" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                      )}
-                    </button>
                   </div>
                 );
               })}
