@@ -44,7 +44,7 @@ export default function PageWrapper({ children, narrow }) {
           aria-label="Back to top"
           style={{
             position: "fixed",
-            bottom: "2rem",
+            bottom: "5rem",
             right: "2rem",
             width: "44px",
             height: "44px",

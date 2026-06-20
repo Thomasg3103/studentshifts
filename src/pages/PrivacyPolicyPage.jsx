@@ -547,7 +547,7 @@ export default function PrivacyPolicyPage() {
         <button
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
           aria-label="Back to top"
-          style={{ position: "fixed", bottom: "2rem", right: "1.25rem", width: "44px", height: "44px", borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", border: "none", color: "white", fontSize: "1.2rem", cursor: "pointer", boxShadow: "0 4px 16px rgba(162,29,84,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150 }}
+          style={{ position: "fixed", bottom: "5rem", right: "1.25rem", width: "44px", height: "44px", borderRadius: "50%", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", border: "none", color: "white", fontSize: "1.2rem", cursor: "pointer", boxShadow: "0 4px 16px rgba(162,29,84,0.4)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 150 }}
         >↑</button>
       )}
     </>
