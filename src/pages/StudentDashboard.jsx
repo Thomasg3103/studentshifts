@@ -1023,10 +1023,10 @@ export default function StudentDashboard({ restoreScrollY }) {
                   if (window.gtag) window.gtag("event", "view_item", { item_id: job.id, item_name: job.title, item_category: job.category });
                 };
                 return (
-                  <div key={job.id} role="listitem" className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: isPhone ? "column" : "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
+                  <div key={job.id} role="listitem" className="job-card" onClick={openJob} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, cursor: "pointer" }}>
 
-                    {/* Photo — full width strip on phone, side column on desktop */}
-                    <div style={{ width: isPhone ? "100%" : "180px", height: isPhone ? "140px" : "auto", flexShrink: 0, alignSelf: isPhone ? "auto" : "stretch", position: "relative", overflow: "hidden", borderRadius: isPhone ? "1rem 1rem 0 0" : "1rem 0 0 0" }}>
+                    {/* Photo — square on phone, wider side column on desktop */}
+                    <div style={{ width: isPhone ? "110px" : "180px", flexShrink: 0, alignSelf: "stretch", position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem" }}>
                       {photo ? (
                         <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                           <img loading="lazy" src={photo} alt={`${job.title} at ${job.company}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -1065,11 +1065,11 @@ export default function StudentDashboard({ restoreScrollY }) {
                     </div>
 
                     {/* Content */}
-                    <div style={{ flex: 1, padding: isPhone ? "0.75rem 0.9rem" : "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                    <div style={{ flex: 1, padding: isPhone ? "0.6rem 0.7rem" : "1.1rem 1.4rem", minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                       {/* Top: title + company + pills */}
                       <div>
-                        <h2 style={{ fontWeight: 800, fontSize: isPhone ? "1.0rem" : "1.5rem", margin: "0 0 0.15rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
-                        <p style={{ margin: isPhone ? "0 0 0.1rem" : "0 0 0.15rem", fontSize: isPhone ? "0.78rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
+                        <h2 style={{ fontWeight: 800, fontSize: isPhone ? "0.88rem" : "1.5rem", margin: "0 0 0.1rem", color: "var(--color-text-primary, #1e293b)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{job.title}</h2>
+                        <p style={{ margin: isPhone ? "0 0 0.05rem" : "0 0 0.15rem", fontSize: isPhone ? "0.72rem" : "1.1rem", color: "var(--color-text-secondary, #6b7280)" }}>
                           <span onClick={e => { e.stopPropagation(); navigate(`/companies/${job.companyId}`); }} style={{ cursor: "pointer", textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px" }}>{job.company}</span>
                         </p>
                         <p style={{ margin: isPhone ? "0 0 0.35rem" : "0 0 0.6rem", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>📍 {job.location}</p>

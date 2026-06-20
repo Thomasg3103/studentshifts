@@ -292,14 +292,14 @@ export default function LandingPage() {
         </div>
 
         {/* Bottom CTA band */}
-        <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #7b0d2e 100%)", borderRadius: "1.25rem", padding: "3rem 2rem", textAlign: "center", marginBottom: "0.5rem" }}>
-          <h2 style={{ fontWeight: 800, fontSize: "1.6rem", color: "white", margin: "0 0 0.6rem", letterSpacing: "-0.02em" }}>Ready to start earning?</h2>
-          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.95rem", margin: "0 0 1.75rem", lineHeight: 1.6 }}>
+        <div style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #7b0d2e 100%)", borderRadius: "1.25rem", padding: windowWidth < 480 ? "2rem 1.25rem" : "3rem 2rem", textAlign: "center", marginBottom: "0.5rem" }}>
+          <h2 style={{ fontWeight: 800, fontSize: windowWidth < 480 ? "1.3rem" : "1.6rem", color: "white", margin: "0 0 0.6rem", letterSpacing: "-0.02em" }}>Ready to start earning?</h2>
+          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: "0.9rem", margin: "0 0 1.5rem", lineHeight: 1.6 }}>
             Sign up free in under 2 minutes. No experience needed.
           </p>
           <button
             onClick={() => navigate("/signup")}
-            style={{ padding: "0.9rem 2.5rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: "1rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)" }}
+            style={{ padding: windowWidth < 480 ? "0.75rem 1.5rem" : "0.9rem 2.5rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg,#f43f5e,#e11d48)", color: "white", fontWeight: 700, fontSize: windowWidth < 480 ? "0.88rem" : "1rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 4px 18px rgba(244,63,94,0.45)", whiteSpace: "nowrap" }}
           >
             Create My Free Account →
           </button>

@@ -242,7 +242,7 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, applicatio
     <div role="listitem" className="job-card" style={{ display: "flex", flexDirection: "column", padding: 0, overflow: "hidden", marginBottom: 0 }}>
       <div style={{ display: "flex", alignItems: "stretch" }}>
         {/* Photo */}
-        <div style={{ width: "120px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem", alignSelf: "stretch", minHeight: "110px" }}>
+        <div style={{ width: "110px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem", alignSelf: "stretch", minHeight: "100px" }}>
           {photo ? (
             <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
               <img loading="lazy" src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -316,16 +316,6 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, applicatio
             <button aria-label={`Message ${job.company} about ${job.title}`} onClick={() => onMessage()}
               style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "none", background: "linear-gradient(135deg, #10b981, #059669)", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", boxShadow: "0 2px 8px rgba(16,185,129,0.3)" }}>
               💬 Message Company
-            </button>
-          )}
-          {showMessage && (
-            <button disabled title="Coming soon" style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "#94a3b8", fontWeight: "700", fontSize: "0.78rem", cursor: "default", fontFamily: "inherit" }}>
-              📄 Offer Letter <span style={{ fontSize: "0.65rem" }}>· Soon</span>
-            </button>
-          )}
-          {showMessage && (
-            <button disabled title="Coming soon" style={{ padding: "0.38rem 0.9rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "var(--color-bg-elevated, white)", color: "#94a3b8", fontWeight: "700", fontSize: "0.78rem", cursor: "default", fontFamily: "inherit" }}>
-              ⭐ Review Company <span style={{ fontSize: "0.65rem" }}>· Soon</span>
             </button>
           )}
           {showWithdraw && (

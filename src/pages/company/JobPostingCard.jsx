@@ -96,7 +96,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onRe
           {posting.weekendRequired && <span className="badge badge-tag badge-yellow">Weekend</span>}
         </div>
 
-        {/* Bottom row: View Applicants CTA + deadline + secondary actions */}
+        {/* Bottom row: View Applicants CTA + deadline */}
         <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginTop: "auto", flexWrap: "wrap" }}>
           <button
             onClick={onViewApplicants}
@@ -123,75 +123,75 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onRe
               Posted {postedAgo}
             </span>
           )}
+        </div>
 
-          {/* Secondary actions */}
-          <div style={{ display: "flex", gap: "0.35rem", marginLeft: "auto", overflowX: "auto", WebkitOverflowScrolling: "touch", flexShrink: 1, minWidth: 0 }}>
-            {onLoadMatches && isActive && posting.days?.length > 0 && (
+        {/* Secondary actions — own scrollable row so they never clip off-screen */}
+        <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", WebkitOverflowScrolling: "touch", paddingBottom: "2px", marginTop: "0.4rem" }}>
+          {onLoadMatches && isActive && posting.days?.length > 0 && (
+            <button
+              onClick={() => {
+                setShowMatches(v => !v);
+                if (!matchesData?.loaded && !matchesData?.loading) onLoadMatches();
+              }}
+              style={{ ...actionBtn, color: showMatches ? "var(--color-brand)" : "#374151", borderColor: showMatches ? "var(--color-brand)" : "#e2e8f0", backgroundColor: showMatches ? "#fce7f3" : "var(--color-bg-elevated, white)" }}
+              title="See which verified students are available for these shifts"
+            >🎯 Matches</button>
+          )}
+          {onNotifyStudents && isActive && (
+            notified ? (
+              <span style={{ ...actionBtn, color: "#16a34a", cursor: "default" }}>✓ Notified</span>
+            ) : (
               <button
-                onClick={() => {
-                  setShowMatches(v => !v);
-                  if (!matchesData?.loaded && !matchesData?.loading) onLoadMatches();
-                }}
-                style={{ ...actionBtn, color: showMatches ? "var(--color-brand)" : "#374151", borderColor: showMatches ? "var(--color-brand)" : "#e2e8f0", backgroundColor: showMatches ? "#fce7f3" : "var(--color-bg-elevated, white)" }}
-                title="See which verified students are available for these shifts"
-              >🎯 Matches</button>
-            )}
-            {onNotifyStudents && isActive && (
-              notified ? (
-                <span style={{ ...actionBtn, color: "#16a34a", cursor: "default" }}>✓ Notified</span>
-              ) : (
-                <button
-                  onClick={onNotifyStudents}
-                  disabled={notifying}
-                  aria-label={`Notify available students for ${posting.title}`}
-                  title="Email verified students whose availability matches this job's shift days"
-                  style={{ ...actionBtn, color: notifying ? "#94a3b8" : "var(--color-brand)", borderColor: notifying ? "#e2e8f0" : "var(--color-brand)", cursor: notifying ? "default" : "pointer" }}
-                >{notifying ? "Notifying…" : "📣 Notify"}</button>
-              )
-            )}
-            <button onClick={onEdit} aria-label={`Edit ${posting.title}`} style={actionBtn}>Edit</button>
-            <button onClick={onDuplicate} aria-label={`Duplicate ${posting.title}`} style={actionBtn} title="Create a new job based on this one">Duplicate</button>
-            {onSaveTemplate && (
-              templateSaved ? (
-                <span style={{ ...actionBtn, color: "#16a34a", cursor: "default" }}>✓ Saved</span>
-              ) : showTemplateInput ? (
-                <div style={{ display: "flex", gap: "0.3rem" }}>
-                  <input
-                    autoFocus
-                    value={templateNameInput}
-                    onChange={e => setTemplateNameInput(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === "Enter" && templateNameInput.trim()) {
-                        onSaveTemplate(templateNameInput.trim());
-                        setTemplateSaved(true); setShowTemplateInput(false); setTemplateNameInput("");
-                        setTimeout(() => setTemplateSaved(false), 3000);
-                      }
-                      if (e.key === "Escape") { setShowTemplateInput(false); setTemplateNameInput(""); }
-                    }}
-                    placeholder="Template name…"
-                    style={{ padding: "0.25rem 0.5rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", fontSize: "0.75rem", fontFamily: "inherit", width: "130px" }}
-                  />
-                  <button onClick={() => { onSaveTemplate(templateNameInput.trim() || posting.title); setTemplateSaved(true); setShowTemplateInput(false); setTemplateNameInput(""); setTimeout(() => setTemplateSaved(false), 3000); }} disabled={!templateNameInput.trim()} style={{ ...actionBtn, backgroundColor: "#f0fdf4", borderColor: "#86efac", color: "#15803d" }}>Save</button>
-                </div>
-              ) : (
-                <button onClick={() => { setTemplateNameInput(posting.title); setShowTemplateInput(true); }} style={actionBtn} title="Save as a reusable template">Template</button>
-              )
-            )}
-            <button
-              aria-label={isActive ? `Close ${posting.title}` : `Reopen ${posting.title}`}
-              onClick={isActive ? onRequestClose : onToggleStatus}
-              style={actionBtn}
-            >
-              {isActive ? "Close" : "Reopen"}
-            </button>
-            <button
-              aria-label={`Delete ${posting.title}`}
-              onClick={onRequestDelete}
-              style={{ ...actionBtn, border: "1px solid #fca5a5", color: "#dc2626" }}
-            >
-              Delete
-            </button>
-          </div>
+                onClick={onNotifyStudents}
+                disabled={notifying}
+                aria-label={`Notify available students for ${posting.title}`}
+                title="Email verified students whose availability matches this job's shift days"
+                style={{ ...actionBtn, color: notifying ? "#94a3b8" : "var(--color-brand)", borderColor: notifying ? "#e2e8f0" : "var(--color-brand)", cursor: notifying ? "default" : "pointer" }}
+              >{notifying ? "Notifying…" : "📣 Notify"}</button>
+            )
+          )}
+          <button onClick={onEdit} aria-label={`Edit ${posting.title}`} style={actionBtn}>Edit</button>
+          <button onClick={onDuplicate} aria-label={`Duplicate ${posting.title}`} style={actionBtn} title="Create a new job based on this one">Duplicate</button>
+          {onSaveTemplate && (
+            templateSaved ? (
+              <span style={{ ...actionBtn, color: "#16a34a", cursor: "default" }}>✓ Saved</span>
+            ) : showTemplateInput ? (
+              <div style={{ display: "flex", gap: "0.3rem" }}>
+                <input
+                  autoFocus
+                  value={templateNameInput}
+                  onChange={e => setTemplateNameInput(e.target.value)}
+                  onKeyDown={e => {
+                    if (e.key === "Enter" && templateNameInput.trim()) {
+                      onSaveTemplate(templateNameInput.trim());
+                      setTemplateSaved(true); setShowTemplateInput(false); setTemplateNameInput("");
+                      setTimeout(() => setTemplateSaved(false), 3000);
+                    }
+                    if (e.key === "Escape") { setShowTemplateInput(false); setTemplateNameInput(""); }
+                  }}
+                  placeholder="Template name…"
+                  style={{ padding: "0.25rem 0.5rem", borderRadius: "0.4rem", border: "1.5px solid #d1d5db", fontSize: "0.75rem", fontFamily: "inherit", width: "130px" }}
+                />
+                <button onClick={() => { onSaveTemplate(templateNameInput.trim() || posting.title); setTemplateSaved(true); setShowTemplateInput(false); setTemplateNameInput(""); setTimeout(() => setTemplateSaved(false), 3000); }} disabled={!templateNameInput.trim()} style={{ ...actionBtn, backgroundColor: "#f0fdf4", borderColor: "#86efac", color: "#15803d" }}>Save</button>
+              </div>
+            ) : (
+              <button onClick={() => { setTemplateNameInput(posting.title); setShowTemplateInput(true); }} style={actionBtn} title="Save as a reusable template">Template</button>
+            )
+          )}
+          <button
+            aria-label={isActive ? `Close ${posting.title}` : `Reopen ${posting.title}`}
+            onClick={isActive ? onRequestClose : onToggleStatus}
+            style={actionBtn}
+          >
+            {isActive ? "Close" : "Reopen"}
+          </button>
+          <button
+            aria-label={`Delete ${posting.title}`}
+            onClick={onRequestDelete}
+            style={{ ...actionBtn, border: "1px solid #fca5a5", color: "#dc2626" }}
+          >
+            Delete
+          </button>
         </div>
       </div>
 

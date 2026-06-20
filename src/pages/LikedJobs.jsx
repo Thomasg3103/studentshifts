@@ -52,8 +52,8 @@ export default function LikedJobs() {
               const isClosed = job.status === "Closed" || job.status === "Expired";
               const isApplied = savedAppliedJobIds.includes(job.id);
               return (
-                <div key={job.id} role="listitem" className="job-card" style={{ display: "flex", alignItems: "flex-start", padding: 0, overflow: "hidden", marginBottom: 0, opacity: isClosed ? 0.75 : 1 }}>
-                  <div style={{ width: "120px", height: "120px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 0" }}>
+                <div key={job.id} role="listitem" className="job-card" style={{ display: "flex", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, opacity: isClosed ? 0.75 : 1 }}>
+                  <div style={{ width: "110px", flexShrink: 0, position: "relative", overflow: "hidden", borderRadius: "1rem 0 0 1rem", alignSelf: "stretch", minHeight: "100px" }}>
                     {photo ? (
                       <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, transform: `translate(${crop.offsetX}%, ${crop.offsetY}%) scale(${crop.zoom})`, transformOrigin: "center" }}>
                         <img loading="lazy" src={photo} alt={job.company} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -72,10 +72,10 @@ export default function LikedJobs() {
                       </div>
                     )}
                   </div>
-                  <div style={{ flex: 1, padding: "0.85rem 1rem", minWidth: 0 }}>
-                    <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "flex-start", gap: "0.4rem", marginBottom: "0.2rem" }}>
-                      <h2 style={{ fontWeight: "800", fontSize: "1.05rem", margin: 0, color: isClosed ? "#64748b" : "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>{job.title}</h2>
-                      <div style={{ display: "flex", gap: "0.4rem", flexShrink: 0 }}>
+                  <div style={{ flex: 1, padding: "0.7rem 0.85rem", minWidth: 0 }}>
+                    <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", alignItems: "flex-start", gap: "0.35rem", marginBottom: "0.2rem" }}>
+                      <h2 style={{ fontWeight: "800", fontSize: "0.95rem", margin: 0, color: isClosed ? "#64748b" : "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%", flex: "1 1 0", minWidth: 0 }}>{job.title}</h2>
+                      <div style={{ display: "flex", gap: "0.35rem", flexShrink: 0 }}>
                         <button aria-label={`View ${job.title}`} onClick={() => viewJob(job)} style={btnBlue}>View Job</button>
                         <button aria-label={`Remove ${job.title} from liked jobs`} onClick={() => removeLike(job)} style={btnRed}>Unsave</button>
                       </div>
