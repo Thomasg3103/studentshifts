@@ -599,15 +599,15 @@ export default function AccountPage() {
     }
   };
 
-  const confirmLogout = async () => {
-    try { await signOut(); } catch (e) { console.warn("Sign-out failed:", e); }
-    for (const key of Object.keys(localStorage)) {
-      if (key.startsWith('ss_notif_seen_')) localStorage.removeItem(key);
-    }
+  const confirmLogout = () => {
+    setShowLogoutModal(false);
     setCurrentUser(null);
     setLikedJobs([]);
     setAppliedJobs([]);
-    setPage("studentDashboard");
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith('ss_notif_seen_')) localStorage.removeItem(key);
+    }
+    signOut().catch(e => console.warn("Sign-out failed:", e));
   };
 
   // ── Derived ──────────────────────────────────────────────────────────────

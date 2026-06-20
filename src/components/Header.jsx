@@ -40,13 +40,9 @@ export default function Header() {
     : currentUser?.role === "admin" ? "admin"
     : "studentDashboard";
 
-  const signOut = async () => {
+  const signOut = () => {
     setMenuOpen(false);
-    try {
-      await authSignOut();
-    } catch (e) {
-      console.warn("Sign out failed:", e?.message);
-    }
+    authSignOut().catch(e => console.warn("Sign out failed:", e?.message));
   };
 
   const menuItems = currentUser ? [
