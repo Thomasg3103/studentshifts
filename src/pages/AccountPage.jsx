@@ -591,7 +591,7 @@ export default function AccountPage() {
       setCurrentUser(null);
       setLikedJobs([]);
       setAppliedJobs([]);
-      setPage("studentDashboard");
+      navigate("/signup", { replace: true });
     } catch (e) {
       Sentry.captureException(e);
       setDeleteError(e.message || "Failed to delete account.");
