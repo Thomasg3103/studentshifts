@@ -4,6 +4,7 @@ import { supabase, withTimeout } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
 import BackButton from "../components/BackButton";
 import toast from "react-hot-toast";
+import ReportModal from "../components/ReportModal";
 
 const CATEGORIES = ["General", "Jobs & Shifts", "Pay & Rights", "Best Companies", "Tips & Advice", "Events"];
 
@@ -32,6 +33,8 @@ export default function ForumPage() {
   const [newCategory, setNewCategory] = useState("General");
   const [posting, setPosting] = useState(false);
   const [postError, setPostError] = useState("");
+
+  const [reportStudent, setReportStudent] = useState(null); // { id, name }
 
   // Comments state
   const [expandedPostId, setExpandedPostId] = useState(null);
@@ -415,6 +418,13 @@ export default function ForumPage() {
                       {commentCount !== null && <span style={{ fontWeight: 500 }}>({commentCount})</span>}
                     </button>
 
+                    {currentUser && !isOwnPost && (
+                      <button
+                        onClick={() => setReportStudent({ id: post.author_id, name: post.author_name })}
+                        title={`Report ${post.author_name}`}
+                        style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.3rem", color: "#cbd5e1", fontSize: "0.78rem", fontFamily: "inherit" }}
+                      >🚩 Report</button>
+                    )}
                     {isOwnPost && (
                       <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: "0.5rem" }}>
                         {isDeletingThis ? (
@@ -525,6 +535,14 @@ export default function ForumPage() {
           </p>
         )}
       </div>
+      {reportStudent && (
+        <ReportModal
+          targetType="student"
+          targetId={reportStudent.id}
+          targetName={reportStudent.name}
+          onClose={() => setReportStudent(null)}
+        />
+      )}
     </div>
   );
 }

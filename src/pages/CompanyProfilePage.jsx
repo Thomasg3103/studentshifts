@@ -117,7 +117,7 @@ export default function CompanyProfilePage() {
               {company.is_featured && (
                 <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#854d0e", backgroundColor: "#fef9c3", borderRadius: "999px", padding: "0.2rem 0.6rem", border: "1.5px solid #fde68a" }}>⭐ Featured Employer</span>
               )}
-              {currentUser?.role === "student" && (
+              {currentUser && currentUser.role !== "admin" && (
                 <button onClick={() => setShowReport(true)} title="Report this company" style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#cbd5e1", fontSize: "0.8rem", padding: "2px 4px" }}>🚩 Report</button>
               )}
             </div>
