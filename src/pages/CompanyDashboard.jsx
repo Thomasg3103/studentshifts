@@ -109,6 +109,15 @@ export default function CompanyDashboard() {
     }
   }, [modal]);
 
+  // Notify admins once when a new company first lands here in pending_review state
+  useEffect(() => {
+    if (!currentUser?.id || currentUser?.verificationStatus !== "pending_review") return;
+    const key = `adminNotified_${currentUser.id}`;
+    if (localStorage.getItem(key)) return;
+    localStorage.setItem(key, "1");
+    supabase.functions.invoke("send-email", { body: { type: "new-signup" } }).catch(() => {});
+  }, [currentUser?.id]);
+
   // Load availability heatmap once
   useEffect(() => {
     fetchAvailabilityHeatmap().then(setHeatmap).catch(e => console.warn("[CompanyDashboard] heatmap failed:", e));

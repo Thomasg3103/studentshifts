@@ -4,6 +4,7 @@ import { useFocusTrap } from "../hooks/useFocusTrap";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { uploadVerificationDocs } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
 
 function StepBar({ step, total, label }) {
@@ -60,6 +61,7 @@ export default function VerifyDocsPage() {
     try {
       await uploadVerificationDocs(currentUser.id, studentIdCard, governmentId);
       setCurrentUser(prev => ({ ...prev, studentIdPath: "uploaded", verificationStatus: "pending_review" }));
+      supabase.functions.invoke("send-email", { body: { type: "new-signup" } }).catch(() => {});
       setShowAvailabilityPrompt(true);
     } catch (e) {
       Sentry.captureException(e);

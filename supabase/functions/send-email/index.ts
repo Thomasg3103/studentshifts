@@ -148,6 +148,75 @@ Deno.serve(async (req: Request) => {
 
     const body = await req.json();
 
+    // -- new-signup admin notification (student or company caller) --
+    if (body.type === "new-signup") {
+      if (!["student", "company"].includes(profile?.role)) throw new Error("Unauthorised");
+
+      const apiKey = Deno.env.get("BREVO_API_KEY");
+      if (!apiKey) throw new Error("BREVO_API_KEY not set");
+
+      const { data: adminRows } = await adminClient
+        .from("profiles")
+        .select("id")
+        .eq("role", "admin");
+
+      const adminIds = ((adminRows || []) as { id: string }[]).map(r => r.id);
+      if (!adminIds.length) {
+        return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const { data: emailRows } = await adminClient.rpc("get_user_emails", { user_ids: adminIds });
+      const adminEmails: string[] = ((emailRows || []) as { email: string }[]).map(r => r.email).filter(Boolean);
+      if (!adminEmails.length) {
+        return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const signupName = escapeHtml((profile as { role: string; name?: string })?.name || "Unknown");
+      const signupRole = (profile as { role: string })?.role === "company" ? "Company" : "Student";
+      const adminUrl   = `${FRONTEND_URL}/admin`;
+
+      const html = `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background-color:#fafafa;font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fafafa;padding:32px 16px;"><tr><td align="center">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.07);">
+      <tr><td align="center" style="background:linear-gradient(135deg,#A21D54,#C2185B);padding:36px 24px 32px;">
+        <p style="margin:0;font-size:28px;font-weight:800;color:#ffffff;letter-spacing:-0.5px;">StudentShifts</p>
+        <p style="margin:6px 0 0;font-size:14px;color:rgba(255,255,255,0.8);">Admin Notification</p>
+      </td></tr>
+      <tr><td style="padding:36px 32px 28px;">
+        <p style="margin:0 0 8px;font-size:22px;font-weight:800;color:#1e293b;">New ${signupRole} Signup</p>
+        <p style="margin:0 0 24px;font-size:15px;color:#64748b;line-height:1.6;">
+          <strong style="color:#1e293b;">${signupName}</strong> has signed up as a ${signupRole.toLowerCase()} on StudentShifts and is awaiting your review.
+        </p>
+        <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 28px;">
+          <a href="${escapeHtml(adminUrl)}" style="display:inline-block;background:linear-gradient(135deg,#A21D54,#C2185B);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:16px 40px;border-radius:50px;box-shadow:0 4px 18px rgba(162,29,84,0.4);">Review in Admin Panel &rarr;</a>
+        </td></tr></table>
+      </td></tr>
+      <tr><td style="border-top:1px solid #fafafa;padding:20px 32px;text-align:center;">
+        <p style="margin:0;font-size:12px;color:#64748b;">You are receiving this because you are a StudentShifts admin.</p>
+      </td></tr>
+    </table>
+  </td></tr></table>
+</body></html>`;
+
+      try { await adminClient.from("email_sends_log").insert({ user_id: user.id }); } catch { /* ignore */ }
+
+      await Promise.allSettled(adminEmails.map((adminEmail: string) =>
+        fetchWithTimeout("https://api.brevo.com/v3/smtp/email", {
+          method: "POST",
+          headers: { "api-key": apiKey, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sender: { name: "StudentShifts", email: "thomasgallagher3103@gmail.com" },
+            to: [{ email: adminEmail }],
+            subject: `New ${signupRole} signup — ${String(signupName).replace(/[\r\n]/g, "")}`,
+            htmlContent: html,
+          }),
+        }).catch((e: Error) => console.warn("new-signup admin email failed:", e.message))
+      ));
+
+      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     // â”€â”€ new-applicant notification (student caller) â”€â”€
     if (body.type === "new-applicant") {
       if (profile?.role !== "student") throw new Error("Unauthorised");
