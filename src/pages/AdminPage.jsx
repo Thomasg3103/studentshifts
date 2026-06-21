@@ -41,6 +41,14 @@ export default function AdminPage() {
   // BETA ONLY — remove before full launch
   const [suggestions,        setSuggestions]        = useState(null);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
+  // Admin delete
+  const [deleteUserConfirm,  setDeleteUserConfirm]  = useState(null); // { id, name, role }
+  const [deletingUserId,     setDeletingUserId]     = useState(null);
+  const [allPosts,           setAllPosts]           = useState(null);
+  const [postsLoading,       setPostsLoading]       = useState(false);
+  const [deletingPostId,     setDeletingPostId]     = useState(null);
+  const deleteUserModalRef = useRef(null);
+  useFocusTrap(deleteUserModalRef, () => setDeleteUserConfirm(null), !!deleteUserConfirm);
 
   // F-M10: extracted so the Refresh button can re-call it
   const loadData = useCallback(() => {
@@ -172,6 +180,61 @@ export default function AdminPage() {
       toast.error("Failed to delete comment.");
     } finally {
       setDeletingCommentId(null);
+    }
+  };
+
+  const handleAdminDeleteUser = async () => {
+    if (!deleteUserConfirm) return;
+    const { id, name } = deleteUserConfirm;
+    setDeletingUserId(id);
+    try {
+      const { error: err } = await supabase.rpc("admin_delete_user", { target_id: id });
+      if (err) throw err;
+      setStudents(prev => prev.filter(s => s.id !== id));
+      setCompanies(prev => prev.filter(c => c.id !== id));
+      if (verifiedCompanies) setVerifiedCompanies(prev => prev.filter(c => c.id !== id));
+      setDeleteUserConfirm(null);
+      toast.success(`${name} deleted.`);
+    } catch (e) {
+      toast.error(e.message || "Failed to delete user.");
+    } finally {
+      setDeletingUserId(null);
+    }
+  };
+
+  const loadAllPosts = useCallback(async () => {
+    setPostsLoading(true);
+    try {
+      const { data, error: err } = await supabase
+        .from("jobs")
+        .select("id, title, status, created_at, profiles!jobs_company_id_fkey(name)")
+        .order("created_at", { ascending: false })
+        .limit(300);
+      if (err) throw err;
+      setAllPosts(data || []);
+    } catch {
+      toast.error("Failed to load posts.");
+      setAllPosts([]);
+    } finally {
+      setPostsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === "posts" && allPosts === null) loadAllPosts();
+  }, [tab, allPosts, loadAllPosts]);
+
+  const handleAdminDeletePost = async (jobId, title) => {
+    setDeletingPostId(jobId);
+    try {
+      const { error: err } = await supabase.from("jobs").delete().eq("id", jobId);
+      if (err) throw err;
+      setAllPosts(prev => prev.filter(j => j.id !== jobId));
+      toast.success(`"${title}" deleted.`);
+    } catch {
+      toast.error("Failed to delete post.");
+    } finally {
+      setDeletingPostId(null);
     }
   };
 
@@ -393,6 +456,7 @@ export default function AdminPage() {
             { key: "signups",   label: "Signups",   count: 0 },
             { key: "featured",  label: "Featured",  count: 0 },
             { key: "forum",     label: "Forum",     count: 0 },
+            { key: "posts",     label: "Posts",     count: 0 },
             { key: "feedback",  label: "Feedback ✦", count: 0 }, // BETA ONLY — remove before full launch
           ].map(({ key, label, count }) => {
             const active = tab === key;
@@ -442,28 +506,36 @@ export default function AdminPage() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
                 {verifiedCompanies.map(c => (
-                  <div key={c.id} style={{ ...cardStyle, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+                  <div key={c.id} style={{ ...cardStyle, display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", flex: 1, minWidth: 0 }}>
                       {c.isFeatured && <span style={{ fontSize: "1.1rem" }}>⭐</span>}
                       <p style={{ margin: 0, fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #1e293b)" }}>{c.name}</p>
                       {c.isFeatured && (
                         <span style={{ fontSize: "0.65rem", fontWeight: "700", backgroundColor: "#fef9c3", color: "#854d0e", borderRadius: "999px", padding: "0.1rem 0.5rem" }}>Featured</span>
                       )}
                     </div>
-                    <button
-                      onClick={() => handleToggleFeatured(c)}
-                      disabled={featuredToggling === c.id}
-                      style={{
-                        padding: "0.4rem 0.9rem", borderRadius: "0.45rem", border: "1.5px solid",
-                        borderColor: c.isFeatured ? "#fca5a5" : "#d1d5db",
-                        backgroundColor: c.isFeatured ? "#fff1f2" : "white",
-                        color: c.isFeatured ? "#e11d48" : "#374151",
-                        fontWeight: "600", fontSize: "0.8rem", cursor: featuredToggling === c.id ? "default" : "pointer",
-                        fontFamily: "inherit", opacity: featuredToggling === c.id ? 0.5 : 1, flexShrink: 0,
-                      }}
-                    >
-                      {featuredToggling === c.id ? "…" : c.isFeatured ? "Unfeature" : "⭐ Feature"}
-                    </button>
+                    <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
+                      <button
+                        onClick={() => handleToggleFeatured(c)}
+                        disabled={featuredToggling === c.id}
+                        style={{
+                          padding: "0.4rem 0.9rem", borderRadius: "0.45rem", border: "1.5px solid",
+                          borderColor: c.isFeatured ? "#fca5a5" : "#d1d5db",
+                          backgroundColor: c.isFeatured ? "#fff1f2" : "white",
+                          color: c.isFeatured ? "#e11d48" : "#374151",
+                          fontWeight: "600", fontSize: "0.8rem", cursor: featuredToggling === c.id ? "default" : "pointer",
+                          fontFamily: "inherit", opacity: featuredToggling === c.id ? 0.5 : 1,
+                        }}
+                      >
+                        {featuredToggling === c.id ? "…" : c.isFeatured ? "Unfeature" : "⭐ Feature"}
+                      </button>
+                      <button
+                        onClick={() => setDeleteUserConfirm({ id: c.id, name: c.name, role: "company" })}
+                        style={{ padding: "0.4rem 0.75rem", borderRadius: "0.45rem", border: "1.5px solid #1e293b", backgroundColor: "#0f172a", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}
+                      >
+                        🗑 Delete
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -563,6 +635,40 @@ export default function AdminPage() {
               </div>
             )}
           </div>
+        ) : tab === "posts" ? (
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)" }}>All job posts across every company. Delete anything inappropriate.</p>
+              <button onClick={loadAllPosts} style={docBtn}>↻ Refresh</button>
+            </div>
+            {postsLoading ? (
+              <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
+            ) : !allPosts?.length ? (
+              <EmptyState label="No job posts yet" />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                {allPosts.map(post => (
+                  <div key={post.id} style={{ ...cardStyle, display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={{ margin: "0 0 0.2rem", fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #0f172a)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{post.title}</p>
+                      <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
+                        <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{post.profiles?.name || "Unknown company"}</span>
+                        <span style={{ fontSize: "0.7rem", fontWeight: "700", borderRadius: "999px", padding: "0.1rem 0.45rem", backgroundColor: post.status === "Active" ? "#dcfce7" : "#f1f5f9", color: post.status === "Active" ? "#16a34a" : "#64748b" }}>{post.status}</span>
+                        <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{new Date(post.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleAdminDeletePost(post.id, post.title)}
+                      disabled={deletingPostId === post.id}
+                      style={{ padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px solid #fca5a5", backgroundColor: "#fff1f2", color: "#e11d48", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
+                    >
+                      {deletingPostId === post.id ? "…" : "Delete"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ) : tab === "feedback" ? (
           // BETA ONLY — remove before full launch
           <div>
@@ -616,7 +722,7 @@ export default function AdminPage() {
                       </button>
                     )}
                   </div>
-                  <div style={{ display: "flex", gap: "0.6rem" }}>
+                  <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
                     <button
                       aria-label={`Approve ${s.name}`}
                       onClick={() => handleApproveStudent(s)}
@@ -633,6 +739,13 @@ export default function AdminPage() {
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === s.id + "_reject" ? 0.7 : 1 }}
                     >
                       {actionLoading === s.id + "_reject" ? "Rejecting…" : "❌ Reject"}
+                    </button>
+                    <button
+                      aria-label={`Delete ${s.name}`}
+                      onClick={() => setDeleteUserConfirm({ id: s.id, name: s.name, role: "student" })}
+                      style={{ ...actionBtnBase, background: "#0f172a", fontSize: "0.8rem" }}
+                    >
+                      🗑 Delete
                     </button>
                   </div>
                 </div>
@@ -690,11 +803,11 @@ export default function AdminPage() {
                     </div>
                   )}
 
-                  <div style={{ display: "flex", gap: "0.6rem" }}>
+                  <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
                     <button
                       aria-label={`Approve ${c.name}`}
                       onClick={() => handleApproveCompany(c)}
-                      disabled={actionLoading === c.id + "_approve" || actionLoading === c.id + "_reject" || !c.croNumber} // S-H10: require CRO
+                      disabled={actionLoading === c.id + "_approve" || actionLoading === c.id + "_reject" || !c.croNumber}
                       title={!c.croNumber ? "Cannot approve: no CRO number provided" : undefined}
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: (actionLoading === c.id + "_approve" || !c.croNumber) ? 0.5 : 1 }}
                     >
@@ -707,6 +820,13 @@ export default function AdminPage() {
                       style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === c.id + "_reject" ? 0.7 : 1 }}
                     >
                       {actionLoading === c.id + "_reject" ? "Rejecting…" : "❌ Reject"}
+                    </button>
+                    <button
+                      aria-label={`Delete ${c.name}`}
+                      onClick={() => setDeleteUserConfirm({ id: c.id, name: c.name, role: "company" })}
+                      style={{ ...actionBtnBase, background: "#0f172a", fontSize: "0.8rem" }}
+                    >
+                      🗑 Delete
                     </button>
                   </div>
                 </div>
@@ -747,6 +867,35 @@ export default function AdminPage() {
                 style={{ padding: "0.5rem 1.1rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#e11d48", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
               >
                 Yes, Reject
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {deleteUserConfirm && (
+        <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.65)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }}>
+          <div ref={deleteUserModalRef} role="dialog" aria-modal="true" aria-labelledby="delete-user-modal-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", padding: "1.5rem 1.75rem", maxWidth: "380px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
+            <p id="delete-user-modal-title" style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.05rem", color: "#e11d48" }}>
+              Permanently delete {deleteUserConfirm.role}?
+            </p>
+            <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.5 }}>
+              <strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{deleteUserConfirm.name}</strong> and all their data (jobs, applications, messages) will be permanently deleted. This cannot be undone.
+            </p>
+            <div style={{ display: "flex", gap: "0.6rem", justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setDeleteUserConfirm(null)}
+                disabled={!!deletingUserId}
+                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAdminDeleteUser}
+                disabled={!!deletingUserId}
+                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#0f172a", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: deletingUserId ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: deletingUserId ? 0.6 : 1 }}
+              >
+                {deletingUserId ? "Deleting…" : "Yes, Delete Permanently"}
               </button>
             </div>
           </div>
