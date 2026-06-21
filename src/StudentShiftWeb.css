@@ -279,16 +279,15 @@ header {
 /* Applicants modal responsive */
 @media (max-width: 600px) {
   .applicants-modal {
-    border-radius: 1rem 1rem 0 0 !important;
-    height: 82vh !important;
-    max-height: 82vh !important;
-    height: 88svh !important;
-    max-height: 88svh !important;
+    border-radius: 1rem !important;
+    height: calc(100vh - 2rem) !important;
+    max-height: calc(100vh - 2rem) !important;
+    height: calc(100svh - 2rem) !important;
+    max-height: calc(100svh - 2rem) !important;
   }
   .applicants-modal-overlay {
     align-items: flex-end !important;
-    padding: 0 0 80px !important;
-    padding: 0 0 6svh !important;
+    padding: 1rem !important;
   }
 }
 
