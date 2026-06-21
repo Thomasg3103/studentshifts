@@ -75,16 +75,17 @@ export default function AdminPage() {
   const loadAllStudents = useCallback(async () => {
     setAllStudentsLoading(true);
     try {
-      const { data: rows, error: e1 } = await supabase
-        .from("students").select("id, status, created_at").order("created_at", { ascending: false }).limit(300);
+      const { data: profs, error: e1 } = await supabase
+        .from("profiles").select("id, name, created_at").eq("role", "student")
+        .order("created_at", { ascending: false }).limit(300);
       if (e1) throw e1;
-      const ids = (rows || []).map(s => s.id);
-      const { data: profs, error: e2 } = ids.length
-        ? await supabase.from("profiles").select("id, name").in("id", ids)
+      const ids = (profs || []).map(p => p.id);
+      const { data: statuses, error: e2 } = ids.length
+        ? await supabase.from("students").select("id, status").in("id", ids)
         : { data: [] };
       if (e2) throw e2;
-      const nameMap = Object.fromEntries((profs || []).map(p => [p.id, p.name]));
-      setAllStudents((rows || []).map(s => ({ id: s.id, name: nameMap[s.id] || "Unknown", status: s.status, created_at: s.created_at })));
+      const statusMap = Object.fromEntries((statuses || []).map(s => [s.id, s.status]));
+      setAllStudents((profs || []).map(p => ({ id: p.id, name: p.name || "Unknown", status: statusMap[p.id] || "pending", created_at: p.created_at })));
     } catch { toast.error("Failed to load students."); setAllStudents([]); }
     finally { setAllStudentsLoading(false); }
   }, []);
@@ -92,16 +93,17 @@ export default function AdminPage() {
   const loadAllCompanies = useCallback(async () => {
     setAllCompaniesLoading(true);
     try {
-      const { data: rows, error: e1 } = await supabase
-        .from("companies").select("id, status, cro_number, created_at").order("created_at", { ascending: false }).limit(300);
+      const { data: profs, error: e1 } = await supabase
+        .from("profiles").select("id, name, created_at").eq("role", "company")
+        .order("created_at", { ascending: false }).limit(300);
       if (e1) throw e1;
-      const ids = (rows || []).map(c => c.id);
-      const { data: profs, error: e2 } = ids.length
-        ? await supabase.from("profiles").select("id, name").in("id", ids)
+      const ids = (profs || []).map(p => p.id);
+      const { data: cos, error: e2 } = ids.length
+        ? await supabase.from("companies").select("id, status, cro_number").in("id", ids)
         : { data: [] };
       if (e2) throw e2;
-      const nameMap = Object.fromEntries((profs || []).map(p => [p.id, p.name]));
-      setAllCompanies((rows || []).map(c => ({ id: c.id, name: nameMap[c.id] || "Unknown", status: c.status, croNumber: c.cro_number, created_at: c.created_at })));
+      const coMap = Object.fromEntries((cos || []).map(c => [c.id, c]));
+      setAllCompanies((profs || []).map(p => ({ id: p.id, name: p.name || "Unknown", status: coMap[p.id]?.status || "pending", croNumber: coMap[p.id]?.cro_number || null, created_at: p.created_at })));
     } catch { toast.error("Failed to load companies."); setAllCompanies([]); }
     finally { setAllCompaniesLoading(false); }
   }, []);
