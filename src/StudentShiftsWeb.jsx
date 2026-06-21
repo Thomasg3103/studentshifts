@@ -434,7 +434,9 @@ export default function StudentShiftsWeb() {
               <Route path="/" element={
                 !currentUser
                   ? <LandingPage />
-                  : <StudentDashboard restoreScrollY={restoreScrollY} />
+                  : currentUser.role === "student" && (!currentUser.verificationStatus || currentUser.verificationStatus === "pending")
+                    ? <Navigate to="/verify" replace />
+                    : <StudentDashboard restoreScrollY={restoreScrollY} />
               } />
 
               {/* Job Details */}
