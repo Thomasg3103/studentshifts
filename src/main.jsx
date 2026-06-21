@@ -68,6 +68,11 @@ export function initSentry() {
 
 initSentry();
 
+// When Render deploys a new build, old chunk hashes no longer exist.
+// Any user with a cached index.html will hit a 404 on dynamic imports.
+// Vite fires this event instead of throwing, so we can recover silently.
+window.addEventListener("vite:preloadError", () => { window.location.reload(); });
+
 const rootEl = document.getElementById("root");
 const app = (
   <StrictMode>
