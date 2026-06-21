@@ -57,10 +57,13 @@ export default function AdminPage() {
   const [allCompanies,      setAllCompanies]      = useState(null);
   const [allCompaniesLoading,setAllCompaniesLoading]= useState(false);
   // Reports, search, expanded details
+  const [pendingReports,    setPendingReports]    = useState({}); // id -> reports[] for pending tab
   const [studentSearch,    setStudentSearch]    = useState("");
   const [companySearch,    setCompanySearch]    = useState("");
   const [postSearch,       setPostSearch]       = useState("");
-  const [expandedId,       setExpandedId]       = useState(null);
+  const [expandedStudentId, setExpandedStudentId] = useState(null);
+  const [expandedCompanyId, setExpandedCompanyId] = useState(null);
+  const [expandedPostId,    setExpandedPostId]    = useState(null);
   const [expandedDetails,  setExpandedDetails]  = useState({});
   const [loadingDetails,   setLoadingDetails]   = useState(new Set());
   const [resolveReportId,  setResolveReportId]  = useState(null);
@@ -75,6 +78,15 @@ export default function AdminPage() {
     ]).then(([s, c]) => {
       setStudents(s);
       setCompanies(c);
+      const ids = [...s.map(x => x.id), ...c.map(x => x.id)];
+      if (ids.length) {
+        supabase.from("reports").select("id, target_id, reason, created_at").in("target_id", ids).is("resolved_at", null)
+          .then(({ data: reps }) => {
+            const map = {};
+            for (const r of reps || []) { (map[r.target_id] = map[r.target_id] || []).push(r); }
+            setPendingReports(map);
+          }).catch(() => {});
+      }
     }).finally(() => setLoading(false));
   }, []);
 
@@ -88,16 +100,18 @@ export default function AdminPage() {
         .order("created_at", { ascending: false }).limit(300);
       if (e1) throw e1;
       const ids = (profs || []).map(p => p.id);
-      const [{ data: statuses, error: e2 }, { data: reps, error: e3 }] = await Promise.all([
+      const [{ data: statuses, error: e2 }, { data: reps, error: e3 }, { data: emails }] = await Promise.all([
         ids.length ? supabase.from("students").select("id, status").in("id", ids) : Promise.resolve({ data: [] }),
         supabase.from("reports").select("id, target_id, reason, created_at").eq("target_type", "student").is("resolved_at", null),
+        ids.length ? supabase.rpc("admin_get_emails", { p_ids: ids }) : Promise.resolve({ data: [] }),
       ]);
       if (e2) throw e2;
       if (e3) throw e3;
       const statusMap = Object.fromEntries((statuses || []).map(s => [s.id, s.status]));
+      const emailMap  = Object.fromEntries((emails  || []).map(e => [e.id, e.email]));
       const reportMap = {};
       for (const r of reps || []) { (reportMap[r.target_id] = reportMap[r.target_id] || []).push(r); }
-      setAllStudents((profs || []).map(p => ({ id: p.id, name: p.name || "Unknown", status: statusMap[p.id] || "pending", created_at: p.created_at, reports: reportMap[p.id] || [] })));
+      setAllStudents((profs || []).map(p => ({ id: p.id, name: p.name || "Unknown", email: emailMap[p.id] || null, status: statusMap[p.id] || "pending", created_at: p.created_at, reports: reportMap[p.id] || [] })));
     } catch { toast.error("Failed to load students."); setAllStudents([]); }
     finally { setAllStudentsLoading(false); }
   }, []);
@@ -110,16 +124,18 @@ export default function AdminPage() {
         .order("created_at", { ascending: false }).limit(300);
       if (e1) throw e1;
       const ids = (profs || []).map(p => p.id);
-      const [{ data: cos, error: e2 }, { data: reps, error: e3 }] = await Promise.all([
+      const [{ data: cos, error: e2 }, { data: reps, error: e3 }, { data: emails }] = await Promise.all([
         ids.length ? supabase.from("companies").select("id, status, cro_number").in("id", ids) : Promise.resolve({ data: [] }),
         supabase.from("reports").select("id, target_id, reason, created_at").eq("target_type", "company").is("resolved_at", null),
+        ids.length ? supabase.rpc("admin_get_emails", { p_ids: ids }) : Promise.resolve({ data: [] }),
       ]);
       if (e2) throw e2;
       if (e3) throw e3;
-      const coMap = Object.fromEntries((cos || []).map(c => [c.id, c]));
+      const coMap     = Object.fromEntries((cos    || []).map(c => [c.id, c]));
+      const emailMap  = Object.fromEntries((emails || []).map(e => [e.id, e.email]));
       const reportMap = {};
       for (const r of reps || []) { (reportMap[r.target_id] = reportMap[r.target_id] || []).push(r); }
-      setAllCompanies((profs || []).map(p => ({ id: p.id, name: p.name || "Unknown", status: coMap[p.id]?.status || "pending", croNumber: coMap[p.id]?.cro_number || null, created_at: p.created_at, reports: reportMap[p.id] || [] })));
+      setAllCompanies((profs || []).map(p => ({ id: p.id, name: p.name || "Unknown", email: emailMap[p.id] || null, status: coMap[p.id]?.status || "pending", croNumber: coMap[p.id]?.cro_number || null, created_at: p.created_at, reports: reportMap[p.id] || [] })));
     } catch { toast.error("Failed to load companies."); setAllCompanies([]); }
     finally { setAllCompaniesLoading(false); }
   }, []);
@@ -308,7 +324,7 @@ export default function AdminPage() {
       } else if (type === "company") {
         const [{ data: co }, { data: jobs }] = await Promise.all([
           supabase.from("companies").select("bio, website, cro_number, industries").eq("id", id).single(),
-          supabase.from("jobs").select("id, title, status, created_at, location, pay").eq("company_id", id).order("created_at", { ascending: false }).limit(30),
+          supabase.from("jobs").select("id, title, status, created_at, location, pay, category, days, description, deadline").eq("company_id", id).order("created_at", { ascending: false }).limit(500),
         ]);
         setExpandedDetails(d => ({ ...d, [id]: { ...(co || {}), jobs: jobs || [] } }));
       }
@@ -671,7 +687,7 @@ export default function AdminPage() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
                 {forumPosts.map(post => {
-                  const isExpanded = forumExpandedId === post.id;
+                  const isExpanded = forumexpandedPostId === post.id;
                   const comments = forumComments[post.id];
                   return (
                     <div key={post.id} style={cardStyle}>
@@ -764,10 +780,10 @@ export default function AdminPage() {
                     <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
                       {list.map(post => {
                         const isReported = post.reports.length > 0;
-                        const isExpanded = expandedId === post.id;
+                        const isExpanded = expandedPostId === post.id;
                         return (
                           <div key={post.id} style={{ ...cardStyle, border: isReported ? "2px solid #fca5a5" : cardStyle.border, backgroundColor: isReported ? "#fff5f5" : cardStyle.backgroundColor }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => setExpandedId(isExpanded ? null : post.id)}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => setExpandedPostId(isExpanded ? null : post.id)}>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
                                   <span style={{ fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{post.title}</span>
@@ -856,8 +872,21 @@ export default function AdminPage() {
               : students.length === 0 ? <EmptyState label="No pending student requests" />
               : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  {students.map(s => (
-                    <div key={s.id} style={cardStyle}>
+                  {students.map(s => {
+                    const reps = pendingReports[s.id] || [];
+                    const isReported = reps.length > 0;
+                    return (
+                    <div key={s.id} style={{ ...cardStyle, border: isReported ? "2px solid #fca5a5" : cardStyle.border, backgroundColor: isReported ? "#fff5f5" : cardStyle.backgroundColor }}>
+                      {isReported && (
+                        <div style={{ marginBottom: "0.65rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                          {reps.map(r => (
+                            <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.45rem", padding: "0.35rem 0.65rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                              <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "#991b1b", flex: 1 }}>🚩 {r.reason}</span>
+                              <span style={{ fontSize: "0.68rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <div style={{ marginBottom: "0.85rem" }}>
                         <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>{s.name}</p>
                         {s.email && <p style={{ margin: "0.15rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)" }}>{s.email}</p>}
@@ -872,7 +901,8 @@ export default function AdminPage() {
                         <button aria-label={`Delete ${s.name}`} onClick={() => setDeleteUserConfirm({ id: s.id, name: s.name, role: "student" })} style={{ ...actionBtnBase, background: "#0f172a", fontSize: "0.8rem" }}>🗑 Delete</button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )
             ) : (
@@ -892,19 +922,22 @@ export default function AdminPage() {
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
                         {list.map(s => {
                           const isReported = s.reports.length > 0;
-                          const isExpanded = expandedId === s.id;
+                          const isExpanded = expandedStudentId === s.id;
                           const det = expandedDetails[s.id];
                           const loadingDet = loadingDetails.has(s.id);
                           return (
                             <div key={s.id} style={{ ...cardStyle, border: isReported ? "2px solid #fca5a5" : cardStyle.border, backgroundColor: isReported ? "#fff5f5" : cardStyle.backgroundColor }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => { const next = isExpanded ? null : s.id; setExpandedId(next); if (next) loadExpandedDetails(next, "student"); }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => { const next = isExpanded ? null : s.id; setExpandedStudentId(next); if (next) loadExpandedDetails(next, "student"); }}>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
                                     <span style={{ fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{s.name}</span>
                                     <StatusBadge status={s.status} />
                                     {isReported && <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: "#fee2e2", color: "#b91c1c", padding: "0.15rem 0.45rem", borderRadius: "999px" }}>⚠ {s.reports.length} report{s.reports.length > 1 ? "s" : ""}</span>}
                                   </div>
-                                  <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>Joined {new Date(s.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                  <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", alignItems: "center" }}>
+                                    <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>Joined {new Date(s.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                    {s.email && <span style={{ fontSize: "0.7rem", color: "#64748b" }}>· {s.email}</span>}
+                                  </div>
                                 </div>
                                 <span style={{ color: "#94a3b8", fontSize: "0.85rem", flexShrink: 0 }}>{isExpanded ? "▲" : "▼"}</span>
                               </div>
@@ -964,8 +997,21 @@ export default function AdminPage() {
               : companies.length === 0 ? <EmptyState label="No pending company requests" />
               : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                  {companies.map(c => (
-                    <div key={c.id} style={cardStyle}>
+                  {companies.map(c => {
+                    const reps = pendingReports[c.id] || [];
+                    const isReported = reps.length > 0;
+                    return (
+                    <div key={c.id} style={{ ...cardStyle, border: isReported ? "2px solid #fca5a5" : cardStyle.border, backgroundColor: isReported ? "#fff5f5" : cardStyle.backgroundColor }}>
+                      {isReported && (
+                        <div style={{ marginBottom: "0.65rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                          {reps.map(r => (
+                            <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.45rem", padding: "0.35rem 0.65rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                              <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "#991b1b", flex: 1 }}>🚩 {r.reason}</span>
+                              <span style={{ fontSize: "0.68rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                       <div style={{ marginBottom: "0.85rem" }}>
                         <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>{c.name}</p>
                         {c.email && (
@@ -995,7 +1041,8 @@ export default function AdminPage() {
                         <button aria-label={`Delete ${c.name}`} onClick={() => setDeleteUserConfirm({ id: c.id, name: c.name, role: "company" })} style={{ ...actionBtnBase, background: "#0f172a", fontSize: "0.8rem" }}>🗑 Delete</button>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )
             ) : (
@@ -1015,21 +1062,22 @@ export default function AdminPage() {
                       <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
                         {list.map(c => {
                           const isReported = c.reports.length > 0;
-                          const isExpanded = expandedId === c.id;
+                          const isExpanded = expandedCompanyId === c.id;
                           const det = expandedDetails[c.id];
                           const loadingDet = loadingDetails.has(c.id);
                           return (
                             <div key={c.id} style={{ ...cardStyle, border: isReported ? "2px solid #fca5a5" : cardStyle.border, backgroundColor: isReported ? "#fff5f5" : cardStyle.backgroundColor }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => { const next = isExpanded ? null : c.id; setExpandedId(next); if (next) loadExpandedDetails(next, "company"); }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => { const next = isExpanded ? null : c.id; setExpandedCompanyId(next); if (next) loadExpandedDetails(next, "company"); }}>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
                                     <span style={{ fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{c.name}</span>
                                     <StatusBadge status={c.status} />
                                     {isReported && <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: "#fee2e2", color: "#b91c1c", padding: "0.15rem 0.45rem", borderRadius: "999px" }}>⚠ {c.reports.length} report{c.reports.length > 1 ? "s" : ""}</span>}
                                   </div>
-                                  <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.1rem" }}>
+                                  <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.1rem", alignItems: "center" }}>
                                     {c.croNumber && <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>CRO: {c.croNumber}</span>}
                                     <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>Joined {new Date(c.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                    {c.email && <span style={{ fontSize: "0.7rem", color: "#64748b" }}>· {c.email}</span>}
                                   </div>
                                 </div>
                                 <span style={{ color: "#94a3b8", fontSize: "0.85rem", flexShrink: 0 }}>{isExpanded ? "▲" : "▼"}</span>
