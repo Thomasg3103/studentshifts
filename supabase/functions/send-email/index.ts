@@ -165,8 +165,15 @@ Deno.serve(async (req: Request) => {
         return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      const { data: emailRows } = await adminClient.rpc("get_user_emails", { user_ids: adminIds });
-      const adminEmails: string[] = ((emailRows || []) as { email: string }[]).map(r => r.email).filter(Boolean);
+      // Use admin API directly — get_user_emails RPC relies on auth.uid() which is
+      // null when called from a service-role client, causing it to silently return empty.
+      const adminEmails: string[] = [];
+      for (const adminId of adminIds) {
+        try {
+          const { data: { user: adminUser } } = await adminClient.auth.admin.getUserById(adminId);
+          if (adminUser?.email) adminEmails.push(adminUser.email);
+        } catch { /* skip */ }
+      }
       if (!adminEmails.length) {
         return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
