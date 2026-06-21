@@ -360,7 +360,7 @@ export default function AdminPage() {
         )}
 
         {/* Tabs */}
-        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", borderBottom: "2px solid #e2e8f0", paddingBottom: "0" }}>
+        <div className="tab-scroll-bar" style={{ display: "flex", gap: "0.5rem", marginBottom: "1.5rem", borderBottom: "2px solid #e2e8f0", paddingBottom: "0", overflowX: "auto" }}>
           {[
             { key: "students",  label: "Students",  count: pendingStudents },
             { key: "companies", label: "Companies", count: pendingCompanies },
@@ -388,6 +388,8 @@ export default function AdminPage() {
                   display: "flex",
                   alignItems: "center",
                   gap: "0.4rem",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
                 }}
               >
                 {label}
