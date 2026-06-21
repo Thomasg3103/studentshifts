@@ -192,17 +192,17 @@ header {
 }
 
 @media (max-width: 1023px) {
-  /* Extra bottom padding so content clears the mobile bottom nav */
+  /* Extra bottom padding so content clears the mobile bottom nav + safe area */
   .page-inner {
-    padding-bottom: calc(2rem + 64px) !important;
+    padding-bottom: calc(2rem + 64px + env(safe-area-inset-bottom, 0px)) !important;
   }
-  /* Move scroll-to-top button above the bottom nav */
+  /* Move scroll-to-top button above the bottom nav + safe area */
   .scroll-top-btn {
-    bottom: calc(64px + 1rem) !important;
+    bottom: calc(64px + env(safe-area-inset-bottom, 0px) + 1rem) !important;
   }
-  /* App footer clears both the bottom nav and cookie banner on mobile */
+  /* App footer clears both the bottom nav, safe area, and cookie banner on mobile */
   .app-footer {
-    padding-bottom: calc(1.5rem + 64px + 90px) !important;
+    padding-bottom: calc(1.5rem + 64px + env(safe-area-inset-bottom, 0px) + 90px) !important;
   }
 }
 

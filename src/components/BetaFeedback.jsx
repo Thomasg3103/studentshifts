@@ -48,7 +48,7 @@ export default function BetaFeedback() {
         onClick={() => setOpen(true)}
         title="Send us feedback"
         style={{
-          position: "fixed", bottom: "calc(64px + 1.25rem)", right: "1.5rem", zIndex: 900,
+          position: "fixed", bottom: "calc(64px + env(safe-area-inset-bottom, 0px) + 1.25rem)", right: "1.5rem", zIndex: 900,
           background: "linear-gradient(135deg, #A21D54, #C2185B)",
           color: "white", border: "none", borderRadius: "2rem",
           padding: "0.9rem 1.5rem",

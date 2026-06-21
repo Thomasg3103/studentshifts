@@ -297,7 +297,9 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
 
   return (
     <nav aria-label="Main navigation" style={{
-      position: "fixed", bottom: 0, left: 0, right: 0, height: "64px",
+      position: "fixed", bottom: 0, left: 0, right: 0,
+      height: "calc(64px + env(safe-area-inset-bottom, 0px))",
+      paddingBottom: "env(safe-area-inset-bottom, 0px)",
       backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid var(--color-border-light, #e2e8f0)",
       display: "flex", alignItems: "stretch", zIndex: 200,
       boxShadow: "0 -4px 16px rgba(0,0,0,0.07)",
@@ -379,7 +381,9 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
 
   return (
     <nav aria-label="Main navigation" style={{
-      position: "fixed", bottom: 0, left: 0, right: 0, height: "64px",
+      position: "fixed", bottom: 0, left: 0, right: 0,
+      height: "calc(64px + env(safe-area-inset-bottom, 0px))",
+      paddingBottom: "env(safe-area-inset-bottom, 0px)",
       backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid var(--color-border-light, #e2e8f0)",
       display: "flex", alignItems: "stretch", zIndex: 200,
       boxShadow: "0 -4px 16px rgba(0,0,0,0.07)",

@@ -24,7 +24,7 @@ export default function CookieBanner() {
   return (
     <div style={{
       position: "fixed",
-      bottom: hasBottomNav ? "64px" : 0,
+      bottom: hasBottomNav ? "calc(64px + env(safe-area-inset-bottom, 0px))" : 0,
       left: 0,
       right: 0,
       backgroundColor: "#0f172a",
