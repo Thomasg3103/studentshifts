@@ -75,13 +75,16 @@ export default function AdminPage() {
   const loadAllStudents = useCallback(async () => {
     setAllStudentsLoading(true);
     try {
-      const { data, error: err } = await supabase
-        .from("students")
-        .select("id, status, created_at, profiles!inner(name)")
-        .order("created_at", { ascending: false })
-        .limit(300);
-      if (err) throw err;
-      setAllStudents((data || []).map(s => ({ id: s.id, name: s.profiles?.name || "Unknown", status: s.status, created_at: s.created_at })));
+      const { data: rows, error: e1 } = await supabase
+        .from("students").select("id, status, created_at").order("created_at", { ascending: false }).limit(300);
+      if (e1) throw e1;
+      const ids = (rows || []).map(s => s.id);
+      const { data: profs, error: e2 } = ids.length
+        ? await supabase.from("profiles").select("id, name").in("id", ids)
+        : { data: [] };
+      if (e2) throw e2;
+      const nameMap = Object.fromEntries((profs || []).map(p => [p.id, p.name]));
+      setAllStudents((rows || []).map(s => ({ id: s.id, name: nameMap[s.id] || "Unknown", status: s.status, created_at: s.created_at })));
     } catch { toast.error("Failed to load students."); setAllStudents([]); }
     finally { setAllStudentsLoading(false); }
   }, []);
@@ -89,13 +92,16 @@ export default function AdminPage() {
   const loadAllCompanies = useCallback(async () => {
     setAllCompaniesLoading(true);
     try {
-      const { data, error: err } = await supabase
-        .from("companies")
-        .select("id, status, cro_number, created_at, profiles!inner(name)")
-        .order("created_at", { ascending: false })
-        .limit(300);
-      if (err) throw err;
-      setAllCompanies((data || []).map(c => ({ id: c.id, name: c.profiles?.name || "Unknown", status: c.status, croNumber: c.cro_number, created_at: c.created_at })));
+      const { data: rows, error: e1 } = await supabase
+        .from("companies").select("id, status, cro_number, created_at").order("created_at", { ascending: false }).limit(300);
+      if (e1) throw e1;
+      const ids = (rows || []).map(c => c.id);
+      const { data: profs, error: e2 } = ids.length
+        ? await supabase.from("profiles").select("id, name").in("id", ids)
+        : { data: [] };
+      if (e2) throw e2;
+      const nameMap = Object.fromEntries((profs || []).map(p => [p.id, p.name]));
+      setAllCompanies((rows || []).map(c => ({ id: c.id, name: nameMap[c.id] || "Unknown", status: c.status, croNumber: c.cro_number, created_at: c.created_at })));
     } catch { toast.error("Failed to load companies."); setAllCompanies([]); }
     finally { setAllCompaniesLoading(false); }
   }, []);
@@ -243,13 +249,16 @@ export default function AdminPage() {
   const loadAllPosts = useCallback(async () => {
     setPostsLoading(true);
     try {
-      const { data, error: err } = await supabase
-        .from("jobs")
-        .select("id, title, status, created_at, profiles!jobs_company_id_fkey(name)")
-        .order("created_at", { ascending: false })
-        .limit(300);
-      if (err) throw err;
-      setAllPosts(data || []);
+      const { data: rows, error: e1 } = await supabase
+        .from("jobs").select("id, title, status, created_at, company_id").order("created_at", { ascending: false }).limit(300);
+      if (e1) throw e1;
+      const companyIds = [...new Set((rows || []).map(j => j.company_id).filter(Boolean))];
+      const { data: profs, error: e2 } = companyIds.length
+        ? await supabase.from("profiles").select("id, name").in("id", companyIds)
+        : { data: [] };
+      if (e2) throw e2;
+      const nameMap = Object.fromEntries((profs || []).map(p => [p.id, p.name]));
+      setAllPosts((rows || []).map(j => ({ ...j, profiles: { name: nameMap[j.company_id] || "Unknown company" } })));
     } catch {
       toast.error("Failed to load posts.");
       setAllPosts([]);
