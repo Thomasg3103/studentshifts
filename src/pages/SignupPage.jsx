@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import PageWrapper from "../components/PageWrapper";
 import { signUp, resendVerificationEmail } from "../lib/auth";
+import { supabase } from "../lib/supabase";
 import { trackReferral } from "../lib/referrals";
 import { jobCategories } from "../data/jobCategories";
 import { useApp } from "../context/AppContext";
@@ -117,6 +118,12 @@ export default function SignupPage() {
       setDone(true);
       if (window.gtag) window.gtag("event", "sign_up", { method: "email" });
       if (refCode) trackReferral(refCode, email.trim().toLowerCase()).catch(() => {});
+      // If they didn't come through the register-interest page, add them now (ignore duplicate)
+      supabase.from("signups").insert({
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        type: role === "company" ? "employer" : "student",
+      }).then(() => {}).catch(() => {});
     } catch (e) {
       Sentry.captureException(e);
       const msg = (e.message || "").toLowerCase();
