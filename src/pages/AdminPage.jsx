@@ -821,7 +821,7 @@ export default function AdminPage() {
                                   <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
                                     {(post.days || []).map(day => (
                                       <span key={day} className="badge badge-brand badge-sm" style={{ flexShrink: 0 }}>
-                                        {day.slice(0, 3)}{post.times?.[day] ? ` · ${post.times[day].join(", ")}` : ""}
+                                        {day.slice(0, 3)}{Array.isArray(post.times?.[day]) ? ` · ${post.times[day].join(", ")}` : ""}
                                       </span>
                                     ))}
                                   </div>
