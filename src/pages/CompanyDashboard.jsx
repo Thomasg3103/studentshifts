@@ -885,7 +885,7 @@ export default function CompanyDashboard() {
           </div>
         ) : postings.length === 0 ? (
           <div style={{ textAlign: "center", padding: "4rem 1rem", color: "var(--color-text-secondary, #6b7280)", backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", border: "1.5px solid var(--color-border-light, #e2e8f0)" }}>
-            <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>ðŸ"‹</div>
+            <div style={{ fontSize: "3rem", marginBottom: "0.75rem" }}>📋</div>
             <p style={{ fontSize: "1.15rem", fontWeight: "700", color: "var(--color-text-primary, #1e293b)", marginBottom: "0.4rem" }}>No job postings yet</p>
             <p style={{ marginBottom: "1.75rem", fontSize: "0.9rem", color: "var(--color-text-secondary, #64748b)" }}>
               {isVerified ? "Create your first posting to start receiving applicants." : "Your account must be verified before you can post jobs."}
