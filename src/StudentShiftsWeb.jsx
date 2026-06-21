@@ -28,7 +28,6 @@ const TermsOfServicePage= lazy(() => import("./pages/TermsOfServicePage"));
 const LandingPage       = lazy(() => import("./pages/LandingPage"));
 const HelpPage          = lazy(() => import("./pages/HelpPage"));
 const ContactPage       = lazy(() => import("./pages/ContactPage"));
-const PendingCompanyPage= lazy(() => import("./pages/PendingCompanyPage"));
 const LeaderboardPage   = lazy(() => import("./pages/LeaderboardPage"));
 const ForumPage         = lazy(() => import("./pages/ForumPage"));
 const CompanyProfilePage= lazy(() => import("./pages/CompanyProfilePage"));

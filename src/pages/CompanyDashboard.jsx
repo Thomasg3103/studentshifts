@@ -594,7 +594,7 @@ export default function CompanyDashboard() {
       {/* Verification banner */}
       {verificationStatus === "pending_review" && (
         <div style={{ backgroundColor: "#fef3c7", border: "1.5px solid #fcd34d", borderRadius: "0.75rem", padding: "1rem 1.25rem", marginBottom: "1.5rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-          <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>â³</span>
+          <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>⏳</span>
           <div>
             <p style={{ margin: 0, fontWeight: "700", color: "#92400e", fontSize: "0.95rem" }}>Account pending verification</p>
             <p style={{ margin: "0.2rem 0 0", color: "#b45309", fontSize: "0.85rem" }}>Our team is reviewing your company account. You'll receive an email once approved and can then start posting jobs.</p>
@@ -603,7 +603,7 @@ export default function CompanyDashboard() {
       )}
       {verificationStatus === "rejected" && (
         <div style={{ backgroundColor: "#fee2e2", border: "1.5px solid #fca5a5", borderRadius: "0.75rem", padding: "1rem 1.25rem", marginBottom: "1.5rem", display: "flex", gap: "0.75rem", alignItems: "flex-start" }}>
-          <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>âŒ</span>
+          <span style={{ fontSize: "1.2rem", flexShrink: 0 }}>❌</span>
           <div>
             <p style={{ margin: 0, fontWeight: "700", color: "#991b1b", fontSize: "0.95rem" }}>Verification declined</p>
             <p style={{ margin: "0.2rem 0 0", color: "#b91c1c", fontSize: "0.85rem" }}>Your company account was not approved. Please contact support at support@studentshifts.ie for assistance.</p>
