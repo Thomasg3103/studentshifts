@@ -94,7 +94,8 @@ function ContactCard({ label, email, description }) {
   return (
     <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1px solid var(--color-border-light, #e2e8f0)", borderRadius: "1rem", padding: "1.5rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>
       <p style={{ margin: "0 0 0.25rem", fontWeight: 700, fontSize: "0.75rem", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em" }}>{label}</p>
-      <a href={`mailto:${email}`} style={{ display: "block", color: "var(--color-brand)", fontWeight: 700, fontSize: "0.95rem", textDecoration: "none", marginBottom: "0.4rem" }}>{email}</a>
+      <a href={`mailto:${email}`} style={{ display: "block", color: "var(--color-brand)", fontWeight: 700, fontSize: "0.95rem", textDecoration: "none", marginBottom: "0.25rem" }}>{email}</a>
+      <p style={{ margin: "0 0 0.4rem", fontSize: "0.75rem", fontWeight: "600", color: "#854d0e" }}>These do not work at the moment</p>
       <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.55 }}>{description}</p>
     </div>
   );
