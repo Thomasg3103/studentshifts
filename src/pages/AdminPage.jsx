@@ -56,6 +56,14 @@ export default function AdminPage() {
   const [allStudentsLoading,setAllStudentsLoading]= useState(false);
   const [allCompanies,      setAllCompanies]      = useState(null);
   const [allCompaniesLoading,setAllCompaniesLoading]= useState(false);
+  // Reports, search, expanded details
+  const [studentSearch,    setStudentSearch]    = useState("");
+  const [companySearch,    setCompanySearch]    = useState("");
+  const [postSearch,       setPostSearch]       = useState("");
+  const [expandedId,       setExpandedId]       = useState(null);
+  const [expandedDetails,  setExpandedDetails]  = useState({});
+  const [loadingDetails,   setLoadingDetails]   = useState(new Set());
+  const [resolveReportId,  setResolveReportId]  = useState(null);
 
   // F-M10: extracted so the Refresh button can re-call it
   const loadData = useCallback(() => {
@@ -80,12 +88,16 @@ export default function AdminPage() {
         .order("created_at", { ascending: false }).limit(300);
       if (e1) throw e1;
       const ids = (profs || []).map(p => p.id);
-      const { data: statuses, error: e2 } = ids.length
-        ? await supabase.from("students").select("id, status").in("id", ids)
-        : { data: [] };
+      const [{ data: statuses, error: e2 }, { data: reps, error: e3 }] = await Promise.all([
+        ids.length ? supabase.from("students").select("id, status").in("id", ids) : Promise.resolve({ data: [] }),
+        supabase.from("reports").select("id, target_id, reason, created_at").eq("target_type", "student").is("resolved_at", null),
+      ]);
       if (e2) throw e2;
+      if (e3) throw e3;
       const statusMap = Object.fromEntries((statuses || []).map(s => [s.id, s.status]));
-      setAllStudents((profs || []).map(p => ({ id: p.id, name: p.name || "Unknown", status: statusMap[p.id] || "pending", created_at: p.created_at })));
+      const reportMap = {};
+      for (const r of reps || []) { (reportMap[r.target_id] = reportMap[r.target_id] || []).push(r); }
+      setAllStudents((profs || []).map(p => ({ id: p.id, name: p.name || "Unknown", status: statusMap[p.id] || "pending", created_at: p.created_at, reports: reportMap[p.id] || [] })));
     } catch { toast.error("Failed to load students."); setAllStudents([]); }
     finally { setAllStudentsLoading(false); }
   }, []);
@@ -98,12 +110,16 @@ export default function AdminPage() {
         .order("created_at", { ascending: false }).limit(300);
       if (e1) throw e1;
       const ids = (profs || []).map(p => p.id);
-      const { data: cos, error: e2 } = ids.length
-        ? await supabase.from("companies").select("id, status, cro_number").in("id", ids)
-        : { data: [] };
+      const [{ data: cos, error: e2 }, { data: reps, error: e3 }] = await Promise.all([
+        ids.length ? supabase.from("companies").select("id, status, cro_number").in("id", ids) : Promise.resolve({ data: [] }),
+        supabase.from("reports").select("id, target_id, reason, created_at").eq("target_type", "company").is("resolved_at", null),
+      ]);
       if (e2) throw e2;
+      if (e3) throw e3;
       const coMap = Object.fromEntries((cos || []).map(c => [c.id, c]));
-      setAllCompanies((profs || []).map(p => ({ id: p.id, name: p.name || "Unknown", status: coMap[p.id]?.status || "pending", croNumber: coMap[p.id]?.cro_number || null, created_at: p.created_at })));
+      const reportMap = {};
+      for (const r of reps || []) { (reportMap[r.target_id] = reportMap[r.target_id] || []).push(r); }
+      setAllCompanies((profs || []).map(p => ({ id: p.id, name: p.name || "Unknown", status: coMap[p.id]?.status || "pending", croNumber: coMap[p.id]?.cro_number || null, created_at: p.created_at, reports: reportMap[p.id] || [] })));
     } catch { toast.error("Failed to load companies."); setAllCompanies([]); }
     finally { setAllCompaniesLoading(false); }
   }, []);
@@ -238,6 +254,8 @@ export default function AdminPage() {
       if (err) throw err;
       setStudents(prev => prev.filter(s => s.id !== id));
       setCompanies(prev => prev.filter(c => c.id !== id));
+      if (allStudents) setAllStudents(prev => prev.filter(s => s.id !== id));
+      if (allCompanies) setAllCompanies(prev => prev.filter(c => c.id !== id));
       if (verifiedCompanies) setVerifiedCompanies(prev => prev.filter(c => c.id !== id));
       setDeleteUserConfirm(null);
       toast.success(`${name} deleted.`);
@@ -252,15 +270,19 @@ export default function AdminPage() {
     setPostsLoading(true);
     try {
       const { data: rows, error: e1 } = await supabase
-        .from("jobs").select("id, title, status, created_at, company_id").order("created_at", { ascending: false }).limit(300);
+        .from("jobs").select("id, title, status, created_at, company_id, description, location, pay, category, days").order("created_at", { ascending: false }).limit(300);
       if (e1) throw e1;
       const companyIds = [...new Set((rows || []).map(j => j.company_id).filter(Boolean))];
-      const { data: profs, error: e2 } = companyIds.length
-        ? await supabase.from("profiles").select("id, name").in("id", companyIds)
-        : { data: [] };
+      const [{ data: profs, error: e2 }, { data: reps, error: e3 }] = await Promise.all([
+        companyIds.length ? supabase.from("profiles").select("id, name").in("id", companyIds) : Promise.resolve({ data: [] }),
+        supabase.from("reports").select("id, target_id, reason, created_at").eq("target_type", "post").is("resolved_at", null),
+      ]);
       if (e2) throw e2;
+      if (e3) throw e3;
       const nameMap = Object.fromEntries((profs || []).map(p => [p.id, p.name]));
-      setAllPosts((rows || []).map(j => ({ ...j, profiles: { name: nameMap[j.company_id] || "Unknown company" } })));
+      const reportMap = {};
+      for (const r of reps || []) { (reportMap[r.target_id] = reportMap[r.target_id] || []).push(r); }
+      setAllPosts((rows || []).map(j => ({ ...j, companyName: nameMap[j.company_id] || "Unknown company", reports: reportMap[j.id] || [] })));
     } catch {
       toast.error("Failed to load posts.");
       setAllPosts([]);
@@ -272,6 +294,40 @@ export default function AdminPage() {
   useEffect(() => {
     if (tab === "posts" && allPosts === null) loadAllPosts();
   }, [tab, allPosts, loadAllPosts]);
+
+  const loadExpandedDetails = useCallback(async (id, type) => {
+    if (expandedDetails[id] !== undefined) return;
+    setLoadingDetails(s => new Set([...s, id]));
+    try {
+      if (type === "student") {
+        const { data } = await supabase
+          .from("students")
+          .select("bio, skills, linkedin, cv_url, cover_letter_url, student_id_url, gov_id_url, location_display, job_preferences")
+          .eq("id", id).single();
+        setExpandedDetails(d => ({ ...d, [id]: data || {} }));
+      } else if (type === "company") {
+        const [{ data: co }, { data: jobs }] = await Promise.all([
+          supabase.from("companies").select("bio, website, cro_number, industries").eq("id", id).single(),
+          supabase.from("jobs").select("id, title, status, created_at, location, pay").eq("company_id", id).order("created_at", { ascending: false }).limit(30),
+        ]);
+        setExpandedDetails(d => ({ ...d, [id]: { ...(co || {}), jobs: jobs || [] } }));
+      }
+    } catch { setExpandedDetails(d => ({ ...d, [id]: {} })); }
+    finally { setLoadingDetails(s => { const n = new Set(s); n.delete(id); return n; }); }
+  }, [expandedDetails]);
+
+  const handleResolveReport = useCallback(async (reportId, targetType) => {
+    setResolveReportId(reportId);
+    try {
+      const { error } = await supabase.from("reports").update({ resolved_at: new Date().toISOString() }).eq("id", reportId);
+      if (error) throw error;
+      if (targetType === "student") { setAllStudents(null); loadAllStudents(); }
+      else if (targetType === "company") { setAllCompanies(null); loadAllCompanies(); }
+      else { setAllPosts(null); loadAllPosts(); }
+      toast.success("Report dismissed.");
+    } catch { toast.error("Failed to dismiss report."); }
+    finally { setResolveReportId(null); }
+  }, [loadAllStudents, loadAllCompanies, loadAllPosts]);
 
   const handleAdminDeletePost = async (jobId, title) => {
     setDeletingPostId(jobId);
@@ -686,37 +742,81 @@ export default function AdminPage() {
           </div>
         ) : tab === "posts" ? (
           <div>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
-              <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)" }}>All job posts across every company. Delete anything inappropriate.</p>
-              <button onClick={loadAllPosts} style={docBtn}>↻ Refresh</button>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "0.75rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)" }}>All job posts. Red = reported. Delete anything inappropriate.</p>
+              <button onClick={() => { setAllPosts(null); loadAllPosts(); }} style={docBtn}>↻ Refresh</button>
             </div>
             {postsLoading ? (
               <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
             ) : !allPosts?.length ? (
               <EmptyState label="No job posts yet" />
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
-                {allPosts.map(post => (
-                  <div key={post.id} style={{ ...cardStyle, display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <p style={{ margin: "0 0 0.2rem", fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #0f172a)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{post.title}</p>
-                      <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
-                        <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{post.profiles?.name || "Unknown company"}</span>
-                        <span style={{ fontSize: "0.7rem", fontWeight: "700", borderRadius: "999px", padding: "0.1rem 0.45rem", backgroundColor: post.status === "Active" ? "#dcfce7" : "#f1f5f9", color: post.status === "Active" ? "#16a34a" : "#64748b" }}>{post.status}</span>
-                        <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{new Date(post.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
-                      </div>
+            ) : (() => {
+              const q = postSearch.trim().toLowerCase();
+              const list = q ? allPosts.filter(p => p.title.toLowerCase().includes(q) || p.companyName.toLowerCase().includes(q)) : allPosts;
+              return (
+                <div>
+                  <input
+                    type="search" value={postSearch} onChange={e => setPostSearch(e.target.value)}
+                    placeholder="Search by title or company…"
+                    style={{ width: "100%", boxSizing: "border-box", padding: "0.55rem 0.85rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", outline: "none", marginBottom: "0.75rem" }}
+                  />
+                  {!list.length ? <p style={{ color: "#94a3b8", fontSize: "0.875rem" }}>No posts match "{postSearch}"</p> : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                      {list.map(post => {
+                        const isReported = post.reports.length > 0;
+                        const isExpanded = expandedId === post.id;
+                        return (
+                          <div key={post.id} style={{ ...cardStyle, border: isReported ? "2px solid #fca5a5" : cardStyle.border, backgroundColor: isReported ? "#fff5f5" : cardStyle.backgroundColor }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => setExpandedId(isExpanded ? null : post.id)}>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                                  <span style={{ fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{post.title}</span>
+                                  <span style={{ fontSize: "0.7rem", fontWeight: "700", borderRadius: "999px", padding: "0.1rem 0.45rem", backgroundColor: post.status === "Active" ? "#dcfce7" : "#f1f5f9", color: post.status === "Active" ? "#16a34a" : "#64748b" }}>{post.status}</span>
+                                  {isReported && <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: "#fee2e2", color: "#b91c1c", padding: "0.15rem 0.45rem", borderRadius: "999px" }}>⚠ {post.reports.length} report{post.reports.length > 1 ? "s" : ""}</span>}
+                                </div>
+                                <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
+                                  <span style={{ fontSize: "0.75rem", color: "#64748b" }}>{post.companyName}</span>
+                                  <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>{new Date(post.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                </div>
+                              </div>
+                              <span style={{ color: "#94a3b8", fontSize: "0.85rem", flexShrink: 0 }}>{isExpanded ? "▲" : "▼"}</span>
+                            </div>
+
+                            {isReported && (
+                              <div style={{ marginTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                                {post.reports.map(r => (
+                                  <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.5rem", padding: "0.45rem 0.7rem", display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                                    <div style={{ flex: 1 }}>
+                                      <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#991b1b" }}>🚩 {r.reason}</p>
+                                      <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</p>
+                                    </div>
+                                    <button onClick={() => handleResolveReport(r.id, "post")} disabled={resolveReportId === r.id} style={{ padding: "0.2rem 0.55rem", fontSize: "0.7rem", fontWeight: "700", borderRadius: "0.3rem", border: "1px solid #fca5a5", background: "white", color: "#991b1b", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>{resolveReportId === r.id ? "…" : "✓ Dismiss"}</button>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {isExpanded && (
+                              <div style={{ marginTop: "0.9rem", borderTop: "1px solid #e2e8f0", paddingTop: "0.9rem", display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                                {post.location && <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569" }}>📍 {post.location}</p>}
+                                {post.pay && <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569" }}>💶 €{post.pay}/hr</p>}
+                                {post.category && <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569" }}>Category: {post.category}</p>}
+                                {post.days?.length > 0 && <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569" }}>Days: {post.days.join(", ")}</p>}
+                                {post.description && <div><p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Description</p><p style={{ margin: 0, fontSize: "0.82rem", color: "#1e293b", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{post.description}</p></div>}
+                              </div>
+                            )}
+
+                            <div style={{ marginTop: "0.75rem", display: "flex", justifyContent: "flex-end" }}>
+                              <button onClick={() => handleAdminDeletePost(post.id, post.title)} disabled={deletingPostId === post.id} style={{ padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px solid #fca5a5", backgroundColor: "#fff1f2", color: "#e11d48", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>{deletingPostId === post.id ? "…" : "🗑 Delete"}</button>
+                            </div>
+                          </div>
+                        );
+                      })}
                     </div>
-                    <button
-                      onClick={() => handleAdminDeletePost(post.id, post.title)}
-                      disabled={deletingPostId === post.id}
-                      style={{ padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px solid #fca5a5", backgroundColor: "#fff1f2", color: "#e11d48", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}
-                    >
-                      {deletingPostId === post.id ? "…" : "Delete"}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+                  )}
+                </div>
+              );
+            })()}
           </div>
         ) : tab === "feedback" ? (
           // BETA ONLY — remove before full launch
@@ -778,22 +878,82 @@ export default function AdminPage() {
             ) : (
               allStudentsLoading ? <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
               : !allStudents?.length ? <EmptyState label="No students yet" />
-              : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
-                  {allStudents.map(s => (
-                    <div key={s.id} style={{ ...cardStyle, display: "flex", alignItems: "center", gap: "0.75rem" }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: "0 0 0.2rem", fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #0f172a)" }}>{s.name}</p>
-                        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
-                          <StatusBadge status={s.status} />
-                          <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>Joined {new Date(s.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
-                        </div>
+              : (() => {
+                const q = studentSearch.trim().toLowerCase();
+                const list = q ? allStudents.filter(s => s.name.toLowerCase().includes(q)) : allStudents;
+                return (
+                  <div>
+                    <input
+                      type="search" value={studentSearch} onChange={e => setStudentSearch(e.target.value)}
+                      placeholder="Search students by name…"
+                      style={{ width: "100%", boxSizing: "border-box", padding: "0.55rem 0.85rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", outline: "none", marginBottom: "0.75rem" }}
+                    />
+                    {!list.length ? <p style={{ color: "#94a3b8", fontSize: "0.875rem" }}>No students match "{studentSearch}"</p> : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                        {list.map(s => {
+                          const isReported = s.reports.length > 0;
+                          const isExpanded = expandedId === s.id;
+                          const det = expandedDetails[s.id];
+                          const loadingDet = loadingDetails.has(s.id);
+                          return (
+                            <div key={s.id} style={{ ...cardStyle, border: isReported ? "2px solid #fca5a5" : cardStyle.border, backgroundColor: isReported ? "#fff5f5" : cardStyle.backgroundColor }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => { const next = isExpanded ? null : s.id; setExpandedId(next); if (next) loadExpandedDetails(next, "student"); }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                                    <span style={{ fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{s.name}</span>
+                                    <StatusBadge status={s.status} />
+                                    {isReported && <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: "#fee2e2", color: "#b91c1c", padding: "0.15rem 0.45rem", borderRadius: "999px" }}>⚠ {s.reports.length} report{s.reports.length > 1 ? "s" : ""}</span>}
+                                  </div>
+                                  <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>Joined {new Date(s.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                </div>
+                                <span style={{ color: "#94a3b8", fontSize: "0.85rem", flexShrink: 0 }}>{isExpanded ? "▲" : "▼"}</span>
+                              </div>
+
+                              {isReported && (
+                                <div style={{ marginTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                                  {s.reports.map(r => (
+                                    <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.5rem", padding: "0.45rem 0.7rem", display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                                      <div style={{ flex: 1 }}>
+                                        <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#991b1b" }}>🚩 {r.reason}</p>
+                                        <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</p>
+                                      </div>
+                                      <button onClick={() => handleResolveReport(r.id, "student")} disabled={resolveReportId === r.id} style={{ padding: "0.2rem 0.55rem", fontSize: "0.7rem", fontWeight: "700", borderRadius: "0.3rem", border: "1px solid #fca5a5", background: "white", color: "#991b1b", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>{resolveReportId === r.id ? "…" : "✓ Dismiss"}</button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {isExpanded && (
+                                <div style={{ marginTop: "0.9rem", borderTop: "1px solid #e2e8f0", paddingTop: "0.9rem" }}>
+                                  {loadingDet ? <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8" }}>Loading details…</p> : det ? (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+                                      {det.bio && <div><p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Bio</p><p style={{ margin: 0, fontSize: "0.85rem", color: "#1e293b", lineHeight: 1.5 }}>{det.bio}</p></div>}
+                                      {det.skills?.length > 0 && <div><p style={{ margin: "0 0 0.3rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Skills</p><div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>{det.skills.map(sk => <span key={sk} style={{ fontSize: "0.75rem", backgroundColor: "#eff6ff", color: "#1d4ed8", borderRadius: "999px", padding: "0.15rem 0.5rem", fontWeight: "600" }}>{sk}</span>)}</div></div>}
+                                      {det.job_preferences?.length > 0 && <div><p style={{ margin: "0 0 0.3rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Job Preferences</p><div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>{det.job_preferences.map(j => <span key={j} style={{ fontSize: "0.75rem", backgroundColor: "#f0fdf4", color: "#166534", borderRadius: "999px", padding: "0.15rem 0.5rem", fontWeight: "600" }}>{j}</span>)}</div></div>}
+                                      {det.location_display && <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569" }}>📍 {det.location_display}</p>}
+                                      {det.linkedin && <p style={{ margin: 0, fontSize: "0.82rem" }}>LinkedIn: <a href={det.linkedin} target="_blank" rel="noreferrer" style={{ color: "#0ea5e9" }}>{det.linkedin}</a></p>}
+                                      <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap" }}>
+                                        {det.cv_url && <button onClick={() => openDoc(det.cv_url)} style={docBtn}>CV</button>}
+                                        {det.cover_letter_url && <button onClick={() => openDoc(det.cover_letter_url)} style={docBtn}>Cover Letter</button>}
+                                        {det.student_id_url && <button onClick={() => openDoc(det.student_id_url)} style={docBtn}>Student ID</button>}
+                                        {det.gov_id_url && <button onClick={() => openDoc(det.gov_id_url)} style={docBtn}>Gov ID</button>}
+                                      </div>
+                                    </div>
+                                  ) : <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8" }}>No additional details.</p>}
+                                </div>
+                              )}
+
+                              <div style={{ marginTop: "0.75rem", display: "flex", justifyContent: "flex-end" }}>
+                                <button onClick={() => setDeleteUserConfirm({ id: s.id, name: s.name, role: "student" })} style={{ padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px solid #1e293b", backgroundColor: "#0f172a", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>🗑 Delete</button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                      <button onClick={() => setDeleteUserConfirm({ id: s.id, name: s.name, role: "student" })} style={{ padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px solid #1e293b", backgroundColor: "#0f172a", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>🗑 Delete</button>
-                    </div>
-                  ))}
-                </div>
-              )
+                    )}
+                  </div>
+                );
+              })()
             )}
           </div>
         ) : tab === "companies" ? (
@@ -841,23 +1001,92 @@ export default function AdminPage() {
             ) : (
               allCompaniesLoading ? <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
               : !allCompanies?.length ? <EmptyState label="No companies yet" />
-              : (
-                <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
-                  {allCompanies.map(c => (
-                    <div key={c.id} style={{ ...cardStyle, display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ margin: "0 0 0.2rem", fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #0f172a)" }}>{c.name}</p>
-                        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
-                          <StatusBadge status={c.status} />
-                          {c.croNumber && <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>CRO: {c.croNumber}</span>}
-                          <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>Joined {new Date(c.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
-                        </div>
+              : (() => {
+                const q = companySearch.trim().toLowerCase();
+                const list = q ? allCompanies.filter(c => c.name.toLowerCase().includes(q)) : allCompanies;
+                return (
+                  <div>
+                    <input
+                      type="search" value={companySearch} onChange={e => setCompanySearch(e.target.value)}
+                      placeholder="Search companies by name…"
+                      style={{ width: "100%", boxSizing: "border-box", padding: "0.55rem 0.85rem", borderRadius: "0.6rem", border: "1.5px solid #e2e8f0", fontSize: "0.875rem", fontFamily: "inherit", outline: "none", marginBottom: "0.75rem" }}
+                    />
+                    {!list.length ? <p style={{ color: "#94a3b8", fontSize: "0.875rem" }}>No companies match "{companySearch}"</p> : (
+                      <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                        {list.map(c => {
+                          const isReported = c.reports.length > 0;
+                          const isExpanded = expandedId === c.id;
+                          const det = expandedDetails[c.id];
+                          const loadingDet = loadingDetails.has(c.id);
+                          return (
+                            <div key={c.id} style={{ ...cardStyle, border: isReported ? "2px solid #fca5a5" : cardStyle.border, backgroundColor: isReported ? "#fff5f5" : cardStyle.backgroundColor }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => { const next = isExpanded ? null : c.id; setExpandedId(next); if (next) loadExpandedDetails(next, "company"); }}>
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                                    <span style={{ fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{c.name}</span>
+                                    <StatusBadge status={c.status} />
+                                    {isReported && <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: "#fee2e2", color: "#b91c1c", padding: "0.15rem 0.45rem", borderRadius: "999px" }}>⚠ {c.reports.length} report{c.reports.length > 1 ? "s" : ""}</span>}
+                                  </div>
+                                  <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", marginTop: "0.1rem" }}>
+                                    {c.croNumber && <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>CRO: {c.croNumber}</span>}
+                                    <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>Joined {new Date(c.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                                  </div>
+                                </div>
+                                <span style={{ color: "#94a3b8", fontSize: "0.85rem", flexShrink: 0 }}>{isExpanded ? "▲" : "▼"}</span>
+                              </div>
+
+                              {isReported && (
+                                <div style={{ marginTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
+                                  {c.reports.map(r => (
+                                    <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.5rem", padding: "0.45rem 0.7rem", display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                                      <div style={{ flex: 1 }}>
+                                        <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#991b1b" }}>🚩 {r.reason}</p>
+                                        <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</p>
+                                      </div>
+                                      <button onClick={() => handleResolveReport(r.id, "company")} disabled={resolveReportId === r.id} style={{ padding: "0.2rem 0.55rem", fontSize: "0.7rem", fontWeight: "700", borderRadius: "0.3rem", border: "1px solid #fca5a5", background: "white", color: "#991b1b", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>{resolveReportId === r.id ? "…" : "✓ Dismiss"}</button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {isExpanded && (
+                                <div style={{ marginTop: "0.9rem", borderTop: "1px solid #e2e8f0", paddingTop: "0.9rem" }}>
+                                  {loadingDet ? <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8" }}>Loading details…</p> : det ? (
+                                    <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                                      {det.bio && <div><p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>About</p><p style={{ margin: 0, fontSize: "0.85rem", color: "#1e293b", lineHeight: 1.5 }}>{det.bio}</p></div>}
+                                      {det.website && <p style={{ margin: 0, fontSize: "0.82rem" }}>🌐 <a href={det.website} target="_blank" rel="noreferrer" style={{ color: "#0ea5e9" }}>{det.website}</a></p>}
+                                      {det.industries?.length > 0 && <div><p style={{ margin: "0 0 0.3rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Industries</p><div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>{det.industries.map(i => <span key={i} style={{ fontSize: "0.75rem", backgroundColor: "#f0f9ff", color: "#0369a1", borderRadius: "999px", padding: "0.15rem 0.5rem", fontWeight: "600" }}>{i}</span>)}</div></div>}
+                                      {det.cro_number && <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569" }}>CRO: <span style={{ fontFamily: "monospace", fontWeight: "700" }}>{det.cro_number}</span></p>}
+                                      {det.jobs?.length > 0 && (
+                                        <div>
+                                          <p style={{ margin: "0 0 0.4rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Job Posts ({det.jobs.length})</p>
+                                          <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                                            {det.jobs.map(j => (
+                                              <div key={j.id} style={{ padding: "0.4rem 0.65rem", backgroundColor: "white", borderRadius: "0.4rem", border: "1px solid #e2e8f0", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                                <span style={{ flex: 1, fontSize: "0.82rem", fontWeight: "600", color: "#1e293b" }}>{j.title}</span>
+                                                <span style={{ fontSize: "0.68rem", fontWeight: "700", padding: "0.1rem 0.4rem", borderRadius: "999px", backgroundColor: j.status === "Active" ? "#dcfce7" : "#f1f5f9", color: j.status === "Active" ? "#16a34a" : "#64748b" }}>{j.status}</span>
+                                                {j.pay && <span style={{ fontSize: "0.7rem", color: "#64748b" }}>€{j.pay}/hr</span>}
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8" }}>No additional details.</p>}
+                                </div>
+                              )}
+
+                              <div style={{ marginTop: "0.75rem", display: "flex", justifyContent: "flex-end" }}>
+                                <button onClick={() => setDeleteUserConfirm({ id: c.id, name: c.name, role: "company" })} style={{ padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px solid #1e293b", backgroundColor: "#0f172a", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>🗑 Delete</button>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
-                      <button onClick={() => setDeleteUserConfirm({ id: c.id, name: c.name, role: "company" })} style={{ padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px solid #1e293b", backgroundColor: "#0f172a", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>🗑 Delete</button>
-                    </div>
-                  ))}
-                </div>
-              )
+                    )}
+                  </div>
+                );
+              })()
             )}
           </div>
         ) : null}

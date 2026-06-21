@@ -5,6 +5,7 @@ import { supabase, withTimeout } from "../lib/supabase";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
+import ReportModal from "../components/ReportModal";
 
 export default function CompanyProfilePage() {
   const { companyId } = useParams();
@@ -13,6 +14,7 @@ export default function CompanyProfilePage() {
 
   const [company, setCompany] = useState(null);
   const [jobs, setJobs] = useState([]);
+  const [showReport, setShowReport] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [hireStats, setHireStats] = useState(null);
@@ -114,6 +116,9 @@ export default function CompanyProfilePage() {
               <h1 style={{ margin: 0, fontSize: "1.6rem", fontWeight: "800", color: "var(--color-text-primary, #0f172a)", letterSpacing: "-0.02em" }}>{company.name}</h1>
               {company.is_featured && (
                 <span style={{ fontSize: "0.72rem", fontWeight: "700", color: "#854d0e", backgroundColor: "#fef9c3", borderRadius: "999px", padding: "0.2rem 0.6rem", border: "1.5px solid #fde68a" }}>⭐ Featured Employer</span>
+              )}
+              {currentUser?.role === "student" && (
+                <button onClick={() => setShowReport(true)} title="Report this company" style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: "#cbd5e1", fontSize: "0.8rem", padding: "2px 4px" }}>🚩 Report</button>
               )}
             </div>
             {industries.length > 0 && (
@@ -227,6 +232,14 @@ export default function CompanyProfilePage() {
         </div>
 
       </div>
+      {showReport && (
+        <ReportModal
+          targetType="company"
+          targetId={companyId}
+          targetName={company?.name || "this company"}
+          onClose={() => setShowReport(false)}
+        />
+      )}
     </PageWrapper>
   );
 }

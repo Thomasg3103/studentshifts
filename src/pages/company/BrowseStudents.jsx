@@ -5,6 +5,7 @@ import { supabase } from "../../lib/supabase";
 import { fetchAllMessagesWithStudent, sendMessage, sendEmail } from "../../lib/auth";
 import { getSignedDocumentUrl } from "../../lib/uploads";
 import { StudentAvailabilityRow } from "./shared";
+import ReportModal from "../../components/ReportModal";
 
 const PAGE_SIZE = 20;
 
@@ -26,6 +27,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
   const [hiredThisMonth, setHiredThisMonth] = useState(0);
   const [cvLoading, setCvLoading] = useState(new Set());
   const [dmMap, setDmMap] = useState({});
+  const [reportStudent, setReportStudent] = useState(null); // { id, name }
 
   useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filterByIndustries, locationFilter, sortBy, selectedJobId]);
 
@@ -668,6 +670,7 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
                   Shortlist →
                 </button>
               )}
+              <button onClick={() => setReportStudent({ id: s.id, name: s.name })} title="Report this student" style={{ background: "none", border: "none", cursor: "pointer", color: "#cbd5e1", fontSize: "0.82rem", padding: "0.5rem 0.35rem", lineHeight: 1 }}>🚩</button>
             </div>
             {shortlistFor === s.id && postings.length > 0 && (
               <div style={{ marginTop: "0.5rem", padding: "0.65rem 0.85rem", backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem" }}>
@@ -701,6 +704,14 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
         <p style={{ textAlign: "center", fontSize: "0.78rem", color: "var(--color-text-secondary, #64748b)", paddingTop: "0.5rem", margin: 0 }}>
           All {displayStudents.length} student{displayStudents.length !== 1 ? "s" : ""} shown
         </p>
+      )}
+      {reportStudent && (
+        <ReportModal
+          targetType="student"
+          targetId={reportStudent.id}
+          targetName={reportStudent.name}
+          onClose={() => setReportStudent(null)}
+        />
       )}
     </div>
   );

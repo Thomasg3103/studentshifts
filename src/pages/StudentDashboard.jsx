@@ -10,6 +10,7 @@ import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
 import StudentOnboarding from "../components/StudentOnboarding";
 import { JobCardsSkeleton } from "../components/Skeleton";
+import ReportModal from "../components/ReportModal";
 
 const DESC = {
   "Bar Staff":           "Join our bar team serving drinks and looking after customers. Some experience preferred — full training provided.",
@@ -225,6 +226,7 @@ export default function StudentDashboard({ restoreScrollY }) {
   const navigate = useNavigate();
   const isCached = _jobsPageCache.jobs.length > 0 && Date.now() - _jobsPageCache.fetchedAt < JOBS_CACHE_TTL;
   const [jobs,           setJobs]           = useState(_jobsPageCache.jobs);
+  const [reportModal,    setReportModal]    = useState(null); // { id, title }
   const [jobsLoading,    setJobsLoading]    = useState(!isCached);
   const [jobsError,      setJobsError]      = useState(false);
   const [applicantCounts, setApplicantCounts] = useState({});
@@ -1172,6 +1174,12 @@ export default function StudentDashboard({ restoreScrollY }) {
                             Updated {new Date(job.updatedAt).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}
                           </span>
                         )}
+                        <button
+                          onClick={e => { e.stopPropagation(); setReportModal({ id: job.id, title: job.title }); }}
+                          title="Report this job"
+                          aria-label="Report this job"
+                          style={{ background: "none", border: "none", cursor: "pointer", padding: "2px 4px", color: "#cbd5e1", fontSize: isPhone ? "0.7rem" : "0.72rem", marginLeft: "auto", lineHeight: 1, flexShrink: 0 }}
+                        >🚩</button>
                       </div>
                     </div>
 
@@ -1216,6 +1224,14 @@ export default function StudentDashboard({ restoreScrollY }) {
       )}
 
       <StudentOnboarding />
+      {reportModal && (
+        <ReportModal
+          targetType="post"
+          targetId={reportModal.id}
+          targetName={reportModal.title}
+          onClose={() => setReportModal(null)}
+        />
+      )}
     </div>
   );
 }
