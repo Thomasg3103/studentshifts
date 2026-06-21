@@ -54,7 +54,7 @@ export default function AppFooter() {
         </div>
 
         <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", paddingTop: "1.5rem", display: "flex", flexWrap: "wrap", gap: "1rem", justifyContent: "space-between", alignItems: "center", fontSize: "0.76rem" }}>
-          <span>© {new Date().getFullYear()} StudentShifts · Ireland</span>
+          <span>© {new Date().getFullYear()} StudentShifts · Ireland · <span style={{ opacity: 0.45 }}>v0.1.0 Beta</span></span>
           <span>Made with ❤️ for students across Ireland</span>
         </div>
       </div>
