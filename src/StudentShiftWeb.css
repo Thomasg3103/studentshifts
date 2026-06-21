@@ -287,7 +287,7 @@ header {
   }
   .applicants-modal-overlay {
     align-items: flex-end !important;
-    padding: 1rem !important;
+    padding: 1rem 0 !important;
   }
 }
 
