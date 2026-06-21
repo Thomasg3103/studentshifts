@@ -38,6 +38,9 @@ export default function AdminPage() {
   const [forumComments,    setForumComments]      = useState({});
   const [deletingForumPost,  setDeletingForumPost]  = useState(null);
   const [deletingCommentId,  setDeletingCommentId]  = useState(null);
+  // BETA ONLY — remove before full launch
+  const [suggestions,        setSuggestions]        = useState(null);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
 
   // F-M10: extracted so the Refresh button can re-call it
   const loadData = useCallback(() => {
@@ -101,6 +104,29 @@ export default function AdminPage() {
   useEffect(() => {
     if (tab === "forum" && forumPosts === null) loadForumPosts();
   }, [tab, forumPosts, loadForumPosts]);
+
+  // BETA ONLY — remove before full launch
+  const loadSuggestions = useCallback(async () => {
+    setSuggestionsLoading(true);
+    try {
+      const { data, error: err } = await supabase
+        .from("beta_suggestions")
+        .select("id, name, role, message, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (err) throw err;
+      setSuggestions(data || []);
+    } catch {
+      toast.error("Failed to load suggestions.");
+      setSuggestions([]);
+    } finally {
+      setSuggestionsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tab === "feedback" && suggestions === null) loadSuggestions();
+  }, [tab, suggestions, loadSuggestions]);
 
   const loadForumComments = async (postId) => {
     setForumComments(prev => ({ ...prev, [postId]: { loading: true, data: [] } }));
@@ -367,6 +393,7 @@ export default function AdminPage() {
             { key: "signups",   label: "Signups",   count: 0 },
             { key: "featured",  label: "Featured",  count: 0 },
             { key: "forum",     label: "Forum",     count: 0 },
+            { key: "feedback",  label: "Feedback ✦", count: 0 }, // BETA ONLY — remove before full launch
           ].map(({ key, label, count }) => {
             const active = tab === key;
             return (
@@ -533,6 +560,34 @@ export default function AdminPage() {
                     </div>
                   );
                 })}
+              </div>
+            )}
+          </div>
+        ) : tab === "feedback" ? (
+          // BETA ONLY — remove before full launch
+          <div>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "1rem", flexWrap: "wrap", gap: "0.5rem" }}>
+              <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--color-text-secondary, #64748b)" }}>
+                Suggestions submitted by beta testers. Remove this tab before full launch.
+              </p>
+              <button onClick={loadSuggestions} style={docBtn}>↻ Refresh</button>
+            </div>
+            {suggestionsLoading ? (
+              <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
+            ) : !suggestions?.length ? (
+              <EmptyState label="No suggestions yet" />
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                {suggestions.map(s => (
+                  <div key={s.id} style={cardStyle}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.45rem", flexWrap: "wrap" }}>
+                      <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "var(--color-text-body, #374151)" }}>{s.name || "Anonymous"}</span>
+                      <span style={{ fontSize: "0.7rem", fontWeight: "700", backgroundColor: s.role === "company" ? "#eff6ff" : "#fdf4ff", color: s.role === "company" ? "#1d4ed8" : "#7c3aed", borderRadius: "999px", padding: "0.1rem 0.5rem" }}>{s.role || "user"}</span>
+                      <span style={{ fontSize: "0.72rem", color: "#94a3b8", marginLeft: "auto" }}>{new Date(s.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--color-text-primary, #0f172a)", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{s.message}</p>
+                  </div>
+                ))}
               </div>
             )}
           </div>
