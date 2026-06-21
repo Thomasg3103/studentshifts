@@ -269,6 +269,12 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
 export default function CompanyMessages() {
   const { currentUser, setPage, setMsgCount } = useApp();
   const navigate = useNavigate();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
   const [conversations, setConversations] = useState([]);
   const [directConvs, setDirectConvs]     = useState([]);
   const [loading, setLoading]             = useState(true);
@@ -306,7 +312,7 @@ export default function CompanyMessages() {
   if (active) {
     const isDirect = active.jobId === null;
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 80px)" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: isMobile ? `${window.innerHeight - 52 - 64}px` : "calc(100vh - 80px)" }}>
         <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid var(--color-border-light, #e5e7eb)", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "var(--color-bg-elevated, white)", flexShrink: 0 }}>
           <button aria-label="Back to conversations" onClick={goBack} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "var(--color-text-secondary, #6b7280)" }}>←</button>
           <Avatar url={active.profilePhotoUrl} name={active.studentName} size={38} />

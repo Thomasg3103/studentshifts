@@ -344,7 +344,7 @@ export default function Messages() {
   if (active) {
     const isDirect = active.jobId === null;
     return (
-      <div style={{ display: "flex", flexDirection: "column", height: isMobile ? "calc(100vh - 52px - 64px)" : "calc(100vh - 80px)" }}>
+      <div style={{ display: "flex", flexDirection: "column", height: isMobile ? `${window.innerHeight - 52 - 64}px` : "calc(100vh - 80px)" }}>
         <div style={{ padding: "0.85rem 1.25rem", borderBottom: "1.5px solid var(--color-border-light, #e5e7eb)", display: "flex", alignItems: "center", gap: "0.75rem", backgroundColor: "var(--color-bg-elevated, white)", flexShrink: 0 }}>
           <button aria-label="Back to conversations" onClick={goBack} style={{ background: "none", border: "none", cursor: "pointer", padding: "0.2rem 0.5rem", borderRadius: "0.4rem", fontSize: "1rem", color: "var(--color-text-secondary, #6b7280)" }}>←</button>
           <div>

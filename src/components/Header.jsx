@@ -431,7 +431,7 @@ function PersonIcon({ color = "white" }) {
 
 function BrowseIcon({ active }) {
   return (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill={active ? "var(--color-brand)" : "none"} stroke={active ? "var(--color-brand)" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
     </svg>
   );
@@ -439,7 +439,7 @@ function BrowseIcon({ active }) {
 
 function BriefcaseIcon({ active }) {
   return (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={active ? "var(--color-brand)" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill={active ? "var(--color-brand)" : "none"} stroke={active ? "var(--color-brand)" : "#64748b"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
     </svg>
   );
@@ -470,7 +470,7 @@ function DocumentIcon({ active, color }) {
 function ChatIcon({ active, color }) {
   const c = color || (active ? "var(--color-brand)" : "#64748b");
   return (
-    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill={!color && active ? c : "none"} stroke={c} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
   );
