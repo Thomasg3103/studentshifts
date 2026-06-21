@@ -46,11 +46,13 @@ export default function AdminPage() {
   // Admin delete
   const [deleteUserConfirm,  setDeleteUserConfirm]  = useState(null); // { id, name, role }
   const [deletingUserId,     setDeletingUserId]     = useState(null);
+  const [deleteReason,       setDeleteReason]       = useState("");
   const [allPosts,           setAllPosts]           = useState(null);
   const [postsLoading,       setPostsLoading]       = useState(false);
   const [deletingPostId,     setDeletingPostId]     = useState(null);
   const deleteUserModalRef = useRef(null);
-  useFocusTrap(deleteUserModalRef, () => setDeleteUserConfirm(null), !!deleteUserConfirm);
+  const closeDeleteModal = () => { setDeleteUserConfirm(null); setDeleteReason(""); };
+  useFocusTrap(deleteUserModalRef, closeDeleteModal, !!deleteUserConfirm);
   // All-users view (filter toggle inside Students / Companies tabs)
   const [studentsFilter,    setStudentsFilter]    = useState("pending"); // "pending" | "all"
   const [companiesFilter,   setCompaniesFilter]   = useState("pending");
@@ -275,7 +277,7 @@ export default function AdminPage() {
       if (allStudents) setAllStudents(prev => prev.filter(s => s.id !== id));
       if (allCompanies) setAllCompanies(prev => prev.filter(c => c.id !== id));
       if (verifiedCompanies) setVerifiedCompanies(prev => prev.filter(c => c.id !== id));
-      setDeleteUserConfirm(null);
+      closeDeleteModal();
       toast.success(`${name} deleted.`);
     } catch (e) {
       toast.error(e.message || "Failed to delete user.");
@@ -1288,16 +1290,27 @@ export default function AdminPage() {
 
       {deleteUserConfirm && (
         <div style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.65)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem" }}>
-          <div ref={deleteUserModalRef} role="dialog" aria-modal="true" aria-labelledby="delete-user-modal-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", padding: "1.5rem 1.75rem", maxWidth: "380px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)" }}>
-            <p id="delete-user-modal-title" style={{ margin: "0 0 0.35rem", fontWeight: "800", fontSize: "1.05rem", color: "#e11d48" }}>
+          <div ref={deleteUserModalRef} role="dialog" aria-modal="true" aria-labelledby="delete-user-modal-title" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1rem", padding: "1.5rem 1.75rem", maxWidth: "400px", width: "100%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", maxHeight: "90vh", overflowY: "auto" }}>
+            <p id="delete-user-modal-title" style={{ margin: "0 0 0.25rem", fontWeight: "800", fontSize: "1.05rem", color: "#e11d48" }}>
               Permanently delete {deleteUserConfirm.role}?
             </p>
-            <p style={{ margin: "0 0 1.25rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.5 }}>
-              <strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{deleteUserConfirm.name}</strong> and all their data (jobs, applications, messages) will be permanently deleted. This cannot be undone.
+            <p style={{ margin: "0 0 1rem", fontSize: "0.875rem", color: "var(--color-text-secondary, #64748b)", lineHeight: 1.5 }}>
+              <strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{deleteUserConfirm.name}</strong> and all their data will be permanently deleted. This cannot be undone.
             </p>
+
+            <p style={{ margin: "0 0 0.4rem", fontSize: "0.78rem", fontWeight: "700", color: "#64748b" }}>Reason for deletion <span style={{ color: "#e11d48" }}>*</span></p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem", marginBottom: "0.85rem" }}>
+              {["Fake profile / spam", "Inappropriate content or behaviour", "Scam or fraud", "Violation of terms of service", "Underage user", "Duplicate account", "Other"].map(r => (
+                <label key={r} style={{ display: "flex", alignItems: "center", gap: "0.5rem", padding: "0.4rem 0.65rem", borderRadius: "0.45rem", border: `1.5px solid ${deleteReason === r ? "#e11d48" : "#e2e8f0"}`, backgroundColor: deleteReason === r ? "#fff1f2" : "white", cursor: "pointer", fontSize: "0.84rem", fontWeight: deleteReason === r ? "700" : "500", color: deleteReason === r ? "#be123c" : "#374151" }}>
+                  <input type="radio" name="delete-reason" value={r} checked={deleteReason === r} onChange={() => setDeleteReason(r)} style={{ accentColor: "#e11d48" }} />
+                  {r}
+                </label>
+              ))}
+            </div>
+
             <div style={{ display: "flex", gap: "0.6rem", justifyContent: "flex-end" }}>
               <button
-                onClick={() => setDeleteUserConfirm(null)}
+                onClick={closeDeleteModal}
                 disabled={!!deletingUserId}
                 style={{ padding: "0.5rem 1.1rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", backgroundColor: "var(--color-bg-elevated, white)", color: "var(--color-text-body, #374151)", fontWeight: "600", fontSize: "0.875rem", cursor: "pointer", fontFamily: "inherit" }}
               >
@@ -1305,8 +1318,8 @@ export default function AdminPage() {
               </button>
               <button
                 onClick={handleAdminDeleteUser}
-                disabled={!!deletingUserId}
-                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#0f172a", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: deletingUserId ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: deletingUserId ? 0.6 : 1 }}
+                disabled={!!deletingUserId || !deleteReason}
+                style={{ padding: "0.5rem 1.1rem", borderRadius: "0.5rem", border: "none", backgroundColor: "#0f172a", color: "white", fontWeight: "700", fontSize: "0.875rem", cursor: (deletingUserId || !deleteReason) ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: (deletingUserId || !deleteReason) ? 0.45 : 1 }}
               >
                 {deletingUserId ? "Deleting…" : "Yes, Delete Permanently"}
               </button>
