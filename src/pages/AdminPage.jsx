@@ -13,6 +13,7 @@ import {
 } from "../lib/auth";
 import { emailStudentRejected, emailCompanyRejected } from "../lib/emails";
 import { useFocusTrap } from "../hooks/useFocusTrap";
+import { toJobSlug } from "../lib/jobs";
 
 export default function AdminPage() {
   const [tab, setTab]           = useState("students");
@@ -80,7 +81,7 @@ export default function AdminPage() {
       setCompanies(c);
       const ids = [...s.map(x => x.id), ...c.map(x => x.id)];
       if (ids.length) {
-        supabase.from("reports").select("id, target_id, reason, created_at").in("target_id", ids).is("resolved_at", null)
+        supabase.from("reports").select("id, target_id, reason, created_at, screenshot_urls").in("target_id", ids).is("resolved_at", null)
           .then(({ data: reps }) => {
             const map = {};
             for (const r of reps || []) { (map[r.target_id] = map[r.target_id] || []).push(r); }
@@ -102,7 +103,7 @@ export default function AdminPage() {
       const ids = (profs || []).map(p => p.id);
       const [{ data: statuses, error: e2 }, { data: reps, error: e3 }, { data: emails }] = await Promise.all([
         ids.length ? supabase.from("students").select("id, status").in("id", ids) : Promise.resolve({ data: [] }),
-        supabase.from("reports").select("id, target_id, reason, created_at").eq("target_type", "student").is("resolved_at", null),
+        supabase.from("reports").select("id, target_id, reason, created_at, screenshot_urls").eq("target_type", "student").is("resolved_at", null),
         ids.length ? supabase.rpc("admin_get_emails", { p_ids: ids }) : Promise.resolve({ data: [] }),
       ]);
       if (e2) throw e2;
@@ -126,7 +127,7 @@ export default function AdminPage() {
       const ids = (profs || []).map(p => p.id);
       const [{ data: cos, error: e2 }, { data: reps, error: e3 }, { data: emails }] = await Promise.all([
         ids.length ? supabase.from("companies").select("id, status, cro_number").in("id", ids) : Promise.resolve({ data: [] }),
-        supabase.from("reports").select("id, target_id, reason, created_at").eq("target_type", "company").is("resolved_at", null),
+        supabase.from("reports").select("id, target_id, reason, created_at, screenshot_urls").eq("target_type", "company").is("resolved_at", null),
         ids.length ? supabase.rpc("admin_get_emails", { p_ids: ids }) : Promise.resolve({ data: [] }),
       ]);
       if (e2) throw e2;
@@ -291,7 +292,7 @@ export default function AdminPage() {
       const companyIds = [...new Set((rows || []).map(j => j.company_id).filter(Boolean))];
       const [{ data: profs, error: e2 }, { data: reps, error: e3 }] = await Promise.all([
         companyIds.length ? supabase.from("profiles").select("id, name").in("id", companyIds) : Promise.resolve({ data: [] }),
-        supabase.from("reports").select("id, target_id, reason, created_at").eq("target_type", "post").is("resolved_at", null),
+        supabase.from("reports").select("id, target_id, reason, created_at, screenshot_urls").eq("target_type", "post").is("resolved_at", null),
       ]);
       if (e2) throw e2;
       if (e3) throw e3;
@@ -316,11 +317,11 @@ export default function AdminPage() {
     setLoadingDetails(s => new Set([...s, id]));
     try {
       if (type === "student") {
-        const { data } = await supabase
-          .from("students")
-          .select("bio, skills, linkedin, cv_url, cover_letter_url, student_id_url, gov_id_url, location_display, job_preferences")
-          .eq("id", id).single();
-        setExpandedDetails(d => ({ ...d, [id]: data || {} }));
+        const [{ data }, { data: fp }] = await Promise.all([
+          supabase.from("students").select("bio, skills, linkedin, cv_url, cover_letter_url, student_id_url, gov_id_url, location_display, job_preferences").eq("id", id).single(),
+          supabase.from("forum_posts").select("id, title, category, body, upvotes, created_at").eq("author_id", id).order("created_at", { ascending: false }),
+        ]);
+        setExpandedDetails(d => ({ ...d, [id]: { ...(data || {}), forumPosts: fp || [] } }));
       } else if (type === "company") {
         const [{ data: co }, { data: jobs }] = await Promise.all([
           supabase.from("companies").select("bio, website, cro_number, industries").eq("id", id).single(),
@@ -786,7 +787,7 @@ export default function AdminPage() {
                             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => setExpandedPostId(isExpanded ? null : post.id)}>
                               <div style={{ flex: 1, minWidth: 0 }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
-                                  <span style={{ fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{post.title}</span>
+                                  <a href={`/jobs/${toJobSlug(post.title)}/${toJobSlug(post.companyName)}`} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ fontWeight: "700", fontSize: "0.95rem", color: "#0f172a", textDecoration: "none" }}>{post.title} ↗</a>
                                   <span style={{ fontSize: "0.7rem", fontWeight: "700", borderRadius: "999px", padding: "0.1rem 0.45rem", backgroundColor: post.status === "Active" ? "#dcfce7" : "#f1f5f9", color: post.status === "Active" ? "#16a34a" : "#64748b" }}>{post.status}</span>
                                   {isReported && <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: "#fee2e2", color: "#b91c1c", padding: "0.15rem 0.45rem", borderRadius: "999px" }}>⚠ {post.reports.length} report{post.reports.length > 1 ? "s" : ""}</span>}
                                 </div>
@@ -801,12 +802,23 @@ export default function AdminPage() {
                             {isReported && (
                               <div style={{ marginTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                                 {post.reports.map(r => (
-                                  <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.5rem", padding: "0.45rem 0.7rem", display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-                                    <div style={{ flex: 1 }}>
-                                      <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#991b1b" }}>🚩 {r.reason}</p>
-                                      <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</p>
+                                  <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.5rem", padding: "0.45rem 0.7rem" }}>
+                                    <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                                      <div style={{ flex: 1 }}>
+                                        <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#991b1b" }}>🚩 {r.reason}</p>
+                                        <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</p>
+                                      </div>
+                                      <button onClick={() => handleResolveReport(r.id, "post")} disabled={resolveReportId === r.id} style={{ padding: "0.2rem 0.55rem", fontSize: "0.7rem", fontWeight: "700", borderRadius: "0.3rem", border: "1px solid #fca5a5", background: "white", color: "#991b1b", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>{resolveReportId === r.id ? "…" : "✓ Dismiss"}</button>
                                     </div>
-                                    <button onClick={() => handleResolveReport(r.id, "post")} disabled={resolveReportId === r.id} style={{ padding: "0.2rem 0.55rem", fontSize: "0.7rem", fontWeight: "700", borderRadius: "0.3rem", border: "1px solid #fca5a5", background: "white", color: "#991b1b", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>{resolveReportId === r.id ? "…" : "✓ Dismiss"}</button>
+                                    {r.screenshot_urls?.length > 0 && (
+                                      <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.4rem", flexWrap: "wrap" }}>
+                                        {r.screenshot_urls.map((url, i) => (
+                                          <a key={i} href={url} target="_blank" rel="noreferrer">
+                                            <img src={url} alt="screenshot" style={{ width: "64px", height: "64px", objectFit: "cover", borderRadius: "0.3rem", border: "1px solid #fca5a5" }} />
+                                          </a>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
                                 ))}
                               </div>
@@ -818,7 +830,7 @@ export default function AdminPage() {
                                 {post.pay && <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569" }}>💶 €{post.pay}/hr</p>}
                                 {post.category && <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569" }}>Category: {post.category}</p>}
                                 {post.days?.length > 0 && <p style={{ margin: 0, fontSize: "0.82rem", color: "#475569" }}>Days: {post.days.join(", ")}</p>}
-                                {post.description && <div><p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Description</p><p style={{ margin: 0, fontSize: "0.82rem", color: "#1e293b", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>{post.description}</p></div>}
+                                {post.description && <div><p style={{ margin: "0 0 0.2rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Description</p><div style={{ fontSize: "0.82rem", color: "#1e293b", lineHeight: 1.6 }} dangerouslySetInnerHTML={{ __html: post.description }} /></div>}
                               </div>
                             )}
 
@@ -880,9 +892,20 @@ export default function AdminPage() {
                       {isReported && (
                         <div style={{ marginBottom: "0.65rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                           {reps.map(r => (
-                            <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.45rem", padding: "0.35rem 0.65rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                              <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "#991b1b", flex: 1 }}>🚩 {r.reason}</span>
-                              <span style={{ fontSize: "0.68rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}</span>
+                            <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.45rem", padding: "0.35rem 0.65rem" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "#991b1b", flex: 1 }}>🚩 {r.reason}</span>
+                                <span style={{ fontSize: "0.68rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}</span>
+                              </div>
+                              {r.screenshot_urls?.length > 0 && (
+                                <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.35rem", flexWrap: "wrap" }}>
+                                  {r.screenshot_urls.map((url, i) => (
+                                    <a key={i} href={url} target="_blank" rel="noreferrer">
+                                      <img src={url} alt="screenshot" style={{ width: "56px", height: "56px", objectFit: "cover", borderRadius: "0.3rem", border: "1px solid #fca5a5" }} />
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
@@ -945,12 +968,23 @@ export default function AdminPage() {
                               {isReported && (
                                 <div style={{ marginTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                                   {s.reports.map(r => (
-                                    <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.5rem", padding: "0.45rem 0.7rem", display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-                                      <div style={{ flex: 1 }}>
-                                        <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#991b1b" }}>🚩 {r.reason}</p>
-                                        <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</p>
+                                    <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.5rem", padding: "0.45rem 0.7rem" }}>
+                                      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                                        <div style={{ flex: 1 }}>
+                                          <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#991b1b" }}>🚩 {r.reason}</p>
+                                          <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</p>
+                                        </div>
+                                        <button onClick={() => handleResolveReport(r.id, "student")} disabled={resolveReportId === r.id} style={{ padding: "0.2rem 0.55rem", fontSize: "0.7rem", fontWeight: "700", borderRadius: "0.3rem", border: "1px solid #fca5a5", background: "white", color: "#991b1b", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>{resolveReportId === r.id ? "…" : "✓ Dismiss"}</button>
                                       </div>
-                                      <button onClick={() => handleResolveReport(r.id, "student")} disabled={resolveReportId === r.id} style={{ padding: "0.2rem 0.55rem", fontSize: "0.7rem", fontWeight: "700", borderRadius: "0.3rem", border: "1px solid #fca5a5", background: "white", color: "#991b1b", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>{resolveReportId === r.id ? "…" : "✓ Dismiss"}</button>
+                                      {r.screenshot_urls?.length > 0 && (
+                                        <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.4rem", flexWrap: "wrap" }}>
+                                          {r.screenshot_urls.map((url, i) => (
+                                            <a key={i} href={url} target="_blank" rel="noreferrer">
+                                              <img src={url} alt="screenshot" style={{ width: "64px", height: "64px", objectFit: "cover", borderRadius: "0.3rem", border: "1px solid #fca5a5" }} />
+                                            </a>
+                                          ))}
+                                        </div>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
@@ -971,6 +1005,25 @@ export default function AdminPage() {
                                         {det.student_id_url && <button onClick={() => openDoc(det.student_id_url)} style={docBtn}>Student ID</button>}
                                         {det.gov_id_url && <button onClick={() => openDoc(det.gov_id_url)} style={docBtn}>Gov ID</button>}
                                       </div>
+                                      {det.forumPosts?.length > 0 && (
+                                        <div>
+                                          <p style={{ margin: "0 0 0.4rem", fontSize: "0.7rem", fontWeight: "700", color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em" }}>Forum Posts ({det.forumPosts.length})</p>
+                                          <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                                            {det.forumPosts.map(fp => (
+                                              <div key={fp.id} style={{ padding: "0.45rem 0.65rem", backgroundColor: "#f8fafc", borderRadius: "0.4rem", border: "1px solid #e2e8f0" }}>
+                                                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.15rem" }}>
+                                                  <span style={{ fontSize: "0.82rem", fontWeight: "700", color: "#1e293b", flex: 1 }}>{fp.title}</span>
+                                                  {fp.category && <span style={{ fontSize: "0.65rem", fontWeight: "700", backgroundColor: "#eff6ff", color: "#1d4ed8", borderRadius: "999px", padding: "0.1rem 0.4rem" }}>{fp.category}</span>}
+                                                  <span style={{ fontSize: "0.65rem", color: "#94a3b8" }}>▲ {fp.upvotes || 0}</span>
+                                                </div>
+                                                <p style={{ margin: 0, fontSize: "0.75rem", color: "#64748b", lineHeight: 1.45 }}>{fp.body?.slice(0, 180)}{fp.body?.length > 180 ? "…" : ""}</p>
+                                                <p style={{ margin: "0.2rem 0 0", fontSize: "0.65rem", color: "#94a3b8" }}>{new Date(fp.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</p>
+                                              </div>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      )}
+                                      {det.forumPosts?.length === 0 && <p style={{ margin: 0, fontSize: "0.75rem", color: "#94a3b8" }}>No forum posts.</p>}
                                     </div>
                                   ) : <p style={{ margin: 0, fontSize: "0.8rem", color: "#94a3b8" }}>No additional details.</p>}
                                 </div>
@@ -1005,15 +1058,26 @@ export default function AdminPage() {
                       {isReported && (
                         <div style={{ marginBottom: "0.65rem", display: "flex", flexDirection: "column", gap: "0.3rem" }}>
                           {reps.map(r => (
-                            <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.45rem", padding: "0.35rem 0.65rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                              <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "#991b1b", flex: 1 }}>🚩 {r.reason}</span>
-                              <span style={{ fontSize: "0.68rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}</span>
+                            <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.45rem", padding: "0.35rem 0.65rem" }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                <span style={{ fontSize: "0.78rem", fontWeight: "700", color: "#991b1b", flex: 1 }}>🚩 {r.reason}</span>
+                                <span style={{ fontSize: "0.68rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short" })}</span>
+                              </div>
+                              {r.screenshot_urls?.length > 0 && (
+                                <div style={{ display: "flex", gap: "0.35rem", marginTop: "0.35rem", flexWrap: "wrap" }}>
+                                  {r.screenshot_urls.map((url, i) => (
+                                    <a key={i} href={url} target="_blank" rel="noreferrer">
+                                      <img src={url} alt="screenshot" style={{ width: "56px", height: "56px", objectFit: "cover", borderRadius: "0.3rem", border: "1px solid #fca5a5" }} />
+                                    </a>
+                                  ))}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>
                       )}
                       <div style={{ marginBottom: "0.85rem" }}>
-                        <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>{c.name}</p>
+                        <a href={`/companies/${c.id}`} target="_blank" rel="noreferrer" style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)", textDecoration: "none", display: "inline-block" }}>{c.name} ↗</a>
                         {c.email && (
                           <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
                             <span style={{ fontSize: "0.7rem", backgroundColor: "#dcfce7", color: "#16a34a", fontWeight: "700", padding: "0.1rem 0.45rem", borderRadius: "999px", textTransform: "uppercase", letterSpacing: "0.04em" }}>✓ Email verified</span>
@@ -1070,7 +1134,7 @@ export default function AdminPage() {
                               <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }} onClick={() => { const next = isExpanded ? null : c.id; setExpandedCompanyId(next); if (next) loadExpandedDetails(next, "company"); }}>
                                 <div style={{ flex: 1, minWidth: 0 }}>
                                   <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
-                                    <span style={{ fontWeight: "700", fontSize: "0.95rem", color: "#0f172a" }}>{c.name}</span>
+                                    <a href={`/companies/${c.id}`} target="_blank" rel="noreferrer" onClick={e => e.stopPropagation()} style={{ fontWeight: "700", fontSize: "0.95rem", color: "#0f172a", textDecoration: "none" }}>{c.name} ↗</a>
                                     <StatusBadge status={c.status} />
                                     {isReported && <span style={{ fontSize: "0.68rem", fontWeight: "700", backgroundColor: "#fee2e2", color: "#b91c1c", padding: "0.15rem 0.45rem", borderRadius: "999px" }}>⚠ {c.reports.length} report{c.reports.length > 1 ? "s" : ""}</span>}
                                   </div>
@@ -1086,12 +1150,23 @@ export default function AdminPage() {
                               {isReported && (
                                 <div style={{ marginTop: "0.65rem", display: "flex", flexDirection: "column", gap: "0.35rem" }}>
                                   {c.reports.map(r => (
-                                    <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.5rem", padding: "0.45rem 0.7rem", display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
-                                      <div style={{ flex: 1 }}>
-                                        <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#991b1b" }}>🚩 {r.reason}</p>
-                                        <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</p>
+                                    <div key={r.id} style={{ backgroundColor: "#fee2e2", border: "1px solid #fca5a5", borderRadius: "0.5rem", padding: "0.45rem 0.7rem" }}>
+                                      <div style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                                        <div style={{ flex: 1 }}>
+                                          <p style={{ margin: 0, fontSize: "0.8rem", fontWeight: "700", color: "#991b1b" }}>🚩 {r.reason}</p>
+                                          <p style={{ margin: "0.1rem 0 0", fontSize: "0.7rem", color: "#b91c1c" }}>{new Date(r.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</p>
+                                        </div>
+                                        <button onClick={() => handleResolveReport(r.id, "company")} disabled={resolveReportId === r.id} style={{ padding: "0.2rem 0.55rem", fontSize: "0.7rem", fontWeight: "700", borderRadius: "0.3rem", border: "1px solid #fca5a5", background: "white", color: "#991b1b", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>{resolveReportId === r.id ? "…" : "✓ Dismiss"}</button>
                                       </div>
-                                      <button onClick={() => handleResolveReport(r.id, "company")} disabled={resolveReportId === r.id} style={{ padding: "0.2rem 0.55rem", fontSize: "0.7rem", fontWeight: "700", borderRadius: "0.3rem", border: "1px solid #fca5a5", background: "white", color: "#991b1b", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>{resolveReportId === r.id ? "…" : "✓ Dismiss"}</button>
+                                      {r.screenshot_urls?.length > 0 && (
+                                        <div style={{ display: "flex", gap: "0.4rem", marginTop: "0.4rem", flexWrap: "wrap" }}>
+                                          {r.screenshot_urls.map((url, i) => (
+                                            <a key={i} href={url} target="_blank" rel="noreferrer">
+                                              <img src={url} alt="screenshot" style={{ width: "64px", height: "64px", objectFit: "cover", borderRadius: "0.3rem", border: "1px solid #fca5a5" }} />
+                                            </a>
+                                          ))}
+                                        </div>
+                                      )}
                                     </div>
                                   ))}
                                 </div>
