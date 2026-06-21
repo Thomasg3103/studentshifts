@@ -365,6 +365,18 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
   });
 
+  const bounceIcon = (e) => {
+    const icon = e.currentTarget.querySelector("svg, img");
+    if (!icon) return;
+    requestAnimationFrame(() => {
+      icon.classList.remove("nav-icon-bounce");
+      requestAnimationFrame(() => {
+        icon.classList.add("nav-icon-bounce");
+        icon.addEventListener("animationend", () => icon.classList.remove("nav-icon-bounce"), { once: true });
+      });
+    });
+  };
+
   return (
     <nav aria-label="Main navigation" style={{
       position: "fixed", bottom: 0, left: 0, right: 0, height: "64px",
@@ -372,22 +384,22 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
       display: "flex", alignItems: "stretch", zIndex: 200,
       boxShadow: "0 -4px 16px rgba(0,0,0,0.07)",
     }}>
-      <button aria-label="Browse students" aria-current={isBrowse ? "page" : undefined} onClick={() => setPage("studentDashboard")} style={tab(isBrowse)}>
+      <button aria-label="Browse students" aria-current={isBrowse ? "page" : undefined} onClick={(e) => { bounceIcon(e); setPage("studentDashboard"); }} style={tab(isBrowse)}>
         <BrowseIcon active={isBrowse} />
         Browse
       </button>
       <div style={{ flex: 1, position: "relative" }}>
-        <button aria-label="Messages" aria-current={isMessages ? "page" : undefined} onClick={() => setPage("companyMessages")} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
+        <button aria-label="Messages" aria-current={isMessages ? "page" : undefined} onClick={(e) => { bounceIcon(e); setPage("companyMessages"); }} style={{ ...tab(isMessages), width: "100%", height: "100%" }}>
           <ChatIcon active={isMessages} />
           Messages
         </button>
         {msgCount > 0 && <span className="nav-dot nav-dot--right">{msgCount}</span>}
       </div>
-      <button aria-label="My jobs" aria-current={isMyJobs ? "page" : undefined} onClick={() => setPage("companyDashboard")} style={tab(isMyJobs)}>
+      <button aria-label="My jobs" aria-current={isMyJobs ? "page" : undefined} onClick={(e) => { bounceIcon(e); setPage("companyDashboard"); }} style={tab(isMyJobs)}>
         <BriefcaseIcon active={isMyJobs} />
         My Jobs
       </button>
-      <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={() => setPage("account")} style={tab(isAccount)}>
+      <button aria-label="Account" aria-current={isAccount ? "page" : undefined} onClick={(e) => { bounceIcon(e); setPage("account"); }} style={tab(isAccount)}>
         {currentUser?.profilePhoto
           ? <img loading="lazy" src={supabaseImg(currentUser.profilePhoto, 64)} alt="Profile" style={{ width: "26px", height: "26px", borderRadius: "50%", objectFit: "cover", border: `2px solid ${isAccount ? "var(--color-brand)" : "#e2e8f0"}` }} />
           : <PersonIcon color={isAccount ? "var(--color-brand)" : "#64748b"} />
