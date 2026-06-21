@@ -225,7 +225,7 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
       {!input && !loading && !loadError && messages.length === 0 && (
         <div style={{ padding: "0.5rem 1rem 0", backgroundColor: "var(--color-bg-elevated, white)", borderTop: "1.5px solid var(--color-border-light, #e5e7eb)" }}>
           <p style={{ margin: "0 0 0.4rem", fontSize: "0.68rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
-          <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem", scrollbarWidth: "none" }}>
+          <div style={{ display: "flex", gap: "0.4rem", overflowX: "auto", paddingBottom: "0.5rem" }}>
             {quickReplies.map(qr => (
               <button
                 key={qr.label}

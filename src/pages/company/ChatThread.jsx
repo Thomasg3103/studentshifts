@@ -106,7 +106,7 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
       {!input && !loading && messages.length === 0 && (
         <div style={{ marginBottom: "0.4rem" }}>
           <p style={{ margin: "0 0 0.3rem", fontSize: "0.65rem", color: "var(--color-text-secondary, #64748b)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>Quick replies</p>
-          <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto", scrollbarWidth: "none" }}>
+          <div style={{ display: "flex", gap: "0.35rem", overflowX: "auto" }}>
             {quickReplies.map(qr => (
               <button key={qr.label} onMouseDown={e => { e.preventDefault(); setInput(qr.text); setTimeout(() => inputRef.current?.focus(), 0); }}
                 style={{ flexShrink: 0, padding: "0.28rem 0.6rem", borderRadius: "999px", border: "1.5px solid #fce7f3", backgroundColor: "#fdf2f8", color: "var(--color-brand)", fontSize: "0.72rem", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}

@@ -291,6 +291,9 @@ header {
   }
 }
 
-/* Hide scrollbar on horizontally-scrollable tab bars */
-.tab-scroll-bar { scrollbar-width: none; }
-.tab-scroll-bar::-webkit-scrollbar { display: none; }
+/* Thin visible scrollbars everywhere — helps users discover scrollable areas */
+* { scrollbar-width: thin; scrollbar-color: rgba(100,116,139,0.3) transparent; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(100,116,139,0.3); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(100,116,139,0.55); }
