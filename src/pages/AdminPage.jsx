@@ -49,6 +49,13 @@ export default function AdminPage() {
   const [deletingPostId,     setDeletingPostId]     = useState(null);
   const deleteUserModalRef = useRef(null);
   useFocusTrap(deleteUserModalRef, () => setDeleteUserConfirm(null), !!deleteUserConfirm);
+  // All-users view (filter toggle inside Students / Companies tabs)
+  const [studentsFilter,    setStudentsFilter]    = useState("pending"); // "pending" | "all"
+  const [companiesFilter,   setCompaniesFilter]   = useState("pending");
+  const [allStudents,       setAllStudents]       = useState(null);
+  const [allStudentsLoading,setAllStudentsLoading]= useState(false);
+  const [allCompanies,      setAllCompanies]      = useState(null);
+  const [allCompaniesLoading,setAllCompaniesLoading]= useState(false);
 
   // F-M10: extracted so the Refresh button can re-call it
   const loadData = useCallback(() => {
@@ -64,6 +71,37 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  const loadAllStudents = useCallback(async () => {
+    setAllStudentsLoading(true);
+    try {
+      const { data, error: err } = await supabase
+        .from("students")
+        .select("id, status, created_at, profiles!inner(name)")
+        .order("created_at", { ascending: false })
+        .limit(300);
+      if (err) throw err;
+      setAllStudents((data || []).map(s => ({ id: s.id, name: s.profiles?.name || "Unknown", status: s.status, created_at: s.created_at })));
+    } catch { toast.error("Failed to load students."); setAllStudents([]); }
+    finally { setAllStudentsLoading(false); }
+  }, []);
+
+  const loadAllCompanies = useCallback(async () => {
+    setAllCompaniesLoading(true);
+    try {
+      const { data, error: err } = await supabase
+        .from("companies")
+        .select("id, status, cro_number, created_at, profiles!inner(name)")
+        .order("created_at", { ascending: false })
+        .limit(300);
+      if (err) throw err;
+      setAllCompanies((data || []).map(c => ({ id: c.id, name: c.profiles?.name || "Unknown", status: c.status, croNumber: c.cro_number, created_at: c.created_at })));
+    } catch { toast.error("Failed to load companies."); setAllCompanies([]); }
+    finally { setAllCompaniesLoading(false); }
+  }, []);
+
+  useEffect(() => { if (studentsFilter === "all" && allStudents === null) loadAllStudents(); }, [studentsFilter, allStudents, loadAllStudents]);
+  useEffect(() => { if (companiesFilter === "all" && allCompanies === null) loadAllCompanies(); }, [companiesFilter, allCompanies, loadAllCompanies]);
 
   const loadSignups = useCallback(async () => {
     setSignupsLoading(true);
@@ -700,140 +738,118 @@ export default function AdminPage() {
         ) : loading ? (
           <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
         ) : tab === "students" ? (
-          students.length === 0 ? (
-            <EmptyState label="No pending student requests" />
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {students.map(s => (
-                <div key={s.id} style={cardStyle}>
-                  <div style={{ marginBottom: "0.85rem" }}>
-                    <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>{s.name}</p>
-                    {s.email && <p style={{ margin: "0.15rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)" }}>{s.email}</p>}
-                  </div>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
-                    {s.studentIdUrl && (
-                      <button onClick={() => openDoc(s.studentIdUrl)} style={docBtn}>
-                        View Student ID
-                      </button>
-                    )}
-                    {s.govIdUrl && (
-                      <button onClick={() => openDoc(s.govIdUrl)} style={docBtn}>
-                        View Government ID
-                      </button>
-                    )}
-                  </div>
-                  <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
-                    <button
-                      aria-label={`Approve ${s.name}`}
-                      onClick={() => handleApproveStudent(s)}
-                      disabled={actionLoading === s.id + "_approve" || actionLoading === s.id + "_reject" || !s.studentIdUrl || !s.govIdUrl}
-                      title={!s.studentIdUrl || !s.govIdUrl ? "Cannot approve: documents not yet uploaded" : undefined}
-                      style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: (actionLoading === s.id + "_approve" || !s.studentIdUrl || !s.govIdUrl) ? 0.5 : 1 }}
-                    >
-                      {actionLoading === s.id + "_approve" ? "Approving…" : "✅ Approve"}
-                    </button>
-                    <button
-                      aria-label={`Reject ${s.name}`}
-                      onClick={() => handleRejectStudent(s)}
-                      disabled={actionLoading === s.id + "_approve" || actionLoading === s.id + "_reject"}
-                      style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === s.id + "_reject" ? 0.7 : 1 }}
-                    >
-                      {actionLoading === s.id + "_reject" ? "Rejecting…" : "❌ Reject"}
-                    </button>
-                    <button
-                      aria-label={`Delete ${s.name}`}
-                      onClick={() => setDeleteUserConfirm({ id: s.id, name: s.name, role: "student" })}
-                      style={{ ...actionBtnBase, background: "#0f172a", fontSize: "0.8rem" }}
-                    >
-                      🗑 Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )
-        ) : (
-          companies.length === 0 ? (
-            <EmptyState label="No pending company requests" />
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {companies.map(c => (
-                <div key={c.id} style={cardStyle}>
-                  <div style={{ marginBottom: "0.85rem" }}>
-                    <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>{c.name}</p>
-                    {c.email && (
-                      <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
-                        <span style={{ fontSize: "0.7rem", backgroundColor: "#dcfce7", color: "#16a34a", fontWeight: "700", padding: "0.1rem 0.45rem", borderRadius: "999px", textTransform: "uppercase", letterSpacing: "0.04em" }}>✓ Email verified</span>
-                        {c.email}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* CRO number + verify links */}
-                  {c.croNumber ? (
-                    <div style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "0.6rem", padding: "0.65rem 0.85rem", marginBottom: "1rem" }}>
-                      <p style={{ margin: "0 0 0.5rem", fontSize: "0.78rem", fontWeight: "700", color: "#0369a1" }}>
-                        CRO Number: <span style={{ fontFamily: "monospace", fontSize: "0.88rem", color: "var(--color-text-primary, #1e293b)", letterSpacing: "0.05em" }}>{c.croNumber}</span>
-                      </p>
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
-                        <a
-                          href={`https://core.cro.ie/`}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={verifyLinkStyle}
-                        >
-                          🔍 Verify on CRO →
-                        </a>
-                        <a
-                          href={`https://www.solocheck.ie/Irish-Company/search?q=${encodeURIComponent(c.name)}`}
-                          target="_blank"
-                          rel="noreferrer"
-                          style={verifyLinkStyle}
-                        >
-                          🔍 SoloCheck →
-                        </a>
+          <div>
+            <FilterToggle value={studentsFilter} onChange={f => setStudentsFilter(f)} options={[{ value: "pending", label: `Pending (${students.length})` }, { value: "all", label: "All Students" }]} onRefresh={studentsFilter === "all" ? loadAllStudents : loadData} />
+            {studentsFilter === "pending" ? (
+              loading ? <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
+              : students.length === 0 ? <EmptyState label="No pending student requests" />
+              : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  {students.map(s => (
+                    <div key={s.id} style={cardStyle}>
+                      <div style={{ marginBottom: "0.85rem" }}>
+                        <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>{s.name}</p>
+                        {s.email && <p style={{ margin: "0.15rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)" }}>{s.email}</p>}
                       </div>
-                      <p style={{ margin: "0.45rem 0 0", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>
-                        Search the CRO number above on cro.ie and confirm the company name matches <strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{c.name}</strong>.
-                      </p>
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem", marginBottom: "1rem" }}>
+                        {s.studentIdUrl && <button onClick={() => openDoc(s.studentIdUrl)} style={docBtn}>View Student ID</button>}
+                        {s.govIdUrl && <button onClick={() => openDoc(s.govIdUrl)} style={docBtn}>View Government ID</button>}
+                      </div>
+                      <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
+                        <button aria-label={`Approve ${s.name}`} onClick={() => handleApproveStudent(s)} disabled={actionLoading === s.id + "_approve" || actionLoading === s.id + "_reject" || !s.studentIdUrl || !s.govIdUrl} title={!s.studentIdUrl || !s.govIdUrl ? "Cannot approve: documents not yet uploaded" : undefined} style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: (actionLoading === s.id + "_approve" || !s.studentIdUrl || !s.govIdUrl) ? 0.5 : 1 }}>{actionLoading === s.id + "_approve" ? "Approving…" : "✅ Approve"}</button>
+                        <button aria-label={`Reject ${s.name}`} onClick={() => handleRejectStudent(s)} disabled={actionLoading === s.id + "_approve" || actionLoading === s.id + "_reject"} style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === s.id + "_reject" ? 0.7 : 1 }}>{actionLoading === s.id + "_reject" ? "Rejecting…" : "❌ Reject"}</button>
+                        <button aria-label={`Delete ${s.name}`} onClick={() => setDeleteUserConfirm({ id: s.id, name: s.name, role: "student" })} style={{ ...actionBtnBase, background: "#0f172a", fontSize: "0.8rem" }}>🗑 Delete</button>
+                      </div>
                     </div>
-                  ) : (
-                    <div style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "0.6rem", padding: "0.6rem 0.85rem", marginBottom: "1rem" }}>
-                      <p style={{ margin: 0, fontSize: "0.78rem", color: "#c2410c" }}>⚠ No CRO number provided — cannot approve without verification</p>
-                    </div>
-                  )}
-
-                  <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
-                    <button
-                      aria-label={`Approve ${c.name}`}
-                      onClick={() => handleApproveCompany(c)}
-                      disabled={actionLoading === c.id + "_approve" || actionLoading === c.id + "_reject" || !c.croNumber}
-                      title={!c.croNumber ? "Cannot approve: no CRO number provided" : undefined}
-                      style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: (actionLoading === c.id + "_approve" || !c.croNumber) ? 0.5 : 1 }}
-                    >
-                      {actionLoading === c.id + "_approve" ? "Approving…" : "✅ Approve"}
-                    </button>
-                    <button
-                      aria-label={`Reject ${c.name}`}
-                      onClick={() => handleRejectCompany(c)}
-                      disabled={actionLoading === c.id + "_approve" || actionLoading === c.id + "_reject"}
-                      style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === c.id + "_reject" ? 0.7 : 1 }}
-                    >
-                      {actionLoading === c.id + "_reject" ? "Rejecting…" : "❌ Reject"}
-                    </button>
-                    <button
-                      aria-label={`Delete ${c.name}`}
-                      onClick={() => setDeleteUserConfirm({ id: c.id, name: c.name, role: "company" })}
-                      style={{ ...actionBtnBase, background: "#0f172a", fontSize: "0.8rem" }}
-                    >
-                      🗑 Delete
-                    </button>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )
-        )}
+              )
+            ) : (
+              allStudentsLoading ? <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
+              : !allStudents?.length ? <EmptyState label="No students yet" />
+              : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                  {allStudents.map(s => (
+                    <div key={s.id} style={{ ...cardStyle, display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: "0 0 0.2rem", fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #0f172a)" }}>{s.name}</p>
+                        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
+                          <StatusBadge status={s.status} />
+                          <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>Joined {new Date(s.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                        </div>
+                      </div>
+                      <button onClick={() => setDeleteUserConfirm({ id: s.id, name: s.name, role: "student" })} style={{ padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px solid #1e293b", backgroundColor: "#0f172a", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>🗑 Delete</button>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
+        ) : tab === "companies" ? (
+          <div>
+            <FilterToggle value={companiesFilter} onChange={f => setCompaniesFilter(f)} options={[{ value: "pending", label: `Pending (${companies.length})` }, { value: "all", label: "All Companies" }]} onRefresh={companiesFilter === "all" ? loadAllCompanies : loadData} />
+            {companiesFilter === "pending" ? (
+              loading ? <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
+              : companies.length === 0 ? <EmptyState label="No pending company requests" />
+              : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                  {companies.map(c => (
+                    <div key={c.id} style={cardStyle}>
+                      <div style={{ marginBottom: "0.85rem" }}>
+                        <p style={{ margin: 0, fontWeight: "700", fontSize: "1rem", color: "var(--color-text-primary, #1e293b)" }}>{c.name}</p>
+                        {c.email && (
+                          <p style={{ margin: "0.2rem 0 0", fontSize: "0.8rem", color: "var(--color-text-secondary, #64748b)", display: "flex", alignItems: "center", gap: "0.3rem" }}>
+                            <span style={{ fontSize: "0.7rem", backgroundColor: "#dcfce7", color: "#16a34a", fontWeight: "700", padding: "0.1rem 0.45rem", borderRadius: "999px", textTransform: "uppercase", letterSpacing: "0.04em" }}>✓ Email verified</span>
+                            {c.email}
+                          </p>
+                        )}
+                      </div>
+                      {c.croNumber ? (
+                        <div style={{ backgroundColor: "#f0f9ff", border: "1px solid #bae6fd", borderRadius: "0.6rem", padding: "0.65rem 0.85rem", marginBottom: "1rem" }}>
+                          <p style={{ margin: "0 0 0.5rem", fontSize: "0.78rem", fontWeight: "700", color: "#0369a1" }}>CRO Number: <span style={{ fontFamily: "monospace", fontSize: "0.88rem", color: "var(--color-text-primary, #1e293b)", letterSpacing: "0.05em" }}>{c.croNumber}</span></p>
+                          <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                            <a href="https://core.cro.ie/" target="_blank" rel="noreferrer" style={verifyLinkStyle}>🔍 Verify on CRO →</a>
+                            <a href={`https://www.solocheck.ie/Irish-Company/search?q=${encodeURIComponent(c.name)}`} target="_blank" rel="noreferrer" style={verifyLinkStyle}>🔍 SoloCheck →</a>
+                          </div>
+                          <p style={{ margin: "0.45rem 0 0", fontSize: "0.72rem", color: "var(--color-text-secondary, #64748b)" }}>Confirm the company name matches <strong style={{ color: "var(--color-text-primary, #1e293b)" }}>{c.name}</strong>.</p>
+                        </div>
+                      ) : (
+                        <div style={{ backgroundColor: "#fff7ed", border: "1px solid #fed7aa", borderRadius: "0.6rem", padding: "0.6rem 0.85rem", marginBottom: "1rem" }}>
+                          <p style={{ margin: 0, fontSize: "0.78rem", color: "#c2410c" }}>⚠ No CRO number provided — cannot approve without verification</p>
+                        </div>
+                      )}
+                      <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
+                        <button aria-label={`Approve ${c.name}`} onClick={() => handleApproveCompany(c)} disabled={actionLoading === c.id + "_approve" || actionLoading === c.id + "_reject" || !c.croNumber} title={!c.croNumber ? "Cannot approve: no CRO number provided" : undefined} style={{ ...actionBtnBase, background: "linear-gradient(135deg, #22c55e, #16a34a)", opacity: (actionLoading === c.id + "_approve" || !c.croNumber) ? 0.5 : 1 }}>{actionLoading === c.id + "_approve" ? "Approving…" : "✅ Approve"}</button>
+                        <button aria-label={`Reject ${c.name}`} onClick={() => handleRejectCompany(c)} disabled={actionLoading === c.id + "_approve" || actionLoading === c.id + "_reject"} style={{ ...actionBtnBase, background: "linear-gradient(135deg, #f43f5e, #e11d48)", opacity: actionLoading === c.id + "_reject" ? 0.7 : 1 }}>{actionLoading === c.id + "_reject" ? "Rejecting…" : "❌ Reject"}</button>
+                        <button aria-label={`Delete ${c.name}`} onClick={() => setDeleteUserConfirm({ id: c.id, name: c.name, role: "company" })} style={{ ...actionBtnBase, background: "#0f172a", fontSize: "0.8rem" }}>🗑 Delete</button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            ) : (
+              allCompaniesLoading ? <p style={{ color: "var(--color-text-secondary, #64748b)" }}>Loading…</p>
+              : !allCompanies?.length ? <EmptyState label="No companies yet" />
+              : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
+                  {allCompanies.map(c => (
+                    <div key={c.id} style={{ ...cardStyle, display: "flex", alignItems: "center", gap: "0.75rem", flexWrap: "wrap" }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ margin: "0 0 0.2rem", fontWeight: "700", fontSize: "0.95rem", color: "var(--color-text-primary, #0f172a)" }}>{c.name}</p>
+                        <div style={{ display: "flex", gap: "0.4rem", alignItems: "center", flexWrap: "wrap" }}>
+                          <StatusBadge status={c.status} />
+                          {c.croNumber && <span style={{ fontSize: "0.7rem", color: "#64748b", fontFamily: "monospace" }}>CRO: {c.croNumber}</span>}
+                          <span style={{ fontSize: "0.7rem", color: "#94a3b8" }}>Joined {new Date(c.created_at).toLocaleDateString("en-IE", { day: "numeric", month: "short", year: "numeric" })}</span>
+                        </div>
+                      </div>
+                      <button onClick={() => setDeleteUserConfirm({ id: c.id, name: c.name, role: "company" })} style={{ padding: "0.35rem 0.75rem", borderRadius: "0.4rem", border: "1.5px solid #1e293b", backgroundColor: "#0f172a", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", flexShrink: 0 }}>🗑 Delete</button>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+          </div>
+        ) : null}
 
       </div>
 
@@ -911,6 +927,40 @@ function EmptyState({ label }) {
     <div style={{ textAlign: "center", padding: "3rem 0", color: "var(--color-text-secondary, #64748b)" }}>
       <div style={{ fontSize: "2.5rem", marginBottom: "0.75rem" }}>✅</div>
       <p style={{ fontWeight: "600", margin: 0 }}>{label}</p>
+    </div>
+  );
+}
+
+function StatusBadge({ status }) {
+  const map = {
+    verified:       { label: "Verified",        bg: "#dcfce7", color: "#16a34a" },
+    pending:        { label: "Pending",          bg: "#fef9c3", color: "#854d0e" },
+    pending_review: { label: "Pending Review",   bg: "#ffedd5", color: "#c2410c" },
+    rejected:       { label: "Rejected",         bg: "#fee2e2", color: "#b91c1c" },
+  };
+  const s = map[status] || { label: status || "Unknown", bg: "#f1f5f9", color: "#475569" };
+  return (
+    <span style={{ fontSize: "0.68rem", fontWeight: "700", padding: "0.15rem 0.5rem", borderRadius: "999px", backgroundColor: s.bg, color: s.color, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+      {s.label}
+    </span>
+  );
+}
+
+function FilterToggle({ value, onChange, options, onRefresh }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1rem", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: "0.3rem", backgroundColor: "#f1f5f9", borderRadius: "2rem", padding: "0.2rem" }}>
+        {options.map(opt => (
+          <button
+            key={opt.value}
+            onClick={() => onChange(opt.value)}
+            style={{ padding: "0.35rem 0.9rem", borderRadius: "2rem", border: "none", fontWeight: "700", fontSize: "0.8rem", cursor: "pointer", fontFamily: "inherit", background: value === opt.value ? "#0f172a" : "transparent", color: value === opt.value ? "white" : "#64748b", transition: "all 0.15s" }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+      <button onClick={onRefresh} style={{ padding: "0.35rem 0.7rem", borderRadius: "2rem", border: "1.5px solid #e2e8f0", background: "white", color: "#64748b", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit", fontWeight: "600" }}>↻ Refresh</button>
     </div>
   );
 }
