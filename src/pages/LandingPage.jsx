@@ -230,15 +230,14 @@ export default function LandingPage() {
         </div>
 
         {/* Already have an account */}
-        <p style={{ margin: "0.5rem 0 0", fontSize: "0.83rem", color: "rgba(255,255,255,0.5)" }}>
-          Already have an account?{" "}
+        <div style={{ marginTop: "0.75rem" }}>
           <button
             onClick={() => navigate("/login")}
-            style={{ background: "none", border: "none", color: "rgba(255,255,255,0.85)", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", fontSize: "inherit", textDecoration: "underline", padding: 0 }}
+            style={{ background: "rgba(255,255,255,0.12)", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "2rem", padding: "0.55rem 1.4rem", color: "white", fontWeight: 700, fontSize: "0.88rem", cursor: "pointer", fontFamily: "inherit" }}
           >
-            Sign in
+            Already have an account? Sign in →
           </button>
-        </p>
+        </div>
 
         {/* Trust line */}
         <p style={{ margin: "0.75rem 0 0", fontSize: "0.8rem", color: "rgba(255,255,255,0.4)", letterSpacing: "0.02em" }}>
