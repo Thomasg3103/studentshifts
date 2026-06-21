@@ -14,38 +14,38 @@ export function StudentAvailabilityRow({ availability }) {
   const hasAny = weekdays.some(d => availability[d]?.length > 0);
   if (!hasAny) return null;
 
+  const fmt = (t) => { const [h] = t.split(":"); const n = parseInt(h); if (n === 0) return "12am"; if (n < 12) return `${n}am`; if (n === 12) return "12pm"; return `${n - 12}pm`; };
+  const renderDay = (day) => {
+    const slots = availability[day] || [];
+    if (!slots.length) return null;
+    const isWeekend = day === "Saturday" || day === "Sunday";
+    const earliest = slots.reduce((a, b) => a < b ? a : b);
+    const latest   = slots.reduce((a, b) => a > b ? a : b);
+    return (
+      <div key={day} title={`${day}: ${slots.join(", ")}`} style={{ display: "flex", flexDirection: "column", alignItems: "center", backgroundColor: isWeekend ? "#fef3c7" : "#fce7f3", border: `1.5px solid ${isWeekend ? "#fcd34d" : "#fce7f3"}`, borderRadius: "0.45rem", padding: "0.2rem 0.4rem", minWidth: "34px" }}>
+        <span style={{ fontSize: "0.65rem", fontWeight: "800", color: isWeekend ? "#d97706" : "var(--color-brand)" }}>{DAY_ABBR[day]}</span>
+        <span style={{ fontSize: "0.6rem", color: isWeekend ? "#b45309" : "var(--color-brand)", fontWeight: "600", whiteSpace: "nowrap" }}>{earliest === latest ? fmt(earliest) : `${fmt(earliest)}–${fmt(latest)}`}</span>
+      </div>
+    );
+  };
+  const weekdayDays  = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
+  const weekendDays  = ["Saturday","Sunday"];
+  const hasWeekdays  = weekdayDays.some(d => availability[d]?.length > 0);
+  const hasWeekend   = weekendDays.some(d => availability[d]?.length > 0);
+
   return (
     <div>
       <p style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--color-text-secondary, #6b7280)", textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 0.3rem" }}>Availability</p>
-      <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap" }}>
-        {weekdays.map(day => {
-          const slots = availability[day] || [];
-          const isWeekend = day === "Saturday" || day === "Sunday";
-          const hasSlots = slots.length > 0;
-          if (!hasSlots) return null;
-          const earliest = slots.reduce((a, b) => a < b ? a : b);
-          const latest   = slots.reduce((a, b) => a > b ? a : b);
-          // Convert "09:00" → "9am" style
-          const fmt = (t) => { const [h] = t.split(":"); const n = parseInt(h); if (n === 0) return "12am"; if (n < 12) return `${n}am`; if (n === 12) return "12pm"; return `${n - 12}pm`; };
-          return (
-            <div
-              key={day}
-              title={`${day}: ${slots.join(", ")}`}
-              style={{
-                display: "flex", flexDirection: "column", alignItems: "center",
-                backgroundColor: isWeekend ? "#fef3c7" : "#fce7f3",
-                border: `1.5px solid ${isWeekend ? "#fcd34d" : "#fce7f3"}`,
-                borderRadius: "0.45rem", padding: "0.2rem 0.4rem", minWidth: "34px",
-              }}
-            >
-              <span style={{ fontSize: "0.65rem", fontWeight: "800", color: isWeekend ? "#d97706" : "var(--color-brand)" }}>{DAY_ABBR[day]}</span>
-              <span style={{ fontSize: "0.6rem", color: isWeekend ? "#b45309" : "var(--color-brand)", fontWeight: "600", whiteSpace: "nowrap" }}>
-                {earliest === latest ? fmt(earliest) : `${fmt(earliest)}–${fmt(latest)}`}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      {hasWeekdays && (
+        <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap", marginBottom: hasWeekend ? "0.3rem" : 0 }}>
+          {weekdayDays.map(renderDay)}
+        </div>
+      )}
+      {hasWeekend && (
+        <div style={{ display: "flex", gap: "0.3rem", flexWrap: "wrap" }}>
+          {weekendDays.map(renderDay)}
+        </div>
+      )}
     </div>
   );
 }

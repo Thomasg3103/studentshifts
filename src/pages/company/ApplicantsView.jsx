@@ -179,11 +179,6 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
 
   return (
     <>
-    {isMobile && (
-      <p style={{ margin: "0 0 0.65rem", fontSize: "0.72rem", fontWeight: "700", color: "#92400e" }}>
-        Best used on laptop — use "Move to" below each card to change stages
-      </p>
-    )}
     <div role="list" aria-label="Pipeline board" style={{ display: "flex", gap: "0.85rem", overflowX: "auto", paddingBottom: "1rem", alignItems: "flex-start" }}>
       {(stages || []).map(({ key, label }) => {
         const cards  = applicants.filter(a => getVirtualStageKey(a) === key);
@@ -317,6 +312,11 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
         );
       })}
     </div>
+    {isMobile && (
+      <p style={{ margin: "0.65rem 0 0", fontSize: "0.72rem", fontWeight: "700", color: "#92400e", textAlign: "center" }}>
+        Best used on laptop — use "Move to" below each card to change stages
+      </p>
+    )}
     </>
   );
 }
