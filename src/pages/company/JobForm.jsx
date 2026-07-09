@@ -286,24 +286,6 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         </select>
       </div>
 
-      {/* Tutor Subject — only shown for Tutoring category */}
-      {formData.category === "Tutoring" && (
-        <div>
-          <label htmlFor="form-tutor-subject" style={labelStyle}>Subject Being Tutored *</label>
-          <select
-            id="form-tutor-subject"
-            value={formData.tutorSubject || ""}
-            onChange={set("tutorSubject")}
-            style={inputStyle}
-          >
-            <option value="">Select a subject…</option>
-            {["Maths", "English", "Irish", "Science", "Biology", "Chemistry", "Physics", "History", "Geography", "French", "Spanish", "German", "Computer Science", "Business", "Accounting", "Economics", "Music", "Art", "Other"].map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
-      )}
-
       {/* Location with geocoding */}
       <div>
         <label htmlFor="form-location" style={labelStyle}>Location * <span style={{ fontWeight: "400", color: "var(--color-text-secondary, #64748b)", fontSize: "0.8rem" }}>(Eircode or full address)</span></label>
