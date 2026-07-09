@@ -290,7 +290,7 @@ export default function AdminPage() {
     setPostsLoading(true);
     try {
       const { data: rows, error: e1 } = await supabase
-        .from("jobs").select("id, title, status, created_at, company_id, description, location, pay, category, days, times, photos, photo_crops, deadline").order("created_at", { ascending: false }).limit(300);
+        .from("jobs").select("id, title, status, created_at, company_id, description, location, pay, category, days, times, photos, photo_crops, deadline, tutor_subject").order("created_at", { ascending: false }).limit(300);
       if (e1) throw e1;
       const companyIds = [...new Set((rows || []).map(j => j.company_id).filter(Boolean))];
       const [{ data: profs, error: e2 }, { data: reps, error: e3 }] = await Promise.all([
@@ -833,6 +833,7 @@ export default function AdminPage() {
                                     <span style={{ opacity: 0.6, fontWeight: 700 }}>€</span>{(post.pay || "").replace(/€/g, "")}
                                   </span>
                                   {post.category && <span className="badge badge-sm" style={{ background: "#f0f9ff", color: "#0369a1" }}>{post.category}</span>}
+                                  {post.tutor_subject && <span className="badge badge-sm" style={{ background: "#fef9c3", color: "#854d0e" }}>📚 {post.tutor_subject}</span>}
                                 </div>
                               </div>
                               <div style={{ display: "flex", alignItems: "center", paddingRight: "0.6rem", color: "#94a3b8", fontSize: "0.85rem" }}>{isExpanded ? "▲" : "▼"}</div>

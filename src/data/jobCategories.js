@@ -90,6 +90,14 @@ export const jobCategories = {
     "Receptionist / Admin",
     "Social Media Assistant",
   ],
+  "Tutoring": [
+    "Tutor",
+    "Private Tutor",
+    "Grinds Tutor",
+    "Online Tutor",
+    "Exam Tutor",
+    "Language Tutor",
+  ],
 };
 
 /** Flat sorted list of all job titles (for search/autocomplete use) */

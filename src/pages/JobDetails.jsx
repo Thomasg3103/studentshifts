@@ -257,6 +257,7 @@ export default function JobDetails({ job }) {
         </div>
       </DetailCard>
       {job.category && <DetailCard label="🏷️ Job Type">{job.category}</DetailCard>}
+      {job.tutorSubject && <DetailCard label="📚 Subject">{job.tutorSubject}</DetailCard>}
       <DetailCard label="📏 Distance">
         {distanceKm !== null
           ? formatDistance(distanceKm)

@@ -298,6 +298,7 @@ export default function StudentDashboard({ restoreScrollY }) {
       photoCrops:      j.photo_crops || [],
       filledShifts:        j.filled_shifts || [],
       screeningQuestions:  j.screening_questions || [],
+      tutorSubject:        j.tutor_subject || "",
       status:              j.status,
     };
   }

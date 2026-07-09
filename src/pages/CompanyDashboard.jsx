@@ -43,6 +43,7 @@ function normaliseJob(j) {
     photoCrops:      j.photo_crops || [],
     filledShifts:    j.filled_shifts || [],
     closeReason:     j.close_reason || "",
+    tutorSubject:    j.tutor_subject || "",
     applicants:      [],
     applicantCount:  j.applicant_count || 0,
     createdAt:       j.created_at || null,
@@ -288,7 +289,7 @@ export default function CompanyDashboard() {
   };
 
   const openCreate = () => {
-    setFormData({ title: "", category: "", location: "", pay: "", description: "", deadline: "", days: [], times: {}, weekendRequired: false, isUrgent: false, screeningQuestions: [], status: "Active", photos: [], photoFiles: [], lat: undefined, lng: undefined, sickPay: false, holidays: "" });
+    setFormData({ title: "", category: "", location: "", pay: "", description: "", deadline: "", days: [], times: {}, weekendRequired: false, isUrgent: false, screeningQuestions: [], status: "Active", photos: [], photoFiles: [], lat: undefined, lng: undefined, sickPay: false, holidays: "", tutorSubject: "" });
     setModal("form");
   };
 
@@ -423,6 +424,7 @@ export default function CompanyDashboard() {
     if (!payNum || payNum <= 0) { toast.error("Pay rate must be greater than €0."); return; }
     if (payNum > 999) { toast.error("Pay rate cannot exceed €999/hr."); return; }
     if (formData.days.length === 0) { toast.error("Please select at least one day."); return; }
+    if (formData.category === "Tutoring" && !formData.tutorSubject) { toast.error("Please select the subject being tutored."); return; }
     if (keptUrls.length === 0 && newFiles.length === 0) { toast.error("Please upload at least 1 photo."); return; }
     const descPlain = (formData.description || "").replace(/<[^>]*>/g, "");
     if (descPlain.length > 5000) { toast.error(`Description is too long (${descPlain.length} characters). Maximum is 5,000.`); return; }
@@ -490,6 +492,7 @@ export default function CompanyDashboard() {
         status:          formData.status || "Active",
         photos:          photoUrls,
         photo_crops:     photoCrops,
+        tutor_subject:   formData.category === "Tutoring" ? (formData.tutorSubject || null) : null,
       };
 
       if (formData.id) {
