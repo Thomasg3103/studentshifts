@@ -10,6 +10,16 @@ const MAX_IMAGE_BYTES =  5 * 1024 * 1024;
 const ALLOWED_DOC_MIMES   = new Set(["application/pdf","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document"]);
 const ALLOWED_IMAGE_MIMES = new Set(["image/jpeg","image/png","image/webp","image/gif"]);
 
+// Camera-captured photos (input capture="environment") often report an unreliable or
+// nonstandard file.type across mobile browsers (e.g. "image/jpg" instead of "image/jpeg").
+// Storage uploads must set contentType explicitly from the validated extension so admins
+// reviewing verification docs always get a Content-Type the browser can render.
+const EXT_TO_CONTENT_TYPE = {
+  jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", gif: "image/gif",
+  pdf: "application/pdf", doc: "application/msword",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+};
+
 export async function uploadDocument(userId, file, bucket, fileName) {
   const ext = file.name.split(".").pop()?.toLowerCase() || "";
   const isVerificationDoc = bucket === "verification-docs";
@@ -28,7 +38,7 @@ export async function uploadDocument(userId, file, bucket, fileName) {
     if (toDelete.length) await supabase.storage.from(bucket).remove(toDelete).catch(() => {});
   }
   const { error } = await withTimeout(
-    supabase.storage.from(bucket).upload(path, file, { upsert: true }),
+    supabase.storage.from(bucket).upload(path, file, { upsert: true, contentType: EXT_TO_CONTENT_TYPE[ext] }),
     15000, `${fileName} upload timed out — please try again.`
   );
   if (error) throw new Error("Upload failed — please try again.");
