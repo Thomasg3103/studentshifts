@@ -115,7 +115,6 @@ export default function SignupPage() {
     setGeneralError("");
     try {
       await signUp({ email: email.trim().toLowerCase(), password, name: name.trim(), role, croNumber, industries });
-      setDone(true);
       if (window.gtag) window.gtag("event", "sign_up", { method: "email" });
       if (refCode) trackReferral(refCode, email.trim().toLowerCase()).catch(() => {});
       // If they didn't come through the register-interest page, add them now (ignore duplicate)
@@ -124,6 +123,15 @@ export default function SignupPage() {
         email: email.trim().toLowerCase(),
         type: role === "company" ? "employer" : "student",
       }).then(() => {}).catch(() => {});
+      // TEMP BUG-TESTING BYPASS — remove before launch.
+      // Skips the "check your email" screen and goes straight to ID upload.
+      // Requires "Confirm email" turned OFF in Supabase (Authentication > Providers > Email),
+      // otherwise there's no session and this redirect bounces back out.
+      if (role === "student") {
+        setPage("verifyDocs");
+      } else {
+        setDone(true);
+      }
     } catch (e) {
       Sentry.captureException(e);
       const msg = (e.message || "").toLowerCase();
