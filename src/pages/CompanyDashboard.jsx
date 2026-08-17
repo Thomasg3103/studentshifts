@@ -328,6 +328,22 @@ export default function CompanyDashboard() {
     setActivePosting(null);
     setFormData(null);
   };
+
+  // Guard against accidental data loss: only prompts for a brand-new (not-yet-created)
+  // posting that already has content, since an edit's fields start pre-filled anyway.
+  const closeJobFormModal = () => {
+    const isNewPosting = !formData?.id;
+    const hasContent = !!(
+      formData?.category || formData?.title ||
+      (formData?.location || "").trim() || (formData?.pay || "").trim() ||
+      (formData?.description || "").replace(/<[^>]*>/g, "").trim() ||
+      (formData?.days?.length > 0) || (formData?.photoFiles?.length > 0) || (formData?.photos?.length > 0)
+    );
+    if (isNewPosting && hasContent && !window.confirm("Do you want to discard this job posting?")) {
+      return;
+    }
+    closeModal();
+  };
   useFocusTrap(applicantsModalRef, closeModal, modal === "applicants");
 
   const [notifyingJobIds, setNotifyingJobIds] = useState(new Set());
@@ -981,12 +997,12 @@ export default function CompanyDashboard() {
 
       {/* Create / Edit Modal */}
       {modal === "form" && formData && (
-        <Modal onClose={closeModal} title={formData.id ? "Edit Job Posting" : "New Job Posting"}>
+        <Modal onClose={closeJobFormModal} title={formData.id ? "Edit Job Posting" : "New Job Posting"}>
           <JobForm
             formData={formData}
             setFormData={setFormData}
             onSave={saveForm}
-            onCancel={closeModal}
+            onCancel={closeJobFormModal}
             toggleDay={toggleDay}
             formSaving={formSaving}
           />

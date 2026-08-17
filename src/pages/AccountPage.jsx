@@ -136,7 +136,9 @@ export default function AccountPage() {
   const [workExperienceEntries, setWorkExperienceEntries] = useState(currentUser.workExperienceEntries || []);
   const [showAddExp, setShowAddExp]             = useState(false);
   const [newExpSector, setNewExpSector]         = useState("");
+  const [newExpSectorOther, setNewExpSectorOther] = useState("");
   const [newExpRole, setNewExpRole]             = useState("");
+  const [newExpRoleOther, setNewExpRoleOther]   = useState("");
   const [newExpDuration, setNewExpDuration]     = useState("");
   const [rightToWork, setRightToWork]           = useState(currentUser.rightToWork || false);
   const [driverLicence, setDriverLicence]       = useState(currentUser.driverLicence || false);
@@ -876,7 +878,7 @@ export default function AccountPage() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
                     <label style={{ fontSize: "0.75rem", fontWeight: "700", color: "var(--color-text-body, #374151)" }}>Work Experience</label>
                     {!showAddExp && (
-                      <button type="button" onClick={() => { setNewExpSector(""); setNewExpRole(""); setNewExpDuration(""); setShowAddExp(true); }}
+                      <button type="button" onClick={() => { setNewExpSector(""); setNewExpSectorOther(""); setNewExpRole(""); setNewExpRoleOther(""); setNewExpDuration(""); setShowAddExp(true); }}
                         style={{ background: "none", border: "none", cursor: "pointer", fontSize: "0.75rem", fontWeight: "700", color: "var(--color-brand)", fontFamily: "inherit", padding: 0 }}>
                         + Add
                       </button>
@@ -910,11 +912,16 @@ export default function AccountPage() {
                       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem", marginBottom: "0.5rem" }}>
                         <div>
                           <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--color-text-body, #374151)", display: "block", marginBottom: "0.2rem" }}>Sector</label>
-                          <select value={newExpSector} onChange={e => { setNewExpSector(e.target.value); setNewExpRole(""); }}
+                          <select value={newExpSector} onChange={e => { setNewExpSector(e.target.value); setNewExpSectorOther(""); setNewExpRole(""); setNewExpRoleOther(""); }}
                             style={{ width: "100%", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", backgroundColor: "var(--color-bg-elevated, white)", color: newExpSector ? "#1e293b" : "#94a3b8" }}>
                             <option value="">Sector…</option>
                             {Object.keys(jobCategories).map(cat => <option key={cat} value={cat}>{cat}</option>)}
+                            <option value="__other__">Other…</option>
                           </select>
+                          {newExpSector === "__other__" && (
+                            <input autoFocus value={newExpSectorOther} onChange={e => setNewExpSectorOther(e.target.value)} placeholder="Type sector…"
+                              style={{ width: "100%", marginTop: "0.35rem", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", boxSizing: "border-box" }} />
+                          )}
                         </div>
                         <div>
                           <label style={{ fontSize: "0.7rem", fontWeight: "700", color: "var(--color-text-body, #374151)", display: "block", marginBottom: "0.2rem" }}>Duration</label>
@@ -941,24 +948,34 @@ export default function AccountPage() {
                             style={{ width: "100%", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", boxSizing: "border-box" }} />
                         )}
                         {newExpRole === "__other__" && (
-                          <input autoFocus value={""} onChange={e => setNewExpRole(e.target.value)} placeholder="Type role…"
+                          <input autoFocus value={newExpRoleOther} onChange={e => setNewExpRoleOther(e.target.value)} placeholder="Type role…"
                             style={{ width: "100%", marginTop: "0.35rem", padding: "0.4rem 0.5rem", borderRadius: "0.45rem", border: "1.5px solid #e2e8f0", fontSize: "0.78rem", fontFamily: "inherit", boxSizing: "border-box" }} />
                         )}
                       </div>
                       <div style={{ display: "flex", gap: "0.4rem" }}>
-                        <button type="button"
-                          disabled={!newExpSector || !newExpRole || newExpRole === "__other__" || !newExpDuration}
-                          onClick={() => {
-                            const entry = { sector: newExpSector, role: newExpRole, duration: newExpDuration };
-                            const next = [...workExperienceEntries, entry];
-                            setWorkExperienceEntries(next);
-                            saveField({ work_experience_entries: next }, { workExperienceEntries: next });
-                            setShowAddExp(false);
-                            setNewExpSector(""); setNewExpRole(""); setNewExpDuration("");
-                          }}
-                          style={{ flex: 1, padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: (!newExpSector || !newExpRole || newExpRole === "__other__" || !newExpDuration) ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: (!newExpSector || !newExpRole || newExpRole === "__other__" || !newExpDuration) ? 0.5 : 1 }}>
-                          Add Entry
-                        </button>
+                        {(() => {
+                          const addExpDisabled =
+                            !newExpSector || (newExpSector === "__other__" && !newExpSectorOther.trim()) ||
+                            !newExpRole   || (newExpRole === "__other__" && !newExpRoleOther.trim()) ||
+                            !newExpDuration;
+                          return (
+                            <button type="button"
+                              disabled={addExpDisabled}
+                              onClick={() => {
+                                const finalSector = newExpSector === "__other__" ? newExpSectorOther.trim() : newExpSector;
+                                const finalRole    = newExpRole === "__other__" ? newExpRoleOther.trim() : newExpRole;
+                                const entry = { sector: finalSector, role: finalRole, duration: newExpDuration };
+                                const next = [...workExperienceEntries, entry];
+                                setWorkExperienceEntries(next);
+                                saveField({ work_experience_entries: next }, { workExperienceEntries: next });
+                                setShowAddExp(false);
+                                setNewExpSector(""); setNewExpSectorOther(""); setNewExpRole(""); setNewExpRoleOther(""); setNewExpDuration("");
+                              }}
+                              style={{ flex: 1, padding: "0.45rem 0.6rem", borderRadius: "0.5rem", border: "none", background: "linear-gradient(135deg, var(--color-brand), var(--color-brand-dark))", color: "white", fontWeight: "700", fontSize: "0.78rem", cursor: addExpDisabled ? "not-allowed" : "pointer", fontFamily: "inherit", opacity: addExpDisabled ? 0.5 : 1 }}>
+                              Add Entry
+                            </button>
+                          );
+                        })()}
                         <button type="button" onClick={() => setShowAddExp(false)}
                           style={{ padding: "0.45rem 0.75rem", borderRadius: "0.5rem", border: "1.5px solid #e2e8f0", background: "none", color: "var(--color-text-secondary, #64748b)", fontWeight: "600", fontSize: "0.78rem", cursor: "pointer", fontFamily: "inherit" }}>
                           Cancel

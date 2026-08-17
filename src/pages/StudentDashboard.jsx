@@ -1150,6 +1150,11 @@ export default function StudentDashboard({ restoreScrollY }) {
                             URGENT
                           </span>
                         )}
+                        {job.sickPay && (
+                          <span className={`badge badge-green ${isPhone ? "badge-sm" : ""}`} title="Sick pay included">
+                            🏥 Sick Pay
+                          </span>
+                        )}
                         {(() => {
                           const avg = categoryAvgPay[job.category];
                           const mine = payNum(job.pay);

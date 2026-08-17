@@ -149,7 +149,11 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
   }, []);
   const titlesForCategory = formData.category ? jobCategories[formData.category] ?? [] : [];
 
+  const [customCategory, setCustomCategory] = useState(() => !!formData.category && !categoryNames.includes(formData.category));
+  const [customTitle, setCustomTitle] = useState(() => !!formData.title && !!formData.category && !(jobCategories[formData.category] || []).includes(formData.title));
+
   const handleCategoryChange = (e) => {
+    setCustomTitle(false);
     setFormData(prev => ({ ...prev, category: e.target.value, title: "" }));
   };
 
@@ -250,12 +254,37 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
       {/* Category */}
       <div>
         <label htmlFor="form-category" style={labelStyle}>Job Category *</label>
-        <select id="form-category" value={formData.category || ""} onChange={handleCategoryChange} style={inputStyle}>
+        <select
+          id="form-category"
+          value={customCategory ? "__other__" : (formData.category || "")}
+          onChange={e => {
+            if (e.target.value === "__other__") {
+              setCustomCategory(true);
+              setCustomTitle(false);
+              setFormData(prev => ({ ...prev, category: "", title: "" }));
+            } else {
+              setCustomCategory(false);
+              handleCategoryChange(e);
+            }
+          }}
+          style={inputStyle}
+        >
           <option value="">Select a category…</option>
           {categoryNames.map(cat => (
             <option key={cat} value={cat}>{cat}</option>
           ))}
+          <option value="__other__">Other…</option>
         </select>
+        {customCategory && (
+          <input
+            type="text"
+            value={formData.category || ""}
+            onChange={e => setFormData(prev => ({ ...prev, category: e.target.value }))}
+            placeholder="Enter custom category"
+            maxLength={60}
+            style={{ ...inputStyle, marginTop: "0.4rem" }}
+          />
+        )}
       </div>
 
       {/* Skills gap preview */}
@@ -274,8 +303,16 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         <label htmlFor="form-title" style={labelStyle}>Job Title *</label>
         <select
           id="form-title"
-          value={formData.title || ""}
-          onChange={set("title")}
+          value={customTitle ? "__other__" : (formData.title || "")}
+          onChange={e => {
+            if (e.target.value === "__other__") {
+              setCustomTitle(true);
+              setFormData(prev => ({ ...prev, title: "" }));
+            } else {
+              setCustomTitle(false);
+              set("title")(e);
+            }
+          }}
           disabled={!formData.category}
           style={{ ...inputStyle, color: formData.category ? "#111827" : "#64748b", cursor: formData.category ? "pointer" : "not-allowed" }}
         >
@@ -283,7 +320,18 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
           {titlesForCategory.map(t => (
             <option key={t} value={t}>{t}</option>
           ))}
+          {formData.category && <option value="__other__">Other…</option>}
         </select>
+        {customTitle && (
+          <input
+            type="text"
+            value={formData.title || ""}
+            onChange={e => setFormData(prev => ({ ...prev, title: e.target.value }))}
+            placeholder="Enter custom job title"
+            maxLength={100}
+            style={{ ...inputStyle, marginTop: "0.4rem" }}
+          />
+        )}
       </div>
 
       {/* Location with geocoding */}
