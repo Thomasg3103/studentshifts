@@ -507,7 +507,7 @@ export default function CompanyDashboard() {
         status:          formData.status || "Active",
         photos:          photoUrls,
         photo_crops:     photoCrops,
-        tutor_subject:   formData.category === "Tutoring" ? (formData.tutorSubject || null) : null,
+        tutor_subject:   formData.category === "Tutoring" ? (formData.title || null) : null,
       };
 
       if (formData.id) {
