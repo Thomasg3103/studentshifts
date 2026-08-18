@@ -2,20 +2,24 @@ import { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { initGA, initSentry, initClarity } from "../main";
 
-const STORAGE_KEY = "ss_cookie_notice_dismissed";
+export const COOKIE_NOTICE_STORAGE_KEY = "ss_cookie_notice_dismissed";
 
 export default function CookieBanner() {
   const { setPage, currentUser } = useApp();
   const hasBottomNav = !!(currentUser?.role === "student" || currentUser?.role === "company");
   const [dismissed, setDismissed] = useState(
-    () => localStorage.getItem(STORAGE_KEY) === "1"
+    () => localStorage.getItem(COOKIE_NOTICE_STORAGE_KEY) === "1"
   );
 
   if (dismissed) return null;
 
   const dismiss = () => {
-    localStorage.setItem(STORAGE_KEY, "1");
+    localStorage.setItem(COOKIE_NOTICE_STORAGE_KEY, "1");
     setDismissed(true);
+    // Same-tab localStorage writes don't fire a "storage" event — let BetaFeedback
+    // know live so it can drop back down instead of staying raised above a banner
+    // that's no longer there.
+    window.dispatchEvent(new Event("ss-cookie-banner-dismissed"));
     initGA();
     initSentry();
     initClarity();

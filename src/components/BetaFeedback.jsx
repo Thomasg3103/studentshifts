@@ -1,14 +1,25 @@
 // BETA ONLY — remove this file and its import in StudentShiftsWeb.jsx before full launch
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { supabase } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
+import { COOKIE_NOTICE_STORAGE_KEY } from "./CookieBanner";
 
 export default function BetaFeedback() {
   const { currentUser } = useApp();
   const [open, setOpen]       = useState(false);
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
+  // Cookie banner sits in the same corner — stay raised above it until it's dismissed,
+  // so its "Got it" button doesn't overlap and steal clicks meant for it.
+  const [cookieBannerShowing, setCookieBannerShowing] = useState(
+    () => localStorage.getItem(COOKIE_NOTICE_STORAGE_KEY) !== "1"
+  );
+  useEffect(() => {
+    const onDismissed = () => setCookieBannerShowing(false);
+    window.addEventListener("ss-cookie-banner-dismissed", onDismissed);
+    return () => window.removeEventListener("ss-cookie-banner-dismissed", onDismissed);
+  }, []);
 
   if (!currentUser || currentUser.role === "admin") return null;
 
@@ -48,7 +59,11 @@ export default function BetaFeedback() {
         onClick={() => setOpen(true)}
         title="Send us feedback"
         style={{
-          position: "fixed", bottom: "calc(64px + env(safe-area-inset-bottom, 0px) + 1.25rem)", right: "1.5rem", zIndex: 900,
+          position: "fixed",
+          bottom: cookieBannerShowing
+            ? "calc(64px + env(safe-area-inset-bottom, 0px) + 7rem)"
+            : "calc(64px + env(safe-area-inset-bottom, 0px) + 1.25rem)",
+          right: "1.5rem", zIndex: 900,
           background: "linear-gradient(135deg, #A21D54, #C2185B)",
           color: "white", border: "none", borderRadius: "2rem",
           padding: "0.9rem 1.5rem",
