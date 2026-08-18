@@ -40,6 +40,7 @@ export function normaliseJobRow(job, companyName) {
     times:           Object.fromEntries(Object.entries(job.times || {}).map(([k, v]) => [k, Array.isArray(v) ? v : [v]])),
     weekendRequired: job.weekend_required || false,
     sickPay:         job.sick_pay || false,
+    tutorSubject:    job.tutor_subject || "",
     holidays:        job.holidays || "",
     photos:          job.photos || [],
     photoCrops:      job.photo_crops || [],

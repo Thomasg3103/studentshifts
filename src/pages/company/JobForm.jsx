@@ -44,7 +44,10 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
   const matchTimerRef = useRef(null);
 
   useEffect(() => {
-    if (!formData.category) { setMatchCount(null); return; }
+    // Clear immediately on any category/skills change (not just when cleared entirely) so the
+    // banner never shows a stale count from the previous category while the new one is fetching.
+    setMatchCount(null);
+    if (!formData.category) return;
     clearTimeout(matchTimerRef.current);
     matchTimerRef.current = setTimeout(() => {
       supabase.rpc("count_matching_students", { p_skills: formData.skills || [], p_category: formData.category || "" })
