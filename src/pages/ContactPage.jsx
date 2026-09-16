@@ -1,8 +1,18 @@
+/**
+ * ContactPage — public marketing/support page (no login required).
+ *
+ * Shows the different StudentShifts contact email addresses (general,
+ * student support, privacy/GDPR, legal) as static mailto: cards, plus a
+ * shortcut into the Help Centre (HelpPage). There's no form or Supabase
+ * call here — clicking an email just opens the visitor's mail client.
+ */
 import { Helmet } from "react-helmet-async";
 import BackButton from "../components/BackButton";
 import { useNavigate } from "react-router-dom";
 
 export default function ContactPage() {
+  // This page uses react-router's navigate() (not the app's internal setPage)
+  // because "/help" is a real routed URL, unlike most of the app's screens.
   const navigate = useNavigate();
 
   return (
@@ -90,6 +100,9 @@ export default function ContactPage() {
   );
 }
 
+// Renders one contact-method card (label + mailto link + description).
+// Note the hardcoded "These do not work at the moment" line below — the
+// email addresses shown are placeholders and aren't live inboxes yet.
 function ContactCard({ label, email, description }) {
   return (
     <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1px solid var(--color-border-light, #e2e8f0)", borderRadius: "1rem", padding: "1.5rem", boxShadow: "0 1px 4px rgba(0,0,0,0.04)" }}>

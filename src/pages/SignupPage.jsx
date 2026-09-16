@@ -8,6 +8,13 @@ import { trackReferral } from "../lib/referrals";
 import { jobCategories } from "../data/jobCategories";
 import { useApp } from "../context/AppContext";
 
+// SignupPage — PUBLIC page, the entry point for both student and company
+// registration (a toggle switches which fields show). This is step 1 of a
+// two-step onboarding: after this page, students go on to VerifyDocsPage to
+// upload ID, while companies wait for admin approval based on their CRO
+// number. The URL can pre-fill fields (?name=&email=&role=) which is used by
+// marketing/landing-page links that want to send a visitor straight into a
+// partly-filled signup form.
 function StepBar({ step, total, label }) {
   return (
     <div style={{ marginBottom: "1.5rem" }}>
@@ -22,6 +29,10 @@ function StepBar({ step, total, label }) {
   );
 }
 
+// Simple heuristic password-strength meter — purely a UX hint shown live as
+// the user types (the bars below the password field). It's not what enforces
+// the actual minimum requirements (that's the length/letter/number checks in
+// handleSignup); this just nudges users toward stronger passwords.
 function getPasswordStrength(pw) {
   if (!pw) return null;
   let score = 0;
@@ -97,6 +108,9 @@ export default function SignupPage() {
     ? <p style={{ margin: "0 0 0.65rem", fontSize: "0.78rem", color: "#e11d48", fontWeight: "600" }}>⚠ {fieldErrors[field]}</p>
     : null;
 
+  // Validates every field up front and collects ALL errors at once (rather
+  // than stopping at the first problem) so the user sees every issue in one
+  // pass instead of fixing them one at a time and resubmitting repeatedly.
   const handleSignup = async () => {
     const errs = {};
     if (!name.trim()) errs.name = "Please enter your name.";
@@ -114,8 +128,13 @@ export default function SignupPage() {
     setFieldErrors({});
     setGeneralError("");
     try {
+      // Creates the Supabase Auth user + a row in profiles (and students or
+      // companies) with the role-specific fields.
       await signUp({ email: email.trim().toLowerCase(), password, name: name.trim(), role, croNumber, industries });
       if (window.gtag) window.gtag("event", "sign_up", { method: "email" });
+      // If this signup came from a referral link (?ref=CODE), record the
+      // referral so the referrer can get credit — silently ignored on failure
+      // since a broken referral shouldn't block account creation.
       if (refCode) trackReferral(refCode, email.trim().toLowerCase()).catch(() => {});
       // If they didn't come through the register-interest page, add them now (ignore duplicate)
       supabase.from("signups").insert({
@@ -127,9 +146,14 @@ export default function SignupPage() {
       // Skips the "check your email" screen and goes straight to ID upload.
       // Requires "Confirm email" turned OFF in Supabase (Authentication > Providers > Email),
       // otherwise there's no session and this redirect bounces back out.
+      // In the normal (non-bypass) flow, students would land on a "check your
+      // email" screen (the `done` state further below) just like companies do.
       if (role === "student") {
         setPage("verifyDocs");
       } else {
+        // Companies always see the "check your email" screen — their second
+        // approval step (CRO number review) is handled separately by an
+        // admin, not by anything on this page.
         setDone(true);
       }
     } catch (e) {

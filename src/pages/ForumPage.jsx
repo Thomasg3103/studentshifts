@@ -1,3 +1,16 @@
+/**
+ * ForumPage — community discussion board, visible to everyone but with
+ * write access gated to verified students only.
+ *
+ * Anyone (logged-out visitors included) can browse posts, filter by
+ * category, and sort by top/recent. Posting new topics, commenting, and
+ * upvoting all require `isVerifiedStudent` (role === "student" AND
+ * verificationStatus === "verified") — this keeps the forum's voice
+ * limited to real, ID-verified students rather than unverified signups or
+ * companies. Posts/comments are simple Supabase tables (forum_posts,
+ * forum_comments, forum_votes) with no realtime subscription — data is
+ * fetched once on load and after each mutation.
+ */
 import { useState, useEffect, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 import { supabase, withTimeout } from "../lib/supabase";
@@ -19,6 +32,9 @@ const CATEGORY_COLORS = {
 
 export default function ForumPage() {
   const { currentUser } = useApp();
+  // Gate for all write actions below (posting, commenting, voting) — only
+  // students who've passed ID verification can participate, though
+  // everyone (including logged-out visitors) can still read posts.
   const isVerifiedStudent = currentUser?.role === "student" && currentUser?.verificationStatus === "verified";
 
   const [posts, setPosts] = useState([]);
@@ -45,6 +61,10 @@ export default function ForumPage() {
   // Delete post confirm state
   const [deletingPostId, setDeletingPostId] = useState(null);
 
+  // Loads the most recent 100 posts (default sorted by upvotes, re-sorted
+  // client-side below when the user picks "Recent") plus — if logged in —
+  // which post IDs this user has already upvoted, so the vote button can
+  // render as already-toggled without a per-post query.
   const loadPosts = useCallback(async () => {
     try {
       setLoading(true);
@@ -77,6 +97,11 @@ export default function ForumPage() {
 
   useEffect(() => { loadPosts(); }, [loadPosts]);
 
+  // Toggling an upvote: updates local state immediately (optimistic UI) for
+  // instant feedback, then calls the toggle_forum_vote RPC (a Postgres
+  // function that flips the vote row and increments/decrements the post's
+  // upvote count server-side, atomically). If the RPC fails, the local
+  // vote count and myVotes set are both rolled back to their prior values.
   const handleVote = async (postId) => {
     if (!currentUser) return;
     const alreadyVoted = myVotes.has(postId);
@@ -103,6 +128,11 @@ export default function ForumPage() {
     });
   };
 
+  // Creates a new forum post. Basic client-side validation (non-empty,
+  // 5+ char title) happens before the insert — deeper checks like the
+  // isVerifiedStudent gate happen at the UI level (the "+ New Post" button
+  // only renders for verified students) and presumably again via Supabase
+  // row-level security on the table itself.
   const handlePost = async () => {
     if (!newTitle.trim() || !newBody.trim()) { setPostError("Please fill in both title and message."); return; }
     if (newTitle.trim().length < 5) { setPostError("Title must be at least 5 characters."); return; }
@@ -165,6 +195,11 @@ export default function ForumPage() {
     }
   }, []);
 
+  // Expands/collapses the comment thread under a post. Comments for a post
+  // are lazily fetched only the first time it's expanded (not on initial
+  // page load) — this keeps the forum's main list fast since most posts'
+  // comments are never opened. Once loaded they're cached in commentsMap
+  // so re-expanding doesn't refetch.
   const toggleComments = (postId) => {
     if (expandedPostId === postId) {
       setExpandedPostId(null);
@@ -220,6 +255,9 @@ export default function ForumPage() {
     }
   };
 
+  // Category filtering + sorting happen entirely client-side against the
+  // already-fetched `posts` array (no extra Supabase round-trip needed
+  // when the user switches tabs or sort order).
   const filtered = (selectedCategory === "All" ? posts : posts.filter(p => p.category === selectedCategory))
     .slice()
     .sort((a, b) => sortBy === "recent"

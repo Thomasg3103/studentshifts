@@ -3,6 +3,12 @@ import { Helmet } from "react-helmet-async";
 import { supabase, withTimeout } from "../lib/supabase";
 import BackButton from "../components/BackButton";
 
+// LeaderboardPage — a PUBLIC page (no login required) that ranks companies by
+// how many shifts they've filled. It's mostly a marketing/trust-signal page:
+// it shows students which employers are actively hiring, and gives companies
+// a small incentive to post more jobs and fill them (social proof / gamification).
+// There's no "leaderboard" table in the database — this page computes the
+// ranking on the fly from the jobs table every time it loads.
 export default function LeaderboardPage() {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -11,6 +17,10 @@ export default function LeaderboardPage() {
   useEffect(() => {
     async function load() {
       try {
+        // Step 1: pull every currently Active job, joined with the posting
+        // company's name (via the profiles table FK). withTimeout wraps the
+        // Supabase call so a slow/hanging network request fails fast instead
+        // of leaving the page stuck on the loading skeleton forever.
         const { data, error: err } = await withTimeout(
           () => supabase
             .from("jobs")
@@ -20,7 +30,9 @@ export default function LeaderboardPage() {
         );
         if (err) throw err;
 
-        // Aggregate by company
+        // Aggregate by company — build a map keyed by company_id so we can
+        // tally each company's active job count and filled-shift count in
+        // one pass, rather than querying per-company.
         const map = {};
         for (const job of (data || [])) {
           const id = job.company_id;
@@ -31,6 +43,9 @@ export default function LeaderboardPage() {
         }
 
         // Also count all-time filled via a second query
+        // Closed jobs (fully filled and taken down) still count toward a
+        // company's "shifts filled" total — otherwise a company that finishes
+        // hiring and closes its listings would unfairly drop in the ranking.
         const { data: closed } = await withTimeout(
           () => supabase
             .from("jobs")
@@ -40,9 +55,15 @@ export default function LeaderboardPage() {
         );
         for (const job of (closed || [])) {
           const id = job.company_id;
+          // Only add to companies we already saw among Active jobs — a company
+          // with ONLY closed jobs (nothing currently active) is intentionally
+          // left off the board, since this leaderboard is meant to highlight
+          // companies who are actively hiring right now.
           if (map[id]) map[id].filledShifts += (job.filled_shifts || []).length;
         }
 
+        // Rank by total filled shifts first, active job count as tiebreaker,
+        // and cap at the top 20 so the page stays a quick, skimmable list.
         const ranked = Object.values(map)
           .sort((a, b) => b.filledShifts - a.filledShifts || b.activeJobs - a.activeJobs)
           .slice(0, 20);
@@ -56,6 +77,7 @@ export default function LeaderboardPage() {
     load();
   }, []);
 
+  // Top 3 ranks get a medal emoji instead of a plain "#4" style number.
   const medals = ["🥇", "🥈", "🥉"];
 
   return (

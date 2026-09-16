@@ -1,3 +1,9 @@
+// The single Supabase client instance for the whole app, plus two small helpers that
+// every other lib/ file relies on:
+//   - withTimeout(): wraps any Supabase call so it fails with a friendly error instead
+//     of hanging forever if the network is slow/dead.
+//   - ensureValidSession() / invalidateSessionCache(): a cheap "is my login still valid?"
+//     check, deduplicated so many components asking at once don't all hit the network.
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL;

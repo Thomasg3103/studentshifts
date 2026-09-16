@@ -1,4 +1,16 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿/*
+ * BrowseStudents — the "Browse Students" tab of the company dashboard. Lets a
+ * company search/filter/sort the full pool of verified students (not just their
+ * own applicants) and reach out proactively: save (like) a student, message
+ * them directly, view their CV, or shortlist them against a specific job
+ * posting. Also supports saved search "Alerts" (named filter presets a company
+ * can reapply later) and a "Custom Priority" mode where the company weights
+ * availability/reliability/skills with sliders to produce a personalised ranking.
+ * When `chatStudent` is set, this component swaps its whole view to render a
+ * direct-message thread instead of the browse list (see the early `if
+ * (chatStudent) return (...)` below).
+ */
+import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { supabase } from "../../lib/supabase";
@@ -7,6 +19,8 @@ import { getSignedDocumentUrl } from "../../lib/uploads";
 import { StudentAvailabilityRow } from "./shared";
 import ReportModal from "../../components/ReportModal";
 
+// Students are loaded in pages of this size ("Load more" button) rather than
+// all at once, to keep the initial render fast when the verified pool is large.
 const PAGE_SIZE = 20;
 
 export default function BrowseStudents({ students, loading, fetched, error, companyIndustries, companyId, _companyName, chatStudent, setChatStudent, _setPage, likedStudentIds, applicantStudentIds, onToggleLike, postings = [] }) {
@@ -29,8 +43,13 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
   const [dmMap, setDmMap] = useState({});
   const [reportStudent, setReportStudent] = useState(null); // { id, name }
 
+  // Reset pagination back to the first page whenever a filter/sort changes —
+  // otherwise "Load more" state would persist across an unrelated filter change
+  // and the count shown wouldn't match what's actually visible.
   useEffect(() => { setVisibleCount(PAGE_SIZE); }, [filterByIndustries, locationFilter, sortBy, selectedJobId]);
 
+  // Powers the "X hired this month" badge — counts Accepted applications updated
+  // since the 1st of the current calendar month, across all this company's jobs.
   useEffect(() => {
     if (!companyId) return;
     const start = new Date(); start.setDate(1); start.setHours(0, 0, 0, 0);
@@ -70,9 +89,13 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
   }, [companyId]);
 
   // Load reliability scores when sort mode requires them
+  // (fetched lazily/on-demand rather than for every student up front, since
+  // reliability sorting is an opt-in mode most companies won't always use)
   useEffect(() => {
     if (sortBy !== "reliability_first" && sortBy !== "priority") return;
     if (!students.length) return;
+    // Only fetch scores we don't already have cached in reliabilityMap, so
+    // switching sort modes back and forth doesn't repeatedly refetch the same data.
     const missing = students.filter(s => !reliabilityMap[s.id]).map(s => s.id);
     if (!missing.length) return;
     setReliabilityLoading(true);
@@ -103,6 +126,10 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     { label: "Tell Us About You", text: `Hi ${chatStudent.name}! We're very interested in your profile. Could you tell us a bit more about your availability and what kind of work you're looking for?` },
   ] : [];
 
+  // Loads history + subscribes to Realtime for the open direct-message thread
+  // whenever a different student is opened to chat with (chatStudent.id changes).
+  // `chatStudent.initialMessage` lets a caller (e.g. a "Message" button elsewhere)
+  // pre-fill the input with suggested text before the conversation even starts.
   useEffect(() => {
     if (!chatStudent) return;
     if (chatStudent.initialMessage) setChatInput(chatStudent.initialMessage);
@@ -135,6 +162,11 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     if (msgAreaRef.current) msgAreaRef.current.scrollTop = msgAreaRef.current.scrollHeight;
   }, [chatMessages]);
 
+  // Sends a direct message to the open student. Before sending, enforces an
+  // anti-spam rule: a company can send at most 3 messages in a row without the
+  // student replying — this stops companies from bombarding students who
+  // haven't responded, and the same limit is recomputed below (companyMsgsSinceReply)
+  // to drive the UI warning/remaining-count banner shown near the input.
   const sendDM = async () => {
     const text = chatInput.trim();
     if (!text || !chatStudent || chatSending) return;
@@ -323,6 +355,9 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     return starts.length ? starts.reduce((a, b) => a + b, 0) / starts.length : Infinity;
   };
 
+  // "Match to Job" sort: counts how many of the selected job's shift days
+  // overlap with the student's stated availability (0 = no overlap, up to the
+  // job's total day count = a perfect match).
   const selectedJob = postings.find(p => p.id === Number(selectedJobId) || p.id === selectedJobId) || null;
   const jobMatchScore = (s) => {
     if (!selectedJob?.days?.length || !s.availability) return 0;
@@ -331,6 +366,12 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
 
   const reliabilityRank = label => label === "Reliable" ? 0 : label === "New" ? 1 : 2;
 
+  // "Custom Priority" sort: blends three normalised (0-1) signals — availability
+  // breadth, reliability, and skill count — weighted by the sliders the company
+  // set (0-10 each), so the company controls what matters most to them. Each
+  // factor is capped/normalised against a reasonable max (7 days, 8 skills)
+  // before being multiplied by its weight, so no single factor dominates just
+  // because its raw number happens to be bigger.
   const priorityScore = (s) => {
     const availNorm = Math.min(dayCount(s.availability) / 7, 1);
     const relLabel  = reliabilityMap[s.id];
@@ -358,6 +399,8 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
 
   const visibleStudents = displayStudents.slice(0, visibleCount);
 
+  // Re-applies a previously saved filter/sort combination ("Alert") in one click,
+  // restoring each filter only if it was actually part of the saved criteria.
   const applyAlert = (alert) => {
     const c = alert.criteria || {};
     if (c.sortBy)                        setSortBy(c.sortBy);
@@ -367,6 +410,8 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
     setVisibleCount(PAGE_SIZE);
   };
 
+  // Persists the company's current filter/sort selection as a named "Alert" they
+  // can reapply later via applyAlert (e.g. "Dublin weekend students").
   const saveAlert = async () => {
     if (!alertName.trim() || !companyId || savingAlert) return;
     setSavingAlert(true);
@@ -389,6 +434,8 @@ export default function BrowseStudents({ students, loading, fetched, error, comp
       .length;
   };
 
+  // CVs live in a private Supabase storage bucket, so a signed (time-limited)
+  // URL has to be requested per-view rather than linking to the file directly.
   const viewCV = async (studentId, cvUrl) => {
     setCvLoading(prev => new Set(prev).add(studentId));
     try {

@@ -1,4 +1,15 @@
-﻿import { useState, useRef } from "react";
+﻿/*
+ * CloseJobModal — shown when a company ends a job's hiring process (either by
+ * clicking "Close this Job" in ApplicantsView, or automatically offered once an
+ * applicant reaches the Decision stage). It asks *how* the job ended:
+ *  - "Found a Student" — pick which applicant (from the Decision stage) was hired;
+ *    triggers the accept/decline flow for everyone else.
+ *  - "Hired Elsewhere" / "Job No Longer Needed" — just closes the listing with no
+ *    hire, notifying pending applicants.
+ * The `noHire` prop lets a caller skip straight to closing without the picker
+ * (used when the hire has already happened through another action).
+ */
+import { useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { supabaseImg } from "../../utils/img";
@@ -17,6 +28,9 @@ export function CloseJobModal({ posting, onClose, onCloseJob, noHire = false }) 
   const modalRef = useRef(null);
   useFocusTrap(modalRef, onClose);
 
+  // Only applicants who've reached Decision and are still Pending can be picked
+  // as the "winner" — anyone already Accepted/Rejected is excluded since the
+  // outcome is already decided for them.
   const decisionApplicants = posting.applicants.filter(
     a => a.pipelineStage === "decision" && a.status === "Pending"
   );

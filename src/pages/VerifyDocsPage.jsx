@@ -7,6 +7,12 @@ import { uploadVerificationDocs } from "../lib/auth";
 import { supabase } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
 
+// VerifyDocsPage — STUDENT-only page, the second (and final) step of student
+// signup after email confirmation. Students must upload a student ID card
+// and a government ID here before an admin can approve them; until approved
+// (verificationStatus becomes "verified"), they can browse jobs but cannot
+// apply. This page also handles showing "your docs are pending review" and
+// "your docs were rejected, please resubmit" states for returning users.
 function StepBar({ step, total, label }) {
   return (
     <div style={{ marginBottom: "1.5rem" }}>
@@ -27,15 +33,29 @@ export default function VerifyDocsPage() {
   const [governmentId, setGovernmentId]   = useState(null);
   const [error, setError]   = useState("");
   const [loading, setLoading] = useState(false);
+  // Shown right after a successful upload — a modal nudging the student to
+  // also set their weekly availability while they wait for admin review.
   const [showAvailabilityPrompt, setShowAvailabilityPrompt] = useState(false);
   const availabilityPromptRef = useRef(null);
+  // Traps keyboard focus inside the modal while it's open (accessibility:
+  // prevents Tab from leaving the dialog to elements behind it) and closes
+  // it on Escape.
   useFocusTrap(availabilityPromptRef, () => setShowAvailabilityPrompt(false), showAvailabilityPrompt);
 
+  // verificationStatus drives which of three states this page shows:
+  // "rejected" (admin declined the previous submission — show the resubmit
+  // form with an error banner), "pending_review" (docs already in, show a
+  // waiting screen), or anything else (first-time upload — show the form).
   const isRejected  = currentUser?.verificationStatus === "rejected";
   const isPending   = currentUser?.verificationStatus === "pending_review";
   const MAX_BYTES   = 10 * 1024 * 1024;
   const ACCEPTED_EXTS = new Set(["jpg", "jpeg", "png", "webp", "gif", "pdf", "doc", "docx"]);
 
+  // Validates a picked file client-side (extension + size) before it's
+  // allowed into state. This is just a UX nicety to catch obvious mistakes
+  // early — the real enforcement of allowed file types/sizes should also
+  // happen server-side (Supabase Storage policies), since a client-side
+  // check alone can always be bypassed.
   const handleFileChange = (setter) => (file) => {
     if (!file) { setter(null); return; }
     const ext = file.name.split(".").pop()?.toLowerCase() || "";
@@ -59,8 +79,16 @@ export default function VerifyDocsPage() {
     setLoading(true);
     setError("");
     try {
+      // Uploads both files to Supabase Storage (the private verification-docs
+      // bucket — only admins can read from it, per CLAUDE.md) and marks the
+      // student's verification status as pending_review so an admin sees
+      // them in the verification queue.
       await uploadVerificationDocs(currentUser.id, studentIdCard, governmentId);
       setCurrentUser(prev => ({ ...prev, studentIdPath: "uploaded", verificationStatus: "pending_review" }));
+      // Fire-and-forget: notify the admin team by email that a new signup
+      // needs review. We don't await/handle failure here because a failed
+      // notification email shouldn't block the student's upload from
+      // succeeding — worst case, an admin checks the queue manually.
       supabase.functions.invoke("send-email", { body: { type: "new-signup" } }).catch(() => {});
       setShowAvailabilityPrompt(true);
     } catch (e) {
@@ -72,6 +100,8 @@ export default function VerifyDocsPage() {
   };
 
   // Pending state — documents already submitted, awaiting review
+  // (a returning student who already uploaded docs but hasn't been reviewed
+  // yet sees this instead of the upload form again)
   if (isPending && !isRejected) {
     return (
       <PageWrapper narrow>

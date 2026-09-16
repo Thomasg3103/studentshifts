@@ -1,4 +1,15 @@
-﻿import { useState, useRef, useEffect } from "react";
+﻿/*
+ * TimeWheelPicker.jsx — custom scroll-wheel-style date/time pickers used inside
+ * InterviewInviteModal and TrialInviteModal (whenever a company schedules an
+ * interview round or trial shift with an applicant). Exports two components:
+ *  - TimeWheelPicker: pick an hour + minute (5-min increments) via up/down steppers.
+ *  - DateStepper: pick a day/month/year via the same stepper pattern.
+ * Both also render a native <input type="time">/<input type="date"> as a fallback
+ * so users can type a value directly instead of clicking the steppers repeatedly.
+ * Neither component saves as you interact — they only report the chosen value up
+ * via onSave when the "Save" button is pressed.
+ */
+import { useState, useRef, useEffect } from "react";
 
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 const NOW     = new Date();
@@ -9,6 +20,11 @@ function pad2(n) { return String(n).padStart(2, "0"); }
 
 /* ── Shared: stepper button with hold-down acceleration ─────────────────── */
 
+// A single up/down/etc. stepper button that supports "press and hold" to repeat.
+// Mimics the feel of a native spinner: one click steps once, but holding down
+// the mouse/finger auto-repeats — starting slow (150ms) then accelerating to
+// fast (60ms) after ~1.3s, so users can hold to quickly scroll through many
+// values instead of clicking dozens of times.
 function StepBtn({ onStep, children, color = "#7c3aed" }) {
   const phase1 = useRef(null); // slow repeat
   const phase2 = useRef(null); // fast repeat
@@ -105,6 +121,9 @@ function SaveButton({ label, onClick }) {
 /* ══ TimeWheelPicker ════════════════════════════════════════════════════════ */
 
 export function TimeWheelPicker({ value = "", onSave }) {
+  // Seed the wheels from the incoming "HH:MM" value if there is one, defaulting
+  // to 09:00 otherwise. Minutes are rounded to the nearest 5 since the minute
+  // stepper only moves in 5-minute increments.
   const initH = value ? parseInt(value.split(":")[0], 10) : 9;
   const initM = value ? Math.round(parseInt(value.split(":")[1], 10) / 5) * 5 : 0;
 
@@ -153,7 +172,8 @@ export function DateStepper({ value = "", onSave }) {
   const [month, setMonth] = useState(init.getMonth() + 1); // 1-indexed
   const [year,  setYear]  = useState(init.getFullYear());
 
-  // Clamp day whenever month or year changes
+  // Clamp day whenever month or year changes — prevents an invalid state like
+  // "31 February" if the user was on day 31 and then stepped the month back to Feb.
   useEffect(() => {
     setDay(d => Math.min(d, daysInMonth(year, month)));
   }, [month, year]);

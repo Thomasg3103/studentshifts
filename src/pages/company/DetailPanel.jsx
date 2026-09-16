@@ -1,4 +1,19 @@
-﻿import { useState, useEffect, useRef, lazy, Suspense } from "react";
+﻿/*
+ * DetailPanel — the slide-in side panel (from the right) shown when a company
+ * clicks an applicant in ApplicantsView, either from the list rows or the
+ * Kanban board. This is where all the actual per-applicant hiring actions live:
+ * viewing their CV/cover letter/screening answers, writing private notes,
+ * advancing them through the pipeline stage-by-stage, sending interview/trial
+ * invites (via the two modals imported below), hiring/declining, and — once
+ * hired — chatting with them (ChatThread) or offering another shift.
+ *
+ * What's shown in the body changes a lot based on `applicant.pipelineStage`:
+ * e.g. the "Application Screening" checklist only appears at the Applied stage,
+ * while interview-slot status and the stage-action buttons at the bottom are
+ * entirely stage-dependent. Re-exports CloseJobModal here too, purely so other
+ * files can import both DetailPanel and CloseJobModal from one place.
+ */
+import { useState, useEffect, useRef, lazy, Suspense } from "react";
 import { supabaseImg } from "../../utils/img";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
@@ -12,6 +27,9 @@ import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { TrialInviteModal } from "./TrialInviteModal";
 import { CloseJobModal } from "./CloseJobModal";
 
+// PdfModal pulls in react-pdf/pdfjs/mammoth, which are heavy — lazy-loading it
+// means that bundle only downloads once someone actually opens a CV/cover letter,
+// not on every dashboard visit.
 const PdfModal = lazy(() => import("./PdfModal").then(m => ({ default: m.PdfModal })));
 
 /* ─── Local style helpers ────────────────────────────────────────────────── */
@@ -72,6 +90,11 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   const [trialTime, setTrialTime] = useState(applicant.trialTime || "");
   const [profileOpen, setProfileOpen] = useState((applicant.pipelineStage || "applied") === "applied");
   const [inviteModalOpen, setInviteModalOpen] = useState(null); // null = closed, number = round index
+  // Three separate flags control the interview invite modal depending on WHICH
+  // action opened it (from Shortlisted, from an existing Interview round wanting
+  // another round, or from a Trial). They all render the same InterviewInviteModal
+  // component further down, just with different props/round numbers, since each
+  // entry point needs slightly different behaviour in onSend (see the JSX below).
   const [trialInviteOpen, setTrialInviteOpen] = useState(false);
   const [shortlistInviteOpen, setShortlistInviteOpen] = useState(false);
   const [nextRoundInviteOpen, setNextRoundInviteOpen] = useState(false);
@@ -82,6 +105,10 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   const panelBodyRef = useRef(null);
   useFocusTrap(panelBodyRef, onClose);
 
+  // Fetches the "Reliable / New / Flagged" badge shown next to the applicant's
+  // name — computed server-side (likely from no-shows/cancellations history)
+  // rather than in the client, so it can't be spoofed and can factor in data
+  // across the whole platform, not just this one job.
   useEffect(() => {
     if (!applicant.studentId) return;
     supabase.rpc("get_student_reliability_score", { p_student_id: applicant.studentId })
@@ -89,6 +116,12 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
       .catch(() => {});
   }, [applicant.studentId]);
 
+  // Normalises whatever interview-round data is stored on the applicant into a
+  // consistent array of { date, time } — one entry per round. Handles an older
+  // data shape too: applications created before multi-round support only had a
+  // single interviewDate/interviewTime pair, so if the new interviewRoundsData
+  // array's first entry is empty but those legacy fields have values, they're
+  // used to fill round 1 instead of showing a blank.
   const buildRounds = (a) => {
     const stored = Array.isArray(a.interviewRoundsData) ? a.interviewRoundsData : [];
     const count  = Math.max(a.interviewRound || 1, 1);
@@ -106,7 +139,11 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   const [interviewRounds, setInterviewRounds] = useState(() => buildRounds(applicant));
   const [interviewSlots, setInterviewSlots]   = useState([]); // slots offered to student
 
-  // Load interview slots and subscribe to realtime when panel is open at interview stage
+  // Load interview slots and subscribe to realtime when panel is open at interview stage.
+  // "Slots" are the multiple date/time options a company can offer instead of a
+  // single fixed time (see InterviewInviteModal's "Let Student Pick" mode) — this
+  // effect watches for the student picking one in real time, so the company sees
+  // the confirmed slot appear live without needing to refresh or re-open the panel.
   useEffect(() => {
     const stage = applicant.pipelineStage || "applied";
     if (stage !== "interview") { setInterviewSlots([]); return; }
@@ -145,7 +182,13 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicant.id, applicant.pipelineStage]);
 
-  // Sync all local state when switching to a different applicant
+  // Sync all local state when switching to a different applicant. Since
+  // DetailPanel stays mounted while the company clicks between different
+  // applicants (only the `applicant` prop changes), all this component's local
+  // state — notes draft, trial date/time, which sub-panels are expanded, loaded
+  // document URLs, etc. — has to be explicitly reset here. Without this, e.g. an
+  // unsaved notes draft for one applicant would still show when opening a
+  // different applicant's panel.
   useEffect(() => {
     const s = applicant.pipelineStage || "applied";
     setNotes(applicant.notes || "");
@@ -167,6 +210,10 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicant.id, applicant.pipelineStage, applicant.notes, applicant.trialDate, applicant.trialTime, applicant.interviewRoundsData]);
 
+  // CVs/cover letters live in a private storage bucket, so a signed (time-limited)
+  // URL must be fetched before they can be opened in PdfModal. Cached in state
+  // after the first fetch so re-opening the same document doesn't re-request a
+  // new signed URL every time.
   const openCv = async () => {
     if (!cvUrl) {
       setCvLoading(true);
@@ -191,6 +238,9 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
     setClOpen(true);
   };
 
+  // Notes autosave on blur (clicking/tabbing away from the textarea) rather than
+  // on every keystroke — avoids hammering the database while the company is
+  // still typing, and only fires a save at all if the text actually changed.
   const handleNotesBlur = async () => {
     if (notes === (applicant.notes || "")) return;
     setNotesSaving(true);
@@ -204,6 +254,9 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
     setNotesSaving(false);
   };
 
+  // "Offer Another Shift" — for a previously-Accepted applicant, sends them a
+  // direct chat message inviting them back rather than requiring them to
+  // re-apply through the normal pipeline, since they're already a known/hired student.
   const handleRehire = async () => {
     setRehireLoading(true);
     try {
@@ -562,7 +615,11 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
         </div>
       </div>
 
-      {/* Next round interview invite — increments round + sends email */}
+      {/* Next round interview invite — increments round + sends email.
+          Unlike the other two invite entry points below, this one has to bump
+          applicant.interviewRound (via onIncrementRound) BEFORE sending the
+          invite email, since it's adding a brand new round rather than just
+          re-sending details for the current one. */}
       {nextRoundInviteOpen && (
         <InterviewInviteModal
           applicant={applicant}
@@ -579,7 +636,9 @@ export default function DetailPanel({ applicant, postingId, postingTitle, compan
         />
       )}
 
-      {/* Interview invite from shortlist — moves stage + sends email */}
+      {/* Interview invite from shortlist — moves stage + sends email.
+          This is the entry point that actually transitions the applicant OUT of
+          Shortlisted and into Interview Rd 1, once the invite has sent. */}
       {shortlistInviteOpen && (
         <InterviewInviteModal
           applicant={applicant}

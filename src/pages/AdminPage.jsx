@@ -1,4 +1,22 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+﻿/**
+ * AdminPage — internal admin-only dashboard, not linked from normal
+ * navigation (accessed directly by admins, hence the noindex/nofollow meta
+ * tag below so search engines never index it).
+ *
+ * This is where StudentShifts staff review and approve/reject new student
+ * and company signups (ID/CRO verification), moderate the community forum
+ * and job posts (delete inappropriate content), manage featured-employer
+ * status, review user reports, permanently delete accounts, and send
+ * one-off "launch" marketing emails to the waitlist of signups. Tabs:
+ * Students, Companies, Signups, Featured, Forum, Posts, and a beta-only
+ * Feedback tab (marked for removal before full launch).
+ *
+ * Approve/reject actions use a `inFlight` ref (a Set of in-progress user
+ * IDs) as a double-click guard — since two admins could theoretically be
+ * looking at the same pending queue at once, this also protects against a
+ * single admin double-clicking Approve before the first request resolves.
+ */
+import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "../lib/supabase";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
@@ -72,6 +90,12 @@ export default function AdminPage() {
   const [loadingDetails,   setLoadingDetails]   = useState(new Set());
   const [resolveReportId,  setResolveReportId]  = useState(null);
 
+  // Loads the two pending-approval queues (students awaiting ID
+  // verification, companies awaiting CRO verification) that show up as the
+  // default "Students"/"Companies" tabs on page load. Also fetches any
+  // unresolved user reports filed against those same pending accounts, so
+  // an admin can see "this pending student has already been reported" —
+  // grouped by target_id into `pendingReports` for quick lookup.
   // F-M10: extracted so the Refresh button can re-call it
   const loadData = useCallback(() => {
     setLoading(true);
@@ -96,6 +120,12 @@ export default function AdminPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // Loads ALL students (up to 300, newest first) for the "All" filter on
+  // the Students tab — as opposed to loadData() above which only loads
+  // pending ones. Joins together three separate queries: profiles (name),
+  // students (verification status), and an admin-only RPC to fetch emails
+  // (emails aren't normally exposed to the client — this RPC presumably
+  // enforces that only admins can call it server-side).
   const loadAllStudents = useCallback(async () => {
     setAllStudentsLoading(true);
     try {
@@ -265,6 +295,12 @@ export default function AdminPage() {
     }
   };
 
+  // Permanently deletes a user account (student or company) via the
+  // admin_delete_user RPC — a privileged server-side operation, since
+  // regular client code can't delete arbitrary auth users. Used for
+  // moderation (e.g. removing an account after repeated reports). Removes
+  // the deleted user from every locally-cached list so the UI updates
+  // immediately without needing to refetch each tab.
   const handleAdminDeleteUser = async () => {
     if (!deleteUserConfirm) return;
     const { id, name } = deleteUserConfirm;
@@ -363,6 +399,9 @@ export default function AdminPage() {
     }
   };
 
+  // Toggles a verified company's "featured employer" badge (shown on their
+  // job cards/profile). Optimistic update with rollback-on-failure, same
+  // pattern used throughout the app for quick toggle actions.
   const handleToggleFeatured = async (company) => {
     if (featuredToggling) return;
     setFeaturedToggling(company.id);
@@ -408,6 +447,10 @@ export default function AdminPage() {
     }
   };
 
+  // Opens a student's uploaded verification document (Student ID / gov ID)
+  // in a new tab. Verification docs are stored in a private Supabase
+  // Storage bucket, so a signed, time-limited URL has to be generated on
+  // demand rather than using a public URL directly.
   const openDoc = async (path) => {
     try {
       const url = await getSignedDocumentUrl("verification-docs", path);
@@ -418,6 +461,14 @@ export default function AdminPage() {
     }
   };
 
+  // Approves a student's ID verification, unlocking their ability to apply
+  // to jobs. `isNew` distinguishes a genuine first-time approval from a
+  // race where another admin already approved this student a moment
+  // earlier (hence "Already approved by another admin" toast) — prevents
+  // sending a duplicate approval email. After approving, verification
+  // document files are deleted from storage (S7) since they're no longer
+  // needed once reviewed, and a confirmation email (with a magic sign-in
+  // link) is sent — both done fire-and-forget so the UI doesn't wait on them.
   const handleApproveStudent = async (student) => {
     if (inFlight.current.has(student.id)) return; // F-C6: double-click guard
     inFlight.current.add(student.id);
@@ -463,6 +514,10 @@ export default function AdminPage() {
     }
   };
 
+  // Two-step rejection: called once with confirmed=false to open the "are
+  // you sure?" modal (setRejectConfirm), then called again with
+  // confirmed=true from that modal's confirm button to actually reject —
+  // this stops an admin from rejecting someone with a single misclick.
   // F-M8: confirmed=false → show inline modal; confirmed=true → proceed
   const handleRejectStudent = async (student, confirmed = false) => {
     if (!confirmed) { setRejectConfirm({ type: "student", item: student }); return; }

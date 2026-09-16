@@ -1,4 +1,12 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿/*
+ * SavedStudents — the "Shortlist"/"Saved" tab of the company dashboard, showing
+ * students the company has liked (heart icon) while browsing, whether or not
+ * they've applied to a job yet. Very similar in shape to BrowseStudents.jsx's
+ * own embedded chat, because both implement direct messaging (job_id === null)
+ * with the same rate-limiting and quick-reply behavior — they aren't sharing
+ * code, just duplicating the same pattern independently.
+ */
+import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import { supabase } from "../../lib/supabase";
 import { fetchAllMessagesWithStudent, sendMessage, sendEmail } from "../../lib/auth";
@@ -19,6 +27,9 @@ export default function SavedStudents({ students, _loading, fetched, error, like
     { label: "Tell Us About You", text: `Hi ${chatStudent.name}! We're very interested in your profile. Could you tell us a bit more about your availability and what kind of work you're looking for?` },
   ] : [];
 
+  // Loads the most recent direct message per student (for the "last message"
+  // preview shown on each saved student's card). Messages come back newest-first,
+  // so the first one seen per student_id is kept and the rest are skipped.
   useEffect(() => {
     if (!companyId) return;
     supabase
@@ -38,6 +49,10 @@ export default function SavedStudents({ students, _loading, fetched, error, like
       .catch(console.warn);
   }, [companyId]);
 
+  // Loads full history for the open conversation and subscribes to Realtime for
+  // new messages, whenever a different student's chat is opened (chatStudent.id
+  // changes). Runs alongside the dmMap effect above — this one is for the open
+  // thread's message list, that one is for the summary previews on other cards.
   useEffect(() => {
     if (!chatStudent) return;
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -95,6 +110,9 @@ export default function SavedStudents({ students, _loading, fetched, error, like
       } else {
         setDmMap(prev => ({ ...prev, [chatStudent.id]: { text, sender_id: companyId, created_at: new Date().toISOString() } }));
       }
+      // Only email the student the very first time a company messages them —
+      // students already in an ongoing conversation don't need an email nudge
+      // for every reply, just the initial "someone's interested" notification.
       if (isFirst) {
         const { data: emailRows } = await supabase.rpc("get_user_emails", { user_ids: [chatStudent.id] });
         const studentEmail = emailRows?.[0]?.email;

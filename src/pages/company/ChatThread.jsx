@@ -1,4 +1,12 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿/*
+ * ChatThread — the small embedded messaging widget shown inside DetailPanel once
+ * an applicant has been Accepted (hired). It's scoped to a single job + student
+ * conversation (as opposed to BrowseStudents/SavedStudents' own chat UI, which
+ * handles direct messages with no job attached, jobId === null).
+ * Loads message history, subscribes to Supabase Realtime for new messages, and
+ * shows optimistic "sending" bubbles while a message is in flight.
+ */
+import { useState, useEffect, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
 import { supabase } from "../../lib/supabase";
@@ -17,6 +25,10 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
     { label: "Tell Us More", text: `Hi ${studentName || "there"}! We're very interested in your application. Could you tell us a bit more about your availability and any relevant experience you have?` },
   ];
 
+  // Load message history on mount, then subscribe to Supabase Realtime so new
+  // messages (sent by either side, from any device/tab) appear live without
+  // polling. `fetchMessages` is dynamically imported to keep it out of the
+  // initial bundle for pages that never open a chat thread.
   useEffect(() => {
     let channel;
     import("../../lib/auth").then(({ fetchMessages }) => {
@@ -25,6 +37,9 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
         .catch(() => setLoading(false));
     });
 
+    // Realtime subscribes to ALL inserts on chat_messages (Supabase doesn't let us
+    // filter by two columns in the channel filter here), so we manually check
+    // `isRelevant` below and drop anything that isn't part of this conversation.
     const isDirect = jobId === null;
     channel = supabase
       .channel(isDirect ? `direct_${companyId}_${studentId}` : `msgs_${jobId}_${studentId}`)
@@ -37,6 +52,9 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
           if (!isRelevant) return;
           setMessages(prev => {
             if (prev.some(m => m.id === msg.id)) return prev;
+            // Replace the temporary "opt_..." optimistic bubble (added in send())
+            // with the real row now that the server has confirmed it, matching by
+            // sender + text since the optimistic message has no real id yet.
             const withoutOptimistic = prev.filter(m =>
               !(typeof m.id === "string" && m.id.startsWith("opt_") && m.sender_id === msg.sender_id && m.text === msg.text)
             );
@@ -52,6 +70,10 @@ export default function ChatThread({ jobId, studentId, companyId, senderId, stud
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Sends a message optimistically: it's added to the UI immediately (so the
+  // company doesn't wait on the network), then rolled back and re-filled into
+  // the input if the actual send fails. On success, the Realtime listener above
+  // swaps this temporary bubble out for the confirmed server row.
   const send = async () => {
     const text = input.trim();
     if (!text || sending) return;

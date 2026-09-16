@@ -1,3 +1,14 @@
+/**
+ * CompanyProfilePage — public-facing profile page for a single company.
+ *
+ * URL is /companies/:companyId. Anyone can view this (logged out visitors
+ * included) as long as the company is "verified" — unverified companies are
+ * treated as not-found so their profile isn't discoverable before an admin
+ * approves them. Logged-in students see a "View →" affordance on each job
+ * and can click through to JobDetails; other roles (companies, admins, or
+ * logged-out visitors) just see the listing without the click-through.
+ * Also shows a "Report this company" action for logged-in non-admin users.
+ */
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
@@ -20,6 +31,10 @@ export default function CompanyProfilePage() {
   const [hireStats, setHireStats] = useState(null);
   const [responseRate, setResponseRate] = useState(null);
 
+  // Main data load for this profile. Runs three Supabase queries in
+  // parallel (basic profile row, company-specific details, active job
+  // listings) each wrapped in withTimeout so a slow/stuck request can't
+  // leave the page stuck on "Loading…" forever.
   useEffect(() => {
     if (!companyId) return;
     Promise.all([
@@ -36,6 +51,9 @@ export default function CompanyProfilePage() {
         8000
       ),
     ]).then(([profileRes, companyRes, jobsRes]) => {
+      // Treat "no profile row" AND "not verified" the same way — a company
+      // that hasn't passed admin verification shouldn't have a public,
+      // linkable profile page yet, so we show the same not-found state.
       if (!profileRes.data || companyRes.data?.status !== "verified") {
         setNotFound(true);
         setLoading(false);
@@ -44,6 +62,10 @@ export default function CompanyProfilePage() {
       setCompany({ ...profileRes.data, ...companyRes.data });
       setJobs(jobsRes.data || []);
       setLoading(false);
+      // Hiring stats and response-rate are fetched separately via RPC
+      // (server-side calculated functions) after the main content is
+      // already shown — they're "nice to have" stat-row data, so a
+      // failure here is silently ignored rather than blocking the page.
       supabase.rpc("get_company_hire_stats", { p_company_id: companyId })
         .then(({ data }) => { if (data) setHireStats(data); })
         .catch(() => {});
@@ -195,6 +217,9 @@ export default function CompanyProfilePage() {
             {jobs.map(job => {
               const thumb = job.photos?.[0];
               return (
+                // Only students can drill into a job's full details — other
+                // viewers (companies, admins, logged-out visitors) just browse
+                // the summary here since applying is a student-only action.
                 <button
                   key={job.id}
                   onClick={() => { if (currentUser?.role === "student") { setSelectedJob({ id: job.id, title: job.title, company: company.name }); } }}

@@ -5,6 +5,17 @@
  * Automatically constrained to Ireland (countrycodes=ie).
  * Eircode-shaped queries (e.g. "H91 A2PA") use the postalcode
  * parameter for a more precise lookup.
+ *
+ * "Geocoding" = turning a human-readable address/place name (or an Eircode —
+ * Ireland's postcode system) into a lat/lng coordinate pair the app can plot
+ * on a map or measure distance from. This file uses two different FREE,
+ * no-API-key geocoding services as a two-step fallback chain (see
+ * geocodeAddress below): Nominatim (OpenStreetMap's own geocoder — good
+ * general coverage) first, then Photon (better at recognising small Irish
+ * villages/townlands that Nominatim sometimes misses) if Nominatim comes up
+ * empty. Using free services keeps this app free to run, but means being a
+ * good citizen of their usage policies (a real User-Agent header, no
+ * hammering with requests) — see HEADERS below.
  */
 const EIRCODE_RE = /^[A-Za-z]\d{2}\s?[A-Za-z\d]{4}$/;
 const HEADERS = { "Accept-Language": "en", "User-Agent": "StudentShifts-Demo/1.0" };
@@ -49,6 +60,11 @@ async function photonFetch(query) {
   };
 }
 
+// Main entry point: turns a free-text address, place name, or Eircode into
+// coordinates by trying progressively more specialised lookups until one
+// succeeds — Eircode postal lookup, then Nominatim free-text search, then
+// Photon as a last resort. Returns null (rather than throwing) on total
+// failure so callers can just check truthiness instead of wrapping in try/catch.
 export async function geocodeAddress(rawQuery) {
   try {
     // Strip trailing ", Ireland" — we constrain via countrycodes/bbox instead
@@ -89,9 +105,16 @@ export function getCurrentPosition() {
 
 /**
  * Haversine distance between two lat/lng points, returned in km.
+ *
+ * The "Haversine formula" calculates straight-line ("as the crow flies")
+ * distance between two points on a SPHERE, accounting for the Earth's
+ * curvature — you can't just subtract lat/lng values like flat x/y
+ * coordinates, since a degree of longitude covers a different real-world
+ * distance depending on how close you are to the equator vs. the poles.
+ * Used here to power "X km away" on job listings.
  */
 export function haversineDistance(lat1, lng1, lat2, lng2) {
-  const R = 6371;
+  const R = 6371; // Earth's mean radius, in km
   const toRad = (d) => (d * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
   const dLng = toRad(lng2 - lng1);

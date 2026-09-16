@@ -1,4 +1,18 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿/**
+ * JobDetails — the full job listing page, shown to everyone (public SEO
+ * page) but with the "Apply" action gated to logged-in, verified students.
+ *
+ * This is one of the most important pages in the app: it renders the job's
+ * SEO metadata (JSON-LD JobPosting schema for Google Jobs, Open Graph tags),
+ * the like/save button, and the full multi-step apply flow — which branches
+ * depending on the job (single shift vs. multiple shifts to pick from,
+ * with/without screening questions) and the student's account state
+ * (verified? has a CV uploaded?). It also shows "similar jobs" (same
+ * category) and lets students join a waitlist if the job is already full.
+ * `job` is passed in as a prop from wherever the app navigated here (it is
+ * NOT fetched by this component itself — see AppContext/selectedJob).
+ */
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../hooks/useFocusTrap";
@@ -12,6 +26,7 @@ import { supabase } from "../lib/supabase";
 import { haversineDistance, formatDistance } from "../utils/geo";
 import { useApp } from "../context/AppContext";
 
+// Small labeled info box used in the sidebar (location, pay, shifts, etc.)
 function DetailCard({ label, children }) {
   return (
     <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderLeft: "3px solid var(--color-brand)", borderRadius: "0.65rem", padding: "0.55rem 0.75rem", marginBottom: "0.4rem" }}>
@@ -38,6 +53,9 @@ export default function JobDetails({ job }) {
   const [waitlistLoading, setWaitlistLoading] = useState(false);
   const [scrollPct, setScrollPct]         = useState(0);
 
+  // Only relevant for Closed jobs — checks whether this student already
+  // joined the waitlist for this specific job, so the "Join/Leave Waitlist"
+  // button shows the correct state instead of always defaulting to "off".
   useEffect(() => {
     if (job?.status !== "Closed" || !currentUser?.id || currentUser?.role !== "student") return;
     supabase
@@ -50,6 +68,10 @@ export default function JobDetails({ job }) {
       .catch(() => setWaitlistStatus("off"));
   }, [job?.id, job?.status, currentUser?.id]);
 
+  // Fetches up to 3 other Active jobs in the same category (excluding this
+  // one) to power the "Similar Jobs" list further down the page — a simple
+  // recommendation mechanism based on category match rather than anything
+  // more sophisticated.
   useEffect(() => {
     if (!job?.category) return;
     supabase
@@ -97,6 +119,9 @@ export default function JobDetails({ job }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Short cooldown after a successful apply, to prevent a student from
+  // double-tapping "Apply Now" and accidentally firing multiple submissions
+  // in quick succession while the UI is updating.
   useEffect(() => {
     if (applyCooldown <= 0) return;
     const id = setInterval(() => setApplyCooldown(c => c - 1), 1000);
@@ -108,8 +133,15 @@ export default function JobDetails({ job }) {
   const isLiked   = likedJobs.some(j => j.id === job.id);
   const isApplied = appliedJobs.some(j => j.id === job.id);
 
+  // Jobs with more than one shift/day require the student to either apply
+  // to all shifts or pick a specific one — this flag routes handleApply()
+  // through the extra "shifts" modal step instead of applying immediately.
   const needsSlotPick = (job.days?.length ?? 0) > 1;
 
+  // Like/unlike a job (saves it to the student's shortlist). Uses the same
+  // optimistic-update-then-rollback-on-error pattern seen elsewhere in the
+  // app: update local UI state first for a snappy feel, then sync to
+  // Supabase, and revert both if the request fails.
   const toggleLike = async () => {
     if (!currentUser) { setPage("login"); return; }
     if (isApplied) return;
@@ -126,6 +158,16 @@ export default function JobDetails({ job }) {
     }
   };
 
+  // Entry point for the "Apply Now" button. This decides which modal step
+  // to show first (or whether to skip the modal entirely) based on the
+  // student's account state and the job's requirements, checked in order:
+  // 1) must be logged in as a student
+  // 2) must be ID-verified (else "notVerified" modal)
+  // 3) must have a CV uploaded (else "noCV" modal)
+  // 4) if the job has multiple shifts, must pick one first ("shifts" modal)
+  // 5) otherwise, if there are no screening questions, apply immediately
+  //    (the "1-tap apply" fast path) — only jobs needing extra input show
+  //    a "confirm" step before submitting.
   const handleApply = () => {
     if (!currentUser) { setPage("login"); return; }
     if (currentUser.role !== "student") return;
@@ -151,6 +193,13 @@ export default function JobDetails({ job }) {
     setApplyModal("confirm");
   };
 
+  // Actually submits the application to Supabase (via createApplication).
+  // `isNew` distinguishes a genuinely new application from a no-op repeat
+  // click, so we don't send a duplicate "new applicant" notification email
+  // to the company or show a misleading success toast for an application
+  // that already existed. Applying to a job you'd previously liked also
+  // auto-removes it from your liked list, since "applied" supersedes
+  // "liked" as a stronger signal of interest.
   const confirmApply = async (answers = null) => {
     if (submitting) return;
     setSubmitting(true);
@@ -201,6 +250,10 @@ export default function JobDetails({ job }) {
     }
   };
 
+  // Lets a student join/leave the waitlist for a job whose status is
+  // "Closed" (i.e. already filled) — a simple insert/delete against the
+  // job_waitlist table so the company (or a future automated flow) can
+  // reach out if a spot opens up.
   const toggleWaitlist = async () => {
     if (!currentUser) { setPage("login"); return; }
     setWaitlistLoading(true);
@@ -274,7 +327,14 @@ export default function JobDetails({ job }) {
 
   const canonicalUrl = `https://studentshifts.ie/jobs/${toJobSlug(job.title)}/${toJobSlug(job.company)}`;
 
+  // Strips any HTML out of the description (DOMPurify with an empty allow
+  // list) to get a safe plain-text version for SEO meta tags and the
+  // JSON-LD schema below — search engines want plain text here, not markup.
   const plainDescription = DOMPurify.sanitize(job.description || "", { ALLOWED_TAGS: [] }) || `${job.title} at ${job.company} in ${job.location}.`;
+  // Extracts numeric values from the free-text `pay` string (e.g. "€12-14/hr")
+  // to populate Google's structured baseSalary field — a range if two
+  // numbers are found, a single value otherwise. If no numbers are found
+  // (unusual pay wording), baseSalary is simply omitted from the schema.
   const payNums = (job.pay || "").match(/\d+(?:\.\d+)?/g)?.map(Number) ?? [];
   const baseSalary = payNums.length > 0 ? {
     "@type": "MonetaryAmount", "currency": "EUR",
@@ -282,6 +342,10 @@ export default function JobDetails({ job }) {
       ...(payNums.length >= 2 ? { minValue: payNums[0], maxValue: payNums[payNums.length - 1] } : { value: payNums[0] }) },
   } : undefined;
 
+  // Google's JobPosting structured data format — this is what makes the
+  // listing eligible to appear in Google's "Jobs" search results feature,
+  // separate from the regular Helmet meta tags used for normal link
+  // previews further down.
   const jsonLd = {
     "@context": "https://schema.org/",
     "@type": "JobPosting",
@@ -583,7 +647,12 @@ export default function JobDetails({ job }) {
         </div>
       )}
 
-      {/* Apply modal */}
+      {/* Apply modal — a single modal container whose content switches based
+          on `applyModal`'s value, acting as a small state machine for the
+          multi-step apply flow: noCV / notVerified (dead-end informational
+          states) -> shifts (choose "all" or "pick one") -> pickShift (shift
+          list) -> confirm (final review) -> screening (company's custom
+          questions, only if the job has any) -> submits via confirmApply(). */}
       {applyModal && (
         <div onClick={() => setApplyModal(null)} style={{ position: "fixed", inset: 0, backgroundColor: "rgba(15,23,42,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: "1rem", WebkitBackdropFilter: "blur(2px)", backdropFilter: "blur(2px)" }}>
           <div ref={applyModalRef} onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="Apply for job" style={{ backgroundColor: "var(--color-bg-elevated, white)", borderRadius: "1.25rem", padding: "2rem 1.75rem", maxWidth: "360px", width: "100%", textAlign: "center", boxShadow: "0 24px 64px rgba(0,0,0,0.2)" }}>

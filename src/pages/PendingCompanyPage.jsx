@@ -2,10 +2,22 @@
 import { useApp } from "../context/AppContext";
 import { signOut } from "../lib/auth";
 
+// PendingCompanyPage — shown to COMPANY users only, as a holding screen while
+// an admin reviews their account (companies are verified against their CRO
+// number, similar to how students are verified via ID upload).
+// The routing logic elsewhere in the app sends a logged-in company here
+// instead of the normal CompanyDashboard whenever their verificationStatus
+// isn't "verified" yet, so this is the only thing a pending/rejected company
+// can see until an admin acts on their account.
 export default function PendingCompanyPage() {
   const { currentUser, setCurrentUser } = useApp();
+  // Two possible non-verified states: "pending" (default, awaiting review)
+  // or "rejected" (admin declined them) — the copy below branches on this.
   const isRejected = currentUser?.verificationStatus === "rejected";
 
+  // Only action available here — there's no way to "retry" verification
+  // from this screen, so signing out (and presumably contacting support)
+  // is the only path forward for a rejected company.
   const handleSignOut = async () => {
     await signOut();
     setCurrentUser(null);

@@ -7,6 +7,10 @@ import { signOut as authSignOut } from "../lib/authOps";
 import { supabase } from "../lib/supabase";
 import { useApp } from "../context/AppContext";
 
+// Supabase doesn't give a single clean "this reset link expired" error code,
+// so this helper does some best-effort string/status sniffing on whatever
+// error message/status Supabase returns, to decide whether to show the
+// "link expired" screen instead of a generic error.
 function isExpiredLinkError(e) {
   const msg = (e?.message || "").toLowerCase();
   return (
@@ -18,6 +22,11 @@ function isExpiredLinkError(e) {
   );
 }
 
+// ResetPasswordPage — PUBLIC page reached only via the password-reset link
+// emailed to a user (student or company). Supabase authenticates the user
+// automatically via a token in the URL hash when they click that link, which
+// is what creates the temporary session this page relies on to update the
+// password.
 export default function ResetPasswordPage() {
   const { setPage, setPasswordRecoveryMode } = useApp();
   const [password, setPassword]   = useState("");
@@ -47,8 +56,15 @@ export default function ResetPasswordPage() {
     try {
       await updatePassword(password);
       // Sign out all sessions so the old token is fully invalidated after password change
+      // ({ scope: "global" } means "everywhere", not just this browser tab) —
+      // this is a security measure: if someone else had access to the old
+      // session (e.g. a stolen device), changing the password should kick
+      // them out too, not just the device that did the reset.
       await authSignOut({ scope: "global" });
       // Clear the recovery guard so the route becomes inaccessible again
+      // (passwordRecoveryMode is app-wide state that gates access to this
+      // page — without clearing it, the user could navigate back here after
+      // finishing, which wouldn't make sense once the password is already changed).
       setPasswordRecoveryMode(false);
       setSuccess(true);
       setTimeout(() => setPage("login"), 2500);

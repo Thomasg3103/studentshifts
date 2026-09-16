@@ -1,4 +1,14 @@
-﻿import { useState } from "react";
+﻿/*
+ * JobPostingCard — the summary card shown for each job in the company's "My
+ * Postings" list on the dashboard. Displays the job's photo, title, status,
+ * shift days, and a row of quick actions (View Applicants, Edit, Duplicate,
+ * Save as Template, Close/Reopen, Delete, Notify matching students, and a
+ * "Smart Matches" panel that lists verified students whose availability fits
+ * the job's shift days). Most actions are just callbacks passed down from the
+ * parent dashboard — this component is mostly presentational plus some local
+ * UI state (hover, template-name input, matches panel open/closed).
+ */
+import { useState } from "react";
 import { supabaseImg } from "../../utils/img";
 
 
@@ -8,6 +18,8 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onRe
   const isExpired = posting.status === "Expired";
   const rawPhoto  = posting.photos?.[0] || null;
   const photo     = supabaseImg(rawPhoto, 400);
+  // Crop settings (zoom/pan offsets) saved from JobForm's photo cropper, applied
+  // here via CSS transform so the same crop the company chose is shown on the card.
   const crop      = posting.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
   const postedAgo = (() => {
     if (!posting.createdAt) return null;
@@ -23,6 +35,7 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onRe
   const [templateNameInput, setTemplateNameInput] = useState("");
   const [showTemplateInput, setShowTemplateInput] = useState(false);
   const [showMatches,       setShowMatches]       = useState(false);
+  // "Closing soon" warning: deadline is set, still in the future, and within 3 days.
   const deadlineClose = posting.deadline && posting.deadline > today && (new Date(posting.deadline) - new Date(today)) / 86400000 <= 3;
 
   const deadlineLabel = posting.deadline
@@ -128,6 +141,9 @@ export default function JobPostingCard({ posting, onViewApplicants, onEdit, onRe
         {/* Secondary actions — wrap onto new lines on mobile */}
         <div style={{ display: "flex", gap: "0.35rem", flexWrap: "wrap", marginTop: "0.4rem" }}>
           {onLoadMatches && isActive && posting.days?.length > 0 && (
+            // Matches are fetched lazily — only the first time the panel is
+            // opened for this posting — and then cached by the parent (matchesData),
+            // so re-toggling the panel afterwards doesn't refetch.
             <button
               onClick={() => {
                 setShowMatches(v => !v);

@@ -2,11 +2,21 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import BackButton from "../components/BackButton";
 
+// PrivacyPolicyPage — PUBLIC legal page (no login required), linked from the
+// signup form's terms checkbox and from the site footer. Per CLAUDE.md this
+// is NOT something the app's code should be relied on for legal correctness —
+// it's a placeholder GDPR notice that still needs solicitor review before
+// full launch. The bulk of this file (below) is static legal copy broken
+// into numbered <Section> blocks with a matching table-of-contents; there's
+// very little actual app logic here beyond the "back to top" scroll button.
+// Update LAST_UPDATED/EFFECTIVE whenever the wording changes.
 const CONTACT_EMAIL = "privacy@studentshifts.ie";
 const LAST_UPDATED  = "7 June 2026";
 const EFFECTIVE     = "7 June 2026";
 
 export default function PrivacyPolicyPage() {
+  // Shows the floating "back to top" button once the reader has scrolled
+  // far enough down this (very long) document to need it.
   const [showTop, setShowTop] = useState(false);
   useEffect(() => {
     const handler = () => setShowTop(window.scrollY > 400);
@@ -40,7 +50,9 @@ export default function PrivacyPolicyPage() {
 
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 2rem" }}>
 
-          {/* TOC */}
+          {/* TOC — each link scrolls to the matching <Section id="section-N">
+              further down instead of doing a normal anchor jump, so the
+              scroll is smooth rather than an instant jump-cut. */}
           <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "1.5rem 2rem", marginBottom: "2.5rem" }}>
             <p style={tocHead}>Table of Contents</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "repeat(10, auto)", gridAutoFlow: "column", gap: "0 1.5rem" }}>
@@ -555,6 +567,12 @@ export default function PrivacyPolicyPage() {
 }
 
 /* ── Layout helpers ─────────────────────────────────────────────── */
+// Small presentational components used only within this page to keep the
+// huge block of legal text below organised and consistently styled:
+// Section wraps one numbered clause (adds the round number badge + heading
+// + scroll-anchor id so the table-of-contents links work); Card is a plain
+// bordered box; Grid/InfoBox lay out label-value pairs (e.g. contact details);
+// FullTable renders the various data-retention/processor tables.
 
 function Section({ num, title, children }) {
   return (

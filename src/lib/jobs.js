@@ -1,5 +1,10 @@
+// Job-related helpers that don't fit neatly under "just a Supabase call": building
+// SEO-friendly URL slugs for job listings (e.g. /jobs/barista/some-cafe), converting
+// slugs back into search terms to resolve a deep link, and reshaping raw `jobs` table
+// rows (snake_case, DB-shaped) into the camelCase object shape the UI components expect.
 import { supabase, withTimeout } from "./supabase";
 
+// Turns a job title into a URL-safe slug for shareable links, e.g. "Café Barista" -> "cafe-barista".
 export function toJobSlug(str) {
   if (!str) return '';
   // Decompose accented chars (e.g. é → e + combining accent) then strip combining marks
@@ -15,14 +20,24 @@ export function toJobSlug(str) {
   return slug;
 }
 
+// Reverses toJobSlug's dash-for-space swap so a URL slug can be turned back into a
+// search string. This is lossy (punctuation/accents were stripped when the slug was
+// made) which is exactly why fetchJobBySlug below does a fuzzy `ilike` match rather
+// than an exact lookup — slugs aren't stored in the DB, they're derived on the fly.
 export function fromJobSlug(slug) {
   return slug.replace(/-/g, ' ');
 }
 
+// Escapes Postgres ILIKE wildcard characters (% and _) in user/URL-derived text before
+// it's used in an `ilike` filter, so a title like "50% Off Shop" or "Under_25s Cafe"
+// is matched literally instead of `%`/`_` being treated as pattern wildcards.
 function escapeIlike(str) {
   return str.replace(/%/g, '\\%').replace(/_/g, '\\_');
 }
 
+// Converts a raw `jobs` table row (snake_case columns, nullable DB fields) into the
+// flat camelCase shape every UI component expects, filling in safe defaults (empty
+// arrays/strings) so components don't need null-checks everywhere they read a job.
 export function normaliseJobRow(job, companyName) {
   return {
     id:              job.id,
@@ -53,6 +68,10 @@ export function normaliseJobRow(job, companyName) {
   };
 }
 
+// Resolves a job's shareable URL (/jobs/:titleSlug/:companySlug) back to a single row.
+// Since slugs aren't stored — they're derived from the title — this has to search by
+// a fuzzy title match and then disambiguate using the company slug, because multiple
+// companies could plausibly post jobs with the same title (e.g. two "Barista" jobs).
 export async function fetchJobBySlug(titleSlug, companySlug) {
   const title   = fromJobSlug(titleSlug);
   const company = fromJobSlug(companySlug);
@@ -65,6 +84,8 @@ export async function fetchJobBySlug(titleSlug, companySlug) {
   if (error) throw error;
   if (!jobs?.length) throw new Error("Job not found");
 
+  // Job rows only store company_id, not the company's display name, so a second query
+  // against `profiles` is needed to get names to match/display against.
   const companyIds = [...new Set(jobs.map(j => j.company_id))];
   const { data: profiles } = await withTimeout(
     supabase.from("profiles").select("id, name").in("id", companyIds),
@@ -73,12 +94,19 @@ export async function fetchJobBySlug(titleSlug, companySlug) {
   const nameMap = {};
   if (profiles) profiles.forEach(p => { nameMap[p.id] = p.name; });
 
+  // Prefer the job whose company name matches the URL's company slug; if nothing
+  // matches exactly (e.g. company renamed since the link was shared), fall back to
+  // the first title match rather than 404ing on an otherwise-valid link.
   const match = jobs.find(j => (nameMap[j.company_id] || "").toLowerCase() === company.toLowerCase())
     ?? jobs[0];
 
   return normaliseJobRow(match, nameMap[match.company_id]);
 }
 
+// Batch-fetches jobs by id (e.g. for a student's liked-jobs list) in one round trip,
+// then joins in company names the same way fetchJobBySlug does. Swallows errors by
+// returning [] rather than throwing, since callers use this to hydrate a list where a
+// few missing/deleted jobs shouldn't break the whole page.
 export async function fetchJobsByIds(ids) {
   if (!ids.length) return [];
   const { data: jobs, error } = await withTimeout(

@@ -1,4 +1,43 @@
-﻿import { useState, useEffect, useRef, useCallback, useContext, useMemo, lazy, Suspense } from "react";
+﻿/**
+ * StudentShiftsWeb.jsx — the ROOT component of the entire app.
+ *
+ * Everything else in the app (every page, every dashboard) is rendered
+ * somewhere inside this component's tree. This file is responsible for
+ * three big jobs, all tangled together because they depend on each other:
+ *
+ * 1. ROUTING — defines every URL path the app responds to (<Routes>/<Route>
+ *    near the bottom of the file) using React Router. Pages are lazy-loaded
+ *    (see the `lazy(() => import(...))` list below) so the browser only
+ *    downloads the JS for a page when the user actually navigates to it,
+ *    instead of one giant bundle up front.
+ *
+ * 2. AUTH STATE — Supabase Auth is the source of truth for "is anyone logged
+ *    in, and as whom". This component subscribes to Supabase's
+ *    `onAuthStateChange` listener (see the big useEffect below) which fires
+ *    events like SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED etc. Whenever one of
+ *    those fires, this file reacts: loading the user's profile, redirecting
+ *    them to the right starting page, or clearing state on logout.
+ *
+ * 3. PROFILE LOADING + ROLE-BASED ROUTING — Supabase Auth only knows about
+ *    the login (email/password + session token). It doesn't know if this
+ *    person is a student, a company, or an admin, or whether a student has
+ *    been ID-verified yet. That extra info lives in our own `profiles` /
+ *    `students` / `companies` tables. After an auth event fires, this file
+ *    fetches that profile row (via `getProfile`), reshapes it into the
+ *    format the rest of the app expects (`normaliseProfile`), and stores it
+ *    in `currentUser` state. `currentUser` is then handed to every page via
+ *    React Context (see AppContext.Provider near the bottom) so any
+ *    component in the tree can read "who is logged in" without prop-drilling.
+ *
+ * Why routing and auth are combined in one file: which route a user is
+ * ALLOWED to see depends on `currentUser.role` (student/company/admin) and,
+ * for students, `currentUser.verificationStatus` (they must complete ID
+ * verification before they can apply to jobs or message companies). So the
+ * <Route> definitions below are guarded with checks like
+ * `currentUser?.role === "student"` — see the route guard comments further
+ * down for why each one exists.
+ */
+import { useState, useEffect, useRef, useCallback, useContext, useMemo, lazy, Suspense } from "react";
 import * as Sentry from "@sentry/react";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
@@ -10,6 +49,10 @@ import CookieBanner from "./components/CookieBanner";
 import BetaFeedback from "./components/BetaFeedback"; // BETA ONLY — remove before full launch
 import { PageSkeleton } from "./components/Skeleton";
 
+// Every page component is lazy-loaded: React.lazy() + dynamic import() means
+// Vite splits each page into its own JS chunk, downloaded only when a user
+// actually navigates there (see <Suspense fallback={<PageSkeleton />}> below,
+// which shows a loading skeleton while a chunk is being fetched).
 const StudentDashboard  = lazy(() => import("./pages/StudentDashboard"));
 const CompanyDashboard  = lazy(() => import("./pages/CompanyDashboard"));
 const LoginPage         = lazy(() => import("./pages/LoginPage"));
@@ -38,6 +81,11 @@ import { getProfile, fetchLikedJobIds, fetchAppliedJobIds, fetchApplicationStatu
 import { AppContext } from "./context/AppContext";
 
 // Map page-name strings to URL paths (for backwards-compat with setPage calls)
+// This app originally navigated by swapping which "page" was rendered in
+// state, before React Router was introduced. Lots of components still call
+// setPage("someName") instead of using React Router's navigate() directly.
+// This lookup table + the setPage() function below translate those old-style
+// calls into real URL navigations, so we didn't have to rewrite every caller.
 const PAGE_PATH = {
   studentDashboard:  "/",
   companyDashboard:  "/company",
@@ -61,8 +109,21 @@ const PAGE_PATH = {
   forum:             "/forum",
 };
 
-// Normalise Supabase profile shape to match what the app expects
+// Normalise Supabase profile shape to match what the app expects.
+//
+// Why this is needed: a raw Supabase query joins the shared `profiles` table
+// (id/name/email/role) with either the `students` or `companies` table
+// (whichever matches the user's role), depending on how the query was
+// written elsewhere in lib/auth.js. That join comes back as nested objects
+// (profile.students = {...} or profile.companies = {...}) with snake_case
+// column names straight from Postgres. The rest of the app (components,
+// forms) expects one FLAT object with camelCase keys, regardless of whether
+// the user is a student or a company. This function does that reshaping in
+// one place so every page can just read `currentUser.bio`, `currentUser.cvName`,
+// etc. without caring which underlying table the field came from.
 function normaliseProfile(profile) {
+  // Only one of profile.students / profile.companies will exist depending on
+  // the user's role — admins have neither, so `extra` falls back to {}.
   const extra = profile.students || profile.companies || {};
   return {
     id:                 profile.id,
@@ -107,7 +168,12 @@ export default function StudentShiftsWeb() {
   const dashboardScrollY = useRef(0);
   const [restoreScrollY, setRestoreScrollY] = useState(0);
 
-  // Track selectedJob via ref so setPage("jobDetails") can navigate synchronously
+  // Track selectedJob via ref so setPage("jobDetails") can navigate synchronously.
+  // Why both a ref AND state: setPage() is a plain callback (not a React event
+  // handler mid-render), so it needs the CURRENT job value immediately when
+  // called — reading from `selectedJob` state inside a useCallback would give
+  // a stale closure. The ref always has the latest value; the state copy is
+  // what actually triggers re-renders for anything that displays the job.
   const [selectedJob, setSelectedJob] = useState(null);
   const selectedJobRef = useRef(null);
 
@@ -116,7 +182,11 @@ export default function StudentShiftsWeb() {
     setSelectedJob(job);
   }, []);
 
-  // setPage — maps old page-name strings to navigate() calls
+  // setPage — maps old page-name strings to navigate() calls (see PAGE_PATH above).
+  // Special-cased for "jobDetails" because job detail URLs are built from the
+  // job's title/company (slugified) rather than being a fixed path — e.g.
+  // /jobs/barista/costa-coffee — and the job data itself is passed along via
+  // router state so JobDetailsRoute doesn't have to re-fetch it from Supabase.
   const setPage = useCallback((newPage) => {
     if (newPage === "jobDetails") {
       const job = selectedJobRef.current;
@@ -127,7 +197,10 @@ export default function StudentShiftsWeb() {
     if (path !== undefined) navigate(path);
   }, [navigate]);
 
-  // Scroll handling: save dashboard position before leaving; restore on return
+  // Scroll handling: save dashboard position before leaving; restore on return.
+  // Without this, clicking a job card, viewing its details, then hitting "back"
+  // would dump the student back at the TOP of the job feed instead of where
+  // they were scrolled to — annoying if they were 50 jobs down the list.
   useEffect(() => {
     const prev = locationRef.current;
     const curr = location.pathname;
@@ -172,14 +245,31 @@ export default function StudentShiftsWeb() {
       return next;
     });
   }, []);
+  // authLoading gates the whole app behind a spinner (see the `if (authLoading)`
+  // early return further down) until we know for sure whether someone is
+  // logged in. Without this, the app would briefly flash the logged-out
+  // landing page before Supabase finishes checking for an existing session.
   const [authLoading, setAuthLoading]       = useState(true);
   // Set to true only when Supabase fires PASSWORD_RECOVERY; gates the /reset-password route
   const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(false);
 
-  // Restore session on page load + listen for auth changes
+  // Restore session on page load + listen for auth changes.
+  //
+  // This is the most important effect in the app. supabase.auth.onAuthStateChange
+  // is a single subscription that fires an "event" any time the user's login
+  // state changes — including once immediately on mount with whatever session
+  // (if any) was restored from localStorage. We branch on `event` below to
+  // handle each case differently. See the comments on each `if` block for
+  // what triggers it and why it's handled that way.
   useEffect(() => {
+    // Failsafe: if Supabase's auth check hangs (flaky network, browser
+    // extension interference, etc.) we don't want the user stuck on the
+    // loading spinner forever — force the app to render after 6s regardless.
     const failsafe = setTimeout(() => setAuthLoading(false), 6000);
 
+    // Fetches a student's liked/applied job IDs + the actual job rows, in the
+    // background, AFTER the dashboard is already visible — so the user isn't
+    // stuck waiting on this extra data before they can see anything.
     async function loadStudentData(userId) {
       const [likedIds, appliedIds] = await Promise.all([
         fetchLikedJobIds(userId).catch(() => []),
@@ -199,6 +289,11 @@ export default function StudentShiftsWeb() {
     }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // INITIAL_SESSION fires exactly once, right after this listener is set
+      // up, whether or not a session exists. Supabase checks localStorage for
+      // a previously-saved session and reports what it found. This is how
+      // "stay logged in after refreshing the page" works — there's no
+      // separate login step needed, this event IS the restored login.
       if (event === "INITIAL_SESSION") {
         if (session?.user && session.user.email_confirmed_at) {
           try {
@@ -235,6 +330,13 @@ export default function StudentShiftsWeb() {
         clearTimeout(failsafe);
         setAuthLoading(false);
       }
+      // SIGNED_IN fires whenever the user actively completes a login (or
+      // signup that auto-logs-in, or clicks an email confirmation link).
+      // Unlike INITIAL_SESSION, this is a fresh action the user just took, so
+      // unlike INITIAL_SESSION (which preserves whatever URL the user was on)
+      // this branch ALWAYS redirects them to their role's home page —
+      // someone who just typed their password expects to land on their
+      // dashboard, not wherever the login form happened to be mounted.
       if (event === "SIGNED_IN" && session?.user) {
         try {
           const profile = await getProfile(session.user.id);
@@ -246,6 +348,10 @@ export default function StudentShiftsWeb() {
             return;
           }
           const user = normaliseProfile({ ...profile, email: profile.email || session.user.email });
+          // Belt-and-braces check: Supabase Auth normally won't issue a
+          // session for an unconfirmed email, but if one slips through
+          // (edge cases, race conditions) we sign them straight back out
+          // rather than letting an unverified account use the app.
           if (!session.user.email_confirmed_at) {
             await supabase.auth.signOut().catch(() => {});
             navigate("/login?unverified=1", { replace: true });
@@ -257,6 +363,11 @@ export default function StudentShiftsWeb() {
             window.gtag("config", import.meta.env.VITE_GA_MEASUREMENT_ID, { user_id: user.id });
           }
           if (user.role === "company") {
+            // Company signup collects CRO number + industries as Supabase Auth
+            // "user_metadata" (attached to the auth user at signup time), not
+            // directly in the `companies` table. The first time that company
+            // logs in, we copy those values into the real `companies` row if
+            // they're not already saved there — a one-time migration on login.
             const metaCro = session.user.user_metadata?.cro_number;
             if (metaCro && !user.croNumber) saveCompanyCroNumber(user.id, metaCro);
             const metaIndustries = session.user.user_metadata?.industries;
@@ -271,6 +382,13 @@ export default function StudentShiftsWeb() {
           console.error("Failed to load profile", e);
         }
       }
+      // TOKEN_REFRESHED fires automatically in the background whenever
+      // Supabase silently renews the access token before it expires (this
+      // keeps a logged-in session alive for days/weeks without the user
+      // having to log in again). We re-fetch the profile here mainly to pick
+      // up any changes made elsewhere (e.g. an admin approving verification
+      // while the tab was open) — if it fails, we just keep showing the
+      // existing `currentUser` rather than disrupting the session over it.
       if (event === "TOKEN_REFRESHED" && session?.user) {
         try {
           const profile = await getProfile(session.user.id);
@@ -279,6 +397,12 @@ export default function StudentShiftsWeb() {
           setCurrentUser(user);
         } catch { /* silently ignore — stale data not critical */ }
       }
+      // PASSWORD_RECOVERY fires when a user clicks the "reset your password"
+      // link from their email — Supabase logs them into a special temporary
+      // session just for setting a new password. passwordRecoveryMode is the
+      // flag that unlocks the /reset-password route (see the <Route> guard
+      // below) so this page can't be reached any other way, e.g. by someone
+      // just typing the URL in without a valid recovery link.
       if (event === "PASSWORD_RECOVERY") {
         setPasswordRecoveryMode(true);
         navigate("/reset-password", { replace: true });
@@ -286,6 +410,12 @@ export default function StudentShiftsWeb() {
         setAuthLoading(false);
         return;
       }
+      // SIGNED_OUT fires on explicit logout, or when Supabase forces a
+      // sign-out itself (e.g. the "profile missing" or "email unconfirmed"
+      // cases above). Wipes every piece of per-user state back to empty so
+      // nothing from the previous account lingers, and unsubscribes from all
+      // Supabase Realtime channels (see the effects below) since those were
+      // scoped to the now-logged-out user's id.
       if (event === "SIGNED_OUT") {
         supabase.removeAllChannels();
         setCurrentUser(null);
@@ -303,7 +433,13 @@ export default function StudentShiftsWeb() {
     return () => { clearTimeout(failsafe); subscription.unsubscribe(); };
   }, []);
 
-  // Real-time: watch students table for verification status changes
+  // Real-time: watch students table for verification status changes.
+  // When a student is in "pending_review" (they've uploaded their ID docs and
+  // are waiting on an admin), this subscribes to live database changes so
+  // that the MOMENT an admin approves/rejects them elsewhere, this tab
+  // updates and redirects automatically — no page refresh needed. Only runs
+  // while status is pending_review, since that's the only state where a
+  // change is expected/relevant.
   useEffect(() => {
     if (!currentUser || currentUser.role !== "student" || currentUser.verificationStatus !== "pending_review") return;
     const channel = supabase
@@ -329,12 +465,19 @@ export default function StudentShiftsWeb() {
     return () => { supabase.removeChannel(channel); };
   }, [currentUser?.id, currentUser?.verificationStatus]);
 
-  // Sync studentLocation when user logs in/out
+  // Sync studentLocation when user logs in/out.
+  // studentLocation drives the "distance from you" sorting/display on the
+  // job feed. It's kept separate from currentUser so it can also be updated
+  // live while browsing (e.g. clicking "use my current location") without
+  // mutating the profile object.
   useEffect(() => {
     setStudentLocation(currentUser?.savedLocation ?? null);
   }, [currentUser?.id]);
 
-  // Real-time: watch applications table for status changes
+  // Real-time: watch applications table for status changes.
+  // Powers the notification badge (see the effect below) — the moment a
+  // company accepts/rejects/moves a student's application through the
+  // hiring pipeline, this fires and the student sees it live.
   useEffect(() => {
     if (!currentUser || currentUser.role !== "student") { setAppStatuses({}); return; }
     // Initial fetch
@@ -356,7 +499,10 @@ export default function StudentShiftsWeb() {
     return () => { supabase.removeChannel(channel); };
   }, [currentUser?.id]);
 
-  // Recompute notification badge whenever statuses or applied jobs change
+  // Recompute notification badge whenever statuses or applied jobs change.
+  // "Pending" applications don't count — the badge is meant to draw
+  // attention to applications that have MOVED (accepted/rejected/shortlisted
+  // etc.), i.e. things the student hasn't seen yet, not just every application.
   useEffect(() => {
     if (!currentUser || currentUser.role !== "student") { setNotifCount(0); return; }
     const count = appliedJobs.reduce((acc, job) => {
@@ -366,7 +512,11 @@ export default function StudentShiftsWeb() {
     setNotifCount(count);
   }, [appStatuses, appliedJobs, currentUser?.id]);
 
-  // Message count badge — count distinct conversation threads with received messages
+  // Message count badge — count distinct conversation threads with received messages.
+  // Subscribes to new chat_messages INSERTs so the unread badge updates live
+  // while the app is open, but only re-fetches the count when the message
+  // was sent BY SOMEONE ELSE (payload.new.sender_id !== currentUser.id) —
+  // otherwise sending your own message would bump your own unread count.
   useEffect(() => {
     if (!currentUser || currentUser.role === "admin") { setMsgCount(0); return; }
     fetchMessageCount(currentUser.id, currentUser.role).then(setMsgCount).catch(() => {});
@@ -388,8 +538,17 @@ export default function StudentShiftsWeb() {
     return () => { supabase.removeChannel(channel); };
   }, [currentUser?.id]);
 
+  // Logged-out visitors at "/" see the marketing LandingPage instead of the
+  // Header/Footer chrome used everywhere else in the app (see the JSX below,
+  // where Header/AppFooter are conditionally skipped when isLanding is true).
   const isLanding = !currentUser && location.pathname === "/";
 
+  // Bundles every piece of shared state into one object and hands it down via
+  // AppContext.Provider (below) so any page/component can call useApp() to
+  // read currentUser, call setPage(), etc. without prop-drilling through every
+  // layer of the component tree. Wrapped in useMemo so this object only
+  // changes (and only triggers re-renders in consuming components) when one
+  // of the listed dependencies actually changes.
   const appContextValue = useMemo(() => ({
     currentUser, setCurrentUser,
     setPage,
@@ -412,6 +571,9 @@ export default function StudentShiftsWeb() {
     passwordRecoveryMode, darkMode, toggleDarkMode,
   ]);
 
+  // Block the entire app behind a loading screen until the INITIAL_SESSION
+  // check (or the failsafe timeout) finishes — prevents a flash of the
+  // logged-out landing page for users who are actually already logged in.
   if (authLoading) {
     return (
       <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--color-bg-subtle)" }}>
@@ -430,8 +592,29 @@ export default function StudentShiftsWeb() {
       <main id="main-content" style={{ minHeight: "100vh" }}>
         <ErrorBoundary>
           <Suspense fallback={<PageSkeleton />}>
+            {/*
+              ROUTE GUARDS — why routes check currentUser?.role / verificationStatus:
+
+              Since currentUser and its verificationStatus live in this component's
+              state (not in a server-side check), every protected route below
+              re-derives "is this person allowed here right now" on every render
+              by reading currentUser directly, rather than trusting the URL. This
+              means: (a) a student who isn't verified yet gets bounced to /verify
+              instead of seeing pages that require verification (applying,
+              messaging), (b) a company can't land on student-only pages and
+              vice versa, and (c) if a user's role/status changes while the app
+              is open (e.g. the real-time verification effect above fires),
+              routes react immediately since they're just reading state, not
+              doing a one-time check on page load. Unauthorized visits fall
+              back with <Navigate replace> to a sensible page rather than
+              erroring, so someone can't get stuck on a blank screen.
+            */}
             <Routes>
-              {/* Home / Student Dashboard / Landing */}
+              {/* Home / Student Dashboard / Landing.
+                  Logged out -> marketing landing page.
+                  Logged-in student who hasn't finished verification (no status,
+                  or still "pending") -> forced to /verify before they can browse.
+                  Everyone else (verified student, company, admin) -> job feed. */}
               <Route path="/" element={
                 !currentUser
                   ? <LandingPage />
@@ -451,19 +634,25 @@ export default function StudentShiftsWeb() {
               <Route path="/reset-password" element={passwordRecoveryMode ? <ResetPasswordPage /> : <Navigate to="/login" replace />} />
               <Route path="/email-verified" element={<EmailVerifiedPage />} />
 
-              {/* Student pages */}
+              {/* Student pages.
+                  /applied and /messages additionally require verificationStatus
+                  === "verified" — applying to jobs and messaging companies are
+                  the two actions gated behind ID verification, so an unverified
+                  student is sent to /verify instead of an empty page. */}
               <Route path="/account" element={currentUser?.role === "student" || currentUser?.role === "company" ? <AccountPage /> : <Navigate to="/login" replace />} />
               <Route path="/liked"   element={currentUser?.role === "student" ? <LikedJobs /> : <Navigate to="/" replace />} />
               <Route path="/applied" element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <AppliedJobs /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
               <Route path="/messages" element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <Messages /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <Navigate to="/" replace />} />
               <Route path="/verify"  element={currentUser?.role === "student" ? <VerifyDocsPage /> : <Navigate to="/" replace />} />
 
-              {/* Company pages */}
+              {/* Company pages. Companies aren't gated behind a verificationStatus
+                  check the way students are — /companies/:companyId (a public
+                  profile page) is intentionally open to anyone, verified or not. */}
               <Route path="/company" element={currentUser?.role === "company" ? <CompanyDashboard /> : <Navigate to="/" replace />} />
               <Route path="/company/messages" element={currentUser?.role === "company" ? <CompanyMessages /> : <Navigate to="/" replace />} />
               <Route path="/companies/:companyId" element={<CompanyProfilePage />} />
 
-              {/* Admin */}
+              {/* Admin — verification queue only; admins have no job/application access */}
               <Route path="/admin" element={currentUser?.role === "admin" ? <AdminPage /> : <Navigate to="/" replace />} />
 
               {/* Info pages */}
@@ -473,7 +662,12 @@ export default function StudentShiftsWeb() {
               <Route path="/help"    element={<HelpPage />} />
               <Route path="/contact" element={<ContactPage />} />
 
-              {/* Community */}
+              {/* Community.
+                  /forum is readable by anyone EXCEPT an unverified student —
+                  logged-out visitors, companies, and admins all get <ForumPage />
+                  directly, but a student mid-verification is redirected to
+                  /verify first (same "finish verification before participating"
+                  rule as /applied and /messages above). */}
               <Route path="/leaderboard" element={<LeaderboardPage />} />
               <Route path="/forum" element={currentUser?.role === "student" && currentUser?.verificationStatus === "verified" ? <ForumPage /> : currentUser?.role === "student" ? <Navigate to="/verify" replace /> : <ForumPage />} />
 
@@ -492,7 +686,18 @@ export default function StudentShiftsWeb() {
   );
 }
 
-// Job details route — handles in-app nav (job in state/memory) and direct URL access (fetches from DB)
+// Job details route — handles in-app nav (job in state/memory) and direct URL access (fetches from DB).
+//
+// A job details URL like /jobs/barista/costa-coffee can be reached two ways:
+// 1. In-app: user clicked a job card, setPage("jobDetails") ran, and the job
+//    object was passed along via router state (fast — no DB round-trip) or is
+//    still sitting in the selectedJob ref/state from StudentShiftsWeb.
+// 2. Direct URL: someone pastes/shares the link, or refreshes the page. There's
+//    no router state or in-memory job in that case, so we fetch it from
+//    Supabase by slug instead (fetchJobBySlug).
+// This component tries options 1 first (instant, no loading state) and only
+// falls back to fetching from the DB when neither is available or the slugs
+// don't match what's currently loaded.
 function JobDetailsRoute({ selectedJob }) {
   const { titleSlug, companySlug } = useParams();
   const location = useLocation();
@@ -554,6 +759,11 @@ function NotFoundPage() {
   );
 }
 
+// Shown after a user clicks the email confirmation link from Supabase — that
+// link logs them in (triggering SIGNED_IN above) and redirects here. This
+// page just displays a short "success" message, then auto-redirects to the
+// right home page for their role after a couple of seconds so the confirmation
+// feels like a deliberate step rather than an instant silent redirect.
 function EmailVerifiedPage() {
   const { currentUser } = useContext(AppContext);
   const navigate = useNavigate();

@@ -9,6 +9,17 @@ import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
 import { JobRowsSkeleton } from "../components/Skeleton";
 
+// Messages — STUDENT-only page for chatting with companies. There are two
+// distinct kinds of conversation here, shown as separate tabs:
+//   - "Job Chats": messaging tied to a specific job application. These only
+//     unlock once a company has accepted/shortlisted the student for that job
+//     (see Section 13 of the Terms — messaging isn't open to just anyone).
+//   - "Direct Messages": a company reached out to the student directly (e.g.
+//     via Browse Students) without a job application in play. These threads
+//     have jobId === null everywhere in this file, which is how the code
+//     tells the two conversation types apart.
+// Realtime updates (new incoming messages) are handled via a Supabase
+// Realtime channel subscription inside ChatThread, not by polling.
 function formatConvTime(isoStr) {
   if (!isoStr) return "";
   const d = new Date(isoStr);
@@ -70,6 +81,12 @@ function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMess
 
 const PAGE_SIZE = 30;
 
+// ChatThread — the actual message list + composer for one conversation.
+// jobId === null signals a "direct message" thread (no job attached);
+// otherwise this is a job-application thread. Handles: paginated message
+// loading (most recent 30 first, "Load earlier" fetches older pages),
+// live updates via Supabase Realtime, and optimistic sending (a message
+// appears instantly while the network request is still in flight).
 function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTitle }) {
   const [messages, setMessages]   = useState([]);
   const [input, setInput]         = useState("");
@@ -93,6 +110,12 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
     { label: "Interview Timing", text: `Hi ${companyName}! I'm very interested in the ${jobTitle || "position"} and available for an interview at your convenience — when would work best for you?` },
   ];
 
+  // Fetches an older page of messages and prepends them to the list.
+  // Note the scroll-height bookkeeping below (prevScrollHeightRef) — without
+  // it, prepending older messages to the top of the list would visually
+  // yank the conversation the user is currently reading further down the
+  // screen. Capturing the scroll height before the fetch lets a later effect
+  // restore the same relative scroll position after the new content is added.
   const loadEarlier = useCallback(async () => {
     if (loadingMore || !messages.length) return;
     setLoadingMore(true);
@@ -116,6 +139,11 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
       .catch(() => { setLoadError(true); })
       .finally(() => setLoading(false));
 
+    // Subscribe to new chat_messages rows via Supabase Realtime so incoming
+    // messages appear live without the student needing to refresh. The
+    // channel name is unique per conversation (job+student, or company+
+    // student for direct threads) so each open ChatThread only listens for
+    // its own messages.
     const channelName = isDirect ? `direct_${companyId}_${studentId}` : `msgs_${jobId}_${studentId}`;
 
     const channel = supabase
@@ -123,6 +151,10 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" },
         payload => {
           const { new: msg } = payload;
+          // The subscription isn't filtered server-side to this exact
+          // conversation, so every INSERT event needs a client-side check
+          // to confirm it actually belongs to the thread this component
+          // is showing before adding it to the message list.
           const isRelevant = isDirect
             ? (msg.student_id === studentId && msg.company_id === companyId && msg.job_id === null)
             : (msg.job_id === jobId && msg.student_id === studentId);
@@ -154,6 +186,12 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
     }
   }, [messages]);
 
+  // Sends a message optimistically: it's added to the UI immediately (with
+  // a temporary "opt_..." id) before the network request even starts, so
+  // the chat feels instant. If the send succeeds, the Realtime subscription
+  // above swaps the temporary message for the real database row. If it
+  // fails, the optimistic message is removed and the typed text is restored
+  // to the input so the student can retry.
   const send = async () => {
     const text = input.trim();
     if (!text || sending) return;
@@ -300,6 +338,9 @@ function ChatThread({ jobId, studentId, companyId, senderId, companyName, jobTit
   );
 }
 
+// Top-level Messages page: shows the list of conversations (job chats +
+// direct messages) until one is opened, at which point it swaps to a
+// full-height ChatThread view for that conversation (see `active` state below).
 export default function Messages() {
   const { currentUser, setPage, setMsgCount } = useApp();
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
@@ -313,9 +354,21 @@ export default function Messages() {
   const [loading, setLoading]             = useState(true);
   const [fetchError, setFetchError]       = useState(false);
   const [tab, setTab]                     = useState("jobs");
+  // The currently-open conversation (a row from either list), or null when
+  // showing the conversation list. Switching this in/out of null is how
+  // this page toggles between "inbox" and "open thread" views without a
+  // separate route — consistent with the rest of the app's page-switching.
   const [active, setActive]               = useState(null);
+  // Bumping this re-triggers the effect below to refetch conversations —
+  // used after returning from a thread, so read/unread state and last
+  // message previews are up to date.
   const [refreshKey, setRefreshKey]       = useState(0);
 
+  // Job chats and direct messages come from two separate queries (they're
+  // conceptually different relationships — application-based vs company-
+  // initiated), fetched in parallel. Only show the loading skeleton on the
+  // very first load (isInitial) — background refreshes after closing a
+  // thread shouldn't flash the skeleton again.
   useEffect(() => {
     if (!currentUser) { setLoading(false); return; }
     const isInitial = refreshKey === 0;
@@ -333,6 +386,9 @@ export default function Messages() {
     });
   }, [currentUser?.id, refreshKey]);
 
+  // Leaving a thread refreshes the conversation list (so its last-message
+  // preview and unread state update) and refreshes the global unread badge
+  // count shown elsewhere in the app's navigation.
   const goBack = () => {
     setActive(null);
     setRefreshKey(k => k + 1);
@@ -357,6 +413,13 @@ export default function Messages() {
     );
   }
 
+  // A conversation counts as "unread" when the LAST message in it was sent
+  // by the other party (not by this student) — there's no separate
+  // read/unread flag stored per message, so this is inferred purely from
+  // who sent the most recent message.
+  // A conversation counts as "unread" when the last message in it was sent
+  // by the other party (not this student) — there's no separate read/unread
+  // flag per message, so this is a simple heuristic based on who spoke last.
   const directUnread = directConvs.filter(c => c.lastSenderId && c.lastSenderId !== currentUser?.id).length;
   const jobsUnread   = conversations.filter(c => c.lastSenderId && c.lastSenderId !== currentUser?.id).length;
 

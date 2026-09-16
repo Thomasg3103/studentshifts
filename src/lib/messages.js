@@ -1,5 +1,14 @@
+// All chat/messaging reads and writes against `chat_messages`. A message thread is
+// identified by (job_id, student_id, company_id) — job_id is null for a direct
+// message not tied to a specific job posting. Most functions here don't just fetch
+// raw messages; they build the "conversation list" views (inbox previews with last
+// message + counterpart name/photo) that the UI actually renders, since that data
+// doesn't exist as a single table — it's assembled from messages + profiles + jobs.
 import { supabase, withTimeout, ensureValidSession } from "./supabase";
 
+// Batch-fetches avatar URLs for a list of user ids in one round trip via RPC, rather
+// than each conversation-list function doing its own per-user lookup (which would be
+// an N+1 query problem — one request per person instead of one request total).
 export async function getProfilePhotos(userIds) {
   if (!userIds?.length) return {};
   const { data } = await withTimeout(
@@ -9,6 +18,11 @@ export async function getProfilePhotos(userIds) {
   return Object.fromEntries((data || []).map(r => [r.id, r.profile_photo_url]));
 }
 
+// Unread-message badge count. "Unread" here just means "sent by the other party"
+// (.neq("sender_id", userId)) — there's no explicit read/unread flag on messages, so
+// this approximates it by counting distinct conversation threads that have any
+// message not sent by the current user. The Set dedupes so a thread with many
+// unread messages still counts as one unread conversation, not one per message.
 export async function fetchMessageCount(userId, role) {
   await ensureValidSession();
   if (role === "student") {
@@ -28,6 +42,12 @@ export async function fetchMessageCount(userId, role) {
   return 0;
 }
 
+// Fetches one page of a message thread, for both job-scoped chats (jobId given) and
+// direct messages (jobId === null). `before` is a cursor for "load older messages"
+// pagination — passing the oldest loaded message's timestamp fetches the page before it.
+// The query itself orders newest-first (needed so LIMIT grabs the most recent N
+// messages, not the oldest N), then .reverse() flips the page back to chronological
+// order for rendering top-to-bottom like a normal chat.
 export async function fetchMessages(jobId, studentId, companyId = null, { limit = 30, before = null } = {}) {
   await ensureValidSession();
   let query = supabase.from("chat_messages")
@@ -47,6 +67,9 @@ export async function fetchMessages(jobId, studentId, companyId = null, { limit 
   return (data || []).reverse();
 }
 
+// Loads a company <-> student direct-message thread in full (no pagination cursor,
+// just a hard cap) — used when opening a DM conversation, as opposed to fetchMessages
+// above which is the paginated version used for job-thread chats.
 export async function fetchAllMessagesWithStudent(studentId, companyId) {
   await ensureValidSession();
   const { data, error } = await withTimeout(
@@ -72,6 +95,10 @@ export async function sendMessage(jobId, studentId, companyId, senderId, text) {
     10000
   );
   if (error) throw error;
+  // Whichever side didn't send the message is the recipient — notify them via a push
+  // notification Edge Function. This is fire-and-forget (.catch swallows the error
+  // and nothing awaits it) so a failed/slow push notification never blocks the
+  // message from being sent or shown in the sender's own chat.
   const recipientId = senderId === studentId ? companyId : studentId;
   if (recipientId) {
     supabase.functions.invoke("send-push", {
@@ -81,6 +108,10 @@ export async function sendMessage(jobId, studentId, companyId, senderId, text) {
   return inserted;
 }
 
+// Builds the company's DM inbox list: one row per student they've direct-messaged,
+// showing the most recent message. There's no dedicated "conversations" table, so
+// this has to fetch ALL direct messages for this company, then reduce them down to
+// one (most-recent) entry per student — that's what the lastMsgMap loop below does.
 export async function fetchCompanyDirectConversations(companyId) {
   await ensureValidSession();
   const { data, error } = await withTimeout(
@@ -121,6 +152,8 @@ export async function fetchCompanyDirectConversations(companyId) {
     .sort((a, b) => (b.lastMessageAt || "").localeCompare(a.lastMessageAt || ""));
 }
 
+// Student-side mirror of fetchCompanyDirectConversations above: one inbox row per
+// company the student has exchanged direct messages with.
 export async function fetchStudentDirectConversations(studentId) {
   await ensureValidSession();
   const { data, error } = await withTimeout(
@@ -161,6 +194,10 @@ export async function fetchStudentDirectConversations(studentId) {
     .sort((a, b) => (b.lastMessageAt || "").localeCompare(a.lastMessageAt || ""));
 }
 
+// Builds the company's job-thread inbox: one conversation per (job, accepted
+// student) pair. Only Accepted applications are included — companies can only chat
+// about a job with students they've actually hired for it, not every applicant, so
+// this mirrors the RLS policy that would reject messages to a non-accepted student.
 export async function fetchCompanyConversations(companyId) {
   await ensureValidSession();
   const { data: jobs, error: jobsErr } = await withTimeout(
@@ -216,6 +253,8 @@ export async function fetchCompanyConversations(companyId) {
     .sort((a, b) => (b.lastMessageAt || "").localeCompare(a.lastMessageAt || ""));
 }
 
+// Student-side mirror of fetchCompanyConversations: lists the student's job-thread
+// conversations, one per job they were Accepted for.
 export async function fetchAcceptedConversations(userId) {
   await ensureValidSession();
   const { data: apps, error: appsErr } = await withTimeout(

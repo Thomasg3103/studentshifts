@@ -7,15 +7,27 @@ import { unlikeJob } from "../lib/auth";
 import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
 
+// LikedJobs — a STUDENT-only page (the "saved for later" list). Students can
+// tap the heart icon on any job card to add it here without committing to an
+// application. All the liked-job data actually lives in AppContext (likedJobs
+// state, shared with StudentDashboard so the heart icon stays in sync
+// everywhere) — this page is just a dedicated view of that list.
 export default function LikedJobs() {
   const { likedJobs, setLikedJobs, setSavedLikedJobIds, setSelectedJob, setPage, currentUser, savedAppliedJobIds = [] } = useApp();
 
+  // Unliking here does two things: update local UI state immediately
+  // (optimistic — no waiting on the network) and persist the removal to
+  // Supabase in the background. If the Supabase call fails, we don't roll
+  // back the UI — worst case the like reappears next time data is refetched.
   const removeLike = (job) => {
     setLikedJobs(prev => prev.filter(j => j.id !== job.id));
     setSavedLikedJobIds(prev => prev.filter(id => id !== job.id));
     unlikeJob(currentUser.id, job.id).catch(console.error);
   };
 
+  // Selecting a job stores it in shared context and switches the app's
+  // "page" state to the job details view — this app uses its own lightweight
+  // page-switching (via setPage) rather than relying solely on the router.
   const viewJob = (job) => {
     setSelectedJob(job);
     setPage("jobDetails");
@@ -43,7 +55,15 @@ export default function LikedJobs() {
             {likedJobs.map((job) => {
               const photo = supabaseImg(job.photos?.[0] || null, 240);
               const crop  = job.photoCrops?.[0] || { zoom: 1, offsetX: 0, offsetY: 0 };
+              // A liked job can go stale — the company may fill it (Closed) or
+              // it may pass its deadline (Expired) while it's still sitting in
+              // a student's liked list. We keep showing it (greyed out with a
+              // status badge) rather than silently removing it, so the student
+              // isn't confused about jobs disappearing from their saved list.
               const isClosed = job.status === "Closed" || job.status === "Expired";
+              // If the student already applied, hide the "Apply Now" button
+              // and show an "Applied" badge instead — savedAppliedJobIds is
+              // the persisted list of job IDs the student has applied to.
               const isApplied = savedAppliedJobIds.includes(job.id);
               return (
                 <div key={job.id} role="listitem" className="job-card" onClick={() => viewJob(job)} style={{ display: "flex", flexDirection: "row", alignItems: "stretch", padding: 0, overflow: "hidden", marginBottom: 0, opacity: isClosed ? 0.75 : 1, cursor: "pointer" }}>

@@ -1,6 +1,15 @@
+// Wraps Supabase Auth (supabase.auth.*) for every account lifecycle action: sign up,
+// sign in/out, password reset, email verification resend, and re-auth for sensitive
+// actions. This is separate from profile.js/jobs.js etc. because auth.* calls talk to
+// Supabase's auth service, not the Postgres tables directly — different subsystem,
+// different error shapes, so it gets its own file.
 import { supabase, withTimeout, invalidateSessionCache } from "./supabase";
 
 /** @param {{ email: string, password: string, name: string, role: "student"|"company", croNumber?: string, industries?: string[] }} params */
+// The `meta` object becomes the new user's auth.users.raw_user_meta_data. A Postgres
+// trigger (not shown here) reads this metadata right after signup to create the
+// matching row in `profiles` and either `students` or `companies` — so what goes in
+// `meta` here determines what that trigger has available to work with.
 export async function signUp({ email, password, name, role, croNumber, industries }) {
   if (role !== 'student' && role !== 'company') throw new Error('Invalid role');
   const meta = { name, role };
@@ -17,6 +26,10 @@ export async function signUp({ email, password, name, role, croNumber, industrie
 
 /** @param {{ email: string, password: string }} params — throws if credentials invalid or email unconfirmed */
 export async function signIn({ email, password }) {
+  // Drop the cached "session is valid" flag from supabase.js before logging in —
+  // otherwise a stale cache from a previous (now-invalid) session could make an
+  // early ensureValidSession() call elsewhere in the app think we're still logged
+  // in as the old user for a few seconds after this call resolves.
   invalidateSessionCache();
   const { data, error } = await withTimeout(
     supabase.auth.signInWithPassword({ email, password }),
@@ -60,6 +73,9 @@ export async function updatePassword(newPassword) {
   if (error) throw error;
 }
 
+// Calls a Supabase Edge Function (server-side code, not a direct auth.* call) because
+// re-sending the verification email needs the service-role key to look up the user by
+// email — something the client's anon key isn't allowed to do.
 export async function resendVerificationEmail(email) {
   const { error } = await withTimeout(
     supabase.functions.invoke("resend-verification", { body: { email } }),
@@ -69,6 +85,9 @@ export async function resendVerificationEmail(email) {
 }
 
 /** Re-authenticates the current user before a sensitive action. Throws "Incorrect password" on failure. */
+// Reuses signInWithPassword purely as a password check (e.g. before deleting an
+// account or changing an email) — Supabase has no dedicated "verify current password"
+// call, so signing in again with the same credentials is the standard workaround.
 export async function verifyPassword(email, password) {
   const { error } = await withTimeout(
     supabase.auth.signInWithPassword({ email, password }),

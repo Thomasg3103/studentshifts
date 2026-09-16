@@ -5,6 +5,12 @@ import PageWrapper from "../components/PageWrapper";
 import { signIn, sendPasswordReset, resendVerificationEmail } from "../lib/auth";
 import { useApp } from "../context/AppContext";
 
+// LoginPage — PUBLIC page, shown to anyone (student or company) signing in.
+// It doubles as the "forgot password" flow (toggled via forgotMode below)
+// so there's no separate route/page for that. After a successful sign-in,
+// routing logic elsewhere in the app (based on the user's role + verification
+// status) decides whether they land on the student dashboard, company
+// dashboard, or a pending/verification screen.
 export default function LoginPage() {
   const { setPage } = useApp();
   const [email, setEmail]         = useState("");
@@ -22,6 +28,10 @@ export default function LoginPage() {
   const [resendLoading, setResendLoading] = useState(false);
   const [resendDone, setResendDone]       = useState(false);
 
+  // If the user got bounced here with ?unverified=1 in the URL (e.g. they
+  // tried to log in with an unconfirmed email elsewhere in the flow), show
+  // the "resend confirmation email" prompt right away instead of making them
+  // hit the same error again.
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("unverified") === "1") {
       setUnverified(true);
@@ -40,6 +50,13 @@ export default function LoginPage() {
     }
   };
 
+  // Signs the user in via Supabase Auth. The error handling here is
+  // deliberately vague for most failures ("Invalid email or password") —
+  // this is a security best practice called "email enumeration prevention":
+  // if wrong-password and no-such-account gave different messages, an
+  // attacker could use the login form to discover which emails are
+  // registered. The unverified-email case is the one exception, since the
+  // user already knows their own email address, so there's nothing to leak.
   const handleLogin = async () => {
     if (!email || !password) { setError("Please enter your email and password."); return; }
     setLoading(true);
@@ -65,6 +82,8 @@ export default function LoginPage() {
     }
   };
 
+  // Countdown timer for the "resend in Ns" cooldown on the reset-password
+  // button, so a user can't spam Supabase's password-reset email endpoint.
   useEffect(() => {
     if (resetCooldown <= 0) return;
     const id = setInterval(() => setResetCooldown(c => c - 1), 1000);
@@ -80,8 +99,13 @@ export default function LoginPage() {
       await sendPasswordReset(resetEmail);
     } catch (e) {
       Sentry.captureException(e);
+      // Note there's no branch here that surfaces the error to the user —
+      // see the comment on the finally block below for why.
     } finally {
       // Always show "sent" regardless of whether the email exists (prevents enumeration)
+      // — same email-enumeration concern as handleLogin above: if we only
+      // showed the "sent!" message for emails that actually exist, an
+      // attacker could use this form to check which emails are registered.
       setResetSent(true);
       setResetCooldown(60);
       setResetLoading(false);

@@ -1,8 +1,21 @@
+/**
+ * HelpPage — public FAQ / support page (no login required).
+ *
+ * Renders a static list of frequently asked questions grouped by category
+ * (Getting Started, Verification, Applying, Messaging, Account, Companies)
+ * as collapsible <details> accordions. All the Q&A content lives in the
+ * FAQ_SECTIONS array below and is edited directly in this file — it isn't
+ * fetched from Supabase or any CMS. Doubles as informal in-app documentation
+ * for how features like verification and the hiring pipeline are meant to work.
+ */
 import { Helmet } from "react-helmet-async";
 import BackButton from "../components/BackButton";
 
 const SUPPORT_EMAIL = "support@studentshifts.ie";
 
+// Each entry is one FAQ category; each category has a list of {q, a} pairs
+// rendered as an accordion further down. Update answers here to change what
+// users see — no other file needs to change.
 const FAQ_SECTIONS = [
   {
     category: "Getting Started",

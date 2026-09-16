@@ -1,4 +1,14 @@
-﻿import { useState, useRef } from "react";
+﻿/*
+ * InterviewInviteModal — popup for sending an interview invite to an applicant,
+ * opened from DetailPanel (when moving an applicant from Shortlisted into
+ * Interview, or when scheduling a further interview round). Supports two modes:
+ *  - "fixed": company picks one specific date + time themselves.
+ *  - "slots": company offers up to 5 candidate date/time options and the student
+ *    picks one that works for them (saved to the interview_slots table, then
+ *    DetailPanel listens for the student's pick via Supabase Realtime).
+ * onSend handles the actual emailing; this component just builds the payload.
+ */
+import { useState, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { supabase } from "../../lib/supabase";
@@ -20,6 +30,10 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
   const removeSlot = (i) => setSlots(prev => prev.filter((_, idx) => idx !== i));
   const updateSlot = (i, key, val) => setSlots(prev => prev.map((s, idx) => idx === i ? { ...s, [key]: val } : s));
 
+  // In "slots" mode, the candidate date/times are written directly to the
+  // interview_slots table here (not through onSend) so the student can see and
+  // pick from them immediately; the DB insert is best-effort (wrapped so a DB
+  // failure doesn't block the invite email from still going out via onSend).
   const send = async () => {
     setSending(true);
     setError("");
@@ -103,6 +117,9 @@ export function InterviewInviteModal({ applicant, roundNumber, date: initialDate
           </div>
           <div>
             <label style={{ fontSize: "0.72rem", fontWeight: "700", color: "var(--color-text-secondary, #64748b)", textTransform: "uppercase", letterSpacing: "0.06em", display: "block", marginBottom: "0.3rem" }}>Microsoft Teams link <span style={{ fontWeight: "400", color: "#cbd5e1" }}>(optional)</span></label>
+            {/* Companies often paste the whole "Join Microsoft Teams Meeting" invite
+                block instead of just the URL — this extracts just the http(s) link
+                from whatever was pasted so the stored value stays clean. */}
             <input type="text" value={teamsLink} onChange={e => {
               const val = e.target.value;
               const urlMatch = val.match(/https?:\/\/\S+/i);

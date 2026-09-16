@@ -1,4 +1,27 @@
 ﻿/* eslint-disable react-refresh/only-export-components */
+/*
+ * ApplicantsView — the applicant-management screen shown when a company clicks
+ * "View applicants" on one of their job postings (see JobPostingCard.jsx). This
+ * is the heart of the hiring pipeline described in the project's CLAUDE.md:
+ * Applied → Shortlisted → Interview → Trial → Decision.
+ *
+ * Two ways to view the same data:
+ *  - List view: tabs per stage, with search/filter/sort and a compact row per
+ *    applicant (ApplicantRow). Selecting rows enables bulk shortlist/decline.
+ *  - Board view: a drag-and-drop Kanban board (KanbanBoard) with one column per
+ *    stage — dragging a card to another column calls the same stage-change
+ *    handler as the list view's buttons.
+ *
+ * Clicking any applicant (in either view) opens DetailPanel, a slide-in side
+ * panel with the applicant's full profile, documents, notes, and the actual
+ * stage-advancing actions (send interview invite, hire, decline, etc).
+ *
+ * A tricky bit worth understanding: the DB only stores ONE "interview" pipeline
+ * stage, but a company can run multiple interview rounds. To show separate
+ * "Interview Rd 1" / "Interview Rd 2" tabs/columns, this file invents "virtual
+ * stage keys" (e.g. "interview_2") that exist only in the UI — see
+ * getVirtualStageKey/resolveStageKey/buildDynamicStages just below.
+ */
 import { useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { supabaseImg } from "../../utils/img";
@@ -16,10 +39,15 @@ export const PIPELINE_STAGES = [
 ];
 
 // Returns a virtual stage key that includes the round number for interview stages
+// (e.g. an applicant on their 2nd interview round becomes "interview_2" instead
+// of just "interview") so the UI can show/filter by round even though the
+// database only tracks a single "interview" pipelineStage + a separate round number.
 export const getVirtualStageKey = (a) =>
   a.pipelineStage === "interview" ? `interview_${a.interviewRound || 1}` : a.pipelineStage;
 
-// Decodes a virtual stage key back to the DB stage + round
+// Decodes a virtual stage key back to the DB stage + round — the reverse of
+// getVirtualStageKey, used whenever an action needs to write the real
+// pipelineStage/interviewRound columns back to the database.
 export const resolveStageKey = (key) => {
   if (key.startsWith("interview_")) {
     return { dbStage: "interview", round: parseInt(key.replace("interview_", ""), 10) };
@@ -27,7 +55,10 @@ export const resolveStageKey = (key) => {
   return { dbStage: key, round: undefined };
 };
 
-// Builds the dynamic stage list, expanding interview rounds as they're added
+// Builds the dynamic stage list, expanding interview rounds as they're added.
+// Always shows at least "Interview Rd 1", and adds further round tabs/columns
+// only once an applicant has actually reached that round — so the number of
+// interview tabs grows automatically as this specific job's pipeline needs more rounds.
 export const buildDynamicStages = (applicants) => {
   const maxRound = applicants.reduce(
     (m, a) => a.pipelineStage === "interview" ? Math.max(m, a.interviewRound || 1) : m, 1
@@ -146,6 +177,10 @@ function ApplicantRow({ applicant, onClick, onHire, onDecline, onQuickShortlist,
 
 /* ─── KanbanBoard ────────────────────────────────────────────────────────── */
 
+// Drag-and-drop kanban view of the pipeline: one column per (virtual) stage,
+// applicant cards can be dragged between columns to change their stage. Since
+// native HTML5 drag-and-drop doesn't work on touch devices, mobile falls back
+// to a "Move to…" <select> dropdown on each card instead (see isMobile below).
 function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
   const [draggingId, setDraggingId]       = useState(null);
   const [dragOverStage, setDragOverStage] = useState(null);
@@ -162,6 +197,9 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
 
   const stageBgColor = () => "var(--color-bg-surface, #f8fafc)";
 
+  // Fires when a dragged card is released over a column. Only actually moves the
+  // applicant if they were dropped on a DIFFERENT stage than they're already in
+  // — dropping back on the same column is a no-op, not an error.
   const handleDrop = (e, targetKey) => {
     e.preventDefault();
     setDragOverStage(null);
@@ -325,7 +363,7 @@ function KanbanBoard({ applicants, stages, onSelectApplicant, onMoveToStage }) {
 
 export default function ApplicantsView({ posting, onUpdateStatus, onStageChange, onNotesSaved, onCloseJob, companyId, onIncrementRound, onSaveTrialSchedule, onSaveInterviewRoundsData, onSendInterviewInvite, onSendTrialInvite, likedStudents, viewMode }) {
   const [activeStage, setActiveStage]             = useState("applied");
-  const [selectedApplicant, setSelectedApplicant] = useState(null);
+  const [selectedApplicant, setSelectedApplicant] = useState(null); // opens DetailPanel when set
   const [showCloseJob, setShowCloseJob]           = useState(false);
   const [search, setSearch]                       = useState("");
   const [sortBy, setSortBy]                       = useState("default"); // "default" | "name_asc" | "name_desc" | "status"
@@ -335,9 +373,9 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
   const [filterTransport, setFilterTransport]     = useState(""); // "" | "Own car" | "Public transport" | "Cycling / walking"
   const [filterCanStart, setFilterCanStart]       = useState(""); // "" | "immediately" | "1week" | "2weeks" | "1month"
   const [filterExperience, setFilterExperience]   = useState(""); // "" | "none" | "under1" | "1to3" | "3plus"
-  const [selectionMode, setSelectionMode]         = useState(false);
+  const [selectionMode, setSelectionMode]         = useState(false); // true while the checkbox/bulk-action UI is active
   const [selectedIds, setSelectedIds]             = useState(new Set());
-  const [invitedIds, setInvitedIds]               = useState(new Set());
+  const [invitedIds, setInvitedIds]               = useState(new Set()); // tracks who got an invite THIS session, for the "Invite sent" badge
   const [bulkShortlisting, setBulkShortlisting]   = useState(false);
   const [bulkDeclining, setBulkDeclining]         = useState(false);
   const [showBulkDeclineModal, setShowBulkDeclineModal] = useState(false);
@@ -381,10 +419,20 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
   });
 
   // Keep selected applicant in sync when parent state updates (stage/notes changes)
+  // selectedApplicant is a snapshot taken at the moment it was clicked — if the
+  // parent's posting.applicants array later refreshes (e.g. after a stage change
+  // elsewhere), this re-looks-up the same applicant by id so DetailPanel always
+  // shows current data instead of the stale snapshot.
   const liveSelected = selectedApplicant
     ? posting.applicants.find(a => a.id === selectedApplicant.id) || selectedApplicant
     : null;
 
+  // Advances an applicant to a new (virtual) stage: resolves the virtual key back
+  // to a real DB stage/round, fires the parent's update, closes the detail panel,
+  // and switches the active tab to follow the applicant into their new stage.
+  // Also fires a Google Ads "generate_lead" conversion event the first time
+  // someone reaches Interview Rd 1 — this is a marketing/analytics hook, not
+  // something that affects the applicant's data.
   const handleStageAction = async (applicationId, stageKey) => {
     const { dbStage, round } = resolveStageKey(stageKey);
     await onStageChange(applicationId, dbStage, round);
@@ -402,6 +450,11 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
     setActiveStage(`interview_${currentRound + 1}`);
   };
 
+  // Bulk-shortlists every currently-selected applicant who is still in "Applied"
+  // + Pending — applicants already moved elsewhere are silently skipped rather
+  // than erroring, since selection can include people who changed stage since
+  // being selected. Runs sequentially (not Promise.all) and swallows individual
+  // failures so one bad request doesn't abort the rest of the batch.
   const bulkShortlist = async () => {
     const pendingApplied = [...selectedIds].filter(id => {
       const a = posting.applicants.find(x => x.id === id);
@@ -417,6 +470,10 @@ export default function ApplicantsView({ posting, onUpdateStatus, onStageChange,
     toast.success(`${pendingApplied.length} applicant${pendingApplied.length !== 1 ? "s" : ""} shortlisted`);
   };
 
+  // Bulk decline is a two-step flow: this just gathers the selected Pending
+  // applicants and opens a confirmation modal (since declining sends each of
+  // them a rejection email and can't be undone) — confirmBulkDecline below does
+  // the actual work once the company confirms.
   const bulkDecline = () => {
     const pendingSelected = [...selectedIds].filter(id => {
       const a = posting.applicants.find(x => x.id === id);

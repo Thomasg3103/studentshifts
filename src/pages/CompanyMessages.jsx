@@ -1,4 +1,15 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+﻿/**
+ * CompanyMessages — company-only inbox page ("Messages" tab of the company
+ * dashboard flow).
+ *
+ * Shows two kinds of conversations with students: "Job Chats" (threads tied
+ * to a specific job application — jobId is set) and "Direct Messages"
+ * (company reached out to a student directly via Browse Students — jobId is
+ * null). Conversation lists come from lib/auth helpers; the actual chat
+ * view (ChatThread below) subscribes to Supabase Realtime so new messages
+ * appear live without polling or a page refresh.
+ */
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -70,6 +81,10 @@ function ConvCard({ avatarUrl, avatarName, name, subtitle, lastMessage, lastMess
 
 const PAGE_SIZE = 30;
 
+// The actual chat window for one conversation — message list, "load
+// earlier" pagination, quick-reply templates, and the send box. Used for
+// both job-tied chats and direct messages; `isDirect` (jobId === null)
+// switches which quick-reply text set and Realtime channel are used.
 function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTitle }) {
   const [messages, setMessages]       = useState([]);
   const [input, setInput]             = useState("");
@@ -80,9 +95,15 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
   const [loadingMore, setLoadingMore] = useState(false);
   const msgListRef = useRef(null);
   const inputRef   = useRef(null);
+  // Remembers scroll height right before "load earlier" fetches older
+  // messages, so we can restore the scroll position afterwards instead of
+  // jumping the view to the top of the newly-prepended messages.
   const prevScrollHeightRef = useRef(null);
 
   const isDirect = jobId === null;
+  // Canned opening lines companies can tap to start a conversation quickly
+  // — wording differs slightly depending on whether this is a cold outreach
+  // (direct message, no application yet) or a response to an applicant.
   const quickReplies = isDirect ? [
     { label: "Hiring Opportunity", text: `Hi ${studentName}! We came across your profile and think you could be a great fit for our team. We have a part-time opportunity coming up — would you be interested in hearing more?` },
     { label: "We'd Love to Have You", text: `Hi ${studentName}! We've been impressed by your profile and would love to have you on our team. Please reply here and we'll be in touch with all the details!` },
@@ -93,6 +114,9 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
     { label: "Tell Us More", text: `Hi ${studentName}! We're very interested in your application. Could you tell us a bit more about your availability and any relevant experience you have?` },
   ];
 
+  // Fetches an older page of messages when the student scrolls up and taps
+  // "Load earlier messages" — uses the oldest currently-loaded message's
+  // timestamp as the cursor so it always fetches the next page backwards.
   const loadEarlier = useCallback(async () => {
     if (loadingMore || !messages.length) return;
     setLoadingMore(true);
@@ -118,6 +142,13 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
 
     const channelName = isDirect ? `direct_${companyId}_${studentId}` : `msgs_${jobId}_${studentId}`;
 
+    // Supabase Realtime subscription — listens for new rows inserted into
+    // chat_messages so both sides of the conversation see new messages
+    // instantly without polling. We filter client-side (isRelevant) to
+    // only react to inserts belonging to this exact conversation, and we
+    // de-dupe against the optimistic message we already added locally in
+    // send() below (matched by sender+text) so a sent message doesn't
+    // briefly appear twice.
     const channel = supabase
       .channel(channelName)
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "chat_messages" },
@@ -151,6 +182,11 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
     }
   }, [messages]);
 
+  // Sends a message with an "optimistic" UI update: the message is added
+  // to the local list immediately (with a temporary "opt_" id) so the chat
+  // feels instant, before the Supabase write even completes. If the write
+  // fails, the optimistic message is rolled back and the text is restored
+  // to the input box so nothing is lost.
   const send = async () => {
     const text = input.trim();
     if (!text || sending) return;
@@ -269,6 +305,8 @@ function ChatThread({ jobId, studentId, companyId, senderId, studentName, jobTit
 export default function CompanyMessages() {
   const { currentUser, setPage, setMsgCount } = useApp();
   const navigate = useNavigate();
+  // Below 1024px the layout switches from a side-by-side list+chat view to
+  // a single-pane "list, then tap in to full-screen chat" mobile pattern.
   const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
   useEffect(() => {
     const onResize = () => setIsMobile(window.innerWidth < 1024);
@@ -283,6 +321,11 @@ export default function CompanyMessages() {
   const [active, setActive]               = useState(null);
   const [refreshKey, setRefreshKey]       = useState(0);
 
+  // Loads both conversation lists (job chats + direct messages) whenever
+  // the company logs in or refreshKey changes (bumped when returning from
+  // an open chat, so unread counts/last-message previews stay fresh).
+  // isInitial guards against showing a full-page loading skeleton on every
+  // refresh — only the very first load blocks the UI.
   useEffect(() => {
     if (!currentUser) { setLoading(false); return; }
     const isInitial = refreshKey === 0;
@@ -296,11 +339,17 @@ export default function CompanyMessages() {
       if (failed) { setFetchError(true); }
       setConversations(convs);
       setDirectConvs(directs);
+      // If there are no job chats but there are direct messages, default to
+      // the tab that actually has content instead of showing an empty list.
       if (isInitial && convs.length === 0 && directs.length > 0) setTab("direct");
       if (isInitial) setLoading(false);
     });
   }, [currentUser?.id, refreshKey]);
 
+  // Leaving an open chat: clears the active thread, re-fetches conversation
+  // previews (so the list reflects the message just sent/read), and
+  // refreshes the global unread message badge count shown elsewhere in the
+  // app nav (e.g. a nav bar icon).
   const goBack = () => {
     setActive(null);
     setRefreshKey(k => k + 1);
@@ -326,6 +375,9 @@ export default function CompanyMessages() {
     );
   }
 
+  // A conversation counts as "unread" when the most recent message wasn't
+  // sent by the current (company) user — i.e. the student sent the last
+  // message and the company hasn't replied/viewed it yet.
   const directUnread = directConvs.filter(c => c.lastSenderId && c.lastSenderId !== currentUser?.id).length;
   const jobsUnread   = conversations.filter(c => c.lastSenderId && c.lastSenderId !== currentUser?.id).length;
 

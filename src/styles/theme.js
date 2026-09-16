@@ -1,3 +1,21 @@
+/**
+ * theme.js — the app's design tokens: a single source of truth for colors,
+ * font sizes, spacing, border radius, shadows, and breakpoints.
+ *
+ * Why this exists: the app uses inline styles (style={{ ... }}) rather than
+ * a CSS framework (see CLAUDE.md), which normally makes it easy for colors
+ * and spacing to drift — one component using "#B8007A" and another using a
+ * slightly different pink by accident. Importing values from this file
+ * instead of hardcoding them keeps everything visually consistent and means
+ * a brand color change only has to happen in ONE place.
+ *
+ * Note: many components in this codebase currently use CSS custom properties
+ * instead (e.g. `var(--color-brand)`, set up for dark-mode theme switching —
+ * see the `darkMode`/`data-theme` logic in StudentShiftsWeb.jsx). This file
+ * predates or complements that approach, holding the base palette and scale
+ * values as plain JS numbers/strings for places that import them directly
+ * rather than through CSS variables.
+ */
 const theme = {
   colors: {
     // Primary
@@ -15,7 +33,12 @@ const theme = {
     success: '#00A86B',
     error: '#D9341A',
 
-    // Semantic aliases
+    // Semantic aliases — same hex values as above, but named by ROLE
+    // (primary, textMuted, bgCard...) rather than by literal color name.
+    // Prefer using these in components: if the brand color ever changes from
+    // magenta to something else, code that referenced `theme.colors.primary`
+    // needs no changes, while code that referenced `theme.colors.magenta`
+    // would suddenly have a misleading name.
     primary: '#B8007A',
     primaryHover: '#6B0047',
     textPrimary: '#1A1A1A',
@@ -92,6 +115,8 @@ const theme = {
     lg: '0 8px 24px rgba(0,0,0,0.12)',
   },
 
+  // Screen-width cutoffs for responsive layout (e.g. "switch to a
+  // single-column layout below theme.breakpoints.md").
   breakpoints: {
     sm: '640px',
     md: '768px',

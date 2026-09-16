@@ -1,5 +1,22 @@
 ﻿/* eslint-disable react-refresh/only-export-components */
 /* ─── Shared constants and small utility components ─────────────────────── */
+/*
+ * This file is the "toolbox" for the company dashboard — it doesn't render a
+ * page on its own. Instead every other file in src/pages/company/ (ApplicantsView,
+ * BrowseStudents, DetailPanel, CloseJobModal, JobForm, etc.) imports pieces from
+ * here so they don't each redefine the same constants/components.
+ *
+ * What lives here:
+ *  - weekdays / timeSlots / DAY_ABBR / DAYS — the canonical list of days & time
+ *    slots used anywhere a shift schedule or availability grid is shown.
+ *  - StudentAvailabilityRow — compact "Mon 9am-5pm" pills used on student cards.
+ *  - StatCard / Section — small presentational building blocks (dashboard stat
+ *    tiles, labelled content sections).
+ *  - Modal — the generic popup wrapper (dark backdrop + centered white card)
+ *    that most of the company dashboard's dialogs are built from.
+ *  - AvailabilityHeatmap — the day/time grid used in "Browse Students" to show
+ *    how many verified students are free at a given slot.
+ */
 import { useEffect } from "react";
 
 export const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -9,11 +26,15 @@ export const DAY_ABBR = { Monday: "Mon", Tuesday: "Tue", Wednesday: "Wed", Thurs
 // Used by AvailabilityHeatmap
 export const DAYS = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
+// Renders a student's weekly availability as small day pills (e.g. "Mon 9am-5pm").
+// Used on student cards in Browse Students / Saved Students so companies can see
+// at a glance when someone is free, without opening their full profile.
 export function StudentAvailabilityRow({ availability }) {
   if (!availability || Object.keys(availability).length === 0) return null;
   const hasAny = weekdays.some(d => availability[d]?.length > 0);
   if (!hasAny) return null;
 
+  // Converts a "HH:MM" 24-hour string into a short "9am"/"5pm" label for display.
   const fmt = (t) => { const [h] = t.split(":"); const n = parseInt(h); if (n === 0) return "12am"; if (n < 12) return `${n}am`; if (n === 12) return "12pm"; return `${n - 12}pm`; };
   const renderDay = (day) => {
     const slots = availability[day] || [];
@@ -82,7 +103,16 @@ export function Section({ label, children }) {
   );
 }
 
+// Generic modal wrapper: dark backdrop + centered white card with a title bar
+// and scrollable body. Other files build their own custom dialogs (e.g.
+// CloseJobModal, JobForm's crop modal) rather than reusing this one, but simple
+// popups elsewhere in the dashboard use it directly.
 export function Modal({ title, children, onClose }) {
+  // While the modal is open, lock the page behind it in place. Just setting
+  // `overflow: hidden` on the body isn't enough on mobile — iOS Safari will still
+  // let the background scroll/bounce underneath a fixed-position modal. Pinning
+  // the body with `position: fixed` at its current scroll offset stops that, and
+  // the cleanup function restores the original scroll position when the modal closes.
   useEffect(() => {
     const scrollY = window.scrollY;
     document.body.style.overflow = "hidden";
@@ -131,7 +161,13 @@ export function Modal({ title, children, onClose }) {
 
 const SLOTS = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
 
+// A day-by-hour grid where each cell's color intensity shows how many verified
+// students are available at that slot — darker = more students. `data` is expected
+// as data[day][timeSlot] = count. Helps companies pick shift times with the
+// biggest available pool before posting a job.
 export function AvailabilityHeatmap({ data }) {
+  // `max` is used to normalise every cell's color intensity against the busiest
+  // slot in the whole grid (capped at 1 so an all-empty grid doesn't divide by 0).
   const allCounts = DAYS.flatMap(d => SLOTS.map(s => data[d]?.[s] || 0));
   const max = Math.max(...allCounts, 1);
 

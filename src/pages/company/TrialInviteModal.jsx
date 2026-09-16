@@ -1,4 +1,12 @@
-﻿import { useState, useRef } from "react";
+﻿/*
+ * TrialInviteModal — popup for inviting an applicant to a trial shift, opened
+ * from DetailPanel's "Send Trial Invite" button once an applicant reaches the
+ * Trial pipeline stage. Lets the company pick a date/time (via TimeWheelPicker's
+ * pickers) and write an optional note; onSend does the actual emailing and
+ * saving of trialDate/trialTime on the application record — this component just
+ * collects the input.
+ */
+import { useState, useRef } from "react";
 import * as Sentry from "@sentry/react";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 import { TimeWheelPicker, DateStepper } from "./TimeWheelPicker";
@@ -12,6 +20,8 @@ export function TrialInviteModal({ applicant, date: initialDate, time: initialTi
   const modalRef = useRef(null);
   useFocusTrap(modalRef, onClose);
 
+  // Delegates the actual send (email + saving trial date/time) to the parent via
+  // onSend; this component only owns the form fields and loading/error state.
   const send = async () => {
     setSending(true);
     setError("");

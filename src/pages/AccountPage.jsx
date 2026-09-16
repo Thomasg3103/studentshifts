@@ -1,4 +1,24 @@
-﻿import { useState, useEffect, useRef, useCallback } from "react";
+﻿/**
+ * AccountPage — the logged-in user's own profile/settings page. Shared by
+ * both students and companies (the `isStudent`/`isCompany` checks below
+ * branch which sections render), so this single file covers two quite
+ * different experiences:
+ *   - Students: bio, skills, availability timetable, job preferences,
+ *     location (for distance-to-job calculations), CV/cover letter
+ *     uploads, work experience history, referral code, notification
+ *     preferences, and account deletion/export/logout.
+ *   - Companies: bio, website, industries, cover photo, and the same
+ *     account-management actions (export/delete/logout).
+ *
+ * Almost every field here **autosaves** — there's no single "Save" button
+ * for most fields. Text inputs debounce (wait ~300ms-1.5s after the user
+ * stops typing) before calling saveField()/saveCompanyField(), which write
+ * straight to Supabase and mirror the change into the global `currentUser`
+ * in AppContext so the rest of the app sees the update immediately.
+ * `dirtyFields` + the beforeunload warning below exist so a user can't
+ * accidentally navigate away mid-autosave and silently lose an edit.
+ */
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import Cropper from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
@@ -41,6 +61,10 @@ const PART_TIME_SKILLS = [
   "Gardening & Landscaping", "Car Washing", "Parking Attendant",
 ];
 
+// Crops an image to a square (for profile photos) using an off-screen
+// canvas — takes the pixel region the user selected in the Cropper UI and
+// draws just that region into a new, size-capped (max 600px) canvas, then
+// exports it as a JPEG Blob ready to upload.
 async function getCroppedBlob(imageSrc, pixelCrop) {
   const image = await new Promise((resolve, reject) => {
     const img = new Image();
@@ -57,6 +81,9 @@ async function getCroppedBlob(imageSrc, pixelCrop) {
   return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.92));
 }
 
+// Same idea as getCroppedBlob but keeps the crop's original aspect ratio
+// (rectangular, not forced square) and caps width instead of a fixed
+// square size — used for the wider company cover photo.
 async function getCroppedBlobRect(imageSrc, pixelCrop) {
   const image = await new Promise((resolve, reject) => {
     const img = new Image();
@@ -74,6 +101,13 @@ async function getCroppedBlobRect(imageSrc, pixelCrop) {
   return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", 0.9));
 }
 
+// Simple module-level (in-memory) cache for a few slower-changing pieces of
+// data — notification preferences, work history, and referral info — so
+// that navigating away from Account and back doesn't re-fetch them every
+// time within a short window (ACCT_TTL = 5 minutes). Keyed loosely by
+// `userId` since the cache only ever holds one user's data at a time (the
+// currently logged-in one) — it's cleared implicitly whenever userId
+// no longer matches the current user.
 const _acctCache = {
   notifPrefs: null, notifPrefsFetchedAt: 0,
   workHistory: null, workHistoryFetchedAt: 0,
@@ -223,7 +257,10 @@ export default function AccountPage() {
     }).catch(() => {});
   }, [currentUser.role]);
 
-  // Autosave text fields 1.5s after the user stops typing
+  // Autosave text fields 1.5s after the user stops typing.
+  // (Despite the comment above, the actual debounce here is 300ms — the
+  // 1.5s figure refers to other autosaved fields elsewhere on the page
+  // that call saveField directly with their own timing.)
   const autoSaveRef = useRef(null);
   const triggerAutoSave = (fields, userUpdate) => {
     setDirtyFields(true);
@@ -236,7 +273,9 @@ export default function AccountPage() {
   };
   useEffect(() => () => clearTimeout(autoSaveRef.current), []);
 
-  // Warn if navigating away before autosave completes
+  // Warn if navigating away before autosave completes — standard
+  // beforeunload confirmation dialog, only armed while `dirtyFields` is
+  // true (i.e. there's a pending debounced save that hasn't landed yet).
   useEffect(() => {
     if (!dirtyFields) return;
     const handler = (e) => { e.preventDefault(); e.returnValue = ""; };
@@ -304,6 +343,10 @@ export default function AccountPage() {
 
   // ── Auto-save helper (students only) ───────────────────────────────────
   // Pass an optional `userUpdate` object to also sync currentUser state (camelCase keys).
+  // `fields` uses the DB's snake_case column names (sent straight to
+  // Supabase via updateStudentProfile); `userUpdate` uses the app's
+  // camelCase shape for updating the in-memory currentUser — they're kept
+  // as two separate objects because the two naming conventions differ.
   const saveField = async (fields, userUpdate) => {
     setDirtyFields(false);
     setSaving(true);
@@ -386,6 +429,10 @@ export default function AccountPage() {
   };
 
   // ── Profile Photo auto-upload ────────────────────────────────────────────
+  // Two-step flow: selecting a file opens the crop UI (Cropper component)
+  // rather than uploading immediately, so the user can frame/crop their
+  // photo before it's saved. handleCropConfirm (below) does the actual
+  // upload once cropping is confirmed.
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -410,6 +457,10 @@ export default function AccountPage() {
     try {
       const blob = await getCroppedBlob(cropSrc, croppedAreaPixels);
       const file = new File([blob], "avatar.jpg", { type: "image/jpeg" });
+      // Show the cropped photo immediately via a local blob: URL — the
+      // page doesn't wait for the Supabase upload to finish before the
+      // user sees their new photo, it's swapped for the real hosted URL
+      // once the upload completes below.
       setProfilePhoto(URL.createObjectURL(blob));
       const url = await uploadAvatar(currentUser.id, file);
       if (isCompany) {
@@ -488,6 +539,12 @@ export default function AccountPage() {
   };
 
   // ── Availability ICS export ──────────────────────────────────────────────
+  // Builds a downloadable .ics calendar file (the standard calendar-invite
+  // format) from the student's weekly availability grid, so they can
+  // import their available-to-work times into Google/Apple/Outlook
+  // Calendar. Each slot becomes a weekly-recurring event (RRULE) anchored
+  // to the next occurrence of that weekday — entirely generated client-side
+  // as a plain text Blob, no server involved.
   const exportAvailabilityIcs = () => {
     const dayNumbers = { Monday: 1, Tuesday: 2, Wednesday: 3, Thursday: 4, Friday: 5, Saturday: 6, Sunday: 0 };
     const byDayMap   = { 0: "SU", 1: "MO", 2: "TU", 3: "WE", 4: "TH", 5: "FR", 6: "SA" };
@@ -546,6 +603,11 @@ export default function AccountPage() {
   };
 
   // ── Export ───────────────────────────────────────────────────────────────
+  // GDPR-style "download my data" feature. Rate-limited to once per 24
+  // hours per user — enforced two ways: a localStorage timestamp check
+  // here (fast, avoids an unnecessary request) AND a matching check in the
+  // backend/DB (the catch block below handles that server-side rejection
+  // too, in case localStorage was cleared or a different device is used).
   const EXPORT_COOLDOWN_MS = 86_400_000; // 24 hours — mirrors DB rate limit
   const handleExport = async () => {
     const lastKey = `export_last_${currentUser.id}`;
@@ -581,6 +643,11 @@ export default function AccountPage() {
   };
 
   // ── Delete / Logout ──────────────────────────────────────────────────────
+  // Permanently deletes the current user's own account (distinct from the
+  // admin-triggered delete in AdminPage). Clears any locally-stashed
+  // "seen notification" flags for this user, signs out, resets the app's
+  // in-memory liked/applied job lists, then redirects to signup — since
+  // there's no account left to return to.
   const handleDeleteAccount = async () => {
     setDeleting(true);
     setDeleteError("");
@@ -1200,7 +1267,11 @@ export default function AccountPage() {
                 </div>
               </div>
 
-              {/* DM Consent */}
+              {/* DM Consent — controls whether companies can cold-message this
+                  student via Browse Students (see CompanyDashboard/BrowseStudents)
+                  even before the student has applied to any of their jobs.
+                  Defaults to allowed (allowCompanyDm !== false above) so students
+                  have to opt out rather than opt in. */}
               <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "0.85rem", padding: "1rem 1.1rem", marginBottom: "0.75rem" }}>
                 <p style={{ fontWeight: "700", fontSize: "0.7rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "var(--color-text-secondary, #64748b)", margin: "0 0 0.5rem" }}>Messaging</p>
                 <label style={{ display: "flex", alignItems: "center", gap: "0.75rem", cursor: "pointer" }}>
@@ -1670,6 +1741,15 @@ function PreviewRow({ ok, warn, label, detail, truncate }) {
 const IE_BBOX = "-10.56,51.39,-5.43,55.43";
 const suggestCache = new Map();
 
+// Lets a student set their home location, used elsewhere in the app to show
+// "X km away" distances on job listings. Offers three ways to set it:
+// free-text address/Eircode search with autocomplete suggestions (via the
+// Photon geocoding API, restricted to Ireland's bounding box), a manual
+// address-fields fallback if the search can't find a match, or one-tap GPS
+// (browser geolocation). Whichever method succeeds calls applyGeoResult,
+// which saves the resulting lat/lng to Supabase and updates both the
+// AccountPage's local state and the app-wide `studentLocation` used for
+// distance calculations on job cards.
 function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLocation, onSaved }) {
   const [locationAddress, setLocationAddress] = useState(savedLoc?.displayName || "");
   const [locationCoords, setLocationCoords]   = useState(savedLoc ? { lat: savedLoc.lat, lng: savedLoc.lng, displayName: savedLoc.displayName } : null);
@@ -1692,6 +1772,10 @@ function LocationSection({ savedLoc, currentUser, setCurrentUser, setStudentLoca
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Fetches address autocomplete suggestions as the user types (debounced
+  // by the caller). Results are cached in the module-level `suggestCache`
+  // Map so repeated searches for the same text (e.g. backspacing then
+  // retyping) don't re-hit the external geocoding API.
   const fetchSuggestions = async (q) => {
     if (q.length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
     if (suggestCache.has(q)) {
@@ -1910,6 +1994,10 @@ function DocRow({ label, filename }) {
   );
 }
 
+// Generic reusable file-upload control (used for CV, cover letter, and
+// elsewhere for verification documents) — handles its own local
+// uploading/uploaded/error UI state, but delegates the actual upload logic
+// to whichever `onUpload` handler the parent passes in (e.g. handleCvUpload).
 function FileUpload({ label, hint, accept, onUpload, existingName, required }) {
   const [uploading, setUploading] = useState(false);
   const [uploaded, setUploaded]   = useState(false);

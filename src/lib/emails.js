@@ -1,5 +1,18 @@
+// Transactional email templates and the sendEmail() helper that dispatches them.
+// The templates below just build raw HTML strings (no React/JSX — these are meant to
+// be pasted into an <html> email body and need to render in email clients, which
+// don't support modern CSS, hence the inline styles and <table>-based layout instead
+// of flexbox/grid). Sending is delegated to a Supabase Edge Function ("send-email"),
+// which actually talks to Brevo (the transactional email provider) — the browser
+// never contacts Brevo directly, both because that would expose an API key and
+// because Brevo doesn't allow calls from client-side JS.
 import { supabase } from "./supabase";
 
+// Escapes HTML-significant characters before user-supplied text (names, notes, job
+// titles, etc.) gets interpolated into a raw HTML string below. Without this, a
+// student or company entering something like `<script>` as their name could break
+// the email's layout or, worse, inject content into an email sent to someone else —
+// this is the email-template equivalent of preventing XSS.
 function escapeHtml(str) {
   return String(str)
     .replace(/&/g, "&amp;")
@@ -9,12 +22,20 @@ function escapeHtml(str) {
     .replace(/'/g, "&#39;");
 }
 
+// Sends an email by invoking the "send-email" Edge Function with a `to` address and
+// whatever the caller passes as the rest of the body (subject, html, etc — built
+// from the template functions below).
 export async function sendEmail({ to, ...rest }) {
   const { error } = await supabase.functions.invoke("send-email", {
     body: { to, ...rest },
   });
   if (error) {
     // Extract real error body from FunctionsHttpError context
+    // Supabase's functions.invoke() wraps a non-2xx response in a generic
+    // FunctionsHttpError whose .message isn't very useful — the actual reason (e.g.
+    // "Brevo API rejected this address") is in the response body, so it has to be
+    // read out of `error.context` (the raw Response object) to surface something
+    // the caller/user can actually act on.
     const body = error.context instanceof Response
       ? await error.context.json().catch(() => null)
       : (error.context ?? null);
@@ -23,6 +44,11 @@ export async function sendEmail({ to, ...rest }) {
   }
 }
 
+// Sent when an admin approves a student's ID verification.
+// The href "MAGIC_LINK_PLACEHOLDER" isn't a real link — it's a marker the send-email
+// Edge Function swaps out server-side for an actual Supabase magic sign-in link right
+// before sending. That substitution has to happen server-side because generating a
+// magic link requires the service-role key, which the browser never has access to.
 export function emailStudentApproved(name) {
   const safeName = escapeHtml(name);
   return `<!DOCTYPE html>
@@ -68,6 +94,7 @@ export function emailStudentApproved(name) {
 </html>`;
 }
 
+// Sent when an admin approves a company's verification (CRO number confirmed).
 export function emailCompanyApproved(name, appUrl) {
   const safeName = escapeHtml(name);
   const safeUrl  = /^https?:\/\//i.test(appUrl) ? escapeHtml(appUrl) : '#';
@@ -114,6 +141,7 @@ export function emailCompanyApproved(name, appUrl) {
 </html>`;
 }
 
+// Sent to a student when a company hires them for a job (moves an application to Accepted).
 export function emailApplicantAccepted(studentName, jobTitle, companyName, shift = null) {
   const sName = escapeHtml(studentName);
   const jTitle = escapeHtml(jobTitle);
@@ -163,6 +191,9 @@ export function emailApplicantAccepted(studentName, jobTitle, companyName, shift
 </html>`;
 }
 
+// Sent when a company declines an application. `remainingShifts` covers the
+// multi-shift case: if the student is still in the running for other shifts on the
+// same job, the email says so instead of reading as a full rejection.
 export function emailApplicantDeclined(studentName, jobTitle, companyName, shift = null, remainingShifts = []) {
   const sName = escapeHtml(studentName);
   const jTitle = escapeHtml(jobTitle);
@@ -212,6 +243,7 @@ export function emailApplicantDeclined(studentName, jobTitle, companyName, shift
 </html>`;
 }
 
+// Sent when an admin rejects a student's ID verification documents.
 export function emailStudentRejected(name) {
   const safeName = escapeHtml(name);
   return `<!DOCTYPE html>
@@ -249,6 +281,7 @@ export function emailStudentRejected(name) {
 </html>`;
 }
 
+// Sent when an admin rejects a company's verification (CRO number couldn't be confirmed).
 export function emailCompanyRejected(name) {
   const safeName = escapeHtml(name);
   return `<!DOCTYPE html>
@@ -286,6 +319,9 @@ export function emailCompanyRejected(name) {
 </html>`;
 }
 
+// Sent to a student when a company messages them directly (not via a job application)
+// from Browse Students — lets a student know to check their inbox even if they
+// weren't actively applying anywhere.
 export function emailCompanyInterested(studentName, companyName) {
   const sName = escapeHtml(studentName);
   const cName = escapeHtml(companyName);
@@ -334,6 +370,9 @@ export function emailCompanyInterested(studentName, companyName) {
 </html>`;
 }
 
+// Sent when a company moves an applicant to the interview pipeline stage and sets a
+// date/time. `teamsLink` is optional — only included if the company provided one for
+// a remote interview.
 export function emailInterviewInvite(studentName, companyName, jobTitle, date, time, note, teamsLink) {
   const sName     = escapeHtml(studentName);
   const cName     = escapeHtml(companyName);
@@ -398,6 +437,7 @@ export function emailInterviewInvite(studentName, companyName, jobTitle, date, t
 </html>`;
 }
 
+// Sent when a company declines an applicant after the interview stage.
 export function emailInterviewRejection(studentName, jobTitle, companyName) {
   const sName = escapeHtml(studentName);
   const jTitle = escapeHtml(jobTitle);
@@ -444,6 +484,8 @@ export function emailInterviewRejection(studentName, jobTitle, companyName) {
 </html>`;
 }
 
+// Sent when a company moves an applicant to the trial-shift pipeline stage and sets
+// a date/time for the trial.
 export function emailTrialInvite(studentName, companyName, jobTitle, date, time, note) {
   const sName     = escapeHtml(studentName);
   const cName     = escapeHtml(companyName);
@@ -505,6 +547,7 @@ export function emailTrialInvite(studentName, companyName, jobTitle, date, time,
 </html>`;
 }
 
+// Sent to a company when a student applies to one of their job postings.
 export function emailNewApplicant(companyName, jobTitle, applicantName, dashboardUrl) {
   const cName = escapeHtml(companyName);
   const jTitle = escapeHtml(jobTitle);
@@ -553,6 +596,9 @@ export function emailNewApplicant(companyName, jobTitle, applicantName, dashboar
 </html>`;
 }
 
+// Sent to a student when a newly posted job's days/times overlap with their saved
+// availability — a proactive "this might interest you" nudge rather than a reaction
+// to something the student themselves did.
 export function emailShiftAvailable(studentName, companyName, jobTitle, jobDays, jobLocation) {
   const sName = escapeHtml(studentName);
   const cName = escapeHtml(companyName);
@@ -613,6 +659,7 @@ export function emailShiftAvailable(studentName, companyName, jobTitle, jobDays,
 </html>`;
 }
 
+// Sent when a company declines an applicant after they completed a trial shift.
 export function emailTrialRejection(studentName, jobTitle, companyName) {
   const sName = escapeHtml(studentName);
   const jTitle = escapeHtml(jobTitle);

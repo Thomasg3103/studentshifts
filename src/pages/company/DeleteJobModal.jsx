@@ -1,3 +1,11 @@
+/*
+ * DeleteJobModal — confirmation dialog shown when a company clicks "Delete" on a
+ * job posting card (see JobPostingCard.jsx). Unlike CloseJobModal (which ends a
+ * job's hiring process normally), this permanently removes the posting, so the
+ * modal asks for a reason mainly to prevent accidental clicks — every reason
+ * button just triggers the same `confirm()` deletion, the reason itself isn't
+ * currently sent anywhere.
+ */
 import { useState, useRef } from "react";
 import toast from "react-hot-toast";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
@@ -14,6 +22,9 @@ export function DeleteJobModal({ posting, onClose, onDelete }) {
   const modalRef = useRef(null);
   useFocusTrap(modalRef, onClose);
 
+  // All three "reason" buttons call this same function — the reason is just UX
+  // framing to make the company pause before an irreversible delete; it isn't
+  // stored or passed to onDelete.
   const confirm = async () => {
     setConfirming(true);
     try { await onDelete(); onClose(); }

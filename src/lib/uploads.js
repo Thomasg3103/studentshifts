@@ -1,3 +1,8 @@
+// Handles every file upload in the app: CVs/cover letters and student ID/gov ID
+// verification docs (private buckets), plus avatar and cover photos (public bucket).
+// Every upload function follows the same pattern — validate extension AND real MIME
+// type, enforce a size cap, upload to a path scoped by the user's own id (so Storage
+// RLS policies can restrict each user to their own folder), then clean up old files.
 import { supabase, withTimeout } from "./supabase";
 
 const ALLOWED_DOC_TYPES   = new Set(["pdf", "doc", "docx"]);
@@ -20,6 +25,11 @@ const EXT_TO_CONTENT_TYPE = {
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 };
 
+// Generic private-document uploader, reused for CVs, cover letters, and (via
+// uploadVerificationDocs below) student ID / government ID scans. `fileName` is a
+// fixed logical name (e.g. "cv", "student_id") rather than the user's original
+// filename — that keeps the storage path predictable so other code always knows
+// where to find a given document without having to store the filename separately.
 export async function uploadDocument(userId, file, bucket, fileName) {
   const ext = file.name.split(".").pop()?.toLowerCase() || "";
   const isVerificationDoc = bucket === "verification-docs";
@@ -45,6 +55,9 @@ export async function uploadDocument(userId, file, bucket, fileName) {
   return path;
 }
 
+// Uploads both verification documents and flips the student's status to
+// "pending_review" so they show up in the admin verification queue (see admin.js /
+// AdminPage.jsx). The two files upload in parallel since they're independent.
 export async function uploadVerificationDocs(userId, studentIdFile, governmentIdFile) {
   const [studentIdPath, govIdPath] = await Promise.all([
     uploadDocument(userId, studentIdFile, "verification-docs", "student_id"),
@@ -60,11 +73,15 @@ export async function uploadVerificationDocs(userId, studentIdFile, governmentId
   );
   if (error || !updated?.length) {
     // Roll back uploaded files — either DB error or no row found to update
+    // Without this, a failed DB write would leave orphaned files sitting in the
+    // verification-docs bucket that the UI has no record of and can't clean up later.
     await supabase.storage.from("verification-docs").remove([studentIdPath, govIdPath]).catch(() => {});
     throw error || new Error("Account not found — please sign out, sign back in, and try again.");
   }
 }
 
+// Public profile photo. Unlike documents, this goes to the public `avatars` bucket
+// (readable by anyone) since profile photos need to display without a signed URL.
 export async function uploadAvatar(userId, file) {
   const ext = file.name.split(".").pop()?.toLowerCase() || "";
   if (!ALLOWED_IMAGE_TYPES.has(ext)) throw new Error(`File type .${ext} is not allowed. Please upload a JPG, PNG, WebP or GIF.`);
@@ -81,6 +98,9 @@ export async function uploadAvatar(userId, file) {
     10000, "Photo upload timed out — profile saved without new photo."
   );
   if (error) throw error;
+  // Appending a timestamp query param busts the browser's (and any CDN's) cache for
+  // this URL — otherwise re-uploading a photo to the same path could keep showing the
+  // old cached image even though the file in storage has changed.
   const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
   return publicUrl + "?t=" + Date.now();
 }
@@ -105,8 +125,16 @@ export async function uploadCoverPhoto(userId, file) {
   return publicUrl + "?t=" + Date.now();
 }
 
+// Generates a temporary signed URL for a private document (CV, cover letter,
+// verification doc) so it can be viewed/downloaded without making the whole bucket
+// public. The 60-second expiry means the link is only good for that page load — it
+// has to be re-requested each time the document is viewed, which limits how long a
+// leaked/shared link would keep working.
 export async function getSignedDocumentUrl(bucket, path) {
   let cleanPath = path;
+  // Some stored paths are full public URLs left over from data created before this
+  // bucket became private; strip everything down to just the storage-relative path
+  // that createSignedUrl expects.
   if (path && path.startsWith("http")) {
     const marker = `/object/public/${bucket}/`;
     const idx = path.indexOf(marker);

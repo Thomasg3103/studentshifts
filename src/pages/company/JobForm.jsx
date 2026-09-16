@@ -1,4 +1,37 @@
-﻿import { useState, useRef, useEffect, useMemo, useCallback } from "react";
+﻿/*
+ * ============================================================================
+ * JobForm — the job posting create/edit form
+ * ============================================================================
+ * This is the form behind "Post a Job" and "Edit" on the company dashboard.
+ * It's a fairly large, self-contained piece of UI covering:
+ *
+ *   - Category & Title — category picks from a fixed list (data/jobCategories.js);
+ *     title options depend on the chosen category. Both support an "Other…" free-text
+ *     fallback for categories/titles that aren't in the preset lists (see the
+ *     customCategory/customTitle state below).
+ *   - Live match count — as the company sets category/skills, a debounced call
+ *     to a Supabase RPC shows how many verified students currently match, so
+ *     they get early warning if a category is too narrow.
+ *   - Location — takes an Eircode/address, geocodes it via geocodeAddress() to
+ *     get lat/lng for map/distance features, with a manual fallback form if
+ *     geocoding fails.
+ *   - Days & shift times — pick which weekdays the job needs covering and an
+ *     optional start time per day; a "Weekend Required" toggle auto-selects
+ *     Saturday & Sunday.
+ *   - Photos — up to 10 photos. Every newly added photo goes through a crop
+ *     modal (react-easy-crop) before being attached to the form; existing saved
+ *     photos get a separate lightweight drag-to-reposition/zoom preview instead
+ *     of the full crop modal.
+ *   - Screening questions — up to 5 yes/no or free-text questions shown to
+ *     applicants, with an optional "knockout" flag on yes/no questions.
+ *
+ * IMPORTANT: `formData` and `setFormData` are owned by the parent (CompanyDashboard),
+ * not local state — this component just reads/writes into that shared object, plus
+ * a handful of purely-local UI states (crop modal, location search box, etc.)
+ * that don't need to live in the saved form data itself.
+ * ============================================================================
+ */
+import { useState, useRef, useEffect, useMemo, useCallback } from "react";
 import Cropper from "react-easy-crop";
 import "react-easy-crop/react-easy-crop.css";
 import toast from "react-hot-toast";
@@ -8,6 +41,9 @@ import { jobCategories } from "../../data/jobCategories";
 import { weekdays, timeSlots } from "./shared";
 import { supabase } from "../../lib/supabase";
 
+// Downscales + crops an image client-side (canvas) to the pixel rect chosen in
+// the crop modal, capping the output width at 1800px so uploaded job photos
+// don't bloat storage/bandwidth with unnecessarily huge originals.
 async function getCroppedBlobRect(imageSrc, pixelCrop) {
   const image = await new Promise((resolve, reject) => {
     const img = new Image();
@@ -40,6 +76,15 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
   const isEdit = !!formData.id;
   const set = (key) => (e) => setFormData(prev => ({ ...prev, [key]: e.target.value }));
 
+  // ── Live "students matching this category" preview ──────────────────────
+  // Shows a banner (rendered further down) telling the company roughly how many
+  // verified students would currently match this job's category/skills — helps
+  // them notice early if they've picked too narrow a category before posting.
+  //
+  // Debounced: every keystroke/change to category or skills resets a 600ms
+  // timer rather than firing a Supabase RPC call on every change, so typing
+  // quickly (or picking through several categories) doesn't spam the database
+  // with a request per change — only the final settled value gets queried.
   const [matchCount, setMatchCount] = useState(null);
   const matchTimerRef = useRef(null);
 
@@ -54,12 +99,19 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         .then(({ data }) => { if (data !== null) setMatchCount(data); })
         .catch(() => {});
     }, 600);
+    // Cleanup cancels any pending timer if the component unmounts or the effect
+    // re-runs before the 600ms elapses (i.e. the debounce itself).
     return () => clearTimeout(matchTimerRef.current);
   }, [formData.category, formData.skills]);
 
   const categoryNames = Object.keys(jobCategories);
 
-  // Photo preview state — initialise from saved crops when editing
+  // ── Photo preview state ──────────────────────────────────────────────────
+  // This is a SEPARATE, lighter-weight reposition/zoom control from the crop
+  // modal below — it applies to the currently-selected thumbnail (existing or
+  // newly-cropped) and just stores an offset/zoom transform (cropSettings),
+  // rather than actually re-cropping the image file. Initialised from any crops
+  // already saved on the posting (formData.photoCrops) when editing an existing job.
   const [previewIndex, setPreviewIndex] = useState(0);
   const [cropSettings, setCropSettings] = useState(() => {
     const saved = formData.photoCrops || [];
@@ -69,17 +121,28 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
   });
   const [isDragging, setIsDragging]     = useState(false);
   const previewRef  = useRef(null);
+  // Not React state on purpose — drag start position needs to be read/written
+  // synchronously inside the mousemove handler without waiting for a re-render.
   const dragRef     = useRef({ active: false, startX: 0, startY: 0, originX: 0, originY: 0, idx: 0 });
 
-  // Crop modal state
+  // ── Crop modal flow ───────────────────────────────────────────────────────
+  // When a company picks new photo files, each one goes through a full crop
+  // modal (react-easy-crop, 4:3 aspect) one at a time. `cropQueue` holds the
+  // remaining files still waiting to be cropped after the current one is
+  // confirmed, so multi-file uploads step through the modal sequentially
+  // instead of trying to crop them all at once.
   const [cropQueue, setCropQueue]                   = useState([]);
   const [activeCropFile, setActiveCropFile]         = useState(null);
   const [activeCropSrc, setActiveCropSrc]           = useState(null);
   const [jobCrop, setJobCrop]                       = useState({ x: 0, y: 0 });
   const [jobCropZoom, setJobCropZoom]               = useState(1);
   const [jobCroppedAreaPixels, setJobCroppedAreaPixels] = useState(null);
+  // react-easy-crop reports the crop rectangle in raw pixels via this callback;
+  // memoized so the Cropper component doesn't re-subscribe on every render.
   const onJobCropComplete = useCallback((_, pixels) => setJobCroppedAreaPixels(pixels), []);
 
+  // Kicks off the crop modal for one file, reading it into a data URL for the
+  // Cropper to display. `queue` is whatever files are still waiting after this one.
   const openCropForFile = (file, queue = []) => {
     setCropQueue(queue);
     setActiveCropFile(file);
@@ -88,6 +151,10 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
     reader.readAsDataURL(file);
   };
 
+  // Confirms the crop for the file currently in the modal: crops it to a real
+  // JPEG File object and appends it to formData.photoFiles, then — if there are
+  // more files queued from a multi-select — immediately opens the modal again
+  // for the next one, chaining through the whole queue.
   const handleJobCropConfirm = async () => {
     if (!activeCropSrc || !jobCroppedAreaPixels) return;
     const blob = await getCroppedBlobRect(activeCropSrc, jobCroppedAreaPixels);
@@ -104,6 +171,8 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
   const getCrop = (idx) => cropSettings[idx] || { zoom: 1, offsetX: 0, offsetY: 0 };
   const setCrop = (idx, patch) => setCropSettings(prev => ({ ...prev, [idx]: { ...(prev[idx] || { zoom: 1, offsetX: 0, offsetY: 0 }), ...patch } }));
 
+  // Begins a drag-to-reposition gesture on the banner preview (see the mousemove
+  // listener just below, which does the actual dragging math).
   const startDrag = (clientX, clientY) => {
     const crop = getCrop(previewIndex);
     dragRef.current = {
@@ -117,6 +186,9 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
     setIsDragging(true);
   };
 
+  // Global mouse/touch listeners for the drag-to-reposition preview — attached
+  // to `window` (not the preview element) so dragging still tracks correctly
+  // even if the cursor moves outside the small preview box mid-drag.
   useEffect(() => {
     const onMove = (e) => {
       const d = dragRef.current;
@@ -152,9 +224,22 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
   }, []);
   const titlesForCategory = formData.category ? jobCategories[formData.category] ?? [] : [];
 
+  // ── Custom category/title toggle logic ───────────────────────────────────
+  // Both the category and title fields render as a <select> of preset options
+  // plus an "Other…" entry. Picking "Other…" flips these booleans to true,
+  // which swaps the dropdown for a free-text <input> instead (rendered further
+  // down). The initial value is inferred from formData itself: if a job was
+  // saved with a category/title that ISN'T in the current preset lists (e.g.
+  // jobCategories was edited after this job was posted, or it's genuinely a
+  // custom value), the toggle starts "on" so editing shows the text input
+  // pre-filled with that value rather than silently losing it in a dropdown
+  // that doesn't contain it.
   const [customCategory, setCustomCategory] = useState(() => !!formData.category && !categoryNames.includes(formData.category));
   const [customTitle, setCustomTitle] = useState(() => !!formData.title && !!formData.category && !(jobCategories[formData.category] || []).includes(formData.title));
 
+  // Changing category always clears the title — the previous title likely
+  // doesn't exist in the new category's title list (or doesn't make sense
+  // anymore), so the company must re-pick it.
   const handleCategoryChange = (e) => {
     setCustomTitle(false);
     setFormData(prev => ({ ...prev, category: e.target.value, title: "" }));
@@ -165,7 +250,11 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
   const existingPhotos = (formData.photos    || []).filter(p => typeof p === "string" && p.startsWith("http"));
   const totalPhotos    = existingPhotos.length + photoFiles.length;
 
-  // Memoize object URLs so they are created once per file and revoked on cleanup
+  // URL.createObjectURL() creates a browser-memory reference to each File object
+  // for use as an <img src>. These must be explicitly revoked when no longer
+  // needed (they aren't garbage-collected automatically), otherwise every photo
+  // swap during a long editing session would leak memory — the cleanup effect
+  // below handles that whenever the file list changes or the form unmounts.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const photoObjectUrls = useMemo(() => photoFiles.map(f => URL.createObjectURL(f)), [formData.photoFiles]);
   useEffect(() => () => photoObjectUrls.forEach(u => URL.revokeObjectURL(u)), [photoObjectUrls]);
@@ -173,6 +262,9 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
   const ALLOWED_PHOTO_EXTS = new Set(["jpg", "jpeg", "png", "webp", "gif"]);
   const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
 
+  // Validates each newly-selected file (type + size), silently drops invalid
+  // ones (with a toast listing what was skipped), then hands the first valid
+  // file off to the crop modal — the rest wait in the queue (see openCropForFile).
   const handlePhotoAdd = (e) => {
     const incoming  = Array.from(e.target.files);
     const remaining = 10 - totalPhotos;
@@ -201,7 +293,13 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
     setFormData(prev => ({ ...prev, photoFiles: photoFiles.filter((_, i) => i !== index) }));
   };
 
-  // Location geocoding state
+  // ── Location geocoding ────────────────────────────────────────────────────
+  // The company types an Eircode or address; geocodeAddress() (a Google/other
+  // geocoding API wrapper in utils/geo.js) resolves it to a lat/lng pin used
+  // for distance calculations and map display on the student side. If that
+  // lookup fails, the manual address form below lets them enter a structured
+  // address as a fallback attempt, or ultimately just save the location as
+  // plain text with no map pin (distances won't show for that job).
   const [locInput, setLocInput] = useState(formData.location || "");
   const [locLoading, setLocLoading] = useState(false);
   const [locError, setLocError] = useState("");
@@ -232,6 +330,9 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
     }
   };
 
+  // Fallback geocode attempt using the structured manual address fields. If
+  // this ALSO fails to resolve to a pin, the location is still saved as plain
+  // text (no lat/lng) rather than blocking the company from posting the job.
   const handleManualGeocode = async () => {
     if (!manualLine1.trim() && !manualCity.trim()) { setLocError("Enter at least the address and city."); return; }
     const fullAddress = [manualLine1, manualLine2, manualCity, manualCounty, "Ireland"].filter(Boolean).join(", ");
@@ -487,6 +588,10 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         <input
           type="checkbox"
           checked={formData.weekendRequired || false}
+          // Checking this box auto-adds Saturday & Sunday to the selected days (and
+          // their shift-time entries); unchecking removes them again along with any
+          // start times set for those days — so the days list and this toggle stay
+          // in sync regardless of which control the company used most recently.
           onChange={e => {
             const checked = e.target.checked;
             setFormData(prev => {
@@ -730,6 +835,9 @@ export default function JobForm({ formData, setFormData, onSave, onCancel, toggl
         <button
           onClick={() => {
             // Pass photos in order with their crop settings — no baking, full quality preserved
+            // (allCrops just stores the pan/zoom transform per photo, applied via
+            // CSS on display — see JobPostingCard.jsx — rather than actually
+            // re-rendering the image pixels, so the original upload stays full quality)
             const allCrops = [
               ...existingPhotos.map((_, i) => cropSettings[i] || { zoom: 1, offsetX: 0, offsetY: 0 }),
               ...photoFiles.map((_, i) => cropSettings[existingPhotos.length + i] || { zoom: 1, offsetX: 0, offsetY: 0 }),

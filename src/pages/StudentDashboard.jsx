@@ -12,6 +12,26 @@ import StudentOnboarding from "../components/StudentOnboarding";
 import { JobCardsSkeleton } from "../components/Skeleton";
 import ReportModal from "../components/ReportModal";
 
+// StudentDashboard — the main STUDENT-facing job feed (the app's home page
+// for logged-in students, and also what logged-out visitors see browsing
+// publicly). This is the biggest/most complex page in the app. Broad shape:
+//   - Jobs are fetched from Supabase in pages of 20 (see fetchJobPage) and
+//     cached at module scope (_jobsPageCache below) so navigating away and
+//     back doesn't re-fetch for 5 minutes.
+//   - A large block of filter state (selected days/times, location, job
+//     type, pay range, distance, "matches my schedule", etc.) is combined
+//     with a search query to produce `filteredJobs`.
+//   - `jobMatchScore` computes a 0–100 "how good a fit is this job" score
+//     per job from the student's preferences/skills/availability, which
+//     drives both the "For You" recommendation strip and the default
+//     ("Best Match") sort order.
+//   - Distances to jobs are computed client-side via the haversine formula
+//     once the job's coordinates are known — jobs without lat/lng stored
+//     get geocoded lazily from their location text (see the geocoding
+//     effect below) and cached in localStorage for 30 days.
+// Fallback job descriptions, keyed by job title, used only when a company
+// didn't write their own description for a job posting — better than
+// showing a blank description field.
 const DESC = {
   "Bar Staff":           "Join our bar team serving drinks and looking after customers. Some experience preferred — full training provided.",
   "Retail Assistant":    "Help customers on the shop floor, manage stock, and operate tills. Flexible student-friendly shifts.",
@@ -44,6 +64,11 @@ function daysUntil(dateStr) {
   return Math.floor((new Date(dateStr) - new Date()) / 86400000);
 }
 
+// Geocoding (turning a location name like "Galway City" into lat/lng
+// coordinates) hits an external API, so results are cached in localStorage
+// to avoid re-geocoding the same location on every visit. This cache is
+// module-level (outside the component) so it persists across re-renders and
+// re-mounts within the same browser session, not just within one render.
 const GEOCODE_TTL_MS = 30 * 24 * 60 * 60 * 1000; // 30 days
 let _geocodeCache = {};
 try {
@@ -59,6 +84,12 @@ const weekdays  = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"
 const workweek  = ["Monday","Tuesday","Wednesday","Thursday","Friday"];
 const timeSlots = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00"];
 
+// FilterPanel — purely presentational: renders all the filter controls
+// (sort, days/times, distance, location, job type, pay range, schedule
+// toggles) inside collapsible <FilterSection> groups. It owns no state of
+// its own — every value and setter is passed down from StudentDashboard so
+// the same panel can be reused both in the desktop sidebar and in the
+// mobile slide-down filter drawer (see filterPanelProps further down).
 function FilterPanel({
   clearAll, hasActiveFilters, sortBy, setSortBy, openSections, toggleSection,
   warning, selectedDays, toggleDay, dayTimes, updateTime,
@@ -274,6 +305,11 @@ export default function StudentDashboard({ restoreScrollY }) {
 
   const isMobile = windowWidth < 1024;
 
+  // Converts one raw Supabase `jobs` row (snake_case columns) into the
+  // camelCase shape the rest of this component works with, filling in
+  // sensible defaults for anything that might be null/missing, and
+  // resolving company_id to a human-readable company name via nameMap
+  // (built from a separate profiles query, since jobs only stores the id).
   function mapJobRow(j, nameMap) {
     return {
       id:              j.id,
@@ -303,6 +339,23 @@ export default function StudentDashboard({ restoreScrollY }) {
     };
   }
 
+  // Fetches one page (20 rows) of Active, non-expired jobs from Supabase,
+  // resolves each job's company name, maps rows into the shape the UI
+  // expects, and updates both React state and the module-level cache. Also
+  // kicks off two fire-and-forget RPC calls (applicant counts + company
+  // response rates) for the jobs on this page — these aren't awaited because
+  // the job cards can render fine without them and fill in a moment later.
+  // append=true is used by loadMore to add a page onto the existing list
+  // rather than replacing it (used for the initial/refreshed load).
+  // Fetches one page (20 rows) of Active, not-yet-expired jobs, newest
+  // first. This does three separate round-trips: (1) the jobs page itself,
+  // (2) a lookup of company names for just the companies on this page (a
+  // targeted `.in()` query rather than joining, since jobs.company_id has
+  // no join to profiles set up at the query level here), and (3) two
+  // fire-and-forget RPC calls for applicant counts and company response
+  // rates that enrich the cards but aren't essential to first paint.
+  // `append` controls whether this replaces the job list (page 0 / initial
+  // load) or adds to the end of it (infinite-scroll "Load more").
   async function fetchJobPage(pageNum, append = false) {
     const today = new Date().toISOString().split("T")[0];
     const { data, error } = await withTimeout(
@@ -333,6 +386,10 @@ export default function StudentDashboard({ restoreScrollY }) {
     _jobsPageCache.hasMore = rows.length === 20;
     _jobsPageCache.page = pageNum;
     const jobIds = mapped.map(j => j.id);
+    // Applicant counts and response rates are "nice to have" badges shown
+    // on job cards — fetched separately via RPC (not part of the main jobs
+    // query) and merged into state whenever they arrive, so a slow/failed
+    // fetch here never blocks the jobs themselves from displaying.
     supabase.rpc("get_job_applicant_counts", { job_ids: jobIds })
       .then(({ data }) => {
         if (!data) return;
@@ -351,6 +408,12 @@ export default function StudentDashboard({ restoreScrollY }) {
     }
   }
 
+  // Runs once on mount: if the module-level cache is still fresh (within
+  // JOBS_CACHE_TTL), skip the network call entirely and just render what's
+  // cached — this is what makes navigating away and back to this page feel
+  // instant. Otherwise fetch page 0 fresh. Also kicks off a separate,
+  // independent fetch for which companies are "featured" (paid/promoted
+  // placement, presumably) — unrelated to job pagination so it isn't awaited.
   useEffect(() => {
     const fresh = _jobsPageCache.jobs.length > 0 && Date.now() - _jobsPageCache.fetchedAt < JOBS_CACHE_TTL;
     if (!fresh) {
@@ -366,6 +429,8 @@ export default function StudentDashboard({ restoreScrollY }) {
       .catch(() => {});
   }, []);
 
+  // Powers the "Load more jobs" button — fetches the next page and appends
+  // it to the existing job list rather than replacing it.
   const loadMore = useCallback(async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
@@ -380,6 +445,11 @@ export default function StudentDashboard({ restoreScrollY }) {
     }
   }, [loadingMore, hasMore, fetchedPage]);
 
+  // The student's liked/applied jobs are persisted as just a list of job IDs
+  // (savedLikedJobIds / savedAppliedJobIds) — this effect "hydrates" those
+  // IDs back into full job objects once the job list has loaded, so
+  // like-button state and the AppliedJobs/LikedJobs pages have the full job
+  // data to display, not just an ID.
   useEffect(() => {
     if (!jobs.length || !currentUser) return;
     const jobMap = Object.fromEntries(jobs.map(j => [j.id, j]));
@@ -398,6 +468,9 @@ export default function StudentDashboard({ restoreScrollY }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs, currentUser?.id, savedLikedJobIds, savedAppliedJobIds]);
 
+  // If the student navigated away (e.g. into a job's details) and back,
+  // restoreScrollY (passed in as a prop) lets this page jump back to where
+  // they were scrolled to instead of resetting to the top.
   useEffect(() => {
     if (restoreScrollY > 0) requestAnimationFrame(() => window.scrollTo(0, restoreScrollY));
   }, []);
@@ -429,11 +502,18 @@ export default function StudentDashboard({ restoreScrollY }) {
     return () => { cancelled = true; };
   }, [jobs]);
 
+  // Prefer coordinates stored directly on the job row; fall back to whatever
+  // we've resolved for its location text (either a known-locations lookup
+  // table or the geocoding cache populated by the effect above).
   const getJobCoords = (job) => {
     if (job.lat && job.lng) return { lat: job.lat, lng: job.lng };
     return coordsForLocation(job.location, extraCoords);
   };
 
+  // Straight-line ("as the crow flies") distance from the student to a job,
+  // in km — used for the distance filter/sort and the "📍 Xkm away" badge.
+  // Returns null when we don't have both the student's and the job's
+  // coordinates, which callers treat as "distance unknown."
   const jobDistance = useCallback((job) => {
     if (!studentLocation) return null;
     const coords = getJobCoords(job);
@@ -477,6 +557,11 @@ export default function StudentDashboard({ restoreScrollY }) {
     return () => clearTimeout(id);
   }, [searchQuery]);
 
+  // Toggling a day off also clears any preferred-time selected for that day
+  // (dayTimes), since a time filter for a day that's no longer selected
+  // would be meaningless dead state. The 5-day warning is just a friendly
+  // nudge — selecting every weekday is a very restrictive filter for a
+  // student who's presumably juggling classes, so it's likely a mistake.
   const toggleDay = (day) => {
     let updated = [...selectedDays];
     if (updated.includes(day)) {
@@ -501,12 +586,18 @@ export default function StudentDashboard({ restoreScrollY }) {
     setDistanceKm(0); setSearchQuery(""); setSortBy(""); setWarning("");
   };
 
+  // Snapshots the current filter state into one plain object — used both to
+  // save the current filter combination as a named "saved search" and to
+  // restore one later (applyFilters, below).
   const currentFilters = () => ({
     selectedDays, dayTimes, selectedLocations, selectedJobTypes,
     weekendOnly, allWeekOnly, noWeekends, distanceKm, sortBy, prefOnly,
     searchQuery, payMin, payMax, matchSchedule,
   });
 
+  // Restores a saved filter combination — the `|| default` fallback on every
+  // field means an older saved search (missing a filter that was added to
+  // the app later) still applies safely instead of crashing on undefined.
   const applyFilters = (f) => {
     setSelectedDays(f.selectedDays || []);
     setDayTimes(f.dayTimes || {});
@@ -524,6 +615,12 @@ export default function StudentDashboard({ restoreScrollY }) {
     setMatchSchedule(f.matchSchedule || false);
   };
 
+  // Saved searches let a student bookmark a filter combination (e.g. "Bar
+  // work, weekends, near me") as a chip they can reapply with one tap —
+  // persisted in localStorage per-user (ssKey), not in Supabase, so they're
+  // local to this browser only. generateSearchName auto-names a search from
+  // whatever filters are active if the student hasn't typed a search query
+  // to use as the name.
   const generateSearchName = () => {
     if (searchQuery.trim()) return searchQuery.trim();
     const parts = [];
@@ -561,6 +658,15 @@ export default function StudentDashboard({ restoreScrollY }) {
 
   const userPrefs = currentUser?.jobPreferences || [];
 
+  // firstBlockingFilter answers "when the result list is empty, WHICH filter
+  // caused that?" so the empty-state message can say e.g. "Saturday has no
+  // matches — try widening it" instead of a generic "no jobs found". It
+  // re-runs the same filters as filteredJobs below, but one at a time in the
+  // same order, narrowing `pool` step by step. `step()` applies one filter
+  // and reports its label as the culprit only if THAT step is what emptied
+  // an otherwise non-empty pool — so it correctly identifies the first
+  // filter in the chain that zeroed out the results, not just any filter
+  // that happens to match nothing.
   // Memoised — only recomputes when filter state or jobs actually change
   const firstBlockingFilter = useMemo(() => {
     if (!hasActiveFilters || jobs.length === 0) return null;
@@ -593,6 +699,14 @@ export default function StudentDashboard({ restoreScrollY }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [jobs, hasActiveFilters, prefOnly, userPrefs, selectedDays, dayTimes, selectedLocations, selectedJobTypes, weekendOnly, allWeekOnly, noWeekends, distanceKm, studentLocation, debouncedSearch, jobDistance]);
 
+  // The actual filter pipeline every job card on screen goes through — each
+  // active filter is a short-circuiting `if (...) return false` check, so a
+  // job only survives if it passes ALL active filters (logical AND). Must
+  // stay in sync with the step-by-step version in firstBlockingFilter above
+  // (same conditions, same order) since that's used to explain empty results.
+  // Note the day/time filter uses >= not exact match — e.g. a job needing
+  // someone from 14:00 also matches a student who selected "10:00 onwards"
+  // for that day, not just an exact 14:00 selection.
   // Filter logic (time filter uses >= not exact match) — memoised
   const filteredJobs = useMemo(() => jobs.filter(job => {
     if (prefOnly && userPrefs.length > 0) {
@@ -637,6 +751,24 @@ export default function StudentDashboard({ restoreScrollY }) {
   const payNum = (p) => parseFloat((p || "").replace(/[^0-9.]/g, "")) || 0;
 
   // Match score per job — skills + preferences + availability overlap (must be before sortedJobs)
+  // A simple, entirely client-side 0–100 "how good a fit is this job"
+  // heuristic — NOT an ML model, just three weighted signals added together:
+  //   - Job category matches one of the student's declared preferences: +40
+  //     (the single biggest signal — preferences are an explicit, deliberate
+  //     choice, so weighted heaviest).
+  //   - Student's declared skills appear as substrings in the job's title/
+  //     description text: +10 per matching skill, capped at +30 total. This
+  //     is a crude keyword match (not NLP), so it can both miss real matches
+  //     (different wording) and catch false positives (a skill word that
+  //     appears for an unrelated reason) — good enough for a "for you" nudge,
+  //     not meant to be precise.
+  //   - Fraction of the job's shift days that overlap with the student's
+  //     declared availability: up to +30, scaled by how many of the job's
+  //     days the student is actually free for (e.g. 2 of 4 days = +15).
+  // The percentage shown to students on job cards ("73% match") is just this
+  // score treated as if it were already out of 100 — since the three parts
+  // above sum to at most 100, that mostly holds, but it's an approximation,
+  // not a calibrated probability.
   const jobMatchScore = useCallback((job) => {
     if (!currentUser) return 0;
     let score = 0;
@@ -655,6 +787,12 @@ export default function StudentDashboard({ restoreScrollY }) {
   }, [currentUser]);
 
   // Top-matched jobs for "For You" strip
+  // Only bothers computing/showing recommendations once the student has
+  // actually filled in preferences, skills, or availability — otherwise
+  // jobMatchScore would just return 0 for everything and the strip would be
+  // pointless clutter. Jobs the student already applied to are excluded
+  // (no point recommending something they've already acted on), and results
+  // are capped at the top 5 so the strip stays a quick horizontal scroll.
   const forYouJobs = useMemo(() => {
     if (!currentUser || currentUser.role !== "student") return [];
     const prefs  = currentUser.jobPreferences || [];
@@ -670,6 +808,12 @@ export default function StudentDashboard({ restoreScrollY }) {
   }, [jobs, currentUser, jobMatchScore, appliedJobs]);
 
   // Sorted jobs — urgent floats first only on default (no explicit sort selected)
+  // When sortBy is "" (the default "Best Match"), jobs fall back to
+  // jobMatchScore for ordering, then get a second pass that floats
+  // isUrgent jobs to the very top regardless of score — urgency is treated
+  // as more important than fit when no explicit sort was chosen. Any
+  // explicit sort choice (pay/date/distance) overrides both of those and
+  // urgent jobs sort in with everything else.
   const sortedJobs = useMemo(() => {
     const sorted = [...filteredJobs].sort((a, b) => {
       if (sortBy === "payHigh")     return payNum(b.pay) - payNum(a.pay);
@@ -686,6 +830,13 @@ export default function StudentDashboard({ restoreScrollY }) {
   }, [filteredJobs, sortBy, jobDistance, jobMatchScore]);
 
   // Market average pay per category, computed from ALL loaded jobs (not filtered subset)
+  // Powers the small "↑ Avg €X/hr" / "≈ Avg €X/hr" badge on job cards, which
+  // tells a student whether a job's pay is above or roughly at the market
+  // rate for that category. Deliberately computed from the full unfiltered
+  // job list (not filteredJobs) so the "average" is a stable market
+  // benchmark that doesn't shift around as the student changes filters.
+  // Categories with fewer than 2 priced jobs are skipped — an "average" of
+  // one data point isn't a meaningful comparison.
   const categoryAvgPay = useMemo(() => {
     const sums = {};
     const counts = {};
@@ -703,6 +854,10 @@ export default function StudentDashboard({ restoreScrollY }) {
     return result;
   }, [jobs]);
 
+  // Liking/unliking is optimistic (UI updates immediately) with the Supabase
+  // write happening in the background — same pattern as LikedJobs.jsx. A
+  // job the student has already applied to can't be un/liked (the check
+  // below), since "like for later" doesn't make sense once they've acted on it.
   const toggleLike = (job) => {
     if (!currentUser) { setPage("login"); return; }
     if (appliedJobs.some(j => j.id === job.id)) return;
@@ -1242,6 +1397,10 @@ export default function StudentDashboard({ restoreScrollY }) {
   );
 }
 
+// FilterSection — a collapsible group used inside FilterPanel (one per
+// filter category: Sort, Days & Times, Distance, etc.), with its own
+// "Clear" link when that category has an active value. Keeps the filter
+// sidebar from becoming one long, overwhelming scroll of every option at once.
 function FilterSection({ title, open, onToggle, onClear, children }) {
   return (
     <div style={{ backgroundColor: "var(--color-bg-surface, #f8fafc)", border: "1.5px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.65rem", marginBottom: "0.4rem", overflow: "hidden" }}>
@@ -1267,6 +1426,9 @@ function FilterSection({ title, open, onToggle, onClear, children }) {
   );
 }
 
+// Pip — the small rounded badge next to a filter section's title showing
+// either a count ("3") or a checkmark, indicating that section has an
+// active selection even while collapsed.
 function Pip({ n }) {
   return (
     <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", backgroundColor: "var(--color-brand)", color: "white", borderRadius: "999px", fontSize: "0.62rem", fontWeight: 700, minWidth: "16px", height: "16px", padding: "0 0.25rem", marginLeft: "0.3rem" }}>
@@ -1275,6 +1437,15 @@ function Pip({ n }) {
   );
 }
 
+// SmoothSlider — a custom drag-to-set slider for the distance filter (0 to
+// `max` km), built from scratch with pointer events rather than a native
+// <input type="range">. Native range inputs can feel janky/low-precision on
+// touch, so this tracks pointer position directly against the track's
+// bounding box to compute a value. Refs (onChangeRef/maxRef) mirror the
+// latest props inside the pointermove/pointerup listeners — necessary
+// because those listeners are attached once in an effect with an empty
+// dependency array, so without the refs they'd close over stale prop values
+// from whenever the component first mounted.
 function SmoothSlider({ value, onChange, max = 50 }) {
   const trackRef = useRef(null);
   const dragging = useRef(false);

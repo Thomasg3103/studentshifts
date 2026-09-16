@@ -1,11 +1,25 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿/**
+ * LandingPage — the public homepage at "/" (no login required).
+ *
+ * This is the first thing most visitors see: hero section with sign-up
+ * CTAs, "how it works" steps, live-ish stats (student/job/company counts
+ * pulled from Supabase), an employer pitch, and a "jobs by location"
+ * breakdown built from currently active job postings. Logged-out users
+ * land here; logged-in users are typically routed straight to their
+ * dashboard elsewhere in the app, so this page mostly targets people who
+ * haven't signed up yet.
+ */
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { supabase } from "../lib/supabase";
 import AppFooter from "../components/AppFooter";
 import { useApp } from "../context/AppContext";
 
-// #23 — count-up hook driven by IntersectionObserver
+// #23 — count-up hook driven by IntersectionObserver.
+// Animates a number from 0 up to `target` once its attached ref element
+// scrolls into view (rather than as soon as the page loads), so the stats
+// row only "counts up" when the visitor actually scrolls down to see it.
 function useCountUp(target, duration = 1200) {
   const [value, setValue] = useState(null);
   const ref = useRef(null);
@@ -46,6 +60,9 @@ export default function LandingPage() {
   const [locations, setLocations] = useState([]);
   const [menuOpen,  setMenuOpen]  = useState(false);
   const [stats,     setStats]     = useState({ students: null, jobs: null, companies: null });
+  // Tracked manually (rather than relying on CSS media queries alone)
+  // because some inline styles below need to switch layout/copy in JS,
+  // e.g. hiding the logo icon or shortening button text on narrow screens.
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   useEffect(() => {
     const onResize = () => setWindowWidth(window.innerWidth);
@@ -57,6 +74,13 @@ export default function LandingPage() {
   const [companiesCount,companiesRef]= useCountUp(stats.companies);
   const menuRef = useRef(null);
 
+  // Two independent data loads on mount:
+  // 1) Active job locations, grouped/counted client-side by city (the part
+  //    before the first comma in the location string) to power the
+  //    "Jobs by Location" band further down the page.
+  // 2) Headline stats (verified student count, total jobs, verified company
+  //    count) shown in the "by the Numbers" section — only counts verified
+  //    students/companies so the number reflects real, approved users.
   useEffect(() => {
     supabase
       .from("jobs")
@@ -81,6 +105,8 @@ export default function LandingPage() {
     });
   }, []);
 
+  // Closes the hamburger dropdown menu when the user clicks anywhere
+  // outside of it (standard "click-away to dismiss" pattern).
   useEffect(() => {
     const handler = e => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
@@ -357,6 +383,9 @@ export default function LandingPage() {
   );
 }
 
+// Reusable section title — `light` gives plain white text for use on the
+// dark "Jobs by Location" band, otherwise it renders with the brand-color
+// gradient text effect used on the light background sections above it.
 function SectionHeading({ children, light }) {
   if (light) {
     return (

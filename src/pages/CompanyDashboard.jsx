@@ -1,4 +1,23 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿/**
+ * CompanyDashboard — the main control centre for company (employer)
+ * accounts. This is the single biggest/most complex screen a company sees.
+ *
+ * Contains multiple tabs: "My Jobs" (create/edit/close/delete job postings
+ * and review applicants through a hiring pipeline), "Browse Students" and
+ * "Saved Students" (search/discover verified students and message them
+ * directly), "Talent Pool" (students previously hired — easy to re-engage),
+ * and "Templates" (saved job postings that can be reused to quickly repost
+ * recurring shifts). Companies only get full access once their account's
+ * verificationStatus is "verified" — pending/rejected companies see a
+ * banner instead of the "+ New Job" button.
+ *
+ * Most of the hiring-pipeline logic (moving an applicant through stages,
+ * scheduling interviews/trials) is delegated to the useHiringPipeline hook
+ * rather than living here directly — this file mainly owns page-level
+ * state (which tab/modal is open, the list of job postings) and the
+ * Supabase calls for creating/editing/closing/deleting jobs and photos.
+ */
+import { useState, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import * as Sentry from "@sentry/react";
 import toast from "react-hot-toast";
@@ -20,6 +39,9 @@ import JobForm from "./company/JobForm";
 import { StatCard, Modal, AvailabilityHeatmap } from "./company/shared";
 import CompanyOnboardingBanner from "../components/CompanyOnboardingBanner";
 
+// Converts a raw Supabase `jobs` row (snake_case columns) into the
+// camelCase shape the rest of this component works with, filling in
+// sensible defaults for any field that might be null/missing.
 function normaliseJob(j) {
   return {
     id:              j.id,
@@ -57,6 +79,9 @@ export default function CompanyDashboard() {
   const [loadError, setLoadError] = useState(false);
   const [loadRetryKey, setLoadRetryKey] = useState(0);
   const [formSaving, setFormSaving] = useState(false);
+  // `modal` controls which overlay is currently shown ("applicants" | "form" | null).
+  // `activePosting` is the job whose applicants modal is open; `formData` is
+  // the (possibly still-being-edited) job posting shown in the create/edit form.
   const [modal, setModal]         = useState(null);
   const applicantsModalRef = useRef(null);
   const [activePosting, setActivePosting] = useState(null);
@@ -81,6 +106,10 @@ export default function CompanyDashboard() {
   const [expiringJobs, setExpiringJobs]             = useState([]);
   const originalPhotosRef = useRef([]); // tracks photos at edit-open time for H24 storage cleanup
 
+  // All the "move an applicant through the hiring pipeline" logic (stage
+  // changes, notes, interview/trial scheduling) lives in this shared hook
+  // rather than inline here — it's reused by ApplicantsView below and kept
+  // out of this already-large file.
   const {
     updateApplicantStatus,
     handleStageChange,
@@ -110,7 +139,10 @@ export default function CompanyDashboard() {
     }
   }, [modal]);
 
-  // Notify admins once when a new company first lands here in pending_review state
+  // Notify admins once when a new company first lands here in pending_review state.
+  // Uses localStorage (keyed per-user) as a simple "have we already sent this
+  // notification" flag, since there's no server-side record of whether the
+  // admin email already went out for this signup.
   useEffect(() => {
     if (!currentUser?.id || currentUser?.verificationStatus !== "pending_review") return;
     const key = `adminNotified_${currentUser.id}`;
@@ -193,7 +225,12 @@ export default function CompanyDashboard() {
       .catch(() => {});
   }, [currentUser?.id]);
 
-  // Load this company's jobs on mount, auto-expire any past their deadline
+  // Load this company's jobs on mount, auto-expire any past their deadline.
+  // This is a client-side "lazy" expiry check: rather than a scheduled
+  // server job, any Active posting whose deadline has already passed gets
+  // flipped to "Expired" in the DB the next time the company's dashboard
+  // happens to load. loadRetryKey lets the "Retry" button re-run this
+  // effect after a failed load without duplicating the whole function.
   useEffect(() => {
     if (!currentUser) return;
     setLoadError(false);
@@ -223,6 +260,19 @@ export default function CompanyDashboard() {
   const totalHired      = postings.reduce((sum, p) => sum + (p.hiredCount || 0), 0);
   const activeCount     = postings.filter(p => p.status === "Active").length;
 
+  // Opens the Applicants modal for a job and loads its applicants from
+  // scratch. Applicant detail is assembled from three separate sources
+  // joined client-side (since it spans different tables/RPCs):
+  //   1) the raw `applications` rows (status, pipeline stage, interview/
+  //      trial scheduling fields, screening answers)
+  //   2) `profiles` for each applicant's display name
+  //   3) the get_company_applicant_profiles RPC for everything CV-related
+  //      (CV/cover letter URLs, bio, skills, right-to-work, etc.) — a single
+  //      RPC likely exists because that data needs extra access checks
+  //      companies shouldn't otherwise have on the students table directly.
+  // preferred_shift is fetched separately and wrapped in .catch(() => ({data:[]}))
+  // so that if that column doesn't exist yet in an older DB, the rest of
+  // the applicant data still loads instead of the whole request failing.
   const openApplicants = async (posting) => {
     setApplicantsViewMode("list");
     setActivePosting({ ...posting, applicants: [], applicantsLoading: true, applicantsError: null });
@@ -350,6 +400,12 @@ export default function CompanyDashboard() {
   const [notifiedJobIds, setNotifiedJobIds]   = useState(new Set());
   const [matchesData, setMatchesData]         = useState({});
 
+  // "Notify" button on each job posting — finds verified students whose
+  // saved availability matches the job's shift days (via the
+  // get_matched_students_for_job RPC), looks up their email addresses, and
+  // sends each one a "new shift available" email. This is opt-in per job
+  // (not automatic) and is one-shot per posting — notifiedJobIds tracks
+  // which jobs have already been notified so the button can't be spammed.
   const handleNotifyStudents = async (posting) => {
     if (notifyingJobIds.has(posting.id) || notifiedJobIds.has(posting.id)) return;
     setNotifyingJobIds(prev => new Set([...prev, posting.id]));
@@ -406,7 +462,10 @@ export default function CompanyDashboard() {
 
   const deletePosting = async (id) => {
     try {
-      // Delete job photos from storage before removing the DB row
+      // Delete job photos from storage before removing the DB row — Supabase
+      // Storage files aren't automatically cleaned up when a DB row is
+      // deleted, so this extracts each photo's storage path from its public
+      // URL and removes it manually to avoid leaving orphaned files.
       const posting = postings.find(p => p.id === id);
       const photoPaths = (posting?.photos || []).flatMap(url => {
         const m = url.match(/\/storage\/v1\/object\/public\/job-photos\/(.+?)(\?|$)/);
@@ -431,6 +490,12 @@ export default function CompanyDashboard() {
     }
   };
 
+  // Validates and saves a job posting (create or update, depending on
+  // whether formData.id is set) — this is the handler called from the
+  // JobForm's Save button. Validation happens client-side before any
+  // network calls: category/title/location/pay are required, pay must be
+  // a sane positive number, at least one shift day and one photo are
+  // required, and the description has a length cap.
   const saveForm = async ({ existingPhotos: keptUrls = [], newFiles = [], allCrops = [] } = {}) => {
     if (!formData.category) { toast.error("Please select a job category."); return; }
     if (!formData.title.trim() || !formData.location.trim() || !formData.pay.trim()) {
@@ -445,7 +510,12 @@ export default function CompanyDashboard() {
     if (descPlain.length > 5000) { toast.error(`Description is too long (${descPlain.length} characters). Maximum is 5,000.`); return; }
     setFormSaving(true);
     try {
-      // Build ordered photo URL array â€" existing first (already URLs), then upload new files in order
+      // Build ordered photo URL array — existing first (already URLs), then upload new files in order.
+      // Each new file is validated against an extension allow-list and a
+      // 5MB size cap before uploading; any file that fails either check is
+      // silently skipped (counted in skippedPhotoCount) rather than
+      // blocking the whole save — the company still gets their other valid
+      // photos saved, with a toast telling them how many were skipped.
       const photoUrls = [...keptUrls];
       const photoCrops = [...allCrops]; // parallel array, same order
       const ALLOWED_PHOTO_EXTS = new Set(['jpg', 'jpeg', 'png', 'webp', 'gif']);
@@ -511,7 +581,10 @@ export default function CompanyDashboard() {
       };
 
       if (formData.id) {
-        // H25: if days were removed, purge filled_shifts entries for those days so hire logic stays consistent
+        // H25: if days were removed, purge filled_shifts entries for those days so hire logic stays consistent.
+        // Without this, editing a job to remove a day that had already been
+        // filled by a hired student would leave a stale "filled" marker
+        // pointing at a day that no longer exists on the posting.
         const existingJob = postings.find(p => p.id === formData.id);
         if (existingJob?.filledShifts?.length) {
           const cleanedFilled = existingJob.filledShifts.filter(d => formData.days.includes(d));
@@ -582,6 +655,15 @@ export default function CompanyDashboard() {
   };
 
 
+  // Closing a job has two distinct paths, driven by the CloseJobModal's
+  // "did you find a student?" question:
+  //   - foundStudent: mark the winning applicant Accepted (which hires
+  //     them), then close the job — other Pending applicants are simply
+  //     left as-is (not auto-rejected) since the company may want to
+  //     revisit them for a future posting.
+  //   - not foundStudent: close the job without a hire, and auto-reject
+  //     every still-Pending applicant + notify them by email, since the
+  //     role is no longer available to anyone.
   const handleCloseJob = async (jobId, { foundStudent, winnerId, winnerApplicant, closeReason }) => {
     if (foundStudent && winnerId && winnerApplicant) {
       await updateApplicantStatus(winnerId, "Accepted", winnerApplicant);

@@ -1,4 +1,17 @@
-﻿import { useState, useRef, useEffect } from "react";
+﻿/**
+ * AppliedJobs — student-only page ("My Applications").
+ *
+ * Lists every job a logged-in student has applied to, along with where each
+ * application sits in the company's hiring pipeline (Applied → Shortlisted
+ * → Interview → Trial → Decision). Students can withdraw a pending
+ * application, remove a declined one from their list, message the company
+ * once accepted, or pick an interview time slot when a company has offered
+ * some. The applied-jobs list and per-job status data both come from
+ * AppContext (already loaded elsewhere in the app) — this page itself only
+ * talks to Supabase directly for the withdraw/remove action and for
+ * fetching/selecting interview slots.
+ */
+import { useState, useRef, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import * as Sentry from "@sentry/react";
@@ -26,6 +39,9 @@ const PIPELINE_STEPS = [
   { key: "decision",    short: "Decision",    long: "Final Decision" },
 ];
 
+// Visual progress strip showing which of the 5 pipeline stages an
+// application is currently at (dots + connecting line), colored green if
+// hired, red if declined, or brand-color for the in-progress current step.
 function PipelineStrip({ stage, status }) {
   const currentIdx = PIPELINE_STEPS.findIndex(s => s.key === stage);
   const isRejected = status === "Rejected";
@@ -82,6 +98,11 @@ function formatSlot(slotTime) {
   return `${weekday} ${dayStr} at ${timeStr}`;
 }
 
+// When a company advances an application to the "interview" stage, they can
+// offer a set of candidate time slots (stored server-side); this component
+// lets the student pick one. Requires a two-step tap-then-confirm flow
+// (pending → confirm) so a student can't accidentally lock in a time slot
+// with a single misclick.
 function InterviewSlotPicker({ applicationId }) {
   const [slots, setSlots]       = useState(null);  // null = loading
   const [pending, setPending]   = useState(null);  // slotId tapped but not yet confirmed
@@ -94,6 +115,9 @@ function InterviewSlotPicker({ applicationId }) {
       .catch(() => setSlots([]));
   }, [applicationId]);
 
+  // Render nothing if there's no application yet, still loading, or the
+  // company hasn't offered any interview slots — the card above just shows
+  // the pipeline strip without this picker in that case.
   if (!applicationId || slots === null) return null;
   if (!slots.length) return null;
 
@@ -108,6 +132,9 @@ function InterviewSlotPicker({ applicationId }) {
       setSlots(prev => prev.map(s => ({ ...s, selected: s.id === pending })));
       setPending(null);
       toast.success("Interview time confirmed!");
+      // Fire-and-forget notification email to the company — failure here
+      // shouldn't block the student's confirmation from succeeding, so
+      // any error is swallowed rather than surfaced as a toast.
       supabase.functions.invoke("send-email", {
         body: { type: "slot_confirmed", slotId: pending, applicationId },
       }).catch(() => {});
@@ -190,6 +217,9 @@ function InterviewSlotPicker({ applicationId }) {
   );
 }
 
+// Generic Yes/No confirmation modal (used here for the "remove a declined
+// application" action). useFocusTrap keeps keyboard focus/tabbing confined
+// inside the modal while it's open, for accessibility.
 function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, onCancel }) {
   const panelRef = useRef(null);
   useFocusTrap(panelRef, onCancel);
@@ -227,6 +257,10 @@ function ConfirmDialog({ title, message, confirmLabel, confirmStyle, onConfirm, 
   );
 }
 
+// One card per applied job. Which action buttons appear depends entirely
+// on `status`: Accepted -> Message the company, Pending -> Withdraw,
+// Rejected -> Remove from list (Rejected apps can't be un-declined, so
+// "Remove" just tidies up the student's own view rather than resubmitting).
 function AppliedJobCard({ job, status, pipelineStage, preferredShift, applicationId, onRemove, onMessage }) {
   const { setSelectedJob, setPage } = useApp();
   const s = STATUS_STYLE[status] || STATUS_STYLE.Pending;
@@ -236,6 +270,9 @@ function AppliedJobCard({ job, status, pipelineStage, preferredShift, applicatio
   const showMessage  = status === "Accepted";
   const showWithdraw = status === "Pending";
   const showRemove   = status === "Rejected";
+  // "Advanced stage" nudge banner — shown once a still-pending application
+  // has moved past the initial "applied" step, to reassure the student
+  // something is happening and point them toward Messages.
   const advancedStage = status === "Pending" && (pipelineStage === "shortlisted" || pipelineStage === "interview" || pipelineStage === "trial");
 
   return (
@@ -353,6 +390,11 @@ export default function AppliedJobs() {
     setConfirm({ jobId, type });
   };
 
+  // Shared handler for both "withdraw" (student backing out of a pending
+  // application, optionally leaving a reason for internal stats) and
+  // "remove" (student clearing a declined application off their own list).
+  // Both call the same removeApplication() helper — the reason is only
+  // passed through for withdrawals.
   const handleRemoveConfirm = async () => {
     if (!confirm) return;
     const { jobId, type } = confirm;
@@ -378,7 +420,9 @@ export default function AppliedJobs() {
   const getShift  = (jobId) => statuses[jobId]?.preferred_shift || null;
   const getAppId  = (jobId) => statuses[jobId]?.application_id || null;
 
-  // Sort: Accepted → Rejected → Pending; ties keep original order
+  // Sort: Accepted → Rejected → Pending; ties keep original order.
+  // Surfacing good/bad news (Accepted/Rejected) above the still-waiting
+  // Pending applications means students see outcomes first.
   const sorted = [...appliedJobs].sort((a, b) => {
     const sa = STATUS_ORDER[getStatus(a.id)] ?? 2;
     const sb = STATUS_ORDER[getStatus(b.id)] ?? 2;
@@ -449,6 +493,10 @@ export default function AppliedJobs() {
   );
 }
 
+// Confirmation modal specific to withdrawing a pending application — unlike
+// the generic ConfirmDialog, this requires picking a reason first (the
+// Withdraw button stays disabled until `reason` is set) so the platform can
+// track why students back out of applications.
 function WithdrawReasonDialog({ job, reason, onReasonChange, onConfirm, onCancel }) {
   const panelRef = useRef(null);
   useFocusTrap(panelRef, onCancel);

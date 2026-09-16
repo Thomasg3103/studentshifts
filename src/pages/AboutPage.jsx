@@ -1,9 +1,22 @@
-﻿import { Helmet } from "react-helmet-async";
+﻿/**
+ * AboutPage — public marketing page (no login required).
+ *
+ * Tells visitors what StudentShifts is, how it works, and who's behind it.
+ * Purely static/presentational: all the content below (mission text, "how it
+ * works" steps, stats, team bios) is hardcoded in this file rather than
+ * pulled from Supabase, so updating it means editing this file directly.
+ * The <Helmet> block sets the page's SEO meta tags (title, description,
+ * Open Graph/Twitter cards, and a JSON-LD breadcrumb) for search engines
+ * and link previews — it doesn't render anything visible on the page itself.
+ */
+import { Helmet } from "react-helmet-async";
 import PageWrapper from "../components/PageWrapper";
 import BackButton from "../components/BackButton";
 import { useApp } from "../context/AppContext";
 
 export default function AboutPage() {
+  // setPage drives this app's internal "which screen are we on" navigation
+  // (separate from the browser URL/react-router) — used below by the CTA buttons.
   const { setPage } = useApp();
   return (
     <><Helmet>
@@ -118,6 +131,8 @@ export default function AboutPage() {
   );
 }
 
+// Small layout helper so every "card" section (Mission, How It Works, Stats,
+// Team) shares the same white rounded-box styling without repeating it.
 function Section({ title, children }) {
   return (
     <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1.5px solid #e2e8f0", borderRadius: "1rem", padding: "1.5rem 1.75rem", marginBottom: "1.25rem" }}>

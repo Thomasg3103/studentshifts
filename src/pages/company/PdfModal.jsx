@@ -1,4 +1,15 @@
-﻿import { useState, useEffect, useRef } from "react";
+﻿/*
+ * PdfModal — full-screen document viewer used by DetailPanel to show an
+ * applicant's CV or cover letter. It's lazy-loaded (see the `lazy()` import in
+ * DetailPanel.jsx) because react-pdf + pdfjs + mammoth are fairly heavy
+ * dependencies that most page loads never need.
+ * Handles two document types differently:
+ *  - PDFs: rendered page-by-page with react-pdf/pdfjs.
+ *  - .doc/.docx: converted to HTML client-side with mammoth (since browsers can't
+ *    render Word docs natively) and sanitized with DOMPurify before injecting,
+ *    since the HTML comes from a user-uploaded file.
+ */
+import { useState, useEffect, useRef } from "react";
 import { useFocusTrap } from "../../hooks/useFocusTrap";
 import DOMPurify from "dompurify";
 import * as Sentry from "@sentry/react";
@@ -6,6 +17,8 @@ import toast from "react-hot-toast";
 import { Document, Page, pdfjs } from "react-pdf";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+// pdfjs needs its worker script's URL at runtime; this points it at the copy
+// Vite bundles alongside the app so PDF parsing runs off the main thread.
 pdfjs.GlobalWorkerOptions.workerSrc = new URL("pdfjs-dist/build/pdf.worker.min.mjs", import.meta.url).toString();
 
 const cvHeaderBtn = { background: "none", border: "1.5px solid rgba(255,255,255,0.3)", borderRadius: "0.4rem", color: "white", fontSize: "0.75rem", fontWeight: "600", padding: "0.25rem 0.6rem", cursor: "pointer", fontFamily: "inherit" };
@@ -23,6 +36,10 @@ export function PdfModal({ url, label, fileName, onClose }) {
   const ext = (fileName || "").split(".").pop().toLowerCase();
   const isDocx = ext === "docx" || ext === "doc";
 
+  // For Word documents only: fetch the raw file, then use mammoth (imported
+  // dynamically to avoid bundling it for the common PDF case) to convert it to
+  // HTML for display. The resulting HTML is sanitized with DOMPurify below
+  // before being rendered, since it originates from a file the student uploaded.
   useEffect(() => {
     if (!isDocx || !url) return;
     setDocxLoading(true);
@@ -43,6 +60,10 @@ export function PdfModal({ url, label, fileName, onClose }) {
     })();
   }, [url]);
 
+  // Keeps the fullscreen button's icon/label in sync with actual fullscreen state
+  // — needed because fullscreen can also be exited via Esc or the browser's own
+  // UI, not just our button, so we can't just track it with local toggle state.
+  // Both prefixed and unprefixed events are listened for Safari/WebKit support.
   useEffect(() => {
     const handler = () => setIsFullScreen(!!document.fullscreenElement);
     document.addEventListener("fullscreenchange", handler);
@@ -73,6 +94,9 @@ export function PdfModal({ url, label, fileName, onClose }) {
     } catch (e) { Sentry.captureException(e); toast.error("Could not save. Please try again."); }
   };
 
+  // Uses the native OS "share sheet" (mobile browsers/some desktops) to let the
+  // user open the file in another app. Falls back to just opening the file URL
+  // in a new tab if the Web Share API (with file support) isn't available.
   const openWith = async () => {
     if (navigator.share) {
       try {

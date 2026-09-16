@@ -2,12 +2,22 @@ import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import BackButton from "../components/BackButton";
 
+// TermsOfServicePage — PUBLIC legal page (studentshifts.ie/terms), linked
+// from the signup form's terms checkbox and the site footer, same as
+// PrivacyPolicyPage. This file is almost entirely static legal copy (28
+// numbered clauses covering eligibility, verification, acceptable use,
+// liability, etc.) rendered through small reusable layout components defined
+// near the bottom of the file (TosSection/Card/FullTable). Per CLAUDE.md,
+// the legal substance here is a placeholder that still needs solicitor
+// review before full launch — this page's job is just to render it.
 const CONTACT_EMAIL = "hello@studentshifts.ie";
 const LEGAL_EMAIL   = "legal@studentshifts.ie";
 const LAST_UPDATED  = "7 June 2026";
 const EFFECTIVE     = "7 June 2026";
 
 export default function TermsOfServicePage() {
+  // Shows the floating "back to top" button once the reader has scrolled
+  // far enough down this (very long) document to need it.
   const [showTop, setShowTop] = useState(false);
   useEffect(() => {
     const handler = () => setShowTop(window.scrollY > 400);
@@ -41,7 +51,8 @@ export default function TermsOfServicePage() {
 
         <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 2rem" }}>
 
-          {/* TOC */}
+          {/* TOC — each entry smooth-scrolls to its matching
+              <TosSection id="tos-section-N"> instead of an instant anchor jump */}
           <div style={{ backgroundColor: "var(--color-bg-elevated, white)", border: "1px solid var(--color-border-light, #e2e8f0)", borderRadius: "0.75rem", padding: "1.5rem 2rem", marginBottom: "2.5rem" }}>
             <p style={tocHead}>Table of Contents</p>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gridTemplateRows: "repeat(14, auto)", gridAutoFlow: "column", gap: "0 1.5rem" }}>
@@ -605,6 +616,11 @@ export default function TermsOfServicePage() {
 }
 
 /* ── Layout helpers ──────────────────────────────────────────────────── */
+// Small presentational components used only on this page to keep the wall
+// of legal text below organised: TosSection wraps one numbered clause (adds
+// the round number badge, heading, and scroll-anchor id the table-of-contents
+// links jump to); Card is a plain bordered box; FullTable renders the
+// obligation/legislation tables used in a few sections.
 
 function TosSection({ num, title, children }) {
   return (

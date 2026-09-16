@@ -1,3 +1,7 @@
+// Profile read/write operations (the `profiles` table plus its role-specific
+// `students`/`companies` child row) and the two GDPR-driven account operations:
+// exporting all of a user's personal data (Art. 20, "right to data portability") and
+// permanently deleting an account (Art. 17, "right to erasure").
 import { supabase, withTimeout, ensureValidSession } from "./supabase";
 
 /** Fetches a user's full profile (profiles + students/companies join). Retries once on timeout.
@@ -22,6 +26,9 @@ export async function getProfile(userId) {
   }
 }
 
+// `updates` is a partial object of just the changed columns — the caller (AccountPage)
+// only sends what the user actually edited, and Postgres/PostgREST merges it into the
+// existing row rather than requiring the full row to be resent.
 export async function updateStudentProfile(userId, updates) {
   await ensureValidSession();
   const { error } = await withTimeout(
@@ -40,6 +47,12 @@ export async function updateCompanyProfile(userId, updates) {
   if (error) throw error;
 }
 
+// Saves a company's CRO (Companies Registration Office) number, but only the first
+// time — .is("cro_number", null) means the update only touches the row if the
+// column is still empty, so it can't silently overwrite a number that's already
+// been recorded (and potentially used for verification). Failures are logged rather
+// than thrown since this is typically called as a best-effort backfill, not a
+// user-initiated save the UI needs to react to.
 export async function saveCompanyCroNumber(userId, croNumber) {
   if (!croNumber) return;
   await ensureValidSession();
@@ -61,6 +74,9 @@ export async function saveCompanyIndustries(userId, industries) {
 }
 
 /** Exports all personal data as a JSON-serialisable object (GDPR Art. 20). */
+// Gathers data from several tables with Promise.all (parallel queries) rather than
+// one at a time, since none of the queries depend on each other's results and this
+// keeps the export from feeling slow to the user.
 export async function exportMyData(userId, role = "student") {
   // F15: use RPC to atomically check + insert the rate-limit row, preventing a race
   // where two concurrent requests both pass the 24-hr check before either inserts.
@@ -104,6 +120,10 @@ export async function exportMyData(userId, role = "student") {
     supabase.from("chat_messages").select("text, created_at, sender_id").eq("student_id", userId).order("created_at"),
     // GDPR Art. 15: company_notes are personal data about the student — included via SECURITY DEFINER
     // RPC because the column-level REVOKE blocks PostgREST from returning it directly.
+    // In other words: normally a student can't read company_notes on their own
+    // applications row at all (companies write private notes there), but GDPR entitles
+    // them to see data held about them, so this RPC runs with elevated privilege
+    // specifically to surface it for exports without loosening the column's everyday RLS.
     supabase.rpc("get_student_application_notes", { p_student_id: userId }),
   ]);
   // F14: surface any query errors
@@ -126,9 +146,14 @@ export async function exportMyData(userId, role = "student") {
 
 export async function deleteAccount() {
   // GDPR Art. 17 — erase storage files before deleting the auth user
+  // Storage objects aren't automatically cleaned up when the auth user (and their DB
+  // rows) are deleted, so this has to happen first and explicitly, otherwise orphaned
+  // files would be left behind in every bucket with no owner left to associate them with.
   const { data: { user } } = await supabase.auth.getUser();
   const uid = user?.id;
   if (uid) {
+    // allSettled (not all) so one bucket failing to list/delete doesn't stop the others —
+    // account deletion should still proceed even if, say, the user never had any documents.
     const [avatarRes, docRes, verifyRes, photoRes] = await Promise.allSettled([
       supabase.storage.from("avatars").list(uid, { limit: 1000 }),
       supabase.storage.from("documents").list(uid, { limit: 1000 }),
@@ -154,6 +179,9 @@ export async function deleteAccount() {
     }
   }
 
+  // delete_account is a SECURITY DEFINER RPC — deleting a row from auth.users requires
+  // elevated privilege the client's anon/authenticated key doesn't have directly, and
+  // it also cascades to remove the user's profiles/students/companies rows.
   const { error } = await withTimeout(
     supabase.rpc("delete_account"),
     15000, "Account deletion timed out — please try again."
