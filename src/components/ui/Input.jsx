@@ -1,4 +1,9 @@
-﻿export default function Input({
+﻿// Shared text input with a built-in label, optional hint text, and error
+// message display — used across forms (login, signup, account, job posting)
+// instead of styling raw <input> elements individually each time. Any extra
+// props (placeholder, type, value, onChange, etc.) pass straight through to
+// the underlying <input> via ...inputProps.
+export default function Input({
   label,
   hint,
   error,

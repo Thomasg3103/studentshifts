@@ -4,6 +4,17 @@ import { signOut as authSignOut } from "../lib/authOps";
 import { useApp } from "../context/AppContext";
 import { supabaseImg } from "../utils/img";
 
+// Top-level site header, rendered on (almost) every page. It's the one
+// component in the app that has to know about every user role — it shows
+// different nav links for students, companies, admins, and logged-out
+// visitors, and switches to a completely different layout (bottom tab bar
+// instead of a top nav row) on mobile screens. Also owns the hamburger
+// dropdown menu (Login/Sign Up or About/Help/Sign Out depending on role)
+// and the dark-mode toggle.
+//
+// This file also defines the small icon components (HeartIcon, ChatIcon,
+// etc.) used by both the desktop nav and the two mobile bottom-nav variants
+// below, so the same icon set stays visually consistent everywhere.
 export default function Header() {
   const { currentUser, setPage, likedJobs, appliedJobs, notifCount, msgCount, darkMode, toggleDarkMode } = useApp();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -13,6 +24,9 @@ export default function Header() {
 
   const isMobile = windowWidth < 1024;
 
+  // Small red notification-dot count on the Account nav item, nudging
+  // students to complete optional profile fields (CV, cover letter,
+  // LinkedIn) that make them more likely to get hired.
   const optionalBadge = (() => {
     if (currentUser?.role !== "student") return 0;
     let n = 0;
@@ -22,12 +36,18 @@ export default function Header() {
     return n;
   })();
 
+  // Tracks viewport width in state (rather than just using a CSS media
+  // query) because the mobile/desktop layouts are different enough — bottom
+  // tab bar vs. top nav row — that it's simpler to branch in JS than to hide
+  // one and show the other in pure CSS.
   useEffect(() => {
     const handler = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handler);
     return () => window.removeEventListener("resize", handler);
   }, []);
 
+  // Closes the hamburger dropdown when the user clicks anywhere outside it —
+  // standard "click outside to dismiss" pattern for menus/popovers.
   useEffect(() => {
     const handler = e => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
@@ -36,6 +56,9 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Clicking the logo should take each role "home" — but "home" means a
+  // different page per role (company's own job listings, admin's queue,
+  // or the student job feed for everyone else including logged-out visitors).
   const homeRoute = currentUser?.role === "company" ? "companyDashboard"
     : currentUser?.role === "admin" ? "admin"
     : "studentDashboard";
@@ -267,6 +290,8 @@ export default function Header() {
   );
 }
 
+// Fixed bottom tab bar shown to students on mobile — the primary navigation
+// surface on small screens, replacing the desktop top-nav links.
 function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCount, currentUser, optionalBadge, pathname }) {
   const isHome     = pathname === "/" || pathname.startsWith("/jobs/");
   const isLiked    = pathname === "/liked";
@@ -283,6 +308,10 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
   });
 
   /* #18 — brief bounce animation on icon when tapping a tab */
+  // Removing the CSS class then re-adding it on the *next* animation frame
+  // (rather than just adding it) is a trick to force the browser to restart
+  // the CSS animation even if it was still running or had just finished —
+  // simply re-adding an already-present class wouldn't re-trigger it.
   const bounceIcon = (e) => {
     const icon = e.currentTarget.querySelector("svg, img");
     if (!icon) return;
@@ -353,6 +382,9 @@ function MobileBottomNav({ setPage, likedJobs, _appliedJobs, msgCount, notifCoun
   );
 }
 
+// Company's equivalent of MobileBottomNav above — same fixed-bottom-bar
+// pattern, but with company-relevant tabs (Browse students, My Jobs) instead
+// of student ones (Liked, Applied).
 function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
   const isBrowse   = pathname === "/";
   const isMessages = pathname === "/company/messages";
@@ -367,6 +399,7 @@ function CompanyMobileBottomNav({ setPage, pathname, msgCount, currentUser }) {
     fontSize: "0.6rem", fontWeight: active ? 700 : 500,
   });
 
+  // Same "brief bounce on tap" trick as MobileBottomNav above (#18).
   const bounceIcon = (e) => {
     const icon = e.currentTarget.querySelector("svg, img");
     if (!icon) return;

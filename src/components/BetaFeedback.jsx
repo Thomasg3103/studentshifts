@@ -1,4 +1,12 @@
 // BETA ONLY — remove this file and its import in StudentShiftsWeb.jsx before full launch
+//
+// Floating "Share Feedback" button + modal shown to every logged-in
+// non-admin user during the beta period, so early testers can quickly
+// report bugs or ideas without leaving the page. Submissions are written
+// straight to the `beta_suggestions` table in Supabase for the team to
+// review later — there's no admin UI for reading them yet, it's just a
+// collection bucket. Once the beta period ends this whole component (and
+// its import) should be deleted.
 import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { supabase } from "../lib/supabase";
@@ -21,6 +29,8 @@ export default function BetaFeedback() {
     return () => window.removeEventListener("ss-cookie-banner-dismissed", onDismissed);
   }, []);
 
+  // Only show to signed-in students/companies — admins don't need to give
+  // beta feedback, and logged-out visitors have nothing to give feedback on yet.
   if (!currentUser || currentUser.role === "admin") return null;
 
   const handleSubmit = async () => {

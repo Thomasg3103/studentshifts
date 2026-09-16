@@ -2,14 +2,25 @@
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useApp } from "../context/AppContext";
 
+// One-time celebration modal shown to a company the first time they load
+// the app after admin has verified their account. It nudges them to post
+// their first job. "One-time" is tracked per-user in localStorage (not the
+// database) — so it's a purely client-side/per-browser flag, not something
+// that would follow the company to a different device.
 const STORAGE_KEY = (id) => `ss_company_onboarding_done_${id}`;
 
 export default function CompanyOnboardingBanner({ onPostJob }) {
   const { currentUser } = useApp();
   const [visible, setVisible] = useState(false);
   const panelRef = useRef(null);
+  // Traps Tab/Shift+Tab focus inside the modal while it's open (accessibility),
+  // and treats Escape as a dismiss — see hooks/useFocusTrap.js.
   useFocusTrap(panelRef, () => dismiss(), visible);
 
+  // Decide whether to show the banner: only for verified companies, and only
+  // once ever (checked via localStorage). The setTimeout delay lets the rest
+  // of the dashboard render first so the modal doesn't pop in before the page
+  // has settled.
   useEffect(() => {
     if (!currentUser) return;
     if (currentUser.role !== "company") return;
@@ -20,6 +31,9 @@ export default function CompanyOnboardingBanner({ onPostJob }) {
     return () => clearTimeout(t);
   }, [currentUser?.id, currentUser?.verificationStatus]);
 
+  // Marks this company as having seen the banner so it never shows again,
+  // then hides it. Used both by the explicit "close" actions and by clicking
+  // the backdrop.
   const dismiss = () => {
     if (currentUser?.id) localStorage.setItem(STORAGE_KEY(currentUser.id), "1");
     setVisible(false);

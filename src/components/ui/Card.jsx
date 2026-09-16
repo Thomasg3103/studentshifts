@@ -1,3 +1,7 @@
+// Generic bordered/rounded container used as the building block for job
+// cards, list rows, panels, etc. across the app. Becomes keyboard-accessible
+// and clickable (role="button", Enter/Space triggers onClick) automatically
+// whenever an onClick prop is passed — otherwise it's just a plain <div>.
 export default function Card({
   children,
   elevated = false,

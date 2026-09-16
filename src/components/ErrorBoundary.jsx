@@ -1,12 +1,27 @@
 ﻿import { Component } from "react";
 import * as Sentry from "@sentry/react";
 
+// React "Error Boundary" — a special class component that catches JavaScript
+// errors thrown anywhere in its child component tree during rendering, and
+// shows a fallback UI instead of letting the crash take down the whole app
+// (a white screen with nothing on it). Regular try/catch doesn't work for
+// this because React renders happen outside your own function call stack —
+// error boundaries are the one mechanism React provides for catching them,
+// and (as of when this was written) that mechanism only exists as a class
+// component with these two special lifecycle methods; there's no hook
+// equivalent. This component wraps the whole app (see StudentShiftsWeb.jsx)
+// as a last-resort safety net.
 export default class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
     this.state = { hasError: false, error: null };
   }
 
+  // Chunk-load errors happen when a user has the app open, we ship a new
+  // deploy (which renames the lazy-loaded JS/CSS chunk files), and their
+  // browser then tries to fetch an old chunk filename that no longer exists.
+  // Detecting these by message lets us auto-recover with a reload instead of
+  // showing a scary error screen for what's really just a "please refresh".
   static isChunkError(error) {
     const msg = error?.message || "";
     return (
@@ -17,6 +32,10 @@ export default class ErrorBoundary extends Component {
     );
   }
 
+  // React calls this automatically (it's a required lifecycle method for
+  // error boundaries) as soon as a descendant component throws during render.
+  // Whatever object this returns gets merged into state, which is what
+  // triggers the fallback UI in render() below.
   static getDerivedStateFromError(error) {
     // Auto-reload on chunk-load failures caused by a new deploy replacing old hashed filenames.
     // Only reload once to avoid infinite loops if the new chunk itself is broken.
@@ -29,6 +48,10 @@ export default class ErrorBoundary extends Component {
     return { hasError: true, error };
   }
 
+  // The second required error-boundary lifecycle method — called after
+  // getDerivedStateFromError, and used for side effects (logging) rather
+  // than for computing state. This is where the crash actually gets reported
+  // to Sentry so the team finds out about it.
   componentDidCatch(error, info) {
     if (ErrorBoundary.isChunkError(error)) return; // reload already triggered, skip Sentry noise
     console.error("Unhandled error:", error, info);

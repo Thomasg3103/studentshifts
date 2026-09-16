@@ -1,4 +1,9 @@
-﻿const SIZE = {
+﻿// Shared button component used throughout the app instead of raw <button>
+// tags, so every button gets consistent styling. `variant` picks the color
+// scheme (primary/secondary/ghost/danger), `size` picks padding/font-size,
+// and `loading` shows a small inline spinner and disables the button while
+// an async action (like a form submit) is in progress.
+const SIZE = {
   sm: { fontSize: "0.8rem",  padding: "0.4rem 0.9rem"  },
   md: { fontSize: "0.9rem",  padding: "0.65rem 1.4rem" },
   lg: { fontSize: "1rem",    padding: "0.8rem 1.75rem"  },

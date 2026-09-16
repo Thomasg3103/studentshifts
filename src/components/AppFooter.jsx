@@ -1,10 +1,18 @@
 import { useNavigate } from "react-router-dom";
 import { useApp } from "../context/AppContext";
 
+// Site-wide footer shown at the bottom of most public/marketing-style pages
+// (About, Jobs list, Help, etc). Purely presentational/navigational — it has
+// no data of its own, it just renders links that call setPage-style navigation
+// via React Router's navigate(). Kept as one file with inline styles (rather
+// than a CSS file) to match the rest of the app's styling approach.
 export default function AppFooter() {
   const { currentUser } = useApp();
   const navigate = useNavigate();
 
+  // "Advertise a Job" needs to send companies straight to their dashboard,
+  // but send everyone else (including logged-out visitors) to Login first —
+  // otherwise a student or anonymous visitor would hit a page they can't use.
   const handleAdvertise = () => {
     if (currentUser?.role === "company") navigate("/company");
     else navigate("/login");
@@ -62,6 +70,10 @@ export default function AppFooter() {
   );
 }
 
+// Small helper so every footer link (external social link or internal
+// navigation link) gets the same hover styling without repeating it —
+// renders an <a> when given href (external, opens new tab), otherwise
+// a clickable <p> that calls onClick (internal navigation).
 function FLink({ onClick, href, children }) {
   const style = { margin: "0.45rem 0", fontSize: "0.83rem", cursor: "pointer", color: "rgba(255,255,255,0.5)", textDecoration: "none", display: "block" };
   const hover = e => e.currentTarget.style.color = "white";

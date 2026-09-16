@@ -1,3 +1,10 @@
+// Loading-state placeholder components ("skeleton screens") — shown while
+// real data (jobs, applications, etc.) is still being fetched, instead of a
+// blank page or a plain spinner. Shapes here are hand-matched to the actual
+// layout of the content they stand in for (job cards, job rows, etc.) so the
+// page doesn't visually "jump" once real data replaces the skeleton. The
+// shimmer animation itself comes from the shared "skeleton" CSS class.
+
 /** Primitive shimmer block — use className="skeleton" or this component */
 export function Skeleton({ width = "100%", height = "1rem", borderRadius = "0.5rem", style = {} }) {
   return (

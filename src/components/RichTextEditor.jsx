@@ -1,10 +1,31 @@
 ﻿import { useRef, useEffect, useCallback, useState } from "react";
 import DOMPurify from "dompurify";
 
+// Lightweight rich-text (bold/italic/underline/lists) editor built on the
+// browser's native `contentEditable` + `document.execCommand`, rather than
+// pulling in a heavyweight editor library — used anywhere the app needs
+// simple formatted text input (e.g. a job description field). `value` is
+// stored/passed around as an HTML string.
+//
+// Two safety points worth knowing:
+// - `execCommand` is a long-deprecated browser API, but it's still widely
+//   supported and is the simplest way to get basic formatting without a
+//   dependency; there's no guarantee it stays supported forever.
+// - Every bit of HTML that comes out of the editor (and any HTML value fed
+//   back in) is run through DOMPurify.sanitize() — contentEditable can
+//   produce/accept arbitrary HTML, so this strips anything dangerous
+//   (like <script> tags) before it's stored or re-rendered.
 export default function RichTextEditor({ value, onChange, placeholder = "Start typing…" }) {
   const editorRef = useRef(null);
+  // Tracks which formatting commands are "active" at the current cursor
+  // position (e.g. is the caret inside bold text?) so the toolbar buttons
+  // can show a pressed/highlighted state.
   const [activeFormats, setActiveFormats] = useState({});
 
+  // Keeps the editor's DOM content in sync when `value` changes from
+  // outside (e.g. loading an existing job description). Skipped while the
+  // editor itself has focus — otherwise typing would fight with this effect
+  // overwriting the DOM (and losing cursor position) on every keystroke.
   useEffect(() => {
     const el = editorRef.current;
     if (!el) return;
@@ -13,10 +34,16 @@ export default function RichTextEditor({ value, onChange, placeholder = "Start t
     if (el.innerHTML !== clean) el.innerHTML = clean;
   }, [value]);
 
+  // Reads the current DOM content back out, sanitizes it, and reports it to
+  // the parent via onChange. Called after every edit (typing or toolbar action).
   const emit = useCallback(() => {
     onChange(DOMPurify.sanitize(editorRef.current?.innerHTML || ""));
   }, [onChange]);
 
+  // queryCommandState tells us whether a given formatting command is
+  // currently "on" at the cursor — wrapped in try/catch because some
+  // commands can throw in certain browsers/contexts rather than just
+  // returning false.
   const refreshActive = () => {
     const state = {};
     ["bold", "italic", "underline", "insertUnorderedList", "insertOrderedList"].forEach(f => {
@@ -25,6 +52,7 @@ export default function RichTextEditor({ value, onChange, placeholder = "Start t
     setActiveFormats(state);
   };
 
+  // Runs a formatting command (bold/italic/etc) on the current selection.
   const exec = (cmd) => {
     editorRef.current?.focus();
     document.execCommand(cmd, false, null);
@@ -66,6 +94,11 @@ export default function RichTextEditor({ value, onChange, placeholder = "Start t
   );
 }
 
+// Toolbar button (Bold/Italic/Underline/list buttons). Uses onMouseDown
+// (with preventDefault) instead of onClick, because a normal click would
+// first fire mousedown on the button, moving focus away from the editor and
+// collapsing/losing the user's text selection — by the time onClick fired,
+// there'd be nothing left to apply formatting to.
 function ToolBtn({ cmd, children, title, active, onExec, style = {} }) {
   return (
     <button

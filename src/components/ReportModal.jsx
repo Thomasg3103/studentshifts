@@ -13,6 +13,12 @@ const REASONS = [
   "Other",
 ];
 
+// Reusable "Report this user/job/message" modal — opened from wherever a
+// report action is offered in the app (e.g. reporting a student's profile,
+// a company, or a job listing). `targetType`/`targetId` identify what's
+// being reported, and get written straight into the `reports` table for
+// admin review. Not tied to any one page — any caller just needs to pass
+// in what's being reported and an onClose handler.
 export default function ReportModal({ targetType, targetId, targetName, onClose }) {
   const [reason,      setReason]      = useState("");
   const [detail,      setDetail]      = useState("");
@@ -21,8 +27,14 @@ export default function ReportModal({ targetType, targetId, targetName, onClose 
   const [submitting,  setSubmitting]  = useState(false);
   const modalRef  = useRef(null);
   const fileRef   = useRef(null);
+  // Keeps keyboard focus (Tab/Shift+Tab) cycling within the modal while
+  // it's open, and closes it on Escape — standard modal accessibility.
   useFocusTrap(modalRef, onClose, true);
 
+  // Handles picking screenshot files from the hidden file input. Caps the
+  // total at 3 screenshots regardless of how many are selected at once.
+  // Object URLs (URL.createObjectURL) are used for instant local image
+  // previews before anything is actually uploaded to Supabase.
   const handleFiles = (e) => {
     const incoming = Array.from(e.target.files);
     e.target.value = "";
@@ -32,12 +44,17 @@ export default function ReportModal({ targetType, targetId, targetName, onClose 
     setPreviews(prev => [...prev, ...newPrev].slice(0, 3));
   };
 
+  // Removing a screenshot must also revoke its object URL — otherwise the
+  // browser keeps that in-memory blob reference alive for the life of the page.
   const removeScreenshot = (i) => {
     URL.revokeObjectURL(previews[i]);
     setScreenshots(prev => prev.filter((_, idx) => idx !== i));
     setPreviews(prev => prev.filter((_, idx) => idx !== i));
   };
 
+  // Uploads any attached screenshots to Supabase Storage first (each report
+  // needs its own uploaded copy — screenshots aren't referenced by URL from
+  // elsewhere), then inserts the report row with the resulting public URLs.
   const handleSubmit = async () => {
     const full = reason === "Other"
       ? detail.trim()

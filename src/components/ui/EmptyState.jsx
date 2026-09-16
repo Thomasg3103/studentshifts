@@ -1,5 +1,8 @@
 ﻿import Button from "./Button";
 
+// Shown in place of a list/grid when there's nothing to display yet (e.g.
+// "No jobs found", "No applications yet") — an icon/emoji, a title, optional
+// description, and up to two action buttons (e.g. "Post a Job" / "Learn more").
 export default function EmptyState({ icon, title, description, action, actionLabel, secondaryAction, secondaryLabel }) {
   return (
     <div style={{ textAlign: "center", padding: "3.5rem 1.5rem", color: "var(--color-text-secondary, #6b7280)" }}>

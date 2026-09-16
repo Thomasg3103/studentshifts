@@ -2,6 +2,13 @@
 import { useFocusTrap } from "../hooks/useFocusTrap";
 import { useApp } from "../context/AppContext";
 
+// One-time, 3-step welcome wizard shown to a student the first time they
+// load the app after admin has verified their student ID/gov ID. Walks them
+// through a quick welcome message, setting their location (for
+// distance-to-job calculations), and picking weekly availability — the same
+// kind of info they could set later from Account, but front-loaded here so
+// new users start with a useful profile. "One-time" is tracked per-user in
+// localStorage (client-side only), same pattern as CompanyOnboardingBanner.jsx.
 const STORAGE_KEY = (id) => `ss_onboarding_done_${id}`;
 
 const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -63,6 +70,10 @@ function LocationStep({ onNext, onBack, onSkip }) {
     }
   }, []);
 
+  // Turns whatever the student typed (town, city, or Eircode) into
+  // lat/lng coordinates using OpenStreetMap's free Nominatim geocoding
+  // service, restricted to Ireland — this is what lets the job feed later
+  // show "X km away" for each listing.
   const geocode = async () => {
     const q = input.trim();
     if (!q) { setError("Enter a town, city or Eircode."); return; }
@@ -138,6 +149,11 @@ function AvailabilityStep({ onDone, onBack }) {
 
   const hasAny = Object.values(selected).some(v => v.length > 0);
 
+  // Only bothers saving to the database if the student actually selected
+  // something — skipping straight through without picking availability is a
+  // valid choice, and shouldn't overwrite anything with an empty object.
+  // Dynamic import keeps the (fairly large) auth/db module out of the main
+  // bundle until this step is actually reached.
   const handleDone = async () => {
     if (hasAny) {
       setSaving(true);
@@ -208,8 +224,12 @@ export default function StudentOnboarding() {
   const [step, setStep]       = useState(0);
   const [visible, setVisible] = useState(false);
   const panelRef = useRef(null);
+  // Traps Tab focus inside the modal and treats Escape as a dismiss —
+  // same accessibility pattern used across the app's other modals.
   useFocusTrap(panelRef, () => dismiss(), visible);
 
+  // Only ever show this wizard to a newly-verified student who hasn't
+  // completed (or skipped) it before — checked via localStorage.
   useEffect(() => {
     if (!currentUser) return;
     if (currentUser.role !== "student") return;

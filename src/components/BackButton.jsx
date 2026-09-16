@@ -1,5 +1,14 @@
 ﻿import { useNavigate } from "react-router-dom";
 
+// Small reusable "← Back" control used at the top of detail/sub pages
+// (e.g. a single job listing, an account sub-page) so users can return
+// to wherever they came from without relying on the browser's own back
+// button. navigate(-1) just replays the browser history one step back,
+// same as clicking the browser's back button, but styled to match the app.
+//
+// `sticky` switches between two layouts: a normal in-flow bar (default,
+// used on pages with their own scroll) or a bar pinned under the header
+// that stays visible while the page content scrolls beneath it.
 export default function BackButton({ sticky = false }) {
   const navigate = useNavigate();
   return (

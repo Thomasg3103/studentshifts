@@ -2,11 +2,23 @@ import { useState } from "react";
 import { useApp } from "../context/AppContext";
 import { initGA, initSentry, initClarity } from "../main";
 
+// Bottom-of-screen cookie consent bar shown to every visitor until they
+// dismiss it. Beyond just hiding itself, dismissing is also the trigger
+// that turns on the analytics/monitoring scripts (Google Analytics, Sentry,
+// Microsoft Clarity) — those are intentionally NOT initialised on app load,
+// only once the user has acknowledged the cookie notice. This key is also
+// read by BetaFeedback.jsx to decide whether to sit higher up (to avoid
+// overlapping this banner).
 export const COOKIE_NOTICE_STORAGE_KEY = "ss_cookie_notice_dismissed";
 
 export default function CookieBanner() {
   const { setPage, currentUser } = useApp();
+  // Students and companies get a mobile bottom nav bar (see Header.jsx) —
+  // lift this banner above it on mobile so the two don't overlap.
   const hasBottomNav = !!(currentUser?.role === "student" || currentUser?.role === "company");
+  // Lazy initializer reads localStorage once on first render, so a user who
+  // already dismissed the banner on a previous visit doesn't see it flash
+  // on screen before disappearing.
   const [dismissed, setDismissed] = useState(
     () => localStorage.getItem(COOKIE_NOTICE_STORAGE_KEY) === "1"
   );

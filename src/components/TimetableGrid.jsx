@@ -7,6 +7,34 @@ const SLOTS = [
   "14:00","15:00","16:00","17:00","18:00","19:00","20:00","21:00","22:00",
 ];
 
+// Drag-to-select weekly availability grid — used in AccountPage and
+// StudentOnboarding so a student can mark which hours of which days they're
+// free to work, by clicking/tapping a cell or dragging across several at once.
+//
+// Interaction model:
+// - `value` is the "committed" availability: an object like
+//   { Monday: ["09:00", "10:00"], ... } — only days with at least one slot
+//   are present as keys.
+// - Clicking a single cell just toggles that one slot (select if it was
+//   empty, deselect if it was already selected).
+// - Clicking and dragging across multiple cells does a "paint" gesture: the
+//   very first cell you click decides the mode for the whole drag — if that
+//   cell was empty, you're now in "add" mode and every cell you drag over
+//   gets selected; if it was already selected, you're in "remove" mode and
+//   every cell you drag over gets cleared. This means one drag can only add
+//   or only remove, never both, which keeps the gesture predictable.
+// - While a drag is in progress, nothing is written back via onChange yet —
+//   the grid renders a live preview (`display`, computed by re-applying the
+//   in-progress drag over the last committed `value`) so the user sees cells
+//   light up/clear as they drag, but the actual onChange commit only happens
+//   once the drag ends (mouse up / touch end / mouse leaving the grid).
+// - `touched` is a Set of "day:slot" keys the current drag has passed over,
+//   used both to compute the preview and, on commit, to apply the drag's
+//   single mode to every one of those cells.
+// - Touch dragging works differently from mouse dragging: touch events only
+//   fire on the element where the touch started, so onTouchMove has to
+//   manually figure out which cell is under the finger right now via
+//   document.elementFromPoint, using each cell's data-cell attribute.
 function hrLabel(slot) {
   const h = parseInt(slot);
   if (h === 12) return "12pm";
@@ -20,6 +48,11 @@ const QUICK_FILLS = [
   { label: "Clear all",         clear: true },
 ];
 
+// Given the availability as it was when a drag started, replays the drag's
+// single mode ("add" or "remove") over every cell the drag has touched so
+// far, returning a brand-new availability object. Used both for the live
+// preview while dragging and to compute the final committed value once the
+// drag ends — same function, just called at different times.
 function applyDrag(startValue, mode, touched) {
   const result = {};
   for (const day of DAYS_FULL) {
@@ -35,20 +68,29 @@ function applyDrag(startValue, mode, touched) {
 }
 
 export default function TimetableGrid({ value, onChange }) {
+  // Null when no drag is in progress. While dragging, holds the drag's
+  // fixed mode ("add"/"remove"), a snapshot of `value` from the moment the
+  // drag started, and the set of cells touched so far.
   const [drag, setDrag] = useState(null);
   const containerRef = useRef(null);
 
+  // What's actually rendered: the live drag preview if one is in progress,
+  // otherwise just the committed `value` from the parent.
   const display = useMemo(() =>
     drag ? applyDrag(drag.startValue, drag.mode, drag.touched) : value,
   [value, drag]);
 
   const isSel = (day, slot) => (display[day] || []).includes(slot);
 
+  // Begins a drag gesture. The mode is locked in based on this first cell:
+  // dragging away from a selected cell removes, dragging from an empty one adds.
   const startDrag = (day, slot) => {
     const mode = isSel(day, slot) ? "remove" : "add";
     setDrag({ mode, startValue: value, touched: new Set([`${day}:${slot}`]) });
   };
 
+  // Adds a newly-entered cell to the in-progress drag's touched set (no-op
+  // if there's no active drag, or this cell was already touched).
   const extendDrag = (day, slot) => {
     if (!drag) return;
     const key = `${day}:${slot}`;
@@ -56,13 +98,20 @@ export default function TimetableGrid({ value, onChange }) {
     setDrag(prev => ({ ...prev, touched: new Set([...prev.touched, key]) }));
   };
 
+  // Finalizes the drag: computes the final availability and pushes it up to
+  // the parent via onChange, then clears drag state. Wired to mouseup,
+  // mouseleave (in case the cursor exits the grid while still held down),
+  // and touchend.
   const commitDrag = () => {
     if (!drag) return;
     onChange(applyDrag(drag.startValue, drag.mode, drag.touched));
     setDrag(null);
   };
 
-  // Touch: find cell under finger
+  // Touch: find cell under finger — touchmove events always target the
+  // element the touch *started* on, not whatever's currently under the
+  // finger, so we have to manually hit-test via elementFromPoint and read
+  // back which cell that is from its data-cell attribute.
   const onTouchMove = (e) => {
     if (!drag) return;
     e.preventDefault();
@@ -76,6 +125,9 @@ export default function TimetableGrid({ value, onChange }) {
 
   const totalSlots = Object.values(display).reduce((s, v) => s + (v?.length || 0), 0);
 
+  // Handles the quick-fill preset buttons (e.g. "Weekday mornings") —
+  // unlike drag selection these apply immediately via onChange rather than
+  // going through the drag-preview flow, since there's no gesture to preview.
   const applyQuick = (q) => {
     if (q.clear) { onChange({}); return; }
     const next = { ...value };

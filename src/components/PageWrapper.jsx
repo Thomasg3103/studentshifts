@@ -1,9 +1,21 @@
 import { useState, useEffect } from "react";
 
+// Generic page-level layout shell used by most pages in the app — it
+// centers the page content, applies the shared card-like background/padding,
+// and adds a "scroll to top" floating button that appears once the user has
+// scrolled down. Using this instead of repeating the same wrapper markup on
+// every page keeps page layout consistent app-wide.
+//
+// `narrow` switches between two layouts: a wide full-width layout for content
+// like job listings/dashboards, and a narrower centered "card" layout
+// (max 520px) better suited to forms like Login/Signup.
 export default function PageWrapper({ children, narrow }) {
 
+  // Controls visibility of the floating "back to top" button.
   const [showTop, setShowTop] = useState(false);
 
+  // Only show the scroll-to-top button once the user has scrolled far enough
+  // that returning to the top by hand would be inconvenient.
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 300);
     window.addEventListener("scroll", onScroll);
