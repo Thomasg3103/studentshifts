@@ -746,7 +746,7 @@ export default function AdminPage() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "0.65rem" }}>
                 {forumPosts.map(post => {
-                  const isExpanded = forumexpandedPostId === post.id;
+                  const isExpanded = expandedPostId === post.id;
                   const comments = forumComments[post.id];
                   return (
                     <div key={post.id} style={cardStyle}>
@@ -847,7 +847,7 @@ export default function AdminPage() {
                           <div key={post.id} style={{ border: isReported ? "2px solid #fca5a5" : "1.5px solid #e2e8f0", borderRadius: "1rem", overflow: "hidden", backgroundColor: isReported ? "#fff5f5" : "white", boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
 
                             {/* Header flags + link */}
-                            {(isReported || true) && (
+                            {isReported && (
                               <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", padding: "0.45rem 0.75rem 0", flexWrap: "wrap" }}>
                                 <a href={`/jobs/${toJobSlug(post.title)}/${toJobSlug(post.companyName)}`} target="_blank" rel="noreferrer" style={{ fontSize: "0.7rem", color: "#64748b", textDecoration: "none", marginLeft: "auto" }}>Open post ↗</a>
                                 <span style={{ fontSize: "0.7rem", fontWeight: "700", borderRadius: "999px", padding: "0.1rem 0.45rem", backgroundColor: post.status === "Active" ? "#dcfce7" : "#f1f5f9", color: post.status === "Active" ? "#16a34a" : "#64748b" }}>{post.status}</span>

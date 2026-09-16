@@ -260,9 +260,6 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [reportModal,    setReportModal]    = useState(null); // { id, title }
   const [jobsLoading,    setJobsLoading]    = useState(!isCached);
   const [jobsError,      setJobsError]      = useState(false);
-  const [applicantCounts, setApplicantCounts] = useState({});
-  const [featuredCompanyIds,   setFeaturedCompanyIds]   = useState(new Set());
-  const [companyResponseRates, setCompanyResponseRates] = useState({});
   const [fetchedPage,  setFetchedPage]  = useState(_jobsPageCache.page);
   const [hasMore,      setHasMore]      = useState(_jobsPageCache.hasMore);
   const [loadingMore,  setLoadingMore]  = useState(false);
@@ -385,35 +382,12 @@ export default function StudentDashboard({ restoreScrollY }) {
     }
     _jobsPageCache.hasMore = rows.length === 20;
     _jobsPageCache.page = pageNum;
-    const jobIds = mapped.map(j => j.id);
-    // Applicant counts and response rates are "nice to have" badges shown
-    // on job cards — fetched separately via RPC (not part of the main jobs
-    // query) and merged into state whenever they arrive, so a slow/failed
-    // fetch here never blocks the jobs themselves from displaying.
-    supabase.rpc("get_job_applicant_counts", { job_ids: jobIds })
-      .then(({ data }) => {
-        if (!data) return;
-        setApplicantCounts(prev => ({ ...prev, ...Object.fromEntries(data.map(r => [r.job_id, Number(r.applicant_count)])) }));
-      })
-      .catch(() => {});
-    // Batch-load response rates for newly seen companies (fire-and-forget)
-    const pageCompanyIds = [...new Set(rows.map(r => r.company_id))];
-    if (pageCompanyIds.length) {
-      supabase.rpc("get_companies_response_rates", { p_company_ids: pageCompanyIds })
-        .then(({ data }) => {
-          if (!data?.length) return;
-          setCompanyResponseRates(prev => ({ ...prev, ...Object.fromEntries(data.map(r => [r.company_id, Number(r.avg_hours)])) }));
-        })
-        .catch(() => {});
-    }
   }
 
   // Runs once on mount: if the module-level cache is still fresh (within
   // JOBS_CACHE_TTL), skip the network call entirely and just render what's
   // cached — this is what makes navigating away and back to this page feel
-  // instant. Otherwise fetch page 0 fresh. Also kicks off a separate,
-  // independent fetch for which companies are "featured" (paid/promoted
-  // placement, presumably) — unrelated to job pagination so it isn't awaited.
+  // instant. Otherwise fetch page 0 fresh.
   useEffect(() => {
     const fresh = _jobsPageCache.jobs.length > 0 && Date.now() - _jobsPageCache.fetchedAt < JOBS_CACHE_TTL;
     if (!fresh) {
@@ -423,10 +397,6 @@ export default function StudentDashboard({ restoreScrollY }) {
       // Cached on mobile: first paint shows 6 cards, then expand to all after two frames
       requestAnimationFrame(() => requestAnimationFrame(() => setRenderAll(true)));
     }
-    // Load featured company IDs once on mount (fire-and-forget)
-    supabase.rpc("get_featured_company_ids")
-      .then(({ data }) => { if (data?.length) setFeaturedCompanyIds(new Set(data.map(r => r.id))); })
-      .catch(() => {});
   }, []);
 
   // Powers the "Load more jobs" button — fetches the next page and appends
@@ -541,7 +511,6 @@ export default function StudentDashboard({ restoreScrollY }) {
   const [payMin,            setPayMin]            = useState("");
   const [payMax,            setPayMax]            = useState("");
   const [matchSchedule,     setMatchSchedule]     = useState(false);
-  const [jobAlerts,         setJobAlerts]         = useState(() => { try { return localStorage.getItem("ss_job_alerts") === "1"; } catch { return false; } });
   const [searchQuery,       setSearchQuery]       = useState("");
   // Debounced version — filter/sort only recomputes 200 ms after the user stops typing
   const [debouncedSearch,   setDebouncedSearch]   = useState("");

@@ -63,7 +63,6 @@ export default function SignupPage() {
   const [done, setDone]         = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [resendSent, setResendSent] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendError, setResendError] = useState("");
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -83,7 +82,6 @@ export default function SignupPage() {
     setResendLoading(true);
     try {
       await resendVerificationEmail(email);
-      setResendSent(true);
       setResendCooldown(60);
     } catch (e) {
       setResendError(e?.message || "Failed to resend — please try again.");

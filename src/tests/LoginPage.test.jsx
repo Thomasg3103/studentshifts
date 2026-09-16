@@ -26,8 +26,10 @@ describe('LoginPage', () => {
   it('renders the login form', () => {
     renderLogin();
     expect(screen.getByText('Welcome back')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Email address')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
+    // These inputs use a floating-label pattern (placeholder=" ", real text in a
+    // <label for="...">), so they must be found by label, not placeholder text.
+    expect(screen.getByLabelText('Email address')).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByText('Login →')).toBeInTheDocument();
   });
 

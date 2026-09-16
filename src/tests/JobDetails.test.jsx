@@ -68,11 +68,11 @@ const baseContext = {
   studentLocation: null,
 };
 
-const renderJobDetails = (contextOverrides = {}) =>
+const renderJobDetails = (contextOverrides = {}, job = mockJob) =>
   render(
     <MemoryRouter>
       <AppContext.Provider value={{ ...baseContext, ...contextOverrides }}>
-        <JobDetails job={mockJob} />
+        <JobDetails job={job} />
       </AppContext.Provider>
     </MemoryRouter>
   );
@@ -90,7 +90,10 @@ describe('JobDetails', () => {
   });
 
   it('shows confirmation modal on apply click', () => {
-    renderJobDetails();
+    // A job with no screening questions uses the "1-tap apply" fast path and
+    // submits immediately, skipping the confirm modal entirely — so a
+    // screening question is needed here to reach the modal this test checks.
+    renderJobDetails({}, { ...mockJob, screeningQuestions: [{ question: 'Are you over 18?', type: 'yes_no' }] });
     fireEvent.click(screen.getByRole('button', { name: 'Apply Now' }));
     expect(screen.getByText(/Apply for Barista\?/i)).toBeInTheDocument();
   });

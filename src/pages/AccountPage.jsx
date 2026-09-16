@@ -118,7 +118,7 @@ const ACCT_TTL = 5 * 60 * 1000;
 
 export default function AccountPage() {
   const navigate = useNavigate();
-  const { currentUser, setCurrentUser, setPage, setLikedJobs, setAppliedJobs, setStudentLocation, darkMode, toggleDarkMode } = useApp();
+  const { currentUser, setCurrentUser, setLikedJobs, setAppliedJobs, setStudentLocation, darkMode, toggleDarkMode } = useApp();
   const { supported: pushSupported, permission: pushPermission, subscribed: pushSubscribed, loading: pushLoading, subscribe: subscribePush, unsubscribe: unsubscribePush } = usePushNotifications(currentUser?.id);
   const [availability, setAvailability]         = useState(currentUser.availability || {});
   const [jobPreferences, setJobPreferences]     = useState(currentUser.jobPreferences || []);
