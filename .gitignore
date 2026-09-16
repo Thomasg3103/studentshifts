@@ -20,6 +20,9 @@ dist-ssr
 # Supabase CLI temp files
 supabase/.temp/
 
+# Agent worktrees (ephemeral, never tracked)
+.claude/worktrees/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
