@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { useApp } from "../context/AppContext";
-import { initGA, initSentry, initClarity } from "../main";
 
-// Bottom-of-screen cookie consent bar shown to every visitor until they
-// dismiss it. Beyond just hiding itself, dismissing is also the trigger
-// that turns on the analytics/monitoring scripts (Google Analytics, Sentry,
-// Microsoft Clarity) — those are intentionally NOT initialised on app load,
-// only once the user has acknowledged the cookie notice. This key is also
+// Bottom-of-screen cookie notice shown to every visitor until they dismiss
+// it. Analytics (GA, Clarity) are currently disabled entirely — "Got it" is
+// not valid consent. When this becomes a real Accept/Reject banner, Accept
+// should call initGA() + initClarity() from ../main. This key is also
 // read by BetaFeedback.jsx to decide whether to sit higher up (to avoid
 // overlapping this banner).
 export const COOKIE_NOTICE_STORAGE_KEY = "ss_cookie_notice_dismissed";
@@ -32,9 +30,6 @@ export default function CookieBanner() {
     // know live so it can drop back down instead of staying raised above a banner
     // that's no longer there.
     window.dispatchEvent(new Event("ss-cookie-banner-dismissed"));
-    initGA();
-    initSentry();
-    initClarity();
   };
 
   return (

@@ -24,6 +24,9 @@ import ErrorBoundary from "./components/ErrorBoundary.jsx";
 
 // Google Analytics 4 — loaded manually (rather than via a plugin) so it can
 // be skipped entirely when no measurement ID is configured (e.g. local dev).
+// NOT called on load: ePrivacy rules require opt-in consent first. GA and
+// Clarity are disabled until the consent banner has a real "Accept" button,
+// which should call initGA() + initClarity().
 const GA_ID = import.meta.env.VITE_GA_MEASUREMENT_ID;
 export function initGA() {
   if (!GA_ID || window.__ga_initialised) return;
@@ -38,11 +41,10 @@ export function initGA() {
   window.gtag("config", GA_ID);
 }
 
-initGA();
-
 // Microsoft Clarity — heatmaps + session recordings (a free tool for seeing
 // how real users actually move through the app: where they click, how far
-// they scroll, where they get stuck). Loaded the same guarded way as GA.
+// they scroll, where they get stuck). Loaded the same guarded way as GA,
+// and likewise NOT called on load until consent exists.
 const CLARITY_ID = import.meta.env.VITE_CLARITY_PROJECT_ID;
 export function initClarity() {
   if (!CLARITY_ID || window.__clarity_initialised) return;
@@ -53,7 +55,6 @@ export function initClarity() {
     y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
   })(window, document, "clarity", "script", CLARITY_ID);
 }
-initClarity();
 
 // Sentry — captures JS errors/crashes from real users in production and
 // reports them with a stack trace, so bugs can be found and fixed even
